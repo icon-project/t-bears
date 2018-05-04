@@ -1,0 +1,83 @@
+# -*- coding: utf-8 -*-
+# Copyright 2017-2018 theloop Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import json
+import os
+import zipfile
+from enum import Enum
+from .util import write_file, get_package_json_dict, get_score_main_template, extract_zip
+
+
+class ExitCode(Enum):
+    SUCCEEDED = 1
+    COMMAND_IS_WRONG = 0
+    SCORE_PATH_IS_NOT_A_DIRECTORY = 2
+    PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY = 3
+
+
+def init(project: 'str', score_class: 'str') -> 'int':
+    """ Initialize SCORE project.
+
+    :param project: your score name.
+    :return:
+    """
+    print("init called")
+    if os.path.exists(f"./{project}"):
+        return ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value
+    package_json_dict = get_package_json_dict(project, score_class)
+    package_json_contents = json.dumps(package_json_dict, indent=4)
+    project_py_contents = get_score_main_template(score_class)
+    test_project_py_contents = ""
+    write_file(project, f"{project}.py", project_py_contents)
+    write_file(project, f"test_{project}.py", test_project_py_contents)
+    write_file(project, "package.json", package_json_contents)
+    extract_zip(f'./{project}')
+    return ExitCode.SUCCEEDED.value
+
+
+def test() -> 'int':
+    print("test called")
+    return ExitCode.SUCCEEDED.value
+
+
+def run() -> 'int':
+    print("run called")
+    return ExitCode.SUCCEEDED.value
+
+
+def deploy(project: 'str', network: 'str') -> 'int':
+    print(f"deploy called. You will deploy score on {network}")
+    return ExitCode.SUCCEEDED.value
+
+
+def compress(project: 'str', score_path: 'str') -> 'int':
+    """ Compress the SCORE.
+
+    :param project: project name. will archive <project>.zip
+    :param score_path: SCORE path(directory).
+    :return:
+    """
+    if not os.path.isdir(score_path):
+        return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value
+    for current_dir, dirs, files in os.walk(score_path):
+        for file in files:
+            if current_dir.find('__pycache__') != -1:
+                continue
+            if os.path.islink(f'{current_dir}/{file}'):
+                continue
+            with zipfile.ZipFile(f'./{project}.zip', mode='a') as score_zip:
+                score_zip.write(f'{current_dir}/{file}')
+
+    return ExitCode.SUCCEEDED.value
