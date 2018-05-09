@@ -17,7 +17,6 @@ import os
 import time
 
 import requests
-
 from tbears_exception import TBearsWriteFileException
 
 
@@ -40,11 +39,13 @@ def get_score_main_template(score_class: str) -> str:
     :param score_class: Your score class name.
     :return:
     """
-    template = """############################################# 
-                  #                                           #
-                  #  Refer this contents to write 'score'.    #
-                  #                                           #
-                  #############################################
+    template = """from iconservice.iconscore.icon_score_base import *
+
+    ############################################# 
+    #                                           #
+    #  Refer this contents to write 'score'.    #
+    #                                           #
+    #############################################
 # @score
 # class SampleToken(IconScoreBase):
 # 
