@@ -58,9 +58,9 @@ _run_process = RunProcess()
 
 
 def run(project: str) -> int:
-    """
+    """ Run score.
 
-    :param project:
+    :param project: score name.
     :return:
     """
     _run_process.run(project)
@@ -68,9 +68,8 @@ def run(project: str) -> int:
 
 
 def stop() -> int:
-    """
+    """ Stop score process.
 
-    :param project:
     :return:
     """
     _run_process.stop()

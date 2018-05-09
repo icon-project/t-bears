@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 requires = [
     'iconservice',
-    'requests'
+    'requests',
     # 'Flask'
 ]
 
