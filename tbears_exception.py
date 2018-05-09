@@ -18,3 +18,7 @@ class TbearsBaseException(Exception):
     """Base exception for tbears."""
     pass
 
+
+class TBearsWriteFileException(TbearsBaseException):
+    """Error while write file."""
+    pass

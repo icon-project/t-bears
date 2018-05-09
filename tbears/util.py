@@ -18,12 +18,21 @@ import time
 
 import requests
 
+from tbears_exception import TBearsWriteFileException
+
 
 def write_file(parent_directory: 'str', file_name: 'str', contents: 'str') -> 'None':
-    if not os.path.exists(parent_directory):
-        os.mkdir(parent_directory)
-    with open(f'./{parent_directory}/{file_name}', mode='w') as file:
-        file.write(contents)
+    try:
+        if not os.path.exists(parent_directory):
+            os.mkdir(parent_directory)
+        with open(f'./{parent_directory}/{file_name}', mode='w') as file:
+            file.write(contents)
+    except PermissionError:
+        raise TBearsWriteFileException
+    except FileExistsError:
+        raise TBearsWriteFileException
+    except IsADirectoryError:
+        raise TBearsWriteFileException
 
 
 def get_score_main_template(score_class: 'str') -> 'str':
@@ -98,6 +107,7 @@ def get_package_json_dict(project: 'str', score_class: 'str') -> 'dict':
 
 
 def make_json_payload(project: str) -> dict:
+    path = os.path.abspath(f'./{project}')
     payload = {
         "jsonrpc": "2.0",
         "method": "icx_sendTransaction",
@@ -112,7 +122,7 @@ def make_json_payload(project: str) -> dict:
             "data_type": "install",
             "data": {
                 "content_type": "tbears/path",
-                "content": f"./{project}"
+                "content": path
             }
         }
     }

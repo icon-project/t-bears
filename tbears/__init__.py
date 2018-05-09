@@ -17,6 +17,8 @@ import json
 import os
 import zipfile
 from enum import Enum
+
+from tbears_exception import TBearsWriteFileException
 from .util import write_file, get_package_json_dict, get_score_main_template
 from .run_process import RunProcess
 
@@ -26,6 +28,7 @@ class ExitCode(Enum):
     COMMAND_IS_WRONG = 0
     SCORE_PATH_IS_NOT_A_DIRECTORY = 2
     PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY = 3
+    WRITE_FILE_ERROR = 4
 
 
 def init(project: 'str', score_class: 'str') -> 'int':
@@ -42,8 +45,12 @@ def init(project: 'str', score_class: 'str') -> 'int':
     package_json_dict = get_package_json_dict(project, score_class)
     package_json_contents = json.dumps(package_json_dict, indent=4)
     project_py_contents = get_score_main_template(score_class)
-    write_file(project, f"{project}.py", project_py_contents)
-    write_file(project, "package.json", package_json_contents)
+    try:
+        write_file(project, f"{project}.py", project_py_contents)
+        write_file(project, "package.json", package_json_contents)
+    except TBearsWriteFileException:
+        print("Except raised while writing files.")
+        return ExitCode.WRITE_FILE_ERROR.value
     return ExitCode.SUCCEEDED.value
 
 
@@ -57,6 +64,16 @@ def run(project: 'str') -> int:
     :return:
     """
     _run_process.run(project)
+    return ExitCode.SUCCEEDED.value
+
+
+def stop(project: str) -> int:
+    """
+
+    :param project:
+    :return:
+    """
+    _run_process.stop(project)
     return ExitCode.SUCCEEDED.value
 
 
