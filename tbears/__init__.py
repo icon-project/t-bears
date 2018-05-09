@@ -17,7 +17,7 @@ import json
 import os
 import zipfile
 from enum import Enum
-from .util import write_file, get_package_json_dict, get_score_main_template, extract_zip
+from .util import write_file, get_package_json_dict, get_score_main_template
 
 
 class ExitCode(Enum):
@@ -31,34 +31,23 @@ def init(project: 'str', score_class: 'str') -> 'int':
     """ Initialize SCORE project.
 
     :param project: your score name.
+    :param score_class: Your score class name.
     :return:
     """
     print("init called")
     if os.path.exists(f"./{project}"):
+        print(f'{project} directory is not empty.')
         return ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value
     package_json_dict = get_package_json_dict(project, score_class)
     package_json_contents = json.dumps(package_json_dict, indent=4)
     project_py_contents = get_score_main_template(score_class)
-    test_project_py_contents = ""
     write_file(project, f"{project}.py", project_py_contents)
-    write_file(project, f"test_{project}.py", test_project_py_contents)
     write_file(project, "package.json", package_json_contents)
-    extract_zip(f'./{project}')
-    return ExitCode.SUCCEEDED.value
-
-
-def test() -> 'int':
-    print("test called")
     return ExitCode.SUCCEEDED.value
 
 
 def run() -> 'int':
     print("run called")
-    return ExitCode.SUCCEEDED.value
-
-
-def deploy(project: 'str', network: 'str') -> 'int':
-    print(f"deploy called. You will deploy score on {network}")
     return ExitCode.SUCCEEDED.value
 
 

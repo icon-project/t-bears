@@ -17,46 +17,34 @@ import argparse
 import sys
 
 from tbears import *
-from tbears.util import check_required_args
 
 
 def main():
     parser = argparse.ArgumentParser(prog='tbears_cli.py', usage="""
     ==========================
-    tbears sample: ~~~~~~~~~~~
+    tbears version : 0.0.1
     ==========================
         tbears commands:
-            init <project>
-            test <project>
+            init <project> <score_class>
             run <project>
-            deploy <project> -n testnet | mainnet
-            compress <project> -p <SCORE directory path>
         """)
 
     parser.add_argument('command', nargs='*', help='init, test, run, deploy, compress, install')
-    parser.add_argument('-n', help='mainnet | testnet', dest='network', type=str, default='testnet')
-    parser.add_argument('-p', help='path of SCORE directory', dest='path', type=str)
 
     args = parser.parse_args()
-
-    command = args.command[0]
-
-    result = None
 
     if len(args.command) < 2:
         parser.print_help()
         sys.exit(ExitCode.COMMAND_IS_WRONG.value)
 
+    command = args.command[0]
+
+    result = None
+
     if command == 'init' and len(args.command) == 3:
-        result = init(args.command[1], args.command[2])
-    elif command == 'test':
-        result = test()
+        result = init(args.command[1], args.command[2].title())
     elif command == 'run':
         result = run()
-    elif command == 'deploy':
-        result = deploy(args.network)
-    elif command == 'compress' and check_required_args(path=args.path):
-        result = compress(project=args.command[1], score_path=args.path)
     else:
         parser.print_help()
         result = ExitCode.COMMAND_IS_WRONG.value
