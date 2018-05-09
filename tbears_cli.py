@@ -25,15 +25,17 @@ def main():
     tbears version : 0.0.1
     ==========================
         tbears commands:
-            init <project> <score_class>
-            run <project>
+            init <project> <score_class> : generate <project>.py and package.json in <project> directory.
+            your score class name will be <score_class>
+            run <project> : run your score project.
+            stop : stop your score.
         """)
 
     parser.add_argument('command', nargs='*', help='init, test, run, deploy, compress, install')
 
     args = parser.parse_args()
 
-    if len(args.command) < 2:
+    if len(args.command) < 1:
         parser.print_help()
         sys.exit(ExitCode.COMMAND_IS_WRONG.value)
 
@@ -43,10 +45,10 @@ def main():
 
     if command == 'init' and len(args.command) == 3:
         result = init(args.command[1], args.command[2])
-    elif command == 'run':
+    elif command == 'run' and len(args.command) == 2:
         result = run(args.command[1])
     elif command == 'stop':
-        result = stop(args.command[1])
+        result = stop()
     else:
         parser.print_help()
         result = ExitCode.COMMAND_IS_WRONG.value

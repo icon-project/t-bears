@@ -21,7 +21,7 @@ import requests
 from tbears_exception import TBearsWriteFileException
 
 
-def write_file(parent_directory: 'str', file_name: 'str', contents: 'str') -> 'None':
+def write_file(parent_directory: str, file_name: str, contents: str) -> None:
     try:
         if not os.path.exists(parent_directory):
             os.mkdir(parent_directory)
@@ -35,7 +35,7 @@ def write_file(parent_directory: 'str', file_name: 'str', contents: 'str') -> 'N
         raise TBearsWriteFileException
 
 
-def get_score_main_template(score_class: 'str') -> 'str':
+def get_score_main_template(score_class: str) -> str:
     """
     :param score_class: Your score class name.
     :return:
@@ -97,7 +97,7 @@ def get_score_main_template(score_class: 'str') -> 'str':
     return template.replace("SampleToken", score_class)
 
 
-def get_package_json_dict(project: 'str', score_class: 'str') -> 'dict':
+def get_package_json_dict(project: str, score_class: str) -> dict:
     package_json_dict = {
         "version": "0.0.1",
         "main_file": f"{project}",
@@ -129,7 +129,7 @@ def make_json_payload(project: str) -> dict:
     return payload
 
 
-def post(url, payload):
+def post(url: str, payload: dict):
     try:
         r = requests.post(url, json=payload, verify=False)
         return r

@@ -31,7 +31,7 @@ class ExitCode(Enum):
     WRITE_FILE_ERROR = 4
 
 
-def init(project: 'str', score_class: 'str') -> 'int':
+def init(project: str, score_class: str) -> int:
     """ Initialize SCORE project.
 
     :param project: your score name.
@@ -57,7 +57,7 @@ def init(project: 'str', score_class: 'str') -> 'int':
 _run_process = RunProcess()
 
 
-def run(project: 'str') -> int:
+def run(project: str) -> int:
     """
 
     :param project:
@@ -67,17 +67,17 @@ def run(project: 'str') -> int:
     return ExitCode.SUCCEEDED.value
 
 
-def stop(project: str) -> int:
+def stop() -> int:
     """
 
     :param project:
     :return:
     """
-    _run_process.stop(project)
+    _run_process.stop()
     return ExitCode.SUCCEEDED.value
 
 
-def compress(project: 'str', score_path: 'str') -> 'int':
+def compress(project: str, score_path: str) -> int:
     """ Compress the SCORE.
 
     :param project: project name. will archive <project>.zip
