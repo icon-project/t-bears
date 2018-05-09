@@ -14,12 +14,6 @@
 # limitations under the License.
 
 import os
-import shutil
-
-from .address import Address, AddressPrefix, create_address  # 바껴야함.
-# from iconservice.base.address import Address, AddressPrefix, create_address 로
-
-TBEARS_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 
 
 def write_file(parent_directory: 'str', file_name: 'str', contents: 'str') -> 'None':
@@ -99,24 +93,3 @@ def get_package_json_dict(project: 'str', score_class: 'str') -> 'dict':
     }
     return package_json_dict
 
-
-def _install_score_for_develop(project: 'str'):
-    """
-
-    :param project:
-    :return:
-    """
-    score_address = create_address(AddressPrefix.CONTRACT, project.encode('utf-8'))
-    tmp_score_id = "00_00"
-    score_path = os.path.join(TBEARS_ROOT_PATH, 'tools', 'score', str(score_address), tmp_score_id)
-    if not os.path.exists(score_path):
-        os.makedirs(score_path)
-        copytree(os.path.join('./', project), score_path)
-
-
-def copytree(src, dst):
-    for item in os.listdir(src):
-        source = os.path.join(src, item)
-        dest = os.path.join(dst, item)
-        if os.path.isdir(source):
-            shutil.copytree(source, dest, False, None)
