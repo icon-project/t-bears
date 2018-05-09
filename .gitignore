@@ -1,4 +1,14 @@
-.idea/
-venv/
-__pycache__/
 testdb/
+
+# IDE generated files
+.idea/
+__pycache__/
+
+# virtual environments
+venv/
+.venv/
+
+# build files
+build/
+dist/
+*.egg-info/
