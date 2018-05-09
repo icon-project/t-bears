@@ -18,6 +18,7 @@ import os
 import zipfile
 from enum import Enum
 from .util import write_file, get_package_json_dict, get_score_main_template
+from .run_process import RunProcess
 
 
 class ExitCode(Enum):
@@ -46,7 +47,11 @@ def init(project: 'str', score_class: 'str') -> 'int':
     return ExitCode.SUCCEEDED.value
 
 
+_run_process = RunProcess()
+
+
 def run() -> 'int':
+    _run_process.run('proj_name')
     print("run called")
     return ExitCode.SUCCEEDED.value
 
