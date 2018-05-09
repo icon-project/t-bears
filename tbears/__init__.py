@@ -17,7 +17,7 @@ import json
 import os
 import zipfile
 from enum import Enum
-from .util import write_file, get_package_json_dict, get_score_main_template
+from .util import write_file, get_package_json_dict, get_score_main_template, _install_score_for_develop
 
 
 class ExitCode(Enum):
@@ -46,8 +46,14 @@ def init(project: 'str', score_class: 'str') -> 'int':
     return ExitCode.SUCCEEDED.value
 
 
-def run() -> 'int':
+def run(project: 'str') -> 'int':
+    """
+
+    :param project:
+    :return:
+    """
     print("run called")
+    _install_score_for_develop(project)
     return ExitCode.SUCCEEDED.value
 
 

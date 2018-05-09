@@ -42,9 +42,9 @@ def main():
     result = None
 
     if command == 'init' and len(args.command) == 3:
-        result = init(args.command[1], args.command[2].title())
+        result = init(args.command[1], args.command[2])
     elif command == 'run':
-        result = run()
+        result = run(args.command[1])
     else:
         parser.print_help()
         result = ExitCode.COMMAND_IS_WRONG.value
