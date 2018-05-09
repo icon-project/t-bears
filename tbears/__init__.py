@@ -17,7 +17,8 @@ import json
 import os
 import zipfile
 from enum import Enum
-from .util import write_file, get_package_json_dict, get_score_main_template, _install_score_for_develop
+from .util import write_file, get_package_json_dict, get_score_main_template
+from .run_process import RunProcess
 
 
 class ExitCode(Enum):
@@ -52,9 +53,8 @@ def run(project: 'str') -> 'int':
     :param project:
     :return:
     """
-    print("run called")
-    _install_score_for_develop(project)
-    return ExitCode.SUCCEEDED.value
+    _run_process = RunProcess()
+    _run_process.run(project)
 
 
 def compress(project: 'str', score_path: 'str') -> 'int':
