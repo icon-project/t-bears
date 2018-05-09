@@ -14,6 +14,9 @@
 # limitations under the License.
 
 import os
+import time
+
+import requests
 
 
 def write_file(parent_directory: 'str', file_name: 'str', contents: 'str') -> 'None':
@@ -93,3 +96,32 @@ def get_package_json_dict(project: 'str', score_class: 'str') -> 'dict':
     }
     return package_json_dict
 
+
+def make_json_payload(project: str) -> dict:
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "icx_sendTransaction",
+        "id": 111,
+        "params": {
+            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "to":   "cxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "fee": "0x2386f26fc10000",
+            "timestamp": str(int(time.time() * 10 ** 6)),
+            "nonce": "0x7362",
+            "tx_hash": "4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
+            "data_type": "install",
+            "data": {
+                "content_type": "tbears/path",
+                "content": f"./{project}"
+            }
+        }
+    }
+    return payload
+
+
+def post(url, payload):
+    try:
+        r = requests.post(url, json=payload, verify=False)
+        return r
+    except requests.exceptions.Timeout:
+        raise RuntimeError("Timeout happened. Check your internet connection status.")

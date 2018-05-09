@@ -1,5 +1,6 @@
 from .sub_process import SubProcess
 import os
+from .util import post
 
 
 class RunProcess(object):
@@ -19,3 +20,8 @@ class RunProcess(object):
     def stop(self):
         if self.__sub_process:
             self.__sub_process.stop()
+
+    @staticmethod
+    def install_request(project: str):
+        url = "~~~"
+        post(url, project)

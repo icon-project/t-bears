@@ -47,14 +47,17 @@ def init(project: 'str', score_class: 'str') -> 'int':
     return ExitCode.SUCCEEDED.value
 
 
-def run(project: 'str') -> 'int':
+_run_process = RunProcess()
+
+
+def run(project: 'str') -> int:
     """
 
     :param project:
     :return:
     """
-    _run_process = RunProcess()
     _run_process.run(project)
+    return ExitCode.SUCCEEDED.value
 
 
 def compress(project: 'str', score_path: 'str') -> 'int':
