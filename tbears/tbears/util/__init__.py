@@ -98,7 +98,7 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
     return package_json_dict
 
 
-def make_json_payload(project: str) -> dict:
+def make_install_json_payload(project: str) -> dict:
     path = os.path.abspath(f'./{project}')
     payload = {
         "jsonrpc": "2.0",
@@ -118,6 +118,11 @@ def make_json_payload(project: str) -> dict:
             }
         }
     }
+    return payload
+
+
+def make_exit_json_payload() -> dict:
+    payload = {"jsonrpc": "2.0", "method": "server_exit", "id": 99999, "params": {}}
     return payload
 
 

@@ -135,6 +135,13 @@ class MockDispatcher:
 
         return hex(value)
 
+    @staticmethod
+    @methods.add
+    def server_exit(**params):
+        engine = get_icon_service_engine()
+        engine.close()
+        sys.exit(0)
+
 
 class FlaskServer():
     def __init__(self):

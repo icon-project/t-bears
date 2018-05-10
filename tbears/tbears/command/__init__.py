@@ -20,7 +20,7 @@ import requests
 from enum import Enum
 
 from ..tbears_exception import TBearsWriteFileException
-from ..util import post, make_json_payload
+from ..util import post, make_install_json_payload, make_exit_json_payload
 from ..util import write_file, get_package_json_dict, get_score_main_template
 from ..process.run_process import RunProcess
 
@@ -67,7 +67,7 @@ def run(project: str) -> int:
     :param project: score name.
     :return:
     """
-    _run_process.run()
+    # _run_process.run()
     install_request(project)
     return ExitCode.SUCCEEDED.value
 
@@ -77,7 +77,7 @@ def install_request(project: str):
     :param project: Project directory name.
     """
     url = "http://localhost:9000/api/v2"
-    project_dict = make_json_payload(project)
+    project_dict = make_install_json_payload(project)
     post(url, project_dict)
 
 
@@ -86,8 +86,18 @@ def stop() -> int:
 
     :return:
     """
-    _run_process.stop()
+    # _run_process.stop()
+    # exit_request()
     return ExitCode.SUCCEEDED.value
+
+
+def exit_request():
+    """ Request install score.
+    :param project: Project directory name.
+    """
+    url = "http://localhost:9000/api/v2"
+    project_dict = make_exit_json_payload()
+    post(url, project_dict)
 
 
 def compress(project: str, score_path: str) -> int:
