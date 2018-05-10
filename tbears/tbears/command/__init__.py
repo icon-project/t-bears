@@ -67,7 +67,7 @@ def run(project: str) -> int:
     :param project: score name.
     :return:
     """
-    _run_process.run(project)
+    _run_process.run()
     install_request(project)
     return ExitCode.SUCCEEDED.value
 

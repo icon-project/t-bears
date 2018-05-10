@@ -28,6 +28,7 @@ class SubProcess:
         self.__is_run = False
         self.__subprocess: subprocess.Popen = None
         self.start()
+        self.update_output()
 
     def __del__(self):
         self.stop()
@@ -41,7 +42,7 @@ class SubProcess:
         logging.debug("common_subprocess:CommonSubprocess start")
         if not self.__is_run:
             logging.debug("common_subprocess:CommonSubprocess run process")
-            self.__subprocess = subprocess.Popen(self.__process_args)
+            self.__subprocess = subprocess.Popen(self.__process_args, stdout=subprocess.PIPE)
             self.__is_run = True
 
     def stop(self):
@@ -58,3 +59,14 @@ class SubProcess:
         """
         logging.debug("common_subprocess:CommonSubprocess wait")
         self.__subprocess.wait()
+
+    def update_output(self):
+        while True:
+            if not self.__is_run:
+                continue
+
+            output = self.__subprocess.stdout.readline()
+            if output == '' and self.__subprocess.poll() is not None:
+                break
+            if output:
+                print(output.strip())
