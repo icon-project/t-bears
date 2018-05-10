@@ -1,11 +1,11 @@
-from iconservice.iconscore.icon_score_base import *
-from iconservice.iconscore.icon_container_db import *
+from iconservice import *
 
     ############################################# 
     #                                           #
     #  Refer this contents to write 'score'.    #
     #                                           #
     #############################################
+
 @score
 class token(IconScoreBase):
 
@@ -29,7 +29,6 @@ class token(IconScoreBase):
 
     @external(readonly=True)
     def total_supply(self) -> int:
-        print(self._total_supply.get())
         return self._total_supply.get()
 
     @external(readonly=True)
@@ -43,13 +42,14 @@ class token(IconScoreBase):
 
         if self.balance_of(_addr_from) < _value:
             raise IconScoreBaseException(f"{_addr_from}'s balance < {_value}")
+
         self._balances[_addr_from] = self.balance_of(_addr_from) - _value
         self._balances[_addr_to] = _value
         return True
 
     @external()
     def transfer(self, addr_to: Address, value: int) -> bool:
-        return self._transfer(self.address, addr_to, value)
+        return self._transfer(self.msg.sender, addr_to, value)
 
     def fallback(self) -> None:
         pass
