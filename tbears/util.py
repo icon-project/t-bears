@@ -39,7 +39,7 @@ def get_score_main_template(score_class: str) -> str:
     :param score_class: Your score class name.
     :return:
     """
-    template = """from iconservice.iconscore.icon_score_base import *
+    template = """from iconservice import *
 
     ############################################# 
     #                                           #
@@ -47,13 +47,13 @@ def get_score_main_template(score_class: str) -> str:
     #                                           #
     #############################################
 @score
-class SampleToken(IconScoreBase):
+class token(IconScoreBase):
 
     _BALANCES = 'balances'
     _TOTAL_SUPPLY = 'total_supply'
 
-    def __init__(self, db: IconScoreDatabase) -> None:
-        super().__init__(db)
+    def __init__(self, db: IconScoreDatabase, owner: Address) -> None:
+        super().__init__(db, owner)
         self._total_supply = VarDB(self._TOTAL_SUPPLY, db, value_type=int)
         self._balances = DictDB(self._BALANCES, db, value_type=int)
 
@@ -69,6 +69,7 @@ class SampleToken(IconScoreBase):
 
     @external(readonly=True)
     def total_supply(self) -> int:
+        print(self._total_supply.get())
         return self._total_supply.get()
 
     @external(readonly=True)
@@ -82,19 +83,17 @@ class SampleToken(IconScoreBase):
 
         if self.balance_of(_addr_from) < _value:
             raise IconScoreBaseException(f"{_addr_from}'s balance < {_value}")
-
         self._balances[_addr_from] = self.balance_of(_addr_from) - _value
         self._balances[_addr_to] = _value
         return True
 
     @external()
     def transfer(self, addr_to: Address, value: int) -> bool:
-        return self._transfer(self.msg.sender, addr_to, value)
+        return self._transfer(self.address, addr_to, value)
 
     def fallback(self) -> None:
         pass
-
-        \"\"\""""
+"""
     return template.replace("SampleToken", score_class)
 
 
