@@ -18,6 +18,7 @@ import logging
 import sys
 import time
 import hashlib
+
 # import ssl
 # import threading
 sys.path.append('..')
@@ -31,7 +32,6 @@ from iconservice.icon_service_engine import IconServiceEngine
 from iconservice.base.address import Address
 from iconservice.iconscore.icon_score_result import TransactionResult
 from iconservice.utils.type_converter import TypeConverter
-
 
 _type_converter = None
 _icon_service_engine = None
@@ -83,7 +83,7 @@ class MockDispatcher:
         data: str = f'block_height{block_height}'
         block_hash: bytes = hashlib.sha3_256(data.encode()).digest()
         block_timestamp_us = int(time.time() * 10 ** 6)
-        
+
         try:
             tx_results = engine.invoke(block_height=block_height,
                                        block_hash=block_hash,
@@ -101,33 +101,19 @@ class MockDispatcher:
 
         return tx_result.to_dict()
 
-    """
     @staticmethod
     @methods.add
-    def icx_getTransactionResult(**kwargs):
-        util.logger.spam(f"icx_getTransactionResult{kwargs}")
-        verify_result = {}
+    def icx_call(**params):
+        engine = get_icon_service_engine()
 
-        tx_hash = kwargs["tx_hash"]
-        if util.is_hex(tx_hash):
-            response = ScoreInvoker().get_invoke_result(tx_hash)
-            util.logger.spam(f"icx_getTransactionResult::response - {response}")
-            verify_result['response_code'] = str(response.response_code)
-            if len(response.result) is not 0:
-                try:
-                    result = json.loads(response.result)
-                    verify_result['response'] = result
-                except json.JSONDecodeError as e:
-                    logging.warning("your data is not json, your data(" + str(response.data) + ")")
-                    verify_result['response_code'] = str(message_code.Response.fail.value)
-            else:
-                verify_result['response_code'] = str(message_code.Response.fail.value)
-        else:
-            verify_result['response_code'] = str(message_code.Response.fail_validate_params.value)
-            verify_result['message'] = "Invalid transaction hash."
+        # params['address'] = Address.from_string(params['address'])
+        params = _type_converter.convert(params, recursive=False)
+        value = engine.query(method='icx_call', params=params)
 
-        return verify_result
-    """
+        if isinstance(value, int):
+            value = hex(value)
+
+        return value
 
     @staticmethod
     @methods.add
