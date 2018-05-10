@@ -24,7 +24,7 @@ requests.packages.urllib3.disable_warnings()
 class RunProcess(object):
     __PYTHON_VERSION = 'python'
     __TBEARS_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
-    __FLASK_SERVER_PATH = os.path.join(__TBEARS_ROOT_PATH, 'server/jsonrpc_server.py')
+    __FLASK_SERVER_PATH = os.path.join(__TBEARS_ROOT_PATH, 'tbears', 'jsonrpc_server.py')
 
     def __init__(self):
         self.__sub_process = None
@@ -47,6 +47,6 @@ class RunProcess(object):
 
         :param project: Project directory name.
         """
-        url = "http://localhost:9000"
+        url = "http://localhost:9000/api/v2"
         project_dict = make_json_payload(project)
         post(url, project_dict)
