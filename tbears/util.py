@@ -122,7 +122,7 @@ def make_json_payload(project: str) -> dict:
             "tx_hash": "4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
             "data_type": "install",
             "data": {
-                "content_type": "tbears/path",
+                "content_type": "application/tbears",
                 "content": path
             }
         }

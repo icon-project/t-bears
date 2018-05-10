@@ -14,11 +14,7 @@
 # limitations under the License.
 
 import os
-import requests
-
-from .util import post, make_json_payload
 from .sub_process import SubProcess
-requests.packages.urllib3.disable_warnings()
 
 
 class RunProcess(object):
@@ -30,23 +26,12 @@ class RunProcess(object):
         self.__sub_process = None
 
     def run(self, project_name: str):
-        if self.__sub_process is None or not self.__sub_process.is_run():
-            process_args = [self.__PYTHON_VERSION, self.__FLASK_SERVER_PATH]
-            print(process_args)
-            self.__sub_process = SubProcess(process_args)
-
-        self.install_request(project_name)
+        # if self.__sub_process is None or not self.__sub_process.is_run():
+        #     process_args = [self.__PYTHON_VERSION, self.__FLASK_SERVER_PATH]
+        #     print(process_args)
+        #     self.__sub_process = SubProcess(process_args)
+        pass
 
     def stop(self):
         if self.__sub_process:
             self.__sub_process.stop()
-
-    @staticmethod
-    def install_request(project: str):
-        """ Request install score.
-
-        :param project: Project directory name.
-        """
-        url = "http://localhost:9000"
-        project_dict = make_json_payload(project)
-        post(url, project_dict)
