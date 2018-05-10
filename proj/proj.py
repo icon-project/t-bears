@@ -13,13 +13,11 @@ class token(IconScoreBase):
     _TOTAL_SUPPLY = 'total_supply'
 
     def __init__(self, db: IconScoreDatabase, owner: Address) -> None:
-        print('call init')
         super().__init__(db, owner)
         self._total_supply = VarDB(self._TOTAL_SUPPLY, db, value_type=int)
         self._balances = DictDB(self._BALANCES, db, value_type=int)
 
     def genesis_init(self, *args, **kwargs) -> None:
-        print('call genesis')
         super().genesis_init(*args, **kwargs)
 
         init_supply = 1000
@@ -31,7 +29,6 @@ class token(IconScoreBase):
 
     @external(readonly=True)
     def total_supply(self) -> int:
-        print('call total_supply')
         print(self._total_supply.get())
         return self._total_supply.get()
 
@@ -52,7 +49,6 @@ class token(IconScoreBase):
 
     @external()
     def transfer(self, addr_to: Address, value: int) -> bool:
-        print('call transfer', str(addr_to), value, str(self.address))
         return self._transfer(self.address, addr_to, value)
 
     def fallback(self) -> None:
