@@ -14,8 +14,7 @@
 # limitations under the License.
 
 import os
-from .sub_process import SubProcess
-from .util import make_json_payload, post
+from ..util import make_json_payload, post
 
 
 class RunProcess(object):

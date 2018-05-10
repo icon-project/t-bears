@@ -17,12 +17,12 @@ setup_options = {
     'description': '`tbears` for ICON SCORE development',
     'author': 'ICON foundation',
     'packages': find_packages(exclude=['tests*','docs']),
-    'py_modules': ['tbears_cli', 'tbears_exception'],
+    'py_modules': ['tbears', 'tbears_exception'],
     'license': "Apache License 2.0",
     'install_requires': requires,
     'entry_points': {
         'console_scripts': [
-            'tbears=tbears_cli:main'
+            'tbears=tbears:main'
         ],
     },
     'classifiers': [

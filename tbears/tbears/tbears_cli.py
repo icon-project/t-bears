@@ -16,7 +16,7 @@
 import argparse
 import sys
 
-from tbears import *
+from .command import *
 
 
 def main():
@@ -54,7 +54,3 @@ def main():
         result = ExitCode.COMMAND_IS_WRONG.value
 
     sys.exit(result)
-
-
-if __name__ == '__main__':
-    main()

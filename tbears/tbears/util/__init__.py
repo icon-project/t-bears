@@ -17,7 +17,7 @@ import os
 import time
 
 import requests
-from tbears_exception import TBearsWriteFileException
+from ..tbears_exception import TBearsWriteFileException
 
 
 def write_file(parent_directory: str, file_name: str, contents: str) -> None:
