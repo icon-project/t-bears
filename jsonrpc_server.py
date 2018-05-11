@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# import _ssl
 import json
 import logging
 import sys
 import time
 import hashlib
-
 # import ssl
 # import threading
 sys.path.append('..')
@@ -31,6 +31,7 @@ from iconservice.icon_service_engine import IconServiceEngine
 from iconservice.base.address import Address
 from iconservice.iconscore.icon_score_result import TransactionResult
 from iconservice.utils.type_converter import TypeConverter
+
 
 _type_converter = None
 _icon_service_engine = None
@@ -46,15 +47,6 @@ def get_block_height():
     _block_height += 1
 
     return _block_height
-
-
-def shutdown():
-    """Shutdown flask server
-    """
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
 
 
 class MockDispatcher:
@@ -91,7 +83,7 @@ class MockDispatcher:
         data: str = f'block_height{block_height}'
         block_hash: bytes = hashlib.sha3_256(data.encode()).digest()
         block_timestamp_us = int(time.time() * 10 ** 6)
-
+        
         try:
             tx_results = engine.invoke(block_height=block_height,
                                        block_hash=block_hash,
@@ -114,7 +106,6 @@ class MockDispatcher:
     def icx_call(**params):
         engine = get_icon_service_engine()
 
-        # params['address'] = Address.from_string(params['address'])
         params = _type_converter.convert(params, recursive=False)
         value = engine.query(method='icx_call', params=params)
 
@@ -142,13 +133,6 @@ class MockDispatcher:
         value: int = engine.query(method='icx_getTotalSupply', params=params)
 
         return hex(value)
-
-    @staticmethod
-    @methods.add
-    def server_exit(**params):
-        engine = get_icon_service_engine()
-        engine.close()
-        shutdown()
 
 
 class FlaskServer():
@@ -212,7 +196,7 @@ def main():
     else:
         path = './tbears.json'
 
-    print(f'config_file: {path}')
+    logging.info(f'config_file: {path}')
     conf = load_config(path)
 
     init_type_converter()
@@ -227,7 +211,7 @@ def load_config(path: str) -> dict:
         "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "port": 9000,
         "score_root": "./.score",
-        "db_root": "./.db",
+        "db_root": "./db",
         "genesis": {
             "address": "hx0000000000000000000000000000000000000000",
             "balance": "0x2961fff8ca4a62327800000"

@@ -16,7 +16,10 @@
 import argparse
 import sys
 
-from .command import *
+from .command import ExitCode
+from .command import init
+from .command import run
+from .command import stop
 
 
 def main():
@@ -31,13 +34,16 @@ def main():
             stop : stop your score.
         """)
 
-    parser.add_argument('command', nargs='*', help='init, test, run, deploy, compress, install')
+    parser.add_argument(
+        'command',
+        nargs='*',
+        help='init, test, run, deploy, compress, install')
 
     args = parser.parse_args()
 
     if len(args.command) < 1:
         parser.print_help()
-        sys.exit(ExitCode.COMMAND_IS_WRONG.value)
+        sys.exit(ExitCode.COMMAND_IS_WRONG)
 
     command = args.command[0]
 
@@ -51,6 +57,6 @@ def main():
         result = stop()
     else:
         parser.print_help()
-        result = ExitCode.COMMAND_IS_WRONG.value
+        result = ExitCode.COMMAND_IS_WRONG
 
     sys.exit(result)
