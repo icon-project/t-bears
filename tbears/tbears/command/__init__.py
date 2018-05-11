@@ -15,6 +15,8 @@
 
 import json
 import os
+import shutil
+import subprocess
 import zipfile
 import requests
 from enum import Enum
@@ -68,8 +70,10 @@ def run(project: str) -> int:
     :return:
     """
     # _run_process.run()
-    install_request(project)
-    return ExitCode.SUCCEEDED.value
+    # install_request(project)
+    __TBEARS_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    __FLASK_SERVER_PATH = os.path.join(__TBEARS_ROOT_PATH, 'server', 'jsonrpc_server.py')
+    subprocess.Popen(['python', __FLASK_SERVER_PATH])
 
 
 def install_request(project: str):
@@ -86,6 +90,8 @@ def stop() -> int:
 
     :return:
     """
+    delete_score_info()
+    # kill_process_by_process_name("jsonrpc_server.py")
     # _run_process.stop()
     # exit_request()
     return ExitCode.SUCCEEDED.value
@@ -119,3 +125,14 @@ def compress(project: str, score_path: str) -> int:
                 score_zip.write(f'{current_dir}/{file}')
 
     return ExitCode.SUCCEEDED.value
+
+
+def delete_score_info():
+    """Delete .score directory and db directory.
+
+    :return:
+    """
+    if os.path.exists('./.score'):
+        shutil.rmtree('./.score')
+    if os.path.exists('./db'):
+        shutil.rmtree('./db')

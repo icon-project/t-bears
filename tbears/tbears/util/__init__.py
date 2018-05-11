@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import signal
 import time
 
 import requests
@@ -132,3 +133,15 @@ def post(url: str, payload: dict):
         return r
     except requests.exceptions.Timeout:
         raise RuntimeError("Timeout happened. Check your internet connection status.")
+
+
+def kill_process_by_process_name(process_name):
+    """ Kill process with process's name.
+
+    :param process_name: process name.
+    :return:
+    """
+    for line in os.popen("ps ax | grep " + process_name + " | grep -v grep"):
+        fields = line.split()
+        pid = fields[0]
+        os.kill(int(pid), signal.SIGKILL)
