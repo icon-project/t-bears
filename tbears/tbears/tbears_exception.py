@@ -22,3 +22,8 @@ class TbearsBaseException(Exception):
 class TBearsWriteFileException(TbearsBaseException):
     """Error while write file."""
     pass
+
+
+class TBearsDeleteTreeException(TbearsBaseException):
+    """Error while write file."""
+    pass

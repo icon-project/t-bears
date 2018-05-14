@@ -14,11 +14,12 @@
 # limitations under the License.
 
 import os
-import signal
+import shutil
+import socket
 import time
 
 import requests
-from ..tbears_exception import TBearsWriteFileException
+from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
 
 
 def write_file(parent_directory: str, file_name: str, contents: str) -> None:
@@ -136,13 +137,29 @@ def post(url: str, payload: dict):
         raise RuntimeError("Timeout happened. Check your internet connection status.")
 
 
-def kill_process_by_process_name(process_name):
-    """ Kill process with process's name.
+def check_server_is_running():
+    """ Check if server is running.
+    tbears use 9000 port.
 
-    :param process_name: process name.
     :return:
     """
-    for line in os.popen("ps ax | grep " + process_name + " | grep -v grep"):
-        fields = line.split()
-        pid = fields[0]
-        os.kill(int(pid), signal.SIGKILL)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('127.0.0.1', 9000))
+
+    return result is 0
+
+
+def delete_score_info():
+    """Delete .score directory and db directory.
+
+    :return:
+    """
+    try:
+        if os.path.exists('./.score'):
+            shutil.rmtree('./.score')
+        if os.path.exists('./.db'):
+            shutil.rmtree('./.db')
+    except PermissionError:
+        raise TBearsDeleteTreeException
+    except NotADirectoryError:
+        raise TBearsDeleteTreeException

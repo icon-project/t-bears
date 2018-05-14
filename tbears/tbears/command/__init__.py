@@ -15,17 +15,14 @@
 
 import json
 import os
-import socket
 import sys
-import shutil
 import subprocess
 import time
-import zipfile
 import logging
 from enum import IntEnum
 
-from ..tbears_exception import TBearsWriteFileException
-from ..util import post, make_install_json_payload, make_exit_json_payload
+from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
+from ..util import post, make_install_json_payload, make_exit_json_payload, check_server_is_running, delete_score_info
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
 
@@ -35,6 +32,7 @@ class ExitCode(IntEnum):
     SCORE_PATH_IS_NOT_A_DIRECTORY = 2
     PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY = 3
     WRITE_FILE_ERROR = 4
+    DELETE_TREE_ERROR = 5
 
 
 def init(project: str, score_class: str) -> int:
@@ -45,7 +43,7 @@ def init(project: str, score_class: str) -> int:
     :return:
     """
     if os.path.exists(f"./{project}"):
-        print(f'{project} directory is not empty.')
+        logging.debug(f'{project} directory is not empty.')
         return ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value
     package_json_dict = get_package_json_dict(project, score_class)
     package_json_contents = json.dumps(package_json_dict, indent=4)
@@ -54,7 +52,7 @@ def init(project: str, score_class: str) -> int:
         write_file(project, f"{project}.py", project_py_contents)
         write_file(project, "package.json", package_json_contents)
     except TBearsWriteFileException:
-        print("Except raised while writing files.")
+        logging.debug("Except raised while writing files.")
         return ExitCode.WRITE_FILE_ERROR.value
 
     return ExitCode.SUCCEEDED
@@ -66,12 +64,25 @@ def run(project: str) -> int:
     :param project: score name.
     :return:
     """
-    # stop()
 
-    if not os.path.exists('./.score'):
+    if check_server_is_running() is False:
         start_server()
         time.sleep(2)
+
     install_request(project)
+
+    return ExitCode.SUCCEEDED
+
+
+def clear() -> int:
+    """ Clear score info(.db, .score)
+
+    :return:
+    """
+    try:
+        delete_score_info()
+    except TBearsDeleteTreeException:
+        return ExitCode.DELETE_TREE_ERROR
 
     return ExitCode.SUCCEEDED
 
@@ -106,7 +117,6 @@ def stop() -> int:
     :return:
     """
     stop_server()
-    delete_score_info()
     return ExitCode.SUCCEEDED
 
 
@@ -127,39 +137,3 @@ def exit_request():
     except:
         pass
 
-
-def compress(project: str, score_path: str) -> int:
-    """ Compress the SCORE.
-
-    :param project: project name. will archive <project>.zip
-    :param score_path: SCORE path(directory).
-    :return:
-    """
-    if not os.path.isdir(score_path):
-        return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value
-    for current_dir, _, files in os.walk(score_path):
-        for file in files:
-            if current_dir.find('__pycache__') != -1:
-                continue
-            if os.path.islink(f'{current_dir}/{file}'):
-                continue
-            with zipfile.ZipFile(f'./{project}.zip', mode='a') as score_zip:
-                score_zip.write(f'{current_dir}/{file}')
-
-    return ExitCode.SUCCEEDED
-
-
-def delete_score_info():
-    """Delete .score directory and db directory.
-
-    :return:
-    """
-    try:
-        if os.path.exists('./.score'):
-            shutil.rmtree('./.score')
-        if os.path.exists('./.db'):
-            shutil.rmtree('./.db')
-    except PermissionError:
-        print("permission error.")
-    except NotADirectoryError:
-        print("./.score or ./.db file is not a directory.")

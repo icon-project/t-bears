@@ -20,6 +20,7 @@ from .command import ExitCode
 from .command import init
 from .command import run
 from .command import stop
+from .command import clear
 
 
 def main():
@@ -55,6 +56,8 @@ def main():
         result = run(args.command[1])
     elif command == 'stop':
         result = stop()
+    elif command == 'clear':
+        result = clear()
     else:
         parser.print_help()
         result = ExitCode.COMMAND_IS_WRONG
