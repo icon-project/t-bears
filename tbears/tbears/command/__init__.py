@@ -44,7 +44,6 @@ def init(project: str, score_class: str) -> int:
     :param score_class: Your score class name.
     :return:
     """
-    print("init called")
     if os.path.exists(f"./{project}"):
         print(f'{project} directory is not empty.')
         return ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value
@@ -69,11 +68,8 @@ def run(project: str) -> int:
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex(('127.0.0.1', 9000))
-    if result == 0:
-        print("Port is open")
+    if result is 0:
         stop_server()
-    else:
-        print("Port is not open")
 
     start_server()
     time.sleep(2)
@@ -96,13 +92,14 @@ def start_server() -> None:
     logging.debug('start_server() end')
 
 
-def install_request(project: str):
+def install_request(project: str) -> int:
     """ Request install score.
     :param project: Project directory name.
     """
     url = "http://localhost:9000/api/v2"
     project_dict = make_install_json_payload(project)
-    post(url, project_dict)
+    response = post(url, project_dict)
+    return response
 
 
 def stop() -> int:
@@ -159,7 +156,12 @@ def delete_score_info():
 
     :return:
     """
-    if os.path.exists('./.score'):
-        shutil.rmtree('./.score')
-    if os.path.exists('./.db'):
-        shutil.rmtree('./.db')
+    try:
+        if os.path.exists('./.score'):
+            shutil.rmtree('./.score')
+        if os.path.exists('./.db'):
+            shutil.rmtree('./.db')
+    except PermissionError:
+        print("permission error.")
+    except NotADirectoryError:
+        print("./.score or ./.db file is not a directory.")
