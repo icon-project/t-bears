@@ -29,13 +29,15 @@ class TestTBears(unittest.TestCase):
     def setUp(self):
         self.path = './'
         self.send_transaction_json = send_transaction_json
-        self.get_tx_result_json = get_tx_result_json
-        self.get_god_balance_json = get_god_balance_json
-        self.get_test_balance_json = get_test_balance_json
-        self.get_token_balance_json = get_token_balance_json
+        self.get_god_balance_json = god_balance_json
+        self.get_test_balance_json = test_balance_json
+        self.get_token_balance_json1 = token_balance_json1
+        self.get_token_balance_json2 = token_balance_json2
+        self.get_god_token_balance_json = token_god_balance_json
         self.token_total_supply_json = token_total_supply_json
         self.token_transfer_json = token_transfer_json
         self.url = "http://localhost:9000/api/v2"
+        self.give_icx_to_token_owner_json = give_icx_to_token_owner_json
 
     def tearDown(self):
         clear()
@@ -53,15 +55,15 @@ class TestTBears(unittest.TestCase):
 
     def test_init(self):
         # Case when user entered a exists directory path for project init.
-        os.mkdir('./tmp')
-        ret1 = init('tmp', "TempScore")
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, ret1)
-        os.rmdir('./tmp')
+        os.mkdir('./temp')
+        ret1 = init('temp', "TempScore")
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, ret1)
+        os.rmdir('./temp')
 
         # Case when user entered a exists file path for project init.
         TestTBears.touch('./tmpfile')
         ret2 = init('./tmpfile', 'TestScore')
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, ret2)
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, ret2)
         os.remove('./tmpfile')
 
         # Case when user entered a appropriate path for project init.
@@ -100,31 +102,52 @@ class TestTBears(unittest.TestCase):
         stop_server()
 
     def test_get_balance_icx(self):
-        init('icxtest', 'ITest')
-        run('icxtest')
+        self.run_server()
         response = post(self.url, self.get_god_balance_json).json()
         result = response["result"]
         self.assertEqual("0x2961fff8ca4a62327800000", result)
         stop_server()
 
     def test_send_icx(self):
-        init('icxtest', 'ITest')
-        run('icxtest')
+        self.run_server()
         post(self.url, self.send_transaction_json).json()
         res = post(self.url, self.get_test_balance_json).json()
         res_icx_val = int(res["result"], 0) / (10**18)
         self.assertEqual(1.0, res_icx_val)
         stop_server()
 
-    # def test_send_token(self):
-    #     pass
-    #
-    # def test_get_balance_token(self):
-    #     init('icxtest', 'Itest')
-    #     run('icxtest')
-    #     result = post(self.url, self.get_token_balance_json)
-    #     print(result.json())
-    #     stop_server()
+    def test_get_balance_token(self):
+        self.run_server()
+        result = post(self.url, self.get_god_token_balance_json)
+        god_result = result.json()["result"]
+        # assert 0x3635c9adc5dea00000 == 1000 * (10 ** 18)
+        self.assertEqual("0x3635c9adc5dea00000", god_result)
+        result2 = post(self.url, self.get_token_balance_json1)
+        user_result = result2.json()["result"]
+        self.assertEqual("0x0", user_result)
+
+        stop_server()
+
+    def test_token_total_supply(self):
+        self.run_server()
+        result = post(self.url, self.token_total_supply_json)
+        supply = result.json()["result"]
+        self.assertEqual("0x3635c9adc5dea00000", supply)
+        stop_server()
+
+    def test_token_transfer(self):
+        self.run_server()
+        post(self.url, self.give_icx_to_token_owner_json)
+        post(self.url, self.token_transfer_json)
+        token_balance_res1 = post(self.url, self.get_token_balance_json1)
+        token_balance = token_balance_res1.json()["result"]
+        self.assertEqual("0x1", token_balance)
+        stop_server()
+
+    @staticmethod
+    def run_server():
+        init("tokentest", "Tokentest")
+        run('tokentest')
 
 
 if __name__ == "__main__":
