@@ -61,7 +61,7 @@ class SampleToken(IconScoreBase):
         total_supply = init_supply * 10 ** decimal
 
         self._total_supply.set(total_supply)
-        self._balances[self.address] = total_supply
+        self._balances[self.msg.sender] = total_supply
 
     @external(readonly=True)
     def total_supply(self) -> int:
@@ -73,22 +73,20 @@ class SampleToken(IconScoreBase):
 
     def _transfer(self, _addr_from: Address, _addr_to: Address, _value: int) -> bool:
 
-        if self._balances[_addr_from] < _value:
+        if self.balance_of(_addr_from) < _value:
             raise IconScoreBaseException(f"{_addr_from}'s balance < {_value}")
 
-        print(self._balances[_addr_from])
-        print(self._balances[_addr_to])
         self._balances[_addr_from] = self._balances[_addr_from] - _value
         self._balances[_addr_to] = self._balances[_addr_to] + _value
         return True
 
-    @external()
+    @external
     def transfer(self, addr_to: Address, value: int) -> bool:
-        return self._transfer(self.address, addr_to, value)
+        return self._transfer(self.msg.sender, addr_to, value)
 
     def fallback(self) -> None:
         pass
-
+        
 """
     return template.replace("SampleToken", score_class)
 
