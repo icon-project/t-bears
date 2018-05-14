@@ -12,9 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import time
 import unittest
-from tbears.tbears.command import *
+import os
+import json
+import shutil
+import socket
+from tbears.tbears.command import ExitCode, init, start_server, stop_server, run, stop
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 
@@ -22,6 +26,14 @@ DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 class TestTBears(unittest.TestCase):
     def setUp(self):
         self.path = './'
+
+    def tearDown(self):
+        stop()
+
+    @staticmethod
+    def touch(path):
+        with open(path, 'a'):
+            os.utime(path, None)
 
     @staticmethod
     def read_zipfile_as_byte(archive_path: 'str') -> 'bytes':
@@ -51,6 +63,23 @@ class TestTBears(unittest.TestCase):
         main = package_json['main_file']
         self.assertEqual(project_name, main)
         shutil.rmtree(project_name)
+
+    def test_stop_server(self):
+        start_server()
+        time.sleep(1)
+        stop_server()
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('127.0.0.1', 9000))
+
+        self.assertFalse(result is 0)
+
+    def test_run(self):
+        init('asdf', 'Asdf')
+        result = run('asdf')
+        self.assertEqual(1, result)
+        stop_server()
+        shutil.rmtree('./asdf')
 
 
 if __name__ == "__main__":
