@@ -18,7 +18,7 @@ import os
 import json
 import shutil
 import socket
-from tbears.tbears.command import ExitCode, init, start_server, stop_server, run, stop
+from tbears.tbears.command import ExitCode, init, start_server, stop_server, run, stop, clear
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 
@@ -28,7 +28,7 @@ class TestTBears(unittest.TestCase):
         self.path = './'
 
     def tearDown(self):
-        stop()
+        clear()
 
     @staticmethod
     def touch(path):
@@ -80,6 +80,14 @@ class TestTBears(unittest.TestCase):
         self.assertEqual(1, result)
         stop_server()
         shutil.rmtree('./asdf')
+
+    def test_clear(self):
+        start_server()
+        time.sleep(0.5)
+        clear()
+        self.assertTrue(os.path.exists('./.db') is False)
+        self.assertTrue(os.path.exists('./.score') is False)
+        stop_server()
 
 
 if __name__ == "__main__":

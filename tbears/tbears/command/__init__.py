@@ -80,7 +80,8 @@ def clear() -> int:
     :return:
     """
     try:
-        delete_score_info()
+        if check_server_is_running() is False:
+            delete_score_info()
     except TBearsDeleteTreeException:
         return ExitCode.DELETE_TREE_ERROR
 
