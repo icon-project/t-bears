@@ -19,6 +19,8 @@ import json
 import shutil
 import socket
 from tbears.tbears.command import ExitCode, init, start_server, stop_server, run, stop, clear
+from tbears.tbears.util import post
+from .json_contents import *
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 
@@ -26,6 +28,14 @@ DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 class TestTBears(unittest.TestCase):
     def setUp(self):
         self.path = './'
+        self.send_transaction_json = send_transaction_json
+        self.get_tx_result_json = get_tx_result_json
+        self.get_god_balance_json = get_god_balance_json
+        self.get_test_balance_json = get_test_balance_json
+        self.get_token_balance_json = get_token_balance_json
+        self.token_total_supply_json = token_total_supply_json
+        self.token_transfer_json = token_transfer_json
+        self.url = "http://localhost:9000/api/v2"
 
     def tearDown(self):
         clear()
@@ -88,6 +98,33 @@ class TestTBears(unittest.TestCase):
         self.assertTrue(os.path.exists('./.db') is False)
         self.assertTrue(os.path.exists('./.score') is False)
         stop_server()
+
+    def test_get_balance_icx(self):
+        init('icxtest', 'ITest')
+        run('icxtest')
+        response = post(self.url, self.get_god_balance_json).json()
+        result = response["result"]
+        self.assertEqual("0x2961fff8ca4a62327800000", result)
+        stop_server()
+
+    def test_send_icx(self):
+        init('icxtest', 'ITest')
+        run('icxtest')
+        post(self.url, self.send_transaction_json).json()
+        res = post(self.url, self.get_test_balance_json).json()
+        res_icx_val = int(res["result"], 0) / (10**18)
+        self.assertEqual(1.0, res_icx_val)
+        stop_server()
+
+    # def test_send_token(self):
+    #     pass
+    #
+    # def test_get_balance_token(self):
+    #     init('icxtest', 'Itest')
+    #     run('icxtest')
+    #     result = post(self.url, self.get_token_balance_json)
+    #     print(result.json())
+    #     stop_server()
 
 
 if __name__ == "__main__":

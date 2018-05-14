@@ -143,8 +143,13 @@ def check_server_is_running():
 
     :return:
     """
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(('127.0.0.1', 9000))
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('127.0.0.1', 9000))
+    except:
+        pass
+    finally:
+        sock.close()
 
     return result is 0
 
