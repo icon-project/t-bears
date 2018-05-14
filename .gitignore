@@ -225,3 +225,5 @@ parser_py.py
 resources/test_score_repository/develop/leveldb_test/deploy/
 resources/test_score_repository/develop/score_duplicate_test/deploy/
 score/score/
+build/
+dist/
