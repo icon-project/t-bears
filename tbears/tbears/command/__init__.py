@@ -20,16 +20,12 @@ import shutil
 import subprocess
 import time
 import zipfile
-import requests
 import logging
 from enum import IntEnum
 
 from ..tbears_exception import TBearsWriteFileException
 from ..util import post, make_install_json_payload, make_exit_json_payload
 from ..util import write_file, get_package_json_dict, get_score_main_template
-from ..process.run_process import RunProcess
-
-# requests.packages.urllib3.disable_warnings()
 
 
 class ExitCode(IntEnum):
