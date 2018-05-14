@@ -66,10 +66,11 @@ def run(project: str) -> int:
     :param project: score name.
     :return:
     """
-    stop()
+    # stop()
 
-    start_server()
-    time.sleep(2)
+    if not os.path.exists('./.score'):
+        start_server()
+        time.sleep(2)
     install_request(project)
 
     return ExitCode.SUCCEEDED
