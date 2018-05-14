@@ -15,6 +15,7 @@
 
 import json
 import os
+import socket
 import sys
 import shutil
 import subprocess
@@ -66,7 +67,13 @@ def run(project: str) -> int:
     :param project: score name.
     :return:
     """
-    stop()
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('127.0.0.1', 9000))
+    if result == 0:
+        print("Port is open")
+        stop_server()
+    else:
+        print("Port is not open")
 
     start_server()
     time.sleep(2)
