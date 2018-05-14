@@ -122,9 +122,10 @@ def stop() -> int:
 
 
 def stop_server():
-    exit_request()
-    # Wait until server socket is released
-    time.sleep(2)
+    if check_server_is_running():
+        exit_request()
+        # Wait until server socket is released
+        time.sleep(2)
 
 
 def exit_request():
