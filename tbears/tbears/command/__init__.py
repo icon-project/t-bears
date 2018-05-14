@@ -15,21 +15,24 @@
 
 import json
 import os
+import sys
 import shutil
 import subprocess
+import time
 import zipfile
 import requests
-from enum import Enum
+import logging
+from enum import IntEnum
 
 from ..tbears_exception import TBearsWriteFileException
 from ..util import post, make_install_json_payload, make_exit_json_payload
 from ..util import write_file, get_package_json_dict, get_score_main_template
 from ..process.run_process import RunProcess
 
-requests.packages.urllib3.disable_warnings()
+# requests.packages.urllib3.disable_warnings()
 
 
-class ExitCode(Enum):
+class ExitCode(IntEnum):
     SUCCEEDED = 1
     COMMAND_IS_WRONG = 0
     SCORE_PATH_IS_NOT_A_DIRECTORY = 2
@@ -57,10 +60,8 @@ def init(project: str, score_class: str) -> int:
     except TBearsWriteFileException:
         print("Except raised while writing files.")
         return ExitCode.WRITE_FILE_ERROR.value
-    return ExitCode.SUCCEEDED.value
 
-
-_run_process = RunProcess()
+    return ExitCode.SUCCEEDED
 
 
 def run(project: str) -> int:
@@ -69,11 +70,27 @@ def run(project: str) -> int:
     :param project: score name.
     :return:
     """
-    # _run_process.run()
-    # install_request(project)
-    __TBEARS_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
-    __FLASK_SERVER_PATH = os.path.join(__TBEARS_ROOT_PATH, 'server', 'jsonrpc_server.py')
-    subprocess.Popen(['python', __FLASK_SERVER_PATH])
+    stop()
+
+    start_server()
+    time.sleep(2)
+    install_request(project)
+
+    return ExitCode.SUCCEEDED
+
+
+def start_server() -> None:
+    logging.debug('start_server() start')
+
+    tbears_root_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '../'))
+    path = os.path.join(tbears_root_path, 'server', 'jsonrpc_server.py')
+
+    logging.info(f'path: {path}')
+    # Run jsonrpc_server on background mode
+    subprocess.Popen([sys.executable, path], close_fds=True)
+
+    logging.debug('start_server() end')
 
 
 def install_request(project: str):
@@ -90,11 +107,15 @@ def stop() -> int:
 
     :return:
     """
+    stop_server()
     delete_score_info()
-    # kill_process_by_process_name("jsonrpc_server.py")
-    # _run_process.stop()
-    # exit_request()
-    return ExitCode.SUCCEEDED.value
+    return ExitCode.SUCCEEDED
+
+
+def stop_server():
+    exit_request()
+    # Wait until server socket is released
+    time.sleep(2)
 
 
 def exit_request():
@@ -103,7 +124,10 @@ def exit_request():
     """
     url = "http://localhost:9000/api/v2"
     project_dict = make_exit_json_payload()
-    post(url, project_dict)
+    try:
+        post(url, project_dict)
+    except:
+        pass
 
 
 def compress(project: str, score_path: str) -> int:
@@ -115,7 +139,7 @@ def compress(project: str, score_path: str) -> int:
     """
     if not os.path.isdir(score_path):
         return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value
-    for current_dir, dirs, files in os.walk(score_path):
+    for current_dir, _, files in os.walk(score_path):
         for file in files:
             if current_dir.find('__pycache__') != -1:
                 continue
@@ -124,7 +148,7 @@ def compress(project: str, score_path: str) -> int:
             with zipfile.ZipFile(f'./{project}.zip', mode='a') as score_zip:
                 score_zip.write(f'{current_dir}/{file}')
 
-    return ExitCode.SUCCEEDED.value
+    return ExitCode.SUCCEEDED
 
 
 def delete_score_info():
@@ -134,5 +158,5 @@ def delete_score_info():
     """
     if os.path.exists('./.score'):
         shutil.rmtree('./.score')
-    if os.path.exists('./db'):
-        shutil.rmtree('./db')
+    if os.path.exists('./.db'):
+        shutil.rmtree('./.db')

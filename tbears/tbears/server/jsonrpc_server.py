@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# import _ssl
 import json
 import logging
 import sys
@@ -47,6 +46,15 @@ def get_block_height():
     _block_height += 1
 
     return _block_height
+
+
+def shutdown():
+    """Shutdown flask server
+    """
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
 
 
 class MockDispatcher:
@@ -140,7 +148,7 @@ class MockDispatcher:
     def server_exit(**params):
         engine = get_icon_service_engine()
         engine.close()
-        sys.exit(0)
+        shutdown()
 
 
 class FlaskServer():
@@ -219,7 +227,7 @@ def load_config(path: str) -> dict:
         "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "port": 9000,
         "score_root": "./.score",
-        "db_root": "./db",
+        "db_root": "./.db",
         "genesis": {
             "address": "hx0000000000000000000000000000000000000000",
             "balance": "0x2961fff8ca4a62327800000"

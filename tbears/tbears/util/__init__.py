@@ -73,7 +73,7 @@ class SampleToken(IconScoreBase):
 
     def _transfer(self, _addr_from: Address, _addr_to: Address, _value: int) -> bool:
 
-        if self.balance_of(_addr_from) < _value:
+        if self._balances[_addr_from] < _value:
             raise IconScoreBaseException(f"{_addr_from}'s balance < {_value}")
 
         print(self._balances[_addr_from])
@@ -126,7 +126,7 @@ def make_install_json_payload(project: str) -> dict:
 
 
 def make_exit_json_payload() -> dict:
-    payload = {"jsonrpc": "2.0", "method": "server_exit", "id": 99999, "params": {}}
+    payload = {"jsonrpc": "2.0", "method": "server_exit", "id": 99999}
     return payload
 
 
