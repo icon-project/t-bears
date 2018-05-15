@@ -33,6 +33,7 @@ dist_wheel:
     - dist
   only:
   - master
+  when: manual
 
 # pages:
 #   stage: deploy
