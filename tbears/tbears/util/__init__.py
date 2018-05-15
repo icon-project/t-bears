@@ -43,7 +43,6 @@ def get_score_main_template(score_class: str) -> str:
     """
     template = """from iconservice import *
 
-@score
 class SampleToken(IconScoreBase):
 
     _BALANCES = 'balances'

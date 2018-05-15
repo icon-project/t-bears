@@ -33,12 +33,13 @@ def main():
             your score class name will be <score_class>
             run <project> : run your score project.
             stop : stop your score.
+            clear : delete score stored score info(.db, .score)
         """)
 
     parser.add_argument(
         'command',
         nargs='*',
-        help='init, test, run, deploy, compress, install')
+        help='init, run, stop, clear')
 
     args = parser.parse_args()
 
