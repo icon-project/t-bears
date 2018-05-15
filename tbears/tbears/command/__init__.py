@@ -22,7 +22,8 @@ import logging
 from enum import IntEnum
 
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
-from ..util import post, make_install_json_payload, make_exit_json_payload, check_server_is_running, delete_score_info
+from ..util import post, make_install_json_payload, make_exit_json_payload, check_server_is_running, delete_score_info, \
+    get_init_template
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
 
@@ -48,9 +49,11 @@ def init(project: str, score_class: str) -> int:
     package_json_dict = get_package_json_dict(project, score_class)
     package_json_contents = json.dumps(package_json_dict, indent=4)
     project_py_contents = get_score_main_template(score_class)
+    init_contents = get_init_template(project, score_class)
     try:
         write_file(project, f"{project}.py", project_py_contents)
         write_file(project, "package.json", package_json_contents)
+        write_file(project, '__init__.py', init_contents)
     except TBearsWriteFileException:
         logging.debug("Except raised while writing files.")
         return ExitCode.WRITE_FILE_ERROR.value

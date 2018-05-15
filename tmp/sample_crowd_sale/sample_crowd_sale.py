@@ -58,7 +58,7 @@ class SampleCrowdSale(IconScoreBase):
     @payable
     def fallback(self) -> None:
         if self._crowd_sale_closed.get():
-            raise IconScoreBaseException('crowd sale is closed')
+            raise IconScoreBaseException('sampleCrowdSale sale is closed')
 
         amount = self.msg.value
         self._balances[self.msg.sender] = self._balances[self.msg.sender] + amount

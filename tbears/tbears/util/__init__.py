@@ -36,6 +36,10 @@ def write_file(parent_directory: str, file_name: str, contents: str) -> None:
         raise TBearsWriteFileException
 
 
+def get_init_template(project: str, score_class: str) -> str:
+    return f"from .{project} import {score_class}\n"
+
+
 def get_score_main_template(score_class: str) -> str:
     """
     :param score_class: Your score class name.
@@ -74,7 +78,7 @@ class SampleToken(IconScoreBase):
     def _transfer(self, _addr_from: Address, _addr_to: Address, _value: int) -> bool:
 
         if self.balance_of(_addr_from) < _value:
-            raise IconScoreBaseException(f"{_addr_from}'s balance < {_value}")
+            raise IconScoreException(f"{_addr_from}'s balance < {_value}")
 
         self._balances[_addr_from] = self._balances[_addr_from] - _value
         self._balances[_addr_to] = self._balances[_addr_to] + _value
@@ -86,7 +90,6 @@ class SampleToken(IconScoreBase):
 
     def fallback(self) -> None:
         pass
-        
 """
     return template.replace("SampleToken", score_class)
 
