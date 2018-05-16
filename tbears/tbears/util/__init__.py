@@ -157,7 +157,7 @@ def check_server_is_running():
 
 
 def delete_score_info():
-    """Delete .score directory and db directory.
+    """ Delete .score directory and db directory.
 
     :return:
     """

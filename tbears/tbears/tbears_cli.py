@@ -29,11 +29,10 @@ def main():
     tbears version : 0.0.1
     ==========================
         tbears commands:
-            init <project> <score_class> : generate <project>.py and package.json in <project> directory.
-            your score class name will be <score_class>
-            run <project> : run your score project.
-            stop : stop your score.
-            clear : delete score stored score info(.db, .score)
+            init <project> <score_class> : Generate files, both <project>.py and package.json in <project> directory. The name of the score class is <score_class>.
+            run <project> : Run the score.
+            stop : Stop the score.
+            clear : Delete the score, both .score and .db directory.
         """)
 
     parser.add_argument(
@@ -48,8 +47,6 @@ def main():
         sys.exit(ExitCode.COMMAND_IS_WRONG)
 
     command = args.command[0]
-
-    result = None
 
     if command == 'init' and len(args.command) == 3:
         result = init(args.command[1], args.command[2])

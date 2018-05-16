@@ -22,8 +22,8 @@ import logging
 from enum import IntEnum
 
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
-from ..util import post, make_install_json_payload, make_exit_json_payload, check_server_is_running, delete_score_info, \
-    get_init_template
+from ..util import post, make_install_json_payload, make_exit_json_payload, check_server_is_running,  \
+    delete_score_info, get_init_template
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
 
@@ -94,11 +94,12 @@ def clear() -> int:
 def start_server() -> None:
     logging.debug('start_server() start')
 
-    tbears_root_path = os.path.abspath(
+    root_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '../'))
-    path = os.path.join(tbears_root_path, 'server', 'jsonrpc_server.py')
+    path = os.path.join(root_path, 'server', 'jsonrpc_server.py')
 
     logging.info(f'path: {path}')
+
     # Run jsonrpc_server on background mode
     subprocess.Popen([sys.executable, path], close_fds=True)
 
@@ -127,18 +128,15 @@ def stop() -> int:
 def stop_server():
     if check_server_is_running():
         exit_request()
+
         # Wait until server socket is released
         time.sleep(2)
 
 
 def exit_request():
     """ Request install score.
-    :param project: Project directory name.
     """
     url = "http://localhost:9000/api/v2"
     project_dict = make_exit_json_payload()
-    try:
-        post(url, project_dict)
-    except:
-        pass
+    post(url, project_dict)
 
