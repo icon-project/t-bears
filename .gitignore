@@ -227,3 +227,9 @@ resources/test_score_repository/develop/score_duplicate_test/deploy/
 score/score/
 build/
 dist/
+
+.db
+.score
+iconservice-0.0.1-py3-none-any.whl
+issue_rpc.sh
+
