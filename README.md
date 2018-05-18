@@ -67,6 +67,12 @@ $ tbears run <project>
 To-Do
 
 
+## Developmemnt
+
+ 1. Clone
+ 2. Virtualenv
+ 3. Run unittest
+
 ## Contributing
 
 To-Do:

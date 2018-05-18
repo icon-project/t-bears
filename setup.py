@@ -3,10 +3,10 @@
 from setuptools import setup, find_packages
 
 requires = [
-    'requests',
-    'Flask',
-    'Flask-RESTful',
-    'jsonrpcserver'
+    'requests==2.18.4',
+    'Flask==1.0.2',
+    'Flask-RESTful==0.3.6',
+    'jsonrpcserver==3.5.4'
 ]
 
 
