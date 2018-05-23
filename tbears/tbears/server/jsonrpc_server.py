@@ -18,33 +18,50 @@ import sys
 import time
 import hashlib
 
-sys.path.append('..')
-sys.path.append('.')
-
 from flask import Flask, request, Response
 from flask_restful import reqparse, Api
 from jsonrpcserver import methods
-from iconservice.icon_service_engine import IconServiceEngine
-from iconservice.iconscore.icon_score_result import TransactionResult
+
+from message_queue import MessageQueueService
+from iconservice.icon_inner_service import IconScoreInnerStub
+from iconservice import configure as conf
 from iconservice.utils.type_converter import TypeConverter
 
-_type_converter = None
-_icon_service_engine = None
-_block_height = 0
+sys.path.append('..')
+sys.path.append('.')
+
+__block_height = 0
+__icon_score_stub = None
+__type_converter = None
 
 
-def get_icon_service_engine() -> object:
-    return _icon_service_engine
+def get_icon_score_stub() -> IconScoreInnerStub:
+    global __icon_score_stub
+    return __icon_score_stub
+
+
+def get_type_converter() -> TypeConverter:
+    global __type_converter
+    return __type_converter
+
+
+def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str, peer_id: str, peer_port: str,
+                           **kwargs) -> IconScoreInnerStub:
+    icon_score_queue_name = conf.ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
+                                                                     amqp_key=amqp_key,
+                                                                     peer_id=peer_id,
+                                                                     peer_port=peer_port)
+    return IconScoreInnerStub(amqp_target, icon_score_queue_name)
 
 
 def get_block_height():
-    global _block_height
-    _block_height += 1
-    return _block_height
+    global __block_height
+    __block_height += 1
+    return __block_height
 
 
 def shutdown():
-    """ Shutdown flask server.
+    """Shutdown flask server.
     """
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
@@ -70,73 +87,53 @@ class MockDispatcher:
 
         :param kwargs: jsonrpc params field.
         """
-        engine = get_icon_service_engine()
 
-        params = _type_converter.convert(kwargs, recursive=False)
-
-        tx = {
-            'method': 'icx_sendTransaction',
-            'params': params
-        }
+        make_request = dict()
 
         block_height: int = get_block_height()
         data: str = f'block_height{block_height}'
-        block_hash: bytes = hashlib.sha3_256(data.encode()).digest()
+        block_hash: str = hashlib.sha3_256(data.encode()).digest()
         block_timestamp_us = int(time.time() * 10 ** 6)
-
-        try:
-            tx_results = engine.invoke(block_height=block_height,
-                                       block_hash=block_hash,
-                                       block_timestamp=block_timestamp_us,
-                                       transactions=[tx])
-
-            tx_result = tx_results[0]
-            if tx_result.status == TransactionResult.SUCCESS:
-                engine.commit()
-            else:
-                engine.rollback()
-        except:
-            engine.rollback()
-            raise
-
-        return tx_result.to_dict()
+        make_request['block'] = {'block_height': block_height,
+                                 'block_hash': block_hash,
+                                 'block_timestamp': block_timestamp_us}
+        params = get_type_converter().convert(kwargs, recursive=False)
+        tx = {
+            'method': 'icx_send_transaction',
+            'params': params
+        }
+        make_request['transactions'] = [tx]
+        response = get_icon_score_stub().task().icx_send_transaction(make_request)
+        return response
 
     @staticmethod
     @methods.add
     def icx_call(**params):
-        engine = get_icon_service_engine()
-        params = _type_converter.convert(params, recursive=False)
-        value = engine.query(method='icx_call', params=params)
-
-        if isinstance(value, int):
-            value = hex(value)
-
-        return value
+        params = get_type_converter.convert(params, recursive=False)
+        make_request = {'method': 'icx_call', 'params': params}
+        response = get_icon_score_stub().task().icx_call(make_request)
+        return response
 
     @staticmethod
     @methods.add
     def icx_getBalance(**params):
-        engine = get_icon_service_engine()
-
-        # params['address'] = Address.from_string(params['address'])
-        params = _type_converter.convert(params, recursive=False)
-        value = engine.query(method='icx_getBalance', params=params)
-
-        return hex(value)
+        params = get_type_converter.convert(params, recursive=False)
+        make_request = {'method': 'icx_get_balance', 'params': params}
+        response = get_icon_score_stub().task().icx_call(make_request)
+        return response
 
     @staticmethod
     @methods.add
     def icx_getTotalSupply(**params):
-        engine = get_icon_service_engine()
-
-        value: int = engine.query(method='icx_getTotalSupply', params=params)
-        return hex(value)
+        params = get_type_converter().convert(params, recursive=False)
+        make_request = {'method': 'icx_get_total_supply', 'params': params}
+        response = get_icon_score_stub().task().icx_call(make_request)
+        return response
 
     @staticmethod
     @methods.add
-    def server_exit(**params):
-        engine = get_icon_service_engine()
-        engine.close()
+    def server_exit():
+        get_icon_score_stub().task().close()
         shutdown()
 
 
@@ -178,20 +175,24 @@ class SimpleRestServer():
                               debug=False)
 
 
-def main():
+def run():
+    async def __run():
+        init_type_converter()
+        await init_icon_score_stub(tbears_conf)
+        server = SimpleRestServer(tbears_conf['port'])
+        server.run()
+
     if len(sys.argv) == 2:
         path = sys.argv[1]
     else:
         path = './tbears.json'
 
-    print(f'config_file: {path}')
-    conf = load_config(path)
+    logging.info(f'config_file: {path}')
+    tbears_conf = load_config(path)
 
-    init_type_converter()
-    init_icon_service_engine(conf)
-
-    server = SimpleRestServer(conf['port'])
-    server.run()
+    loop = MessageQueueService.loop
+    loop.create_task(__run())
+    loop.run_forever()
 
 
 def load_config(path: str) -> dict:
@@ -200,31 +201,44 @@ def load_config(path: str) -> dict:
         "port": 9000,
         "score_root": "./.score",
         "db_root": "./.db",
-        "genesis": {
-            "address": "hx0000000000000000000000000000000000000000",
-            "balance": "0x2961fff8ca4a62327800000"
-        },
-        "treasury": {
-            "address": "hx1000000000000000000000000000000000000000",
-            "balance": "0x0"
-        }
+        "accounts": [
+            {
+                "name": "genesis",
+                "address": "hx0000000000000000000000000000000000000000",
+                "balance": "0x2961fff8ca4a62327800000"
+            },
+            {
+                "name": "treasury",
+                "address": "hx1000000000000000000000000000000000000000",
+                "balance": "0x0"
+            }
+        ]
     }
 
     try:
         with open(path) as f:
-            conf = json.load(f)
-    except:
+            tbears_conf = json.load(f)
+    except (OSError, IOError):
         return default_conf
 
     for key in default_conf:
-        if key not in conf:
-            conf[key] = default_conf[key]
+        if key not in tbears_conf:
+            tbears_conf[key] = default_conf[key]
 
-    return conf
+    return tbears_conf
+
+
+async def init_icon_score_stub(tbears_conf: dict):
+    global __icon_score_stub
+    __icon_score_stub = create_icon_score_stub(**conf.DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
+    await __icon_score_stub.connect()
+
+    accounts = get_type_converter().convert(tbears_conf['accounts'], recursive=False)
+    __icon_score_stub.task().genesis_invoke(accounts)
 
 
 def init_type_converter():
-    global _type_converter
+    global __type_converter
 
     type_table = {
         'from': 'address',
@@ -234,20 +248,8 @@ def init_type_converter():
         'value': 'int',
         'balance': 'int'
     }
-    _type_converter = TypeConverter(type_table)
-
-
-def init_icon_service_engine(conf):
-    global _icon_service_engine
-    _icon_service_engine = IconServiceEngine()
-    _icon_service_engine.open(icon_score_root_path=conf['score_root'],
-                              state_db_root_path=conf['db_root'])
-
-    genesis = _type_converter.convert(conf['genesis'], recursive=False)
-    treasury = _type_converter.convert(conf['treasury'], recursive=False)
-
-    _icon_service_engine.genesis_invoke([genesis, treasury])
+    __type_converter = TypeConverter(type_table)
 
 
 if __name__ == '__main__':
-    main()
+    run()
