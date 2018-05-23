@@ -21,7 +21,7 @@ import hashlib
 from jsonrpcserver.aio import methods
 from sanic import Sanic, response
 
-from iconservice.icon_inner_service import IconScoreInnerStub
+from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
 from iconservice import configure as conf
 from iconservice.utils.type_converter import TypeConverter
 
@@ -43,6 +43,19 @@ def get_type_converter() -> TypeConverter:
     return __type_converter
 
 
+def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, peer_id: str, peer_port: str,
+                              icon_score_root_path: str, icon_score_state_db_root_path: str,
+                              **kwargs) -> IconScoreInnerService:
+    icon_score_queue_name = conf.ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
+                                                                     amqp_key=amqp_key,
+                                                                     peer_id=peer_id,
+                                                                     peer_port=peer_port)
+
+    return IconScoreInnerService(amqp_target, icon_score_queue_name,
+                                 icon_score_root_path=icon_score_root_path,
+                                 icon_score_state_db_root_path=icon_score_state_db_root_path)
+
+
 def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str, peer_id: str, peer_port: str,
                            **kwargs) -> IconScoreInnerStub:
     icon_score_queue_name = conf.ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
@@ -58,21 +71,12 @@ def get_block_height():
     return __block_height
 
 
-def shutdown():
-    """Shutdown flask server.
-    """
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
-
-
 class MockDispatcher:
+    flask_server = None
 
     @staticmethod
     async def dispatch(request):
         req = json.loads(request.body.decode())
-        print(req)
         req["params"] = req.get("params", {})
         req["params"]["method"] = request.json["method"]
 
@@ -81,19 +85,19 @@ class MockDispatcher:
 
     @staticmethod
     @methods.add
-    async def hello(**kwargs):
-        print(f'json_rpc_server hello! {kwargs}')
+    async def hello(**request_params):
+        logging.debug(f'json_rpc_server hello!')
 
     @staticmethod
     @methods.add
-    async def icx_sendTransaction(**kwargs):
+    async def icx_sendTransaction(**request_params):
         """ icx_sendTransaction jsonrpc handler.
         We assume that only one tx in a block.
 
-        :param kwargs: jsonrpc params field.
+        :param request_params: jsonrpc params field.
         """
 
-        print(f'json_rpc_server icx_sendTransaction! {kwargs}')
+        logging.debug(f'json_rpc_server icx_sendTransaction!')
 
         make_request = dict()
 
@@ -104,49 +108,55 @@ class MockDispatcher:
         make_request['block'] = {'block_height': block_height,
                                  'block_hash': block_hash,
                                  'block_timestamp': block_timestamp_us}
-        params = get_type_converter().convert(kwargs, recursive=False)
+        params = get_type_converter().convert(request_params, recursive=False)
         tx = {
             'method': 'icx_send_transaction',
             'params': params
         }
         make_request['transactions'] = [tx]
-        response = await get_icon_score_stub().task().icx_send_transaction(make_request)
-        return response
+        return await get_icon_score_stub().task().icx_send_transaction(make_request)
 
     @staticmethod
     @methods.add
-    async def icx_call(**params):
-        params = get_type_converter.convert(params, recursive=False)
+    async def icx_call(**request_params):
+        logging.debug(f'json_rpc_server icx_call!')
+
+        params = get_type_converter().convert(request_params, recursive=False)
         make_request = {'method': 'icx_call', 'params': params}
-        response = await get_icon_score_stub().task().icx_call(make_request)
-        return response
+        return await get_icon_score_stub().task().icx_call(make_request)
 
     @staticmethod
     @methods.add
-    async def icx_getBalance(**params):
-        params = get_type_converter.convert(params, recursive=False)
+    async def icx_getBalance(**request_params):
+        logging.debug(f'json_rpc_server icx_getBalance!')
+
+        params = get_type_converter().convert(request_params, recursive=False)
         make_request = {'method': 'icx_get_balance', 'params': params}
-        response = await get_icon_score_stub().task().icx_call(make_request)
-        return response
+        return await get_icon_score_stub().task().icx_call(make_request)
 
     @staticmethod
     @methods.add
-    async def icx_getTotalSupply(**params):
-        params = get_type_converter().convert(params, recursive=False)
+    async def icx_getTotalSupply(**request_params):
+        logging.debug(f'json_rpc_server icx_getTotalSupply!')
+
+        params = get_type_converter().convert(request_params, recursive=False)
         make_request = {'method': 'icx_get_total_supply', 'params': params}
-        response = await get_icon_score_stub().task().icx_call(make_request)
-        return response
+        return await get_icon_score_stub().task().icx_call(make_request)
 
     @staticmethod
     @methods.add
-    async def server_exit():
+    async def server_exit(**request_params):
+        logging.debug(f'json_rpc_server server_exit!')
+
         await get_icon_score_stub().task().close()
-        shutdown()
+        if MockDispatcher.flask_server is not None:
+            MockDispatcher.flask_server.app.stop()
 
 
-class FlaskServer():
+class FlaskServer:
     def __init__(self):
         self.__app = Sanic(__name__)
+        MockDispatcher.flask_server = self
 
     @property
     def app(self):
@@ -160,7 +170,7 @@ class FlaskServer():
         self.__app.add_route(MockDispatcher.dispatch, '/api/v2', methods=['POST'])
 
 
-class SimpleRestServer():
+class SimpleRestServer:
     def __init__(self, port, ip_address=None):
         self.__port = port
         self.__ip_address = ip_address
@@ -181,6 +191,7 @@ class SimpleRestServer():
 def serve():
     async def __serve():
         init_type_converter()
+        # await init_icon_score_service()
         await init_icon_score_stub(tbears_conf)
 
     if len(sys.argv) == 2:
@@ -229,13 +240,21 @@ def load_config(path: str) -> dict:
     return tbears_conf
 
 
+async def init_icon_score_service():
+    __icon_score_service = create_icon_score_service(**conf.DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
+    await __icon_score_service.connect(exclusive=True)
+
+
 async def init_icon_score_stub(tbears_conf: dict):
     global __icon_score_stub
     __icon_score_stub = create_icon_score_stub(**conf.DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
     await __icon_score_stub.connect()
+    # await __icon_score_stub.task().open()
 
     accounts = get_type_converter().convert(tbears_conf['accounts'], recursive=False)
-    await __icon_score_stub.task().genesis_invoke(accounts)
+    make_request = dict()
+    make_request['accounts'] = accounts
+    await __icon_score_stub.task().genesis_invoke(make_request)
 
 
 def init_type_converter():
