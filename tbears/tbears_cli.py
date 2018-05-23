@@ -17,10 +17,10 @@ import argparse
 import sys
 
 from .command import ExitCode
-from .command import init
-from .command import run
-from .command import stop
-from .command import clear
+from .command import init_SCORE
+from .command import run_SCORE
+from .command import stop_SCORE
+from .command import clear_SCORE
 
 
 def main():
@@ -49,13 +49,13 @@ def main():
     command = args.command[0]
 
     if command == 'init' and len(args.command) == 3:
-        result = init(args.command[1], args.command[2])
+        result = init_SCORE(args.command[1], args.command[2])
     elif command == 'run' and len(args.command) == 2:
-        result = run(args.command[1])
+        result, _ = run_SCORE(args.command[1])
     elif command == 'stop':
-        result = stop()
+        result = stop_SCORE()
     elif command == 'clear':
-        result = clear()
+        result = clear_SCORE()
     else:
         parser.print_help()
         result = ExitCode.COMMAND_IS_WRONG

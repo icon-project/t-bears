@@ -10,9 +10,9 @@ You need to install tbears by using PIP.
 * macOS / Linux (Ubuntu 16.04, or Centos)
 	* Need to test depply on Windows 10
 * Over Docker CE 18.03.x
-* Python 3.6
+* Python 3.6 and above
 
-### Install
+### Installation
 
 Most simplest way is using PIP.
 
@@ -67,11 +67,25 @@ $ tbears run <project>
 To-Do
 
 
-## Developmemnt
+## Development
 
- 1. Clone
- 2. Virtualenv
- 3. Run unittest
+ At First, clone this project. Then go to the project folder and create user environment. This is how to create the user environment.
+ ```
+ $ virtualenv -p python3 .    # Create the virtual environment.
+ $ source bin/activate    # Enter the virtual environment.
+ $ pip install -r requirements.txt    # Install necessary packages in the virtual environment.
+ ```
+ If you are on macOS, you have to install leveldb library.
+ ```
+ $ brew install leveldb    # Install leveldb on MacOS.
+ ```
+
+## Running the unit test
+After installation, execute the whole unit test like the following in order to check whether it operates well.
+
+```
+$ python setup.py test
+```
 
 ## Contributing
 

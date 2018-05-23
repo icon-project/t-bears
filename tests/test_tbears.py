@@ -12,14 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import time
 import unittest
 import os
 import json
 import shutil
 import socket
-from tbears.tbears.command import ExitCode, init, start_server, stop_server, run, stop, clear
-from tbears.tbears.util import post
+from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
+from tbears.util import post
 from .json_contents import *
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
@@ -40,7 +41,7 @@ class TestTBears(unittest.TestCase):
         self.give_icx_to_token_owner_json = give_icx_to_token_owner_json
 
     def tearDown(self):
-        clear()
+        clear_SCORE()
 
     @staticmethod
     def touch(path):
@@ -53,71 +54,79 @@ class TestTBears(unittest.TestCase):
             byte_data = f.read()
             return byte_data
 
-    def test_init(self):
-        # Case when user entered a exists directory path for project init.
-        os.mkdir('./temp')
-        ret1 = init('temp', "TempScore")
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, ret1)
-        os.rmdir('./temp')
+    def test_init_SCORE_1(self):
+        # Case when entering the existing SCORE directory for initializing the SCORE.
+        os.mkdir('./a_test_init1')
+        result_code = init_SCORE('a_test_init1', "ATestInit1")
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, result_code)
+        os.rmdir('./a_test_init1')
 
-        # Case when user entered a exists file path for project init.
-        TestTBears.touch('./tmpfile')
-        ret2 = init('./tmpfile', 'TestScore')
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, ret2)
-        os.remove('./tmpfile')
+    def test_init_SCORE_2(self):
+        # Case when entering the existing SCORE path for initializing the SCORE.
+        TestTBears.touch('./a_test_init2')
+        result_code = init_SCORE('./a_test_init2', 'ATestInit2')
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, result_code)
+        os.remove('./a_test_init2')
 
-        # Case when user entered a appropriate path for project init.
-        project_name = 'tbear_test'
-        ret3 = init(project_name, "TestScore")
-        self.assertEqual(ExitCode.SUCCEEDED.value, ret3)
-        with open(f'{project_name}/package.json', mode='r') as package_contents:
+    def test_init_SCORE_3(self):
+        # Case when entering the right path for initializing the SCORE.
+        score_name = 'a_test_init3'
+        result_code = init_SCORE(score_name, "ATestInit3")
+        self.assertEqual(ExitCode.SUCCEEDED.value, result_code)
+        with open(f'{score_name}/package.json', mode='r') as package_contents:
             package_json = json.loads(package_contents.read())
         main = package_json['main_file']
-        self.assertEqual(project_name, main)
-        shutil.rmtree(project_name)
+        self.assertEqual(score_name, main)
+        shutil.rmtree(score_name)
 
-    def test_stop_server(self):
-        start_server()
-        time.sleep(1)
-        stop_server()
+    def test_run_SCORE_1(self):
+        # Case when running SCORE and returning the right result code.
+        init_SCORE('a_test_run', 'ATestRun')
+        result_code, _ = run_SCORE('a_test_run')
+        self.assertEqual(1, result_code)
+        shutil.rmtree('./a_test_run')
 
+    def test_stop_SCORE_1(self):
+        # Case when stopping SCORE and checking if socket is unconnected.
+        init_SCORE('a_test_stop', 'ATestStop')
+        result_code, _ = run_SCORE('a_test_stop')
+        self.assertEqual(1, result_code)
+
+        stop_SCORE()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex(('127.0.0.1', 9000))
+        # if socket is connected, the result code is 0 (false).
+        result_is_unconnected = sock.connect_ex(('127.0.0.1', 9000))
+        self.assertTrue(result_is_unconnected)
+        shutil.rmtree('./a_test_stop')
 
-        self.assertFalse(result is 0)
-
-    def test_run(self):
-        init('asdf', 'Asdf')
-        result = run('asdf')
-        self.assertEqual(1, result)
-        stop_server()
-        shutil.rmtree('./asdf')
-
-    def test_clear(self):
-        start_server()
-        time.sleep(0.5)
-        clear()
-        self.assertTrue(os.path.exists('./.db') is False)
-        self.assertTrue(os.path.exists('./.score') is False)
-        stop_server()
+    def test_clear_SCORE_1(self):
+        # Case when clearing SCORE and checking if the directories are cleared.
+        init_SCORE('a_test_clear', 'ATestClear')
+        result_code, _ = run_SCORE('a_test_clear')
+        self.assertEqual(1, result_code)
+        stop_SCORE()
+        clear_SCORE()
+        self.assertFalse(os.path.exists('./.db'))
+        self.assertFalse(os.path.exists('./.score'))
+        shutil.rmtree('./a_test_clear')
 
     def test_get_balance_icx(self):
-        self.run_server()
+        self.run_SCORE_for_testing()
         response = post(self.url, self.get_god_balance_json).json()
         result = response["result"]
         self.assertEqual("0x2961fff8ca4a62327800000", result)
-        stop_server()
+        stop_SCORE()
 
     def test_send_icx(self):
-        self.run_server()
+        self.run_SCORE_for_testing()
         post(self.url, self.send_transaction_json).json()
         res = post(self.url, self.get_test_balance_json).json()
         res_icx_val = int(res["result"], 0) / (10**18)
         self.assertEqual(1.0, res_icx_val)
-        stop_server()
+        stop_SCORE()
 
     def test_get_balance_token(self):
-        self.run_server()
+        self.run_SCORE_for_testing()
         result = post(self.url, self.get_god_token_balance_json)
         god_result = result.json()["result"]
         # assert 0x3635c9adc5dea00000 == 1000 * (10 ** 18)
@@ -126,28 +135,32 @@ class TestTBears(unittest.TestCase):
         user_result = result2.json()["result"]
         self.assertEqual("0x0", user_result)
 
-        stop_server()
+        stop_SCORE()
 
     def test_token_total_supply(self):
-        self.run_server()
+        self.run_SCORE_for_testing()
         result = post(self.url, self.token_total_supply_json)
         supply = result.json()["result"]
         self.assertEqual("0x3635c9adc5dea00000", supply)
-        stop_server()
+        stop_SCORE()
 
     def test_token_transfer(self):
-        self.run_server()
+        self.run_SCORE_for_testing()
         post(self.url, self.give_icx_to_token_owner_json)
         post(self.url, self.token_transfer_json)
         token_balance_res1 = post(self.url, self.get_token_balance_json1)
         token_balance = token_balance_res1.json()["result"]
         self.assertEqual("0x1", token_balance)
-        stop_server()
+        stop_SCORE()
+        shutil.rmtree('./tokentest')
+
 
     @staticmethod
-    def run_server():
-        init("tokentest", "Tokentest")
-        run('tokentest')
+    def run_SCORE_for_testing():
+        # init_SCORE("a_test", "ATest")
+        # run_SCORE('a_test')
+        init_SCORE("tokentest", "Tokentest")
+        result, _ = run_SCORE('tokentest')
 
 
 if __name__ == "__main__":
