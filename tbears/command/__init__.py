@@ -39,8 +39,8 @@ class ExitCode(IntEnum):
 
 
 def init_SCORE(project: str, score_class: str) -> int:
-    """
-    Initialize the SCORE.
+    """Initialize the SCORE.
+
     :param project: name of SCORE.
     :param score_class: class name of SCORE.
     :return: ExitCode, Succeeded
@@ -65,9 +65,9 @@ def init_SCORE(project: str, score_class: str) -> int:
     return ExitCode.SUCCEEDED
 
 
-def run_SCORE(project: str) -> int:
-    """
-    Run SCORE, embedding SCORE on the server.
+def run_SCORE(project: str) -> tuple:
+    """Run SCORE, embedding SCORE on the server.
+
     :param project: name of SCORE.
     :return: ExitCode, Succeeded
     """
@@ -96,6 +96,7 @@ def stop_SCORE() -> int:
 
 def clear_SCORE() -> int:
     """ Clear score directories (.db, .score)
+
     :return: ExitCode
     """
     try:
@@ -106,7 +107,7 @@ def clear_SCORE() -> int:
     return ExitCode.SUCCEEDED
 
 
-def __start_server() -> None:
+def __start_server():
     logging.debug('start_server() start')
 
     root_path = os.path.abspath(
@@ -122,7 +123,7 @@ def __start_server() -> None:
     logging.debug('start_server() end')
 
 
-def __embed_SCORE_on_server(project: str) -> int:
+def __embed_SCORE_on_server(project: str) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
     """
@@ -143,7 +144,7 @@ def __exit_request():
 def __is_server_running():
     """ Check if server is running.
     tbears use 9000 port.
-    :return:
+    :return: True means socket is opened.
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex(('127.0.0.1', 9000))

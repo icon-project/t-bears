@@ -16,6 +16,7 @@
 import argparse
 import sys
 
+import tbears
 from .command import ExitCode
 from .command import init_SCORE
 from .command import run_SCORE
@@ -24,15 +25,15 @@ from .command import clear_SCORE
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='tbears_cli.py', usage="""
-    ==========================
-    tbears version : 0.0.1
-    ==========================
-        tbears commands:
-            init <project> <score_class> : Generate files, both <project>.py and package.json in <project> directory. The name of the score class is <score_class>.
-            run <project> : Run the score.
-            stop : Stop the score.
-            clear : Delete the score, both .score and .db directory.
+    parser = argparse.ArgumentParser(prog='tbears_cli.py', usage=f"""
+==========================
+tbears version : v{tbears.__version__}
+==========================
+tbears commands:
+    init <project> <score_class> : Generate files, both <project>.py and package.json in <project> directory. The name of the score class is <score_class>.
+    run <project> : Run the score.
+    stop : Stop the score.
+    clear : Delete the score, both .score and .db directory.
         """)
 
     parser.add_argument(
