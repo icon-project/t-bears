@@ -6,8 +6,7 @@ requires = [
     'requests',
     'Flask',
     'Flask-RESTful',
-    'jsonrpcserver',
-    'aio_pika'
+    'jsonrpcserver'
 ]
 
 
