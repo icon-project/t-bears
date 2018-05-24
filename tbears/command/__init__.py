@@ -19,10 +19,11 @@ import sys
 import subprocess
 import time
 import logging
+import socket
 from enum import IntEnum
 
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
-from ..util import post, make_install_json_payload, make_exit_json_payload, check_server_is_running,  \
+from ..util import post, make_install_json_payload, make_exit_json_payload,  \
     delete_score_info, get_init_template
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
@@ -34,22 +35,25 @@ class ExitCode(IntEnum):
     PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY = 3
     WRITE_FILE_ERROR = 4
     DELETE_TREE_ERROR = 5
+    SCORE_AlREADY_EXISTS = 6
 
 
-def init(project: str, score_class: str) -> int:
-    """ Initialize SCORE project.
+def init_SCORE(project: str, score_class: str) -> int:
+    """Initialize the SCORE.
 
-    :param project: your score name.
-    :param score_class: Your score class name.
-    :return:
+    :param project: name of SCORE.
+    :param score_class: class name of SCORE.
+    :return: ExitCode, Succeeded
     """
     if os.path.exists(f"./{project}"):
         logging.debug(f'{project} directory is not empty.')
         return ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value
+
     package_json_dict = get_package_json_dict(project, score_class)
     package_json_contents = json.dumps(package_json_dict, indent=4)
     project_py_contents = get_score_main_template(score_class)
     init_contents = get_init_template(project, score_class)
+
     try:
         write_file(project, f"{project}.py", project_py_contents)
         write_file(project, "package.json", package_json_contents)
@@ -61,41 +65,54 @@ def init(project: str, score_class: str) -> int:
     return ExitCode.SUCCEEDED
 
 
-def run(project: str) -> int:
-    """ Run score.
+def run_SCORE(project: str) -> tuple:
+    """Run SCORE, embedding SCORE on the server.
 
-    :param project: score name.
-    :return:
+    :param project: name of SCORE.
+    :return: ExitCode, Succeeded
     """
 
-    if check_server_is_running() is False:
-        start_server()
+    if not __is_server_running():
+        __start_server()
         time.sleep(2)
 
-    install_request(project)
+    respond = __embed_SCORE_on_server(project)
+
+    return ExitCode.SUCCEEDED, respond
+
+
+def stop_SCORE() -> int:
+    """
+    Stop score process.
+    :return: ExitCode, Succeeded
+    """
+    while __is_server_running():
+        __exit_request()
+        # Wait until server socket is released
+        time.sleep(2)
 
     return ExitCode.SUCCEEDED
 
 
-def clear() -> int:
-    """ Clear score info(.db, .score)
+def clear_SCORE() -> int:
+    """ Clear score directories (.db, .score)
 
-    :return:
+    :return: ExitCode
     """
     try:
-        if check_server_is_running() is False:
-            delete_score_info()
+        delete_score_info()
     except TBearsDeleteTreeException:
         return ExitCode.DELETE_TREE_ERROR
 
     return ExitCode.SUCCEEDED
 
 
-def start_server() -> None:
+def __start_server():
     logging.debug('start_server() start')
 
     root_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '../'))
+
     path = os.path.join(root_path, 'server', 'jsonrpc_server.py')
 
     logging.info(f'path: {path}')
@@ -106,8 +123,8 @@ def start_server() -> None:
     logging.debug('start_server() end')
 
 
-def install_request(project: str) -> int:
-    """ Request install score.
+def __embed_SCORE_on_server(project: str) -> dict:
+    """ Request for embedding SCORE on server.
     :param project: Project directory name.
     """
     url = "http://localhost:9000/api/v2"
@@ -116,27 +133,27 @@ def install_request(project: str) -> int:
     return response
 
 
-def stop() -> int:
-    """ Stop score process.
-
-    :return:
-    """
-    stop_server()
-    return ExitCode.SUCCEEDED
-
-
-def stop_server():
-    if check_server_is_running():
-        exit_request()
-
-        # Wait until server socket is released
-        time.sleep(2)
-
-
-def exit_request():
-    """ Request install score.
+def __exit_request():
+    """ Request for exiting SCORE on server.
     """
     url = "http://localhost:9000/api/v2"
     project_dict = make_exit_json_payload()
     post(url, project_dict)
+
+
+def __is_server_running():
+    """ Check if server is running.
+    tbears use 9000 port.
+    :return: True means socket is opened.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('127.0.0.1', 9000))
+    sock.close()
+
+    if result:
+        print("socket is closed!")
+    else:
+        print("socket is opened!")
+
+    return result is 0
 

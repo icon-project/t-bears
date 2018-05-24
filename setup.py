@@ -3,10 +3,10 @@
 from setuptools import setup, find_packages
 
 requires = [
-    'requests',
-    'Flask',
-    'Flask-RESTful',
-    'jsonrpcserver'
+    'requests==2.18.4',
+    'Flask==1.0.2',
+    'Flask-RESTful==0.3.6',
+    'jsonrpcserver==3.5.4'
 ]
 
 
@@ -15,10 +15,12 @@ setup_options = {
     'version': '0.0.1',
     'description': '`tbears` for ICON SCORE development',
     'author': 'ICON foundation',
+    'author_email': 'foo@icon.foundation',
     'packages': find_packages(exclude=['tests*','docs']),
     'py_modules': ['tbears'],
     'license': "Apache License 2.0",
     'install_requires': requires,
+    'test_suite': 'tests.test_tbears',
     'entry_points': {
         'console_scripts': [
             'tbears=tbears:main'
