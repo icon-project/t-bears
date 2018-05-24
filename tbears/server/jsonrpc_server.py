@@ -30,7 +30,6 @@ SEPARATE_PROCESS_DEBUG = True
 sys.path.append('..')
 sys.path.append('.')
 
-
 __block_height = 0
 __icon_score_stub = None
 __type_converter = None
@@ -115,6 +114,7 @@ class MockDispatcher:
             'params': params
         }
         make_request['transactions'] = [tx]
+        make_request['tbears'] = True
         return await get_icon_score_stub().task().icx_send_transaction(make_request)
 
     @staticmethod
