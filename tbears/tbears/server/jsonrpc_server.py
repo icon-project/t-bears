@@ -25,8 +25,11 @@ from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInner
 from iconservice import configure as conf
 from iconservice.utils.type_converter import TypeConverter
 
+SEPARATE_PROCESS_DEBUG = True
+
 sys.path.append('..')
 sys.path.append('.')
+
 
 __block_height = 0
 __icon_score_stub = None
@@ -43,25 +46,23 @@ def get_type_converter() -> TypeConverter:
     return __type_converter
 
 
-def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, peer_id: str, peer_port: str,
+def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
                               icon_score_root_path: str, icon_score_state_db_root_path: str,
                               **kwargs) -> IconScoreInnerService:
     icon_score_queue_name = conf.ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
                                                                      amqp_key=amqp_key,
-                                                                     peer_id=peer_id,
-                                                                     peer_port=peer_port)
+                                                                     rpc_port=rpc_port)
 
     return IconScoreInnerService(amqp_target, icon_score_queue_name,
                                  icon_score_root_path=icon_score_root_path,
                                  icon_score_state_db_root_path=icon_score_state_db_root_path)
 
 
-def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str, peer_id: str, peer_port: str,
+def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
                            **kwargs) -> IconScoreInnerStub:
     icon_score_queue_name = conf.ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
                                                                      amqp_key=amqp_key,
-                                                                     peer_id=peer_id,
-                                                                     peer_port=peer_port)
+                                                                     rpc_port=rpc_port)
     return IconScoreInnerStub(amqp_target, icon_score_queue_name)
 
 
@@ -191,7 +192,8 @@ class SimpleRestServer:
 def serve():
     async def __serve():
         init_type_converter()
-        # await init_icon_score_service()
+        if not SEPARATE_PROCESS_DEBUG:
+            await init_icon_score_service()
         await init_icon_score_stub(tbears_conf)
 
     if len(sys.argv) == 2:
@@ -249,7 +251,8 @@ async def init_icon_score_stub(tbears_conf: dict):
     global __icon_score_stub
     __icon_score_stub = create_icon_score_stub(**conf.DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
     await __icon_score_stub.connect()
-    # await __icon_score_stub.task().open()
+    if not SEPARATE_PROCESS_DEBUG:
+        await __icon_score_stub.task().open()
 
     accounts = get_type_converter().convert(tbears_conf['accounts'], recursive=False)
     make_request = dict()
