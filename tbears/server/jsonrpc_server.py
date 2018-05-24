@@ -25,7 +25,7 @@ from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInner
 from iconservice import configure as conf
 from iconservice.utils.type_converter import TypeConverter
 
-SEPARATE_PROCESS_DEBUG = True
+SEPARATE_PROCESS_DEBUG = False
 
 sys.path.append('..')
 sys.path.append('.')
