@@ -19,7 +19,7 @@ import os
 import json
 import shutil
 import socket
-from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
+from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE, make_SCORE_samples
 from tbears.util import post
 from .json_contents import *
 
@@ -121,7 +121,7 @@ class TestTBears(unittest.TestCase):
         self.run_SCORE_for_testing()
         post(self.url, self.send_transaction_json).json()
         res = post(self.url, self.get_test_balance_json).json()
-        res_icx_val = int(res["result"], 0) / (10**18)
+        res_icx_val = int(res["result"], 0) / (10 ** 18)
         self.assertEqual(1.0, res_icx_val)
         stop_SCORE()
 
@@ -154,6 +154,11 @@ class TestTBears(unittest.TestCase):
         stop_SCORE()
         shutil.rmtree('./tokentest')
 
+    def test_samples(self):
+        make_SCORE_samples()
+        sample_root_path = './scoreSample'
+        self.assertTrue(os.path.exists('./sampleCrowdSale'))
+        self.assertTrue(os.path.exists('./tokentest'))
 
     @staticmethod
     def run_SCORE_for_testing():

@@ -110,7 +110,6 @@ def clear_SCORE() -> int:
 
 
 def make_SCORE_samples():
-    score_samples_path = './scoreSample'
 
     tokentest_package_json_dict = get_package_json_dict("tokentest", "Tokentest")
     tokentest_package_json_contents = json.dumps(tokentest_package_json_dict, indent=4)
@@ -121,17 +120,18 @@ def make_SCORE_samples():
     crowdsale_package_json_contents = json.dumps(crowdsale_package_json_dict, indent=4)
     crowdsale_init_contents = get_init_template("sampleCrowdSale", "SampleCrowdSale")
     try:
-        os.makedirs(f'{score_samples_path}/sampleCrowdSale')
-        with open(f'{score_samples_path}/sampleCrowdSale/sampleCrowdSale.py', mode='wb') as w_context,\
+        if os.path.exists('./sampleCrowdSale') is False:
+            os.mkdir('./sampleCrowdSale')
+        with open('sampleCrowdSale/sampleCrowdSale.py', mode='wb') as w_context,\
                 open(os.path.join(DIR_PATH, '../../sample/sampleCrowdSale/sampleCrowdSale.py'), mode='rb') as r_context:
             w_context.write(r_context.read())
 
-        write_file(f'{score_samples_path}/tokentest', 'tokentest.py', tokentest_py_contents)
-        write_file(f'{score_samples_path}/tokentest', "package.json", tokentest_package_json_contents)
-        write_file(f'{score_samples_path}/tokentest', '__init__.py', tokentest_init_contents)
+        write_file('tokentest', 'tokentest.py', tokentest_py_contents)
+        write_file('tokentest', "package.json", tokentest_package_json_contents)
+        write_file('tokentest', '__init__.py', tokentest_init_contents)
 
-        write_file(f'{score_samples_path}/sampleCrowdSale', "package.json", crowdsale_package_json_contents)
-        write_file(f'{score_samples_path}/sampleCrowdSale', '__init__.py', crowdsale_init_contents)
+        write_file('sampleCrowdSale', "package.json", crowdsale_package_json_contents)
+        write_file('sampleCrowdSale', '__init__.py', crowdsale_init_contents)
 
     except TBearsWriteFileException:
         logging.debug("Except raised while writing files.")
