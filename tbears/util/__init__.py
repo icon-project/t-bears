@@ -24,7 +24,7 @@ from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeExcepti
 def write_file(parent_directory: str, file_name: str, contents: str) -> None:
     try:
         if not os.path.exists(parent_directory):
-            os.mkdir(parent_directory)
+            os.makedirs(parent_directory)
         with open(f'./{parent_directory}/{file_name}', mode='w') as file:
             file.write(contents)
     except PermissionError:
