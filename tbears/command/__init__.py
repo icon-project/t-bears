@@ -101,6 +101,8 @@ def clear_SCORE() -> int:
 
     :return: ExitCode
     """
+    stop_SCORE()
+
     try:
         delete_score_info()
     except TBearsDeleteTreeException:

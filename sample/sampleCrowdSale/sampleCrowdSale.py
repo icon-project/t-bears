@@ -55,8 +55,8 @@ class SampleCrowdSale(IconScoreBase):
 
     @payable
     def fallback(self) -> None:
-        if self._crowd_sale_closed.get():
-            raise IconScoreBaseException('sampleCrowdSale sale is closed')
+        # if self._crowd_sale_closed.get():
+        #     raise IconScoreException('sampleCrowdSale sale is closed')
 
         amount = self.msg.value
         self._balances[self.msg.sender] = self._balances[self.msg.sender] + amount
@@ -71,8 +71,8 @@ class SampleCrowdSale(IconScoreBase):
 
     @external
     def check_goal_reached(self):
-        if not self.__after_dead_line():
-            raise IconScoreBaseException('before deadline')
+        # if not self.__after_dead_line():
+        #     raise IconScoreException('before deadline')
 
         if self._amount_raise.get() >= self._funding_goal.get():
             self._funding_goal_reached.set(True)
@@ -84,8 +84,8 @@ class SampleCrowdSale(IconScoreBase):
 
     @external
     def safe_withdrawal(self):
-        if not self.__after_dead_line():
-            raise IconScoreBaseException('before deadline')
+        # if not self.__after_dead_line():
+        #     raise IconScoreException('before deadline')
 
         if not self._funding_goal_reached.get():
             amount = self._balances[self.msg.sender]

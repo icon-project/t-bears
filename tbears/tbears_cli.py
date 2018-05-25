@@ -34,6 +34,7 @@ tbears commands:
     run <project> : Run the score.
     stop : Stop the score.
     clear : Delete the score, both .score and .db directory.
+    samples : Create two score samples (sampleCrowdSale, tokentest)
         """)
 
     parser.add_argument(
