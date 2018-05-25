@@ -72,9 +72,13 @@ def run_SCORE(project: str) -> tuple:
     :return: ExitCode, Succeeded
     """
 
+    if __is_server_running():
+        __exit_request()
+    time.sleep(1)
+
     if not __is_server_running():
         __start_server()
-        time.sleep(2)
+    time.sleep(1)
 
     respond = __embed_SCORE_on_server(project)
 
