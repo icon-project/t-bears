@@ -19,7 +19,7 @@ import time
 import hashlib
 
 from jsonrpcserver.aio import methods
-from sanic import Sanic, response
+from sanic import Sanic, response as sanic_response
 
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
 from iconservice import configure as conf
@@ -81,7 +81,7 @@ class MockDispatcher:
         req["params"]["method"] = request.json["method"]
 
         dispatch_response = await methods.dispatch(req)
-        return response.json(dispatch_response, status=dispatch_response.http_status)
+        return sanic_response.json(dispatch_response, status=dispatch_response.http_status)
 
     @staticmethod
     @methods.add
@@ -113,9 +113,16 @@ class MockDispatcher:
             'method': 'icx_send_transaction',
             'params': params
         }
+
         make_request['transactions'] = [tx]
-        make_request['tbears'] = True
-        return await get_icon_score_stub().task().icx_send_transaction(make_request)
+        response = await get_icon_score_stub().task().icx_send_transaction(make_request)
+        if not isinstance(response, list):
+            commit_response = await get_icon_score_stub().task().remove_precommit_state({})
+        elif response[0]['status'] == 1:
+            commit_response = await get_icon_score_stub().task().write_precommit_state({})
+        else:
+            commit_response = await get_icon_score_stub().task().remove_precommit_state({})
+        return {'response': response, 'commit_response' : commit_response}
 
     @staticmethod
     @methods.add
