@@ -13,13 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
 import unittest
 import os
 import json
 import shutil
 import socket
-from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
+from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE, make_SCORE_samples
 from tbears.util import post
 from .json_contents import *
 
@@ -37,7 +36,7 @@ class TestTBears(unittest.TestCase):
         self.get_god_token_balance_json = token_god_balance_json
         self.token_total_supply_json = token_total_supply_json
         self.token_transfer_json = token_transfer_json
-        self.url = "http://localhost:9000/api/v2"
+        self.url = "http://localhost:9000/api/v3/"
         self.give_icx_to_token_owner_json = give_icx_to_token_owner_json
 
     def tearDown(self):
@@ -58,14 +57,14 @@ class TestTBears(unittest.TestCase):
         # Case when entering the existing SCORE directory for initializing the SCORE.
         os.mkdir('./a_test_init1')
         result_code = init_SCORE('a_test_init1', "ATestInit1")
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, result_code)
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, result_code)
         os.rmdir('./a_test_init1')
 
     def test_init_SCORE_2(self):
         # Case when entering the existing SCORE path for initializing the SCORE.
         TestTBears.touch('./a_test_init2')
         result_code = init_SCORE('./a_test_init2', 'ATestInit2')
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, result_code)
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, result_code)
         os.remove('./a_test_init2')
 
     def test_init_SCORE_3(self):
@@ -121,7 +120,7 @@ class TestTBears(unittest.TestCase):
         self.run_SCORE_for_testing()
         post(self.url, self.send_transaction_json).json()
         res = post(self.url, self.get_test_balance_json).json()
-        res_icx_val = int(res["result"], 0) / (10**18)
+        res_icx_val = int(res["result"], 0) / (10 ** 18)
         self.assertEqual(1.0, res_icx_val)
         stop_SCORE()
 
@@ -152,15 +151,18 @@ class TestTBears(unittest.TestCase):
         token_balance = token_balance_res1.json()["result"]
         self.assertEqual("0x1", token_balance)
         stop_SCORE()
-        shutil.rmtree('./tokentest')
 
+    def test_samples(self):
+        make_SCORE_samples()
+        self.assertTrue(os.path.exists('./sample_crowd_sale'))
+        self.assertTrue(os.path.exists('./sample_token'))
+        shutil.rmtree('./sample_crowd_sale')
+        shutil.rmtree('./sample_token')
 
     @staticmethod
     def run_SCORE_for_testing():
-        # init_SCORE("a_test", "ATest")
-        # run_SCORE('a_test')
-        init_SCORE("tokentest", "Tokentest")
-        result, _ = run_SCORE('tokentest')
+        init_SCORE("sample_token", "SampleToken")
+        result, _ = run_SCORE('sample_token')
 
 
 if __name__ == "__main__":

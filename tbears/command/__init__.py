@@ -23,9 +23,12 @@ import socket
 from enum import IntEnum
 
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
-from ..util import post, make_install_json_payload, make_exit_json_payload,  \
-    delete_score_info, get_init_template
+from ..util import post, make_install_json_payload, make_exit_json_payload, \
+    delete_score_info, get_init_template, get_sample_crowd_sale_contents
 from ..util import write_file, get_package_json_dict, get_score_main_template
+
+DIR_PATH = os.path.abspath(os.path.dirname(__file__))
+JSON_RPC_SERVER_URL = "http://localhost:9000/api/v3"
 
 
 class ExitCode(IntEnum):
@@ -62,7 +65,7 @@ def init_SCORE(project: str, score_class: str) -> int:
         logging.debug("Except raised while writing files.")
         return ExitCode.WRITE_FILE_ERROR.value
 
-    return ExitCode.SUCCEEDED
+    return ExitCode.SUCCEEDED.value
 
 
 def run_SCORE(project: str) -> tuple:
@@ -78,7 +81,7 @@ def run_SCORE(project: str) -> tuple:
 
     respond = __embed_SCORE_on_server(project)
 
-    return ExitCode.SUCCEEDED, respond
+    return ExitCode.SUCCEEDED.value, respond
 
 
 def stop_SCORE() -> int:
@@ -91,7 +94,7 @@ def stop_SCORE() -> int:
         # Wait until server socket is released
         time.sleep(2)
 
-    return ExitCode.SUCCEEDED
+    return ExitCode.SUCCEEDED.value
 
 
 def clear_SCORE() -> int:
@@ -99,10 +102,39 @@ def clear_SCORE() -> int:
 
     :return: ExitCode
     """
+    stop_SCORE()
+
     try:
         delete_score_info()
     except TBearsDeleteTreeException:
-        return ExitCode.DELETE_TREE_ERROR
+        return ExitCode.DELETE_TREE_ERROR.value
+
+    return ExitCode.SUCCEEDED.value
+
+
+def make_SCORE_samples():
+
+    tokentest_package_json_dict = get_package_json_dict("sample_token", "SampleToken")
+    tokentest_package_json_contents = json.dumps(tokentest_package_json_dict, indent=4)
+    tokentest_py_contents = get_score_main_template("SampleToken")
+    tokentest_init_contents = get_init_template("sample_token", "SampleToken")
+
+    crowdsale_package_json_dict = get_package_json_dict("sample_crowd_sale", "SampleCrowdSale")
+    crowdsale_package_json_contents = json.dumps(crowdsale_package_json_dict, indent=4)
+    crowdsale_py_contents = get_sample_crowd_sale_contents()
+    crowdsale_init_contents = get_init_template("sample_crowd_sale", "SampleCrowdSale")
+    try:
+        write_file('./sample_token', 'sample_token.py', tokentest_py_contents)
+        write_file('./sample_token', "package.json", tokentest_package_json_contents)
+        write_file('./sample_token', '__init__.py', tokentest_init_contents)
+
+        write_file('./sample_crowd_sale', "package.json", crowdsale_package_json_contents)
+        write_file('./sample_crowd_sale', '__init__.py', crowdsale_init_contents)
+        write_file('./sample_crowd_sale', "sample_crowd_sale.py", crowdsale_py_contents)
+
+    except TBearsWriteFileException:
+        logging.debug("Except raised while writing files.")
+        return ExitCode.WRITE_FILE_ERROR.value
 
     return ExitCode.SUCCEEDED
 
@@ -127,18 +159,16 @@ def __embed_SCORE_on_server(project: str) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
     """
-    url = "http://localhost:9000/api/v2"
     project_dict = make_install_json_payload(project)
-    response = post(url, project_dict)
+    response = post(JSON_RPC_SERVER_URL, project_dict)
     return response
 
 
 def __exit_request():
     """ Request for exiting SCORE on server.
     """
-    url = "http://localhost:9000/api/v2"
     project_dict = make_exit_json_payload()
-    post(url, project_dict)
+    post(JSON_RPC_SERVER_URL, project_dict)
 
 
 def __is_server_running():
@@ -151,9 +181,9 @@ def __is_server_running():
     sock.close()
 
     if result:
-        print("socket is closed!")
+        logging.debug("socket is closed!")
     else:
-        print("socket is opened!")
+        logging.debug("socket is opened!")
 
     return result is 0
 

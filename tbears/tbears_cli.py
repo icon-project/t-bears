@@ -17,7 +17,7 @@ import argparse
 import sys
 
 import tbears
-from .command import ExitCode
+from .command import ExitCode, make_SCORE_samples
 from .command import init_SCORE
 from .command import run_SCORE
 from .command import stop_SCORE
@@ -34,6 +34,7 @@ tbears commands:
     run <project> : Run the score.
     stop : Stop the score.
     clear : Delete the score, both .score and .db directory.
+    samples : Create two score samples (sampleCrowdSale, tokentest)
         """)
 
     parser.add_argument(
@@ -45,7 +46,7 @@ tbears commands:
 
     if len(args.command) < 1:
         parser.print_help()
-        sys.exit(ExitCode.COMMAND_IS_WRONG)
+        sys.exit(ExitCode.COMMAND_IS_WRONG.value)
 
     command = args.command[0]
 
@@ -57,8 +58,12 @@ tbears commands:
         result = stop_SCORE()
     elif command == 'clear':
         result = clear_SCORE()
+    elif command == 'samples':
+        result = make_SCORE_samples()
+        if result is 1:  # success
+            print('Cleared the score successfully.')
     else:
         parser.print_help()
-        result = ExitCode.COMMAND_IS_WRONG
+        result = ExitCode.COMMAND_IS_WRONG.value
 
     sys.exit(result)
