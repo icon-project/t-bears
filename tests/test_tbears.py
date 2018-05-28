@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
 import unittest
 import os
 import json
@@ -58,14 +57,14 @@ class TestTBears(unittest.TestCase):
         # Case when entering the existing SCORE directory for initializing the SCORE.
         os.mkdir('./a_test_init1')
         result_code = init_SCORE('a_test_init1', "ATestInit1")
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, result_code)
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, result_code)
         os.rmdir('./a_test_init1')
 
     def test_init_SCORE_2(self):
         # Case when entering the existing SCORE path for initializing the SCORE.
         TestTBears.touch('./a_test_init2')
         result_code = init_SCORE('./a_test_init2', 'ATestInit2')
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, result_code)
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, result_code)
         os.remove('./a_test_init2')
 
     def test_init_SCORE_3(self):
@@ -154,11 +153,8 @@ class TestTBears(unittest.TestCase):
         stop_SCORE()
         shutil.rmtree('./tokentest')
 
-
     @staticmethod
     def run_SCORE_for_testing():
-        # init_SCORE("a_test", "ATest")
-        # run_SCORE('a_test')
         init_SCORE("tokentest", "Tokentest")
         result, _ = run_SCORE('tokentest')
 

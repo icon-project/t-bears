@@ -44,7 +44,7 @@ def main():
 
     if len(args.command) < 1:
         parser.print_help()
-        sys.exit(ExitCode.COMMAND_IS_WRONG)
+        sys.exit(ExitCode.COMMAND_IS_WRONG.value)
 
     command = args.command[0]
 
@@ -56,8 +56,10 @@ def main():
         result = stop_SCORE()
     elif command == 'clear':
         result = clear_SCORE()
+        if result is 1:  # success
+            print('Cleared the score successfully.')
     else:
         parser.print_help()
-        result = ExitCode.COMMAND_IS_WRONG
+        result = ExitCode.COMMAND_IS_WRONG.value
 
     sys.exit(result)
