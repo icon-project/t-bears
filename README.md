@@ -62,9 +62,9 @@ $ tbears stop
 $ tbears clear
 ```
 
-### Reference for SCORE
- Read the [SCORE development guide and examples](https://repo.theloop.co.kr/icon/loopchain-icon/blob/master/icon/docs/dapp_guide.md).
- Read the [Architecture of IconService](https://repo.theloop.co.kr/icon/loopchain-icon/blob/master/icon/docs/class.md).
+### Reference
+* [SCORE development guide and examples](https://repo.theloop.co.kr/icon/loopchain-icon/blob/master/icon/docs/dapp_guide.md)
+* [Architecture of IconService](https://repo.theloop.co.kr/icon/loopchain-icon/blob/master/icon/docs/class.md)
 
 ### Deploy SCORE project into the test net or main net
 
