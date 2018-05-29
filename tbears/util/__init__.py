@@ -36,7 +36,8 @@ def write_file(parent_directory: str, file_name: str, contents: str) -> None:
 
 
 def get_init_template(project: str, score_class: str) -> str:
-    return f"from .{project} import {score_class}\n"
+    return f'import importlib\nfrom .{project} import {score_class}\n' \
+           f'importlib.reload({project})\nfrom .{project} import {score_class}\n'
 
 
 def get_score_main_template(score_class: str) -> str:
@@ -45,6 +46,7 @@ def get_score_main_template(score_class: str) -> str:
     :return:
     """
     template = """from iconservice import *
+
 
 class SampleToken(IconScoreBase):
 
