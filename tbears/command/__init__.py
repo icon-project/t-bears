@@ -62,7 +62,7 @@ def init_SCORE(project: str, score_class: str) -> int:
         logging.debug("Except raised while writing files.")
         return ExitCode.WRITE_FILE_ERROR.value
 
-    return ExitCode.SUCCEEDED
+    return ExitCode.SUCCEEDED.value
 
 
 def run_SCORE(project: str) -> tuple:
@@ -78,7 +78,7 @@ def run_SCORE(project: str) -> tuple:
 
     respond = __embed_SCORE_on_server(project)
 
-    return ExitCode.SUCCEEDED, respond
+    return ExitCode.SUCCEEDED.value, respond
 
 
 def stop_SCORE() -> int:
@@ -91,7 +91,7 @@ def stop_SCORE() -> int:
         # Wait until server socket is released
         time.sleep(2)
 
-    return ExitCode.SUCCEEDED
+    return ExitCode.SUCCEEDED.value
 
 
 def clear_SCORE() -> int:
@@ -102,9 +102,9 @@ def clear_SCORE() -> int:
     try:
         delete_score_info()
     except TBearsDeleteTreeException:
-        return ExitCode.DELETE_TREE_ERROR
+        return ExitCode.DELETE_TREE_ERROR.value
 
-    return ExitCode.SUCCEEDED
+    return ExitCode.SUCCEEDED.value
 
 
 def __start_server():
@@ -150,10 +150,10 @@ def __is_server_running():
     result = sock.connect_ex(('127.0.0.1', 9000))
     sock.close()
 
-    if result:
-        print("socket is closed!")
-    else:
-        print("socket is opened!")
+    # if result:
+    #     print("socket is closed!")
+    # else:
+    #     print("socket is opened!")
 
     return result is 0
 
