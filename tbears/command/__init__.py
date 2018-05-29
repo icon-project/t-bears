@@ -162,7 +162,7 @@ def __embed_SCORE_on_server(project: str) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
     """
-    url = "http://localhost:9000/api/v2"
+    url = "http://localhost:9000/api/v3"
     project_dict = make_install_json_payload(project)
     response = post(url, project_dict)
     return response
@@ -171,7 +171,7 @@ def __embed_SCORE_on_server(project: str) -> dict:
 def __exit_request():
     """ Request for exiting SCORE on server.
     """
-    url = "http://localhost:9000/api/v2"
+    url = "http://localhost:9000/api/v3"
     project_dict = make_exit_json_payload()
     post(url, project_dict)
 

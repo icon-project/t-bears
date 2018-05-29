@@ -17,6 +17,7 @@ import logging
 import sys
 import time
 import hashlib
+from json import JSONDecodeError
 
 sys.path.append('..')
 sys.path.append('.')
@@ -31,6 +32,7 @@ from iconservice.utils.type_converter import TypeConverter
 _type_converter = None
 _icon_service_engine = None
 _block_height = 0
+PARSE_ERROR_RESPONSE = '{"jsonrpc":"2.0", "error":{"code":-32700, "message": "Parse error"}, "id": "null"}'
 
 
 def get_icon_service_engine() -> object:
@@ -56,11 +58,19 @@ class MockDispatcher:
 
     @staticmethod
     def dispatch():
-        req = json.loads(request.get_data().decode())
-        response = methods.dispatch(req)
-        return Response(str(response),
-                        response.http_status,
-                        mimetype='application/json')
+        try:
+            req = json.loads(request.get_data().decode())
+        except JSONDecodeError:
+            return Response(
+                PARSE_ERROR_RESPONSE,
+                400,
+                mimetype='application/json'
+            )
+        else:
+            response = methods.dispatch(req)
+            return Response(str(response),
+                            response.http_status,
+                            mimetype='application/json')
 
     @staticmethod
     @methods.add
@@ -99,7 +109,7 @@ class MockDispatcher:
             engine.rollback()
             raise
 
-        return tx_result.to_dict()
+        return tx_result.to_response_json()
 
     @staticmethod
     @methods.add
@@ -159,7 +169,7 @@ class FlaskServer():
         return self.__ssl_context
 
     def set_resource(self):
-        self.__app.add_url_rule('/api/v2', view_func=MockDispatcher.dispatch, methods=['POST'])
+        self.__app.add_url_rule('/api/v3', view_func=MockDispatcher.dispatch, methods=['POST'])
 
 
 class SimpleRestServer():
