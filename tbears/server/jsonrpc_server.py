@@ -190,7 +190,7 @@ def main():
     init_type_converter()
     init_icon_service_engine(conf)
 
-    server = SimpleRestServer(conf['port'])
+    server = SimpleRestServer(conf['port'], "0.0.0.0")
     server.run()
 
 
