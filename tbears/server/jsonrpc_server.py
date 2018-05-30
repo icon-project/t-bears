@@ -169,7 +169,7 @@ class FlaskServer():
         return self.__api
 
     def set_resource(self):
-        self.__app.add_url_rule('/api/v3/', view_func=MockDispatcher.dispatch, methods=['POST'])
+        self.__app.add_url_rule('/api/v3', view_func=MockDispatcher.dispatch, methods=['POST'])
 
 
 class SimpleRestServer():
@@ -194,9 +194,9 @@ def main():
     else:
         path = './tbears.json'
 
-    Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
     conf = load_config(path)
     Logger(path)
+    Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
 
     init_type_converter()
     init_icon_service_engine(conf)

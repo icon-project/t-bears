@@ -1,5 +1,6 @@
 from iconservice import *
 
+
 class SampleCrowdSale(IconScoreBase):
     _ADDR_BENEFICIARY = 'addr_beneficiary'
     _FUNDING_GOAL = 'funding_goal'
@@ -26,8 +27,8 @@ class SampleCrowdSale(IconScoreBase):
         self._funding_goal_reached = VarDB(self._FUNDING_GOAL_REACHED, db, value_type=bool)
         self._crowd_sale_closed = VarDB(self._CROWD_SALE_CLOSED, db, value_type=bool)
 
-    def genesis_init(self, *args, **kwargs) -> None:
-        super().genesis_init(*args, **kwargs)
+    def on_install(self, params) -> None:
+        super().on_install(params)
 
         one_icx = 1 * 10 ** 18
         one_minute_to_sec = 1 * 60
@@ -36,7 +37,7 @@ class SampleCrowdSale(IconScoreBase):
 
         # genesis params
         if_successful_send_to = self.msg.sender
-        addr_token_score = Address.from_string('cxb995b8c9c1fb9b93ad17c3b59df452dbaaa39a7c')
+        addr_token_score = Address.from_string('cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf')
 
         funding_goal_in_icx = 100
         duration_in_minutes = 1
@@ -48,6 +49,9 @@ class SampleCrowdSale(IconScoreBase):
         self._dead_line.set(now_seconds + duration_in_minutes * one_minute_to_sec * one_second_to_microsec)
         price = int(icx_cost_of_each_token * one_icx)
         self._price.set(price)
+
+    def on_update(self, params) -> None:
+        super().on_update(params)
 
     @external(readonly=True)
     def total_joiner_count(self):
