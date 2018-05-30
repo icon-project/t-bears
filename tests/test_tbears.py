@@ -37,7 +37,7 @@ class TestTBears(unittest.TestCase):
         self.get_god_token_balance_json = token_god_balance_json
         self.token_total_supply_json = token_total_supply_json
         self.token_transfer_json = token_transfer_json
-        self.url = "http://localhost:9000/api/v2"
+        self.url = "http://localhost:9000/api/v3"
         self.give_icx_to_token_owner_json = give_icx_to_token_owner_json
 
     def tearDown(self):
