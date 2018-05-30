@@ -24,7 +24,7 @@ from enum import IntEnum
 
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
-    delete_score_info, get_init_template
+    delete_score_info, get_init_template, get_sample_crowd_sale_contents
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -120,20 +120,16 @@ def make_SCORE_samples():
 
     crowdsale_package_json_dict = get_package_json_dict("sampleCrowdSale", "SampleCrowdSale")
     crowdsale_package_json_contents = json.dumps(crowdsale_package_json_dict, indent=4)
+    crowdsale_py_contents = get_sample_crowd_sale_contents()
     crowdsale_init_contents = get_init_template("sampleCrowdSale", "SampleCrowdSale")
     try:
-        if os.path.exists('./sampleCrowdSale') is False:
-            os.mkdir('./sampleCrowdSale')
-        with open('sampleCrowdSale/sampleCrowdSale.py', mode='wb') as w_context,\
-                open(os.path.join(DIR_PATH, '../../sample/sampleCrowdSale/sampleCrowdSale.py'), mode='rb') as r_context:
-            w_context.write(r_context.read())
+        write_file('./tokentest', 'tokentest.py', tokentest_py_contents)
+        write_file('./tokentest', "package.json", tokentest_package_json_contents)
+        write_file('./tokentest', '__init__.py', tokentest_init_contents)
 
-        write_file('tokentest', 'tokentest.py', tokentest_py_contents)
-        write_file('tokentest', "package.json", tokentest_package_json_contents)
-        write_file('tokentest', '__init__.py', tokentest_init_contents)
-
-        write_file('sampleCrowdSale', "package.json", crowdsale_package_json_contents)
-        write_file('sampleCrowdSale', '__init__.py', crowdsale_init_contents)
+        write_file('./sampleCrowdSale', "package.json", crowdsale_package_json_contents)
+        write_file('./sampleCrowdSale', '__init__.py', crowdsale_init_contents)
+        write_file('./sampleCrowdSale', "sampleCrowdSale.py", crowdsale_py_contents)
 
     except TBearsWriteFileException:
         logging.debug("Except raised while writing files.")
@@ -186,9 +182,9 @@ def __is_server_running():
     sock.close()
 
     if result:
-        print("socket is closed!")
+        logging.debug("socket is closed!")
     else:
-        print("socket is opened!")
+        logging.debug("socket is opened!")
 
     return result is 0
 

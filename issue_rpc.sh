@@ -85,10 +85,6 @@ case "$action" in
   # check icx balance address: addr1 value : 0x56bc75e2d63100000 (100 icx)
       PARAMS='{"jsonrpc": "2.0", "method": "icx_getBalance", "id": 220889, "params": {"address": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}'
   ;;
-  seq33 )
-  # check icx balance address: addr1 value : 0x56bc75e2d63100000 (100 icx)
-      PARAMS='{"jsonrpc": "2.0", "method": 1, "id": 90889, "params": {"address": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}'
-  ;;
   * )
     echo "Error: Invalid action... $action"
     echo "   Valid actions are [sendtx|gettxres|getbal|getsup|tokenbal|tokensup|tokentra]."
