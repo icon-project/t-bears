@@ -134,9 +134,10 @@ def make_exit_json_payload() -> dict:
 def post(url: str, payload: dict):
     try:
         r = requests.post(url, json=payload, verify=False)
-        return r
     except requests.exceptions.Timeout:
         raise RuntimeError("Timeout happened. Check your internet connection status.")
+    else:
+        return r
 
 
 def delete_score_info():
