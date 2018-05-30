@@ -18,15 +18,16 @@ import sys
 import time
 import hashlib
 
-sys.path.append('..')
-sys.path.append('.')
-
 from flask import Flask, request, Response
 from flask_restful import reqparse, Api
 from jsonrpcserver import methods
 from iconservice.icon_service_engine import IconServiceEngine
 from iconservice.iconscore.icon_score_result import TransactionResult
 from iconservice.utils.type_converter import TypeConverter
+from iconservice.logger import Logger
+
+sys.path.append('..')
+sys.path.append('.')
 
 _type_converter = None
 _icon_service_engine = None
@@ -177,7 +178,6 @@ class SimpleRestServer():
                               host=self.__ip_address,
                               debug=False)
 
-
 def main():
     if len(sys.argv) == 2:
         path = sys.argv[1]
@@ -186,6 +186,8 @@ def main():
 
     print(f'config_file: {path}')
     conf = load_config(path)
+    logger = Logger(path)
+    logger.set_tag('tbears')
 
     init_type_converter()
     init_icon_service_engine(conf)
@@ -207,13 +209,20 @@ def load_config(path: str) -> dict:
         "treasury": {
             "address": "hx1000000000000000000000000000000000000000",
             "balance": "0x0"
+        },
+        "Logger": {
+            "LogFormat": "%(asctime)s %(process)d %(thread)d [TAG] %(levelname)s %(message)s",
+            "logLevel": "DEBUG",
+            "colorLog": True,
+            "logFilePath": "./logger.log",
+            "logOutputType": "production"
         }
     }
 
     try:
         with open(path) as f:
             conf = json.load(f)
-    except:
+    except Exception:
         return default_conf
 
     for key in default_conf:
