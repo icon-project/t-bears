@@ -12,7 +12,7 @@
         "balance": "0x0"
     },
     "Logger": {
-        "LogFormat": "%(asctime)s %(process)d %(thread)d [TAG] %(levelname)s %(message)s",
+        "LogFormat": "%(asctime)s %(process)d %(thread)d %(levelname)s %(message)s",
         "logLevel": "DEBUG",
         "colorLog": true,
         "logFilePath": "./logger.log",
