@@ -26,7 +26,6 @@ def write_file(parent_directory: str, file_name: str, contents: str) -> None:
         if not os.path.exists(parent_directory):
             os.makedirs(parent_directory)
         if os.path.exists(f'{parent_directory}/{file_name}'):
-            print("dddddd")
             raise TBearsWriteFileException
         with open(f'{parent_directory}/{file_name}', mode='w') as file:
             file.write(contents)
@@ -37,8 +36,7 @@ def write_file(parent_directory: str, file_name: str, contents: str) -> None:
 
 
 def get_init_template(project: str, score_class: str) -> str:
-    return f'import importlib\nfrom .{project} import {score_class}\n' \
-           f'importlib.reload({project})\nfrom .{project} import {score_class}\n'
+    return f'from .{project} import {score_class}\n'
 
 
 def get_score_main_template(score_class: str) -> str:
