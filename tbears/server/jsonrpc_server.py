@@ -212,10 +212,13 @@ class MockDispatcher:
         if MockDispatcher.flask_server is not None:
             MockDispatcher.flask_server.app.stop()
 
+        return '0x0'
+
 
 class FlaskServer:
     def __init__(self):
         self.__app = Sanic(__name__)
+        self.__app.config['ENV'] = 'development'  # Block flask warning message
         MockDispatcher.flask_server = self
 
     @property
@@ -273,8 +276,8 @@ def load_config(path: str) -> dict:
     default_conf = {
         "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "port": 9000,
-        "score_root": "./.score",
-        "db_root": "./.db",
+        "scoreRoot": "./.score",
+        "dbRoot": "./.db",
         "accounts": [
             {
                 "name": "genesis",
@@ -287,12 +290,10 @@ def load_config(path: str) -> dict:
                 "balance": "0x0"
             }
         ],
-        "logger": {
-            "logFormat": "%(asctime)s %(process)d %(thread)d %(levelname)s %(message)s",
-            "logLevel": "DEBUG",
-            "colorLog": True,
-            "logFilePath": "./logger.log",
-            "logOutputType": "production"
+        "log": {
+            "level": "debug",
+            "filePath": "./tbears.log",
+            "outputType": "console|file"
         }
     }
 
