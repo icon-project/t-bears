@@ -143,21 +143,6 @@ class TestTBears(unittest.TestCase):
         self.assertEqual("0x3635c9adc5dea00000", supply)
         stop_SCORE()
 
-    def test_token_transfer(self):
-        self.run_SCORE_for_testing()
-        post(self.url, self.give_icx_to_token_owner_json)
-        post(self.url, self.token_transfer_json)
-        token_balance_res1 = post(self.url, self.get_token_balance_json1)
-        token_balance = token_balance_res1.json()["result"]
-        self.assertEqual("0x1", token_balance)
-        stop_SCORE()
-        shutil.rmtree('./sample_token')
-
-    def test_samples(self):
-        make_SCORE_samples()
-        self.assertTrue(os.path.exists('./sample_crowd_sale'))
-        self.assertTrue(os.path.exists('./sample_token'))
-
     @staticmethod
     def run_SCORE_for_testing():
         init_SCORE("sample_token", "SampleToken")
