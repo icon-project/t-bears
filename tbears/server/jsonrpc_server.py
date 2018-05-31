@@ -85,8 +85,9 @@ class MockDispatcher:
         :param kwargs: jsonrpc params field.
         """
         engine = get_icon_service_engine()
-
+        tx_hash = hashlib.sha3_256(json.dumps(kwargs).encode()).digest()
         params = _type_converter.convert(kwargs, recursive=False)
+        params['txHash'] = tx_hash.hex()
 
         tx = {
             'method': 'icx_sendTransaction',
