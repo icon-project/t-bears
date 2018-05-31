@@ -113,23 +113,23 @@ def clear_SCORE() -> int:
 
 def make_SCORE_samples():
 
-    tokentest_package_json_dict = get_package_json_dict("tokentest", "Tokentest")
+    tokentest_package_json_dict = get_package_json_dict("sample_token", "SampleToken")
     tokentest_package_json_contents = json.dumps(tokentest_package_json_dict, indent=4)
-    tokentest_py_contents = get_score_main_template("Tokentest")
-    tokentest_init_contents = get_init_template("tokentest", "Tokentest")
+    tokentest_py_contents = get_score_main_template("SampleToken")
+    tokentest_init_contents = get_init_template("sample_token", "SampleToken")
 
-    crowdsale_package_json_dict = get_package_json_dict("sampleCrowdSale", "SampleCrowdSale")
+    crowdsale_package_json_dict = get_package_json_dict("sample_crowd_sale", "SampleCrowdSale")
     crowdsale_package_json_contents = json.dumps(crowdsale_package_json_dict, indent=4)
     crowdsale_py_contents = get_sample_crowd_sale_contents()
-    crowdsale_init_contents = get_init_template("sampleCrowdSale", "SampleCrowdSale")
+    crowdsale_init_contents = get_init_template("sample_crowd_sale", "SampleCrowdSale")
     try:
-        write_file('./tokentest', 'tokentest.py', tokentest_py_contents)
-        write_file('./tokentest', "package.json", tokentest_package_json_contents)
-        write_file('./tokentest', '__init__.py', tokentest_init_contents)
+        write_file('./sample_token', 'sample_token.py', tokentest_py_contents)
+        write_file('./sample_token', "package.json", tokentest_package_json_contents)
+        write_file('./sample_token', '__init__.py', tokentest_init_contents)
 
-        write_file('./sampleCrowdSale', "package.json", crowdsale_package_json_contents)
-        write_file('./sampleCrowdSale', '__init__.py', crowdsale_init_contents)
-        write_file('./sampleCrowdSale', "sampleCrowdSale.py", crowdsale_py_contents)
+        write_file('./sample_crowd_sale', "package.json", crowdsale_package_json_contents)
+        write_file('./sample_crowd_sale', '__init__.py', crowdsale_init_contents)
+        write_file('./sample_crowd_sale', "sample_crowd_sale.py", crowdsale_py_contents)
 
     except TBearsWriteFileException:
         logging.debug("Except raised while writing files.")
@@ -158,7 +158,7 @@ def __embed_SCORE_on_server(project: str) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
     """
-    url = "http://localhost:9000/api/v3"
+    url = "http://localhost:9000/api/v3/"
     project_dict = make_install_json_payload(project)
     response = post(url, project_dict)
     return response
@@ -167,7 +167,7 @@ def __embed_SCORE_on_server(project: str) -> dict:
 def __exit_request():
     """ Request for exiting SCORE on server.
     """
-    url = "http://localhost:9000/api/v3"
+    url = "http://localhost:9000/api/v3/"
     project_dict = make_exit_json_payload()
     post(url, project_dict)
 

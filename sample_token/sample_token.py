@@ -2,7 +2,6 @@ from iconservice import *
 
 
 class SampleToken(IconScoreBase):
-
     _BALANCES = 'balances'
     _TOTAL_SUPPLY = 'total_supply'
 
@@ -11,8 +10,8 @@ class SampleToken(IconScoreBase):
         self._total_supply = VarDB(self._TOTAL_SUPPLY, db, value_type=int)
         self._balances = DictDB(self._BALANCES, db, value_type=int)
 
-    def genesis_init(self, *args, **kwargs) -> None:
-        super().genesis_init(*args, **kwargs)
+    def on_install(self, params) -> None:
+        super().on_install(params)
 
         init_supply = 1000
         decimal = 18
@@ -20,6 +19,9 @@ class SampleToken(IconScoreBase):
 
         self._total_supply.set(total_supply)
         self._balances[self.msg.sender] = total_supply
+
+    def on_update(self, params) -> None:
+        super().on_update(params)
 
     @external(readonly=True)
     def total_supply(self) -> int:
@@ -30,7 +32,6 @@ class SampleToken(IconScoreBase):
         return self._balances[addr_from]
 
     def _transfer(self, _addr_from: Address, _addr_to: Address, _value: int) -> bool:
-
         if self.balance_of(_addr_from) < _value:
             raise IconScoreException(f"{_addr_from}'s balance < {_value}")
 

@@ -169,7 +169,7 @@ class FlaskServer():
         return self.__api
 
     def set_resource(self):
-        self.__app.add_url_rule('/api/v3', view_func=MockDispatcher.dispatch, methods=['POST'])
+        self.__app.add_url_rule('/api/v3/', view_func=MockDispatcher.dispatch, methods=['POST'])
 
 
 class SimpleRestServer():

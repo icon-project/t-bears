@@ -17,7 +17,7 @@ give_icx_to_token_owner_json = {
         "from": "hx0000000000000000000000000000000000000000",
         "to": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "value": "0xde0b6b3a7640000",
-        "fee": "0x2386f26fc10000",send_transaction_json
+        "fee": "0x2386f26fc10000",
         "timestamp": "1523327456264040",
         "txHash": "1b06cfef02fd6c69e38f2d3079720f2c44be94455a7e664803a4fcbc3a695802"
     }
@@ -47,7 +47,7 @@ token_balance_json1 = {
     "id": 50889,
     "params": {
         "from": "hx1000000000000000000000000000000000000000",
-        "to": "cxb995b8c9c1fb9b93ad17c3b59df452dbaaa39a7c",
+        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
         "dataType": "call",
         "data": {
             "method": "balance_of",
@@ -64,7 +64,7 @@ token_balance_json2 = {
     "id": 50889,
     "params": {
         "from": "hx0000000000000000000000000000000000000000",
-        "to": "cxb995b8c9c1fb9b93ad17c3b59df452dbaaa39a7c",
+        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
         "dataType": "call",
         "data": {
             "method": "balance_of",
@@ -81,7 +81,7 @@ token_god_balance_json = {
     "id": 50889,
     "params": {
         "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "to": "cxb995b8c9c1fb9b93ad17c3b59df452dbaaa39a7c",
+        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
         "dataType": "call",
         "data": {
             "method": "balance_of",
@@ -98,7 +98,7 @@ token_total_supply_json = {
     "id": 60889,
     "params": {
         "from": "hx0000000000000000000000000000000000000000",
-        "to": "cxb995b8c9c1fb9b93ad17c3b59df452dbaaa39a7c",
+        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
         "dataType": "call",
         "data": {
             "method": "total_supply",
@@ -114,7 +114,7 @@ token_transfer_json = {
     "id": 70889,
     "params": {
         "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "to": "cxb995b8c9c1fb9b93ad17c3b59df452dbaaa39a7c",
+        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
         "value": "0x0",
         "fee": "0x2386f26fc10000",
         "timestamp": "1523327456264040",
