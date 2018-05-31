@@ -1,9 +1,10 @@
+import shutil
 import unittest
 import os
 
 from tbears.util import post
 
-from tbears.command import run_SCORE, clear_SCORE, make_SCORE_samples
+from tbears.command import run_SCORE, clear_SCORE, make_SCORE_samples, stop_SCORE
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 
@@ -115,10 +116,14 @@ test_addr = "hxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 
 class TestTBears(unittest.TestCase):
     def setUp(self):
-        self.url = "http://localhost:9000/api/v3/"
+        self.url = "http://localhost:9000/api/v3"
 
     def tearDown(self):
+        stop_SCORE()
         clear_SCORE()
+        shutil.rmtree('sample_token')
+        shutil.rmtree('sample_crowd_sale')
+        os.remove('logger.log')
 
     def test_score_methods(self):
         make_SCORE_samples()
@@ -138,78 +143,78 @@ class TestTBears(unittest.TestCase):
         res = post(self.url, get_token_balance_json).json()["result"]
         self.assertEqual(res, hex(1000*10**18))
 
-        # # seq4
-        # # transfer token to CrowdSale_address. value: 1000*10**18
-        # transfer_token_json['params']['from'] = token_owner_address
-        # transfer_token_json['params']['data']['params']['addr_to'] = crowd_sale_score_address
-        #
-        # post(self.url, transfer_token_json)
-        #
-        # # seq5
-        # # check token balance of CrowdSale_address. value : 1000*10**18
-        # get_token_balance_json['params']['data']['params']['addr_from'] = crowd_sale_score_address
-        # res = post(self.url, get_token_balance_json).json()['result']
-        # self.assertEqual(res, hex(1000*10**18))
-        #
-        # # seq6
-        # # check token balance of token_owner. value : 0
-        # get_token_balance_json['params']['data']['params']['addr_from'] = token_owner_address
-        # res = post(self.url, get_token_balance_json).json()['result']
-        # self.assertEqual(res, hex(0))
-        #
-        # # seq7
-        # # transfer icx to CrowdSale. value : 2*10**18
-        # send_icx_json['params']['from'] = token_owner_address
-        # send_icx_json['params']['to'] = crowd_sale_score_address
-        # send_icx_json['params']['value'] = hex(2*10**18)
-        # post(self.url, send_icx_json)
-        #
-        # # seq8
-        # # check icx balance of token_owner. value : 8*10**18
-        # icx_get_balance_json['params']['address'] = token_owner_address
-        # res = post(self.url, icx_get_balance_json).json()['result']
-        # self.assertEqual(res, hex(8*10**18))
-        #
-        # # seq9
-        # # check token balance of token_owner. value : 0x2
-        # get_token_balance_json['params']['data']['params']['addr_from'] = token_owner_address
-        # res = post(self.url, get_token_balance_json).json()['result']
-        # self.assertEqual(res, hex(2))
-        #
-        # # seq10
-        # # transfer icx to CrowdSale. value : 8*10**18
-        # send_icx_json['params']['from'] = token_owner_address
-        # send_icx_json['params']['to'] = crowd_sale_score_address
-        # send_icx_json['params']['value'] = hex(8*10**18)
-        # post(self.url, send_icx_json)
-        #
-        # # seq11
-        # # genesis -> test_address. value 90*10**18
-        # send_icx_json['params']['from'] = god_address
-        # send_icx_json['params']['to'] = test_addr
-        # send_icx_json['params']['value'] = hex(90 * 10 ** 18)
-        # post(self.url, send_icx_json)
-        #
-        # # seq12
-        # # transfer icx to CrowdSale. value : 90*10**18
-        # send_icx_json['params']['from'] = test_addr
-        # send_icx_json['params']['to'] = crowd_sale_score_address
-        # send_icx_json['params']['value'] = hex(90 * 10 ** 18)
-        # post(self.url, send_icx_json)
-        #
-        # # seq13
-        # # check CrowdSaleEnd
-        # post(self.url, check_crowd_sale_end_json)
-        #
-        # # seq14
-        # # safe withrawal
-        # post(self.url, crowd_sale_withrawal_json)
-        #
-        # # seq15
-        # # check icx balance of token_owner value : 100*10**18
-        # icx_get_balance_json['params']['address'] = token_owner_address
-        # res = post(self.url, icx_get_balance_json).json()['result']
-        # self.assertEqual(res, hex(100*10**18))
+        # seq4
+        # transfer token to CrowdSale_address. value: 1000*10**18
+        transfer_token_json['params']['from'] = token_owner_address
+        transfer_token_json['params']['data']['params']['addr_to'] = crowd_sale_score_address
+
+        post(self.url, transfer_token_json)
+
+        # seq5
+        # check token balance of CrowdSale_address. value : 1000*10**18
+        get_token_balance_json['params']['data']['params']['addr_from'] = crowd_sale_score_address
+        res = post(self.url, get_token_balance_json).json()['result']
+        self.assertEqual(res, hex(1000*10**18))
+
+        # seq6
+        # check token balance of token_owner. value : 0
+        get_token_balance_json['params']['data']['params']['addr_from'] = token_owner_address
+        res = post(self.url, get_token_balance_json).json()['result']
+        self.assertEqual(res, hex(0))
+
+        # seq7
+        # transfer icx to CrowdSale. value : 2*10**18
+        send_icx_json['params']['from'] = token_owner_address
+        send_icx_json['params']['to'] = crowd_sale_score_address
+        send_icx_json['params']['value'] = hex(2*10**18)
+        post(self.url, send_icx_json)
+
+        # seq8
+        # check icx balance of token_owner. value : 8*10**18
+        icx_get_balance_json['params']['address'] = token_owner_address
+        res = post(self.url, icx_get_balance_json).json()['result']
+        self.assertEqual(res, hex(8*10**18))
+
+        # seq9
+        # check token balance of token_owner. value : 0x2
+        get_token_balance_json['params']['data']['params']['addr_from'] = token_owner_address
+        res = post(self.url, get_token_balance_json).json()['result']
+        self.assertEqual(res, hex(2))
+
+        # seq10
+        # transfer icx to CrowdSale. value : 8*10**18
+        send_icx_json['params']['from'] = token_owner_address
+        send_icx_json['params']['to'] = crowd_sale_score_address
+        send_icx_json['params']['value'] = hex(8*10**18)
+        post(self.url, send_icx_json)
+
+        # seq11
+        # genesis -> test_address. value 90*10**18
+        send_icx_json['params']['from'] = god_address
+        send_icx_json['params']['to'] = test_addr
+        send_icx_json['params']['value'] = hex(90 * 10 ** 18)
+        post(self.url, send_icx_json)
+
+        # seq12
+        # transfer icx to CrowdSale. value : 90*10**18
+        send_icx_json['params']['from'] = test_addr
+        send_icx_json['params']['to'] = crowd_sale_score_address
+        send_icx_json['params']['value'] = hex(90 * 10 ** 18)
+        post(self.url, send_icx_json)
+
+        # seq13
+        # check CrowdSaleEnd
+        post(self.url, check_crowd_sale_end_json)
+
+        # seq14
+        # safe withrawal
+        post(self.url, crowd_sale_withrawal_json)
+
+        # seq15
+        # check icx balance of token_owner value : 100*10**18
+        icx_get_balance_json['params']['address'] = token_owner_address
+        res = post(self.url, icx_get_balance_json).json()['result']
+        self.assertEqual(res, hex(100*10**18))
 
 
 if __name__ == "__main__":

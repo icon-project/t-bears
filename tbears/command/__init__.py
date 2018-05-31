@@ -28,6 +28,7 @@ from ..util import post, make_install_json_payload, make_exit_json_payload, \
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
+JSON_RPC_SERVER_URL = "http://localhost:9000/api/v3"
 
 
 class ExitCode(IntEnum):
@@ -158,18 +159,16 @@ def __embed_SCORE_on_server(project: str) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
     """
-    url = "http://localhost:9000/api/v3/"
     project_dict = make_install_json_payload(project)
-    response = post(url, project_dict)
+    response = post(JSON_RPC_SERVER_URL, project_dict)
     return response
 
 
 def __exit_request():
     """ Request for exiting SCORE on server.
     """
-    url = "http://localhost:9000/api/v3/"
     project_dict = make_exit_json_payload()
-    post(url, project_dict)
+    post(JSON_RPC_SERVER_URL, project_dict)
 
 
 def __is_server_running():

@@ -154,11 +154,12 @@ class MockDispatcher:
         shutdown()
 
 
-class FlaskServer():
+class FlaskServer:
     def __init__(self):
         self.__app = Flask(__name__)
         self.__api = Api(self.__app)
         self.__parser = reqparse.RequestParser()
+        self.__app.url_map.strict_slashes = False
 
     @property
     def app(self):
@@ -172,7 +173,7 @@ class FlaskServer():
         self.__app.add_url_rule('/api/v3/', view_func=MockDispatcher.dispatch, methods=['POST'])
 
 
-class SimpleRestServer():
+class SimpleRestServer:
     def __init__(self, port, ip_address=None):
         self.__port = port
         self.__ip_address = ip_address
