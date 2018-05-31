@@ -26,7 +26,7 @@ def write_file(parent_directory: str, file_name: str, contents: str) -> None:
         if not os.path.exists(parent_directory):
             os.makedirs(parent_directory)
         if os.path.exists(f'{parent_directory}/{file_name}'):
-            raise TBearsWriteFileException
+            return
         with open(f'{parent_directory}/{file_name}', mode='w') as file:
             file.write(contents)
     except PermissionError:
@@ -116,7 +116,7 @@ def make_install_json_payload(project: str) -> dict:
             "fee": "0x2386f26fc10000",
             "timestamp": str(int(time.time() * 10 ** 6)),
             "nonce": "0x7362",
-            "txHash": "4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
+            "txHash": "0x4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
             "dataType": "install",
             "data": {
                 "contentType": "application/tbears",

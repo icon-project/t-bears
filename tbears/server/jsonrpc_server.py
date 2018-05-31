@@ -58,6 +58,15 @@ def shutdown():
     func()
 
 
+def integers_to_hex(res: dict)-> dict:
+    for k, v in res.items():
+        if isinstance(v, dict):
+            res = integers_to_hex(v)
+        elif isinstance(v, int):
+            res[k] = hex(v)
+    return res
+
+
 class MockDispatcher:
 
     @staticmethod
@@ -72,7 +81,14 @@ class MockDispatcher:
             )
         else:
             response = methods.dispatch(req)
-            return Response(str(response),
+            res = str(response)
+            response_json = json.loads(res)
+
+            if isinstance(response_json['result'], dict):
+                response_json['result'] = integers_to_hex(response_json['result'])
+                res = json.dumps(response_json)
+
+            return Response(res,
                             response.http_status,
                             mimetype='application/json')
 
@@ -85,8 +101,9 @@ class MockDispatcher:
         :param kwargs: jsonrpc params field.
         """
         engine = get_icon_service_engine()
-
+        tx_hash = hashlib.sha3_256(json.dumps(kwargs).encode()).digest()
         params = _type_converter.convert(kwargs, recursive=False)
+        params['txHash'] = f'0x{tx_hash.hex()}'
 
         tx = {
             'method': 'icx_sendTransaction',
@@ -153,12 +170,16 @@ class MockDispatcher:
         engine.close()
         shutdown()
 
+        return '0x0'
 
-class FlaskServer():
+
+class FlaskServer:
     def __init__(self):
         self.__app = Flask(__name__)
+        self.__app.config['ENV'] = 'development'  # Block flask warning message
         self.__api = Api(self.__app)
         self.__parser = reqparse.RequestParser()
+        self.__app.url_map.strict_slashes = False
 
     @property
     def app(self):
@@ -172,7 +193,7 @@ class FlaskServer():
         self.__app.add_url_rule('/api/v3/', view_func=MockDispatcher.dispatch, methods=['POST'])
 
 
-class SimpleRestServer():
+class SimpleRestServer:
     def __init__(self, port, ip_address=None):
         self.__port = port
         self.__ip_address = ip_address
@@ -209,8 +230,8 @@ def load_config(path: str) -> dict:
     default_conf = {
         "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "port": 9000,
-        "score_root": "./.score",
-        "db_root": "./.db",
+        "scoreRoot": "./.score",
+        "dbRoot": "./.db",
         "genesis": {
             "address": "hx0000000000000000000000000000000000000000",
             "balance": "0x2961fff8ca4a62327800000"
@@ -219,12 +240,10 @@ def load_config(path: str) -> dict:
             "address": "hx1000000000000000000000000000000000000000",
             "balance": "0x0"
         },
-        "logger": {
-            "logFormat": "%(asctime)s %(process)d %(thread)d %(levelname)s %(message)s",
-            "logLevel": "DEBUG",
-            "colorLog": True,
-            "logFilePath": "./logger.log",
-            "logOutputType": "production"
+        "log": {
+            "level": "debug",
+            "filePath": "./tbears.log",
+            "outputType": "console|file"
         }
     }
 
@@ -258,8 +277,8 @@ def init_type_converter():
 def init_icon_service_engine(conf):
     global _icon_service_engine
     _icon_service_engine = IconServiceEngine()
-    _icon_service_engine.open(icon_score_root_path=conf['score_root'],
-                              state_db_root_path=conf['db_root'])
+    _icon_service_engine.open(icon_score_root_path=conf['scoreRoot'],
+                              state_db_root_path=conf['dbRoot'])
 
     genesis = _type_converter.convert(conf['genesis'], recursive=False)
     treasury = _type_converter.convert(conf['treasury'], recursive=False)
