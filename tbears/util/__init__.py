@@ -24,19 +24,19 @@ from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeExcepti
 def write_file(parent_directory: str, file_name: str, contents: str) -> None:
     try:
         if not os.path.exists(parent_directory):
-            os.mkdir(parent_directory)
-        with open(f'./{parent_directory}/{file_name}', mode='w') as file:
+            os.makedirs(parent_directory)
+        if os.path.exists(f'{parent_directory}/{file_name}'):
+            return
+        with open(f'{parent_directory}/{file_name}', mode='w') as file:
             file.write(contents)
     except PermissionError:
-        raise TBearsWriteFileException
-    except FileExistsError:
         raise TBearsWriteFileException
     except IsADirectoryError:
         raise TBearsWriteFileException
 
 
 def get_init_template(project: str, score_class: str) -> str:
-    return f"from .{project} import {score_class}\n"
+    return f'from .{project} import {score_class}\n'
 
 
 def get_score_main_template(score_class: str) -> str:
@@ -46,8 +46,8 @@ def get_score_main_template(score_class: str) -> str:
     """
     template = """from iconservice import *
 
-class SampleToken(IconScoreBase):
 
+class SampleToken(IconScoreBase):
     _BALANCES = 'balances'
     _TOTAL_SUPPLY = 'total_supply'
 
@@ -56,8 +56,8 @@ class SampleToken(IconScoreBase):
         self._total_supply = VarDB(self._TOTAL_SUPPLY, db, value_type=int)
         self._balances = DictDB(self._BALANCES, db, value_type=int)
 
-    def genesis_init(self, *args, **kwargs) -> None:
-        super().genesis_init(*args, **kwargs)
+    def on_install(self, params) -> None:
+        super().on_install(params)
 
         init_supply = 1000
         decimal = 18
@@ -65,6 +65,9 @@ class SampleToken(IconScoreBase):
 
         self._total_supply.set(total_supply)
         self._balances[self.msg.sender] = total_supply
+
+    def on_update(self, params) -> None:
+        super().on_update(params)
 
     @external(readonly=True)
     def total_supply(self) -> int:
@@ -75,7 +78,6 @@ class SampleToken(IconScoreBase):
         return self._balances[addr_from]
 
     def _transfer(self, _addr_from: Address, _addr_to: Address, _value: int) -> bool:
-
         if self.balance_of(_addr_from) < _value:
             raise IconScoreException(f"{_addr_from}'s balance < {_value}")
 
@@ -114,10 +116,10 @@ def make_install_json_payload(project: str) -> dict:
             "fee": "0x2386f26fc10000",
             "timestamp": str(int(time.time() * 10 ** 6)),
             "nonce": "0x7362",
-            "tx_hash": "4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
-            "data_type": "install",
+            "txHash": "4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
+            "dataType": "install",
             "data": {
-                "content_type": "application/tbears",
+                "contentType": "application/tbears",
                 "content": path
             }
         }
@@ -133,9 +135,10 @@ def make_exit_json_payload() -> dict:
 def post(url: str, payload: dict):
     try:
         r = requests.post(url, json=payload, verify=False)
-        return r
     except requests.exceptions.Timeout:
         raise RuntimeError("Timeout happened. Check your internet connection status.")
+    else:
+        return r
 
 
 def delete_score_info():
@@ -152,3 +155,120 @@ def delete_score_info():
         raise TBearsDeleteTreeException
     except NotADirectoryError:
         raise TBearsDeleteTreeException
+
+
+def get_sample_crowd_sale_contents():
+    """
+
+    :return:
+    """
+    contents = """from iconservice import *
+
+
+class SampleCrowdSale(IconScoreBase):
+    _ADDR_BENEFICIARY = 'addr_beneficiary'
+    _FUNDING_GOAL = 'funding_goal'
+    _AMOUNT_RAISE = 'amount_raise'
+    _DEAD_LINE = 'dead_line'
+    _PRICE = 'price'
+    _BALANCES = 'balances'
+    _ADDR_TOKEN_SCORE = 'addr_token_score'
+    _FUNDING_GOAL_REACHED = 'funding_goal_reached'
+    _CROWD_SALE_CLOSED = 'crowd_sale_closed'
+    _JOINER_LIST = 'joiner_list'
+
+    def __init__(self, db: IconScoreDatabase, owner: Address) -> None:
+        super().__init__(db, owner)
+
+        self._addr_beneficiary = VarDB(self._ADDR_BENEFICIARY, db, value_type=Address)
+        self._addr_token_score = VarDB(self._ADDR_TOKEN_SCORE, db, value_type=Address)
+        self._funding_goal = VarDB(self._FUNDING_GOAL, db, value_type=int)
+        self._amount_raise = VarDB(self._AMOUNT_RAISE, db, value_type=int)
+        self._dead_line = VarDB(self._DEAD_LINE, db, value_type=int)
+        self._price = VarDB(self._PRICE, db, value_type=int)
+        self._balances = DictDB(self._BALANCES, db, value_type=int)
+        self._joiner_list = ArrayDB(self._JOINER_LIST, db, value_type=Address)
+        self._funding_goal_reached = VarDB(self._FUNDING_GOAL_REACHED, db, value_type=bool)
+        self._crowd_sale_closed = VarDB(self._CROWD_SALE_CLOSED, db, value_type=bool)
+
+    def on_install(self, params) -> None:
+        super().on_install(params)
+
+        one_icx = 1 * 10 ** 18
+        one_minute_to_sec = 1 * 60
+        one_second_to_microsec = 1 * 10 ** 6
+        now_seconds = self.now()
+
+        # genesis params
+        if_successful_send_to = self.msg.sender
+        addr_token_score = Address.from_string('cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf')
+
+        funding_goal_in_icx = 100
+        duration_in_minutes = 1
+        icx_cost_of_each_token = 1
+
+        self._addr_beneficiary.set(if_successful_send_to)
+        self._addr_token_score.set(addr_token_score)
+        self._funding_goal.set(funding_goal_in_icx * one_icx)
+        self._dead_line.set(now_seconds + duration_in_minutes * one_minute_to_sec * one_second_to_microsec)
+        price = int(icx_cost_of_each_token * one_icx)
+        self._price.set(price)
+
+    def on_update(self, params) -> None:
+        super().on_update(params)
+
+    @external(readonly=True)
+    def total_joiner_count(self):
+        return len(self._joiner_list)
+
+    @payable
+    def fallback(self) -> None:
+        # if self._crowd_sale_closed.get():
+        #     raise IconScoreException('sampleCrowdSale sale is closed')
+
+        amount = self.msg.value
+        self._balances[self.msg.sender] = self._balances[self.msg.sender] + amount
+        self._amount_raise.set(self._amount_raise.get() + amount)
+        value = int(amount / self._price.get())
+        self.call(self._addr_token_score.get(), 'transfer', {'addr_to': self.msg.sender, 'value': value})
+
+        if self.msg.sender not in self._joiner_list:
+            self._joiner_list.put(self.msg.sender)
+
+        # event FundTransfer(msg.sender, amount, True)
+
+    @external
+    def check_goal_reached(self):
+        # if not self.__after_dead_line():
+        #     raise IconScoreException('before deadline')
+
+        if self._amount_raise.get() >= self._funding_goal.get():
+            self._funding_goal_reached.set(True)
+            # event GoalReached(beneficiary, amountRaised)
+        self._crowd_sale_closed.set(True)
+
+    def __after_dead_line(self):
+        return self.now() >= self._dead_line.get()
+
+    @external
+    def safe_withdrawal(self):
+        # if not self.__after_dead_line():
+        #     raise IconScoreException('before deadline')
+
+        if not self._funding_goal_reached.get():
+            amount = self._balances[self.msg.sender]
+            if amount > 0:
+                if self.send(self.msg.sender, amount):
+                    # event FundTransfer(msg.sender, amount, False)
+                    pass
+                else:
+                    self._balances[self.msg.sender] = amount
+
+        if self._funding_goal_reached.get() and self._addr_beneficiary.get() == self.msg.sender:
+            if self.send(self._addr_beneficiary.get(), self._amount_raise.get()):
+                # event FundTransfer(beneficiary, amountRaised, False)
+                pass
+            else:
+                self._funding_goal_reached.set(False)
+"""
+    return contents

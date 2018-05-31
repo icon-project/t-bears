@@ -27,7 +27,7 @@ Then pip install wheel files of tbears and iconservice in Wiki.
 ```
 $ tbears init <project> <class>
 ```
- If you named your project as ```foo``` and class as ```Foo```, then ```tbears``` will create project like below.
+ If you named your SCORE project as ```foo``` and SCORE class as ```Foo```, then ```tbears``` will create project like below.
 
  ```
  -foo
@@ -62,9 +62,9 @@ $ tbears stop
 $ tbears clear
 ```
 
-### Implement SCORE
- Read the [SCORE development guide]().
-
+### Reference
+* [SCORE development guide and examples](https://repo.theloop.co.kr/icon/loopchain-icon/blob/master/icon/docs/dapp_guide.md)
+* [Architecture of IconService](https://repo.theloop.co.kr/icon/loopchain-icon/blob/master/icon/docs/class.md)
 
 ### Deploy SCORE project into the test net or main net
 
@@ -76,7 +76,7 @@ To-Do
 
 ## Versioning
 
- v0.0.1
+ v0.9.0
 
 ## License
 
