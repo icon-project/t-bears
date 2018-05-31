@@ -23,9 +23,11 @@ import socket
 from enum import IntEnum
 
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
-from ..util import post, make_install_json_payload, make_exit_json_payload,  \
-    delete_score_info, get_init_template
+from ..util import post, make_install_json_payload, make_exit_json_payload, \
+    delete_score_info, get_init_template, get_sample_crowd_sale_contents
 from ..util import write_file, get_package_json_dict, get_score_main_template
+
+DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
 class ExitCode(IntEnum):
@@ -99,12 +101,41 @@ def clear_SCORE() -> int:
 
     :return: ExitCode
     """
+    stop_SCORE()
+
     try:
         delete_score_info()
     except TBearsDeleteTreeException:
         return ExitCode.DELETE_TREE_ERROR.value
 
     return ExitCode.SUCCEEDED.value
+
+
+def make_SCORE_samples():
+
+    tokentest_package_json_dict = get_package_json_dict("sample_token", "SampleToken")
+    tokentest_package_json_contents = json.dumps(tokentest_package_json_dict, indent=4)
+    tokentest_py_contents = get_score_main_template("SampleToken")
+    tokentest_init_contents = get_init_template("sample_token", "SampleToken")
+
+    crowdsale_package_json_dict = get_package_json_dict("sample_crowd_sale", "SampleCrowdSale")
+    crowdsale_package_json_contents = json.dumps(crowdsale_package_json_dict, indent=4)
+    crowdsale_py_contents = get_sample_crowd_sale_contents()
+    crowdsale_init_contents = get_init_template("sample_crowd_sale", "SampleCrowdSale")
+    try:
+        write_file('./sample_token', 'sample_token.py', tokentest_py_contents)
+        write_file('./sample_token', "package.json", tokentest_package_json_contents)
+        write_file('./sample_token', '__init__.py', tokentest_init_contents)
+
+        write_file('./sample_crowd_sale', "package.json", crowdsale_package_json_contents)
+        write_file('./sample_crowd_sale', '__init__.py', crowdsale_init_contents)
+        write_file('./sample_crowd_sale', "sample_crowd_sale.py", crowdsale_py_contents)
+
+    except TBearsWriteFileException:
+        logging.debug("Except raised while writing files.")
+        return ExitCode.WRITE_FILE_ERROR.value
+
+    return ExitCode.SUCCEEDED
 
 
 def __start_server():
@@ -127,7 +158,7 @@ def __embed_SCORE_on_server(project: str) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
     """
-    url = "http://localhost:9000/api/v2"
+    url = "http://localhost:9000/api/v3/"
     project_dict = make_install_json_payload(project)
     response = post(url, project_dict)
     return response
@@ -136,7 +167,7 @@ def __embed_SCORE_on_server(project: str) -> dict:
 def __exit_request():
     """ Request for exiting SCORE on server.
     """
-    url = "http://localhost:9000/api/v2"
+    url = "http://localhost:9000/api/v3/"
     project_dict = make_exit_json_payload()
     post(url, project_dict)
 
@@ -150,10 +181,10 @@ def __is_server_running():
     result = sock.connect_ex(('127.0.0.1', 9000))
     sock.close()
 
-    # if result:
-    #     print("socket is closed!")
-    # else:
-    #     print("socket is opened!")
+    if result:
+        logging.debug("socket is closed!")
+    else:
+        logging.debug("socket is opened!")
 
     return result is 0
 

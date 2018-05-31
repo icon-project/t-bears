@@ -13,13 +13,10 @@
 # limitations under the License.
 
 import json
-import logging
 import sys
 import time
 import hashlib
-
-sys.path.append('..')
-sys.path.append('.')
+from json import JSONDecodeError
 
 from flask import Flask, request, Response
 from flask_restful import reqparse, Api
@@ -27,13 +24,22 @@ from jsonrpcserver import methods
 from iconservice.icon_service_engine import IconServiceEngine
 from iconservice.iconscore.icon_score_result import TransactionResult
 from iconservice.utils.type_converter import TypeConverter
+from iconservice.logger import Logger
+
+from typing import Optional
+
+TBEARS_LOG_TAG = 'tbears'
+
+sys.path.append('..')
+sys.path.append('.')
 
 _type_converter = None
 _icon_service_engine = None
 _block_height = 0
+PARSE_ERROR_RESPONSE = '{"jsonrpc":"2.0", "error":{"code":-32700, "message": "Parse error"}, "id": "null"}'
 
 
-def get_icon_service_engine() -> object:
+def get_icon_service_engine() -> Optional['IconServiceEngine']:
     return _icon_service_engine
 
 
@@ -56,11 +62,19 @@ class MockDispatcher:
 
     @staticmethod
     def dispatch():
-        req = json.loads(request.get_data().decode())
-        response = methods.dispatch(req)
-        return Response(str(response),
-                        response.http_status,
-                        mimetype='application/json')
+        try:
+            req = json.loads(request.get_data().decode())
+        except JSONDecodeError:
+            return Response(
+                PARSE_ERROR_RESPONSE,
+                400,
+                mimetype='application/json'
+            )
+        else:
+            response = methods.dispatch(req)
+            return Response(str(response),
+                            response.http_status,
+                            mimetype='application/json')
 
     @staticmethod
     @methods.add
@@ -81,7 +95,7 @@ class MockDispatcher:
 
         block_height: int = get_block_height()
         data: str = f'block_height{block_height}'
-        block_hash: bytes = hashlib.sha3_256(data.encode()).digest()
+        block_hash: str = hashlib.sha3_256(data.encode()).digest()
         block_timestamp_us = int(time.time() * 10 ** 6)
 
         try:
@@ -95,11 +109,11 @@ class MockDispatcher:
                 engine.commit()
             else:
                 engine.rollback()
-        except:
+        except Exception:
             engine.rollback()
             raise
 
-        return tx_result.to_dict()
+        return tx_result.to_response_json()
 
     @staticmethod
     @methods.add
@@ -154,12 +168,8 @@ class FlaskServer():
     def api(self):
         return self.__api
 
-    @property
-    def ssl_context(self):
-        return self.__ssl_context
-
     def set_resource(self):
-        self.__app.add_url_rule('/api/v2', view_func=MockDispatcher.dispatch, methods=['POST'])
+        self.__app.add_url_rule('/api/v3/', view_func=MockDispatcher.dispatch, methods=['POST'])
 
 
 class SimpleRestServer():
@@ -171,7 +181,7 @@ class SimpleRestServer():
         self.__server.set_resource()
 
     def run(self):
-        logging.error(f"SimpleRestServer run... {self.__port}")
+        Logger.error(f"SimpleRestServer run... {self.__port}", TBEARS_LOG_TAG)
 
         self.__server.app.run(port=self.__port,
                               host=self.__ip_address,
@@ -184,13 +194,14 @@ def main():
     else:
         path = './tbears.json'
 
-    print(f'config_file: {path}')
     conf = load_config(path)
+    Logger(path)
+    Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
 
     init_type_converter()
     init_icon_service_engine(conf)
 
-    server = SimpleRestServer(conf['port'])
+    server = SimpleRestServer(conf['port'], "0.0.0.0")
     server.run()
 
 
@@ -207,13 +218,20 @@ def load_config(path: str) -> dict:
         "treasury": {
             "address": "hx1000000000000000000000000000000000000000",
             "balance": "0x0"
+        },
+        "logger": {
+            "logFormat": "%(asctime)s %(process)d %(thread)d %(levelname)s %(message)s",
+            "logLevel": "DEBUG",
+            "colorLog": True,
+            "logFilePath": "./logger.log",
+            "logOutputType": "production"
         }
     }
 
     try:
         with open(path) as f:
             conf = json.load(f)
-    except:
+    except Exception:
         return default_conf
 
     for key in default_conf:

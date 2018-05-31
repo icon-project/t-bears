@@ -16,7 +16,7 @@
 from .tbears_cli import main
 
 # Version of tbears.
-__version__ = "0.0.1"
+__version__ = "0.8.1"
 
 if __name__ == "__main__":
     main()
