@@ -151,7 +151,6 @@ class TestTBears(unittest.TestCase):
         token_balance = token_balance_res1.json()["result"]
         self.assertEqual("0x1", token_balance)
         stop_SCORE()
-        shutil.rmtree('./sample_token')
 
     def test_samples(self):
         make_SCORE_samples()
