@@ -17,7 +17,7 @@ give_icx_to_token_owner_json = {
         "from": "hx0000000000000000000000000000000000000000",
         "to": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "value": "0xde0b6b3a7640000",
-        "fee": "0x2386f26fc10000",
+        "fee": "0x2386f26fc10000",send_transaction_json
         "timestamp": "1523327456264040",
         "txHash": "1b06cfef02fd6c69e38f2d3079720f2c44be94455a7e664803a4fcbc3a695802"
     }

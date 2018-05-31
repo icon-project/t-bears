@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
 import unittest
 import os
 import json
@@ -29,7 +28,7 @@ DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 class TestTBears(unittest.TestCase):
     def setUp(self):
         self.path = './'
-        self.send_transaction_json = send_transaction_json
+        self.send_transaction_json =
         self.get_god_balance_json = god_balance_json
         self.get_test_balance_json = test_balance_json
         self.get_token_balance_json1 = token_balance_json1
@@ -58,14 +57,14 @@ class TestTBears(unittest.TestCase):
         # Case when entering the existing SCORE directory for initializing the SCORE.
         os.mkdir('./a_test_init1')
         result_code = init_SCORE('a_test_init1', "ATestInit1")
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, result_code)
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, result_code)
         os.rmdir('./a_test_init1')
 
     def test_init_SCORE_2(self):
         # Case when entering the existing SCORE path for initializing the SCORE.
         TestTBears.touch('./a_test_init2')
         result_code = init_SCORE('./a_test_init2', 'ATestInit2')
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY, result_code)
+        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, result_code)
         os.remove('./a_test_init2')
 
     def test_init_SCORE_3(self):
@@ -152,20 +151,17 @@ class TestTBears(unittest.TestCase):
         token_balance = token_balance_res1.json()["result"]
         self.assertEqual("0x1", token_balance)
         stop_SCORE()
-        shutil.rmtree('./tokentest')
+        shutil.rmtree('./sample_token')
 
     def test_samples(self):
         make_SCORE_samples()
-        sample_root_path = './scoreSample'
-        self.assertTrue(os.path.exists('./sampleCrowdSale'))
-        self.assertTrue(os.path.exists('./tokentest'))
+        self.assertTrue(os.path.exists('./sample_crowd_sale'))
+        self.assertTrue(os.path.exists('./sample_token'))
 
     @staticmethod
     def run_SCORE_for_testing():
-        # init_SCORE("a_test", "ATest")
-        # run_SCORE('a_test')
-        init_SCORE("tokentest", "Tokentest")
-        result, _ = run_SCORE('tokentest')
+        init_SCORE("sample_token", "SampleToken")
+        result, _ = run_SCORE('sample_token')
 
 
 if __name__ == "__main__":

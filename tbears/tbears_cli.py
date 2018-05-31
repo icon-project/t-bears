@@ -46,7 +46,7 @@ tbears commands:
 
     if len(args.command) < 1:
         parser.print_help()
-        sys.exit(ExitCode.COMMAND_IS_WRONG)
+        sys.exit(ExitCode.COMMAND_IS_WRONG.value)
 
     command = args.command[0]
 
@@ -60,8 +60,10 @@ tbears commands:
         result = clear_SCORE()
     elif command == 'samples':
         result = make_SCORE_samples()
+        if result is 1:  # success
+            print('Cleared the score successfully.')
     else:
         parser.print_help()
-        result = ExitCode.COMMAND_IS_WRONG
+        result = ExitCode.COMMAND_IS_WRONG.value
 
     sys.exit(result)
