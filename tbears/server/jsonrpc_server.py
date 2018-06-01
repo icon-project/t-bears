@@ -228,8 +228,8 @@ def load_config(path: str) -> dict:
     default_conf = {
         "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "port": 9000,
-        "score_root": "./.score",
-        "db_root": "./.db",
+        "scoreRoot": "./.score",
+        "dbRoot": "./.db",
         "genesis": {
             "address": "hx0000000000000000000000000000000000000000",
             "balance": "0x2961fff8ca4a62327800000"
@@ -277,8 +277,8 @@ def init_type_converter():
 def init_icon_service_engine(conf):
     global _icon_service_engine
     _icon_service_engine = IconServiceEngine()
-    _icon_service_engine.open(icon_score_root_path=conf['score_root'],
-                              state_db_root_path=conf['db_root'])
+    _icon_service_engine.open(icon_score_root_path=conf['scoreRoot'],
+                              state_db_root_path=conf['dbRoot'])
 
     genesis = _type_converter.convert(conf['genesis'], recursive=False)
     treasury = _type_converter.convert(conf['treasury'], recursive=False)
