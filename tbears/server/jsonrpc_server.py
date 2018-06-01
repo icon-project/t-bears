@@ -176,7 +176,7 @@ class MockDispatcher:
 class FlaskServer:
     def __init__(self):
         self.__app = Flask(__name__)
-        self.__app.config['ENV'] = 'development'
+        self.__app.config['ENV'] = 'development'  # Block flask warning message
         self.__api = Api(self.__app)
         self.__parser = reqparse.RequestParser()
         self.__app.url_map.strict_slashes = False
@@ -240,12 +240,10 @@ def load_config(path: str) -> dict:
             "address": "hx1000000000000000000000000000000000000000",
             "balance": "0x0"
         },
-        "logger": {
-            "logFormat": "%(asctime)s %(process)d %(thread)d %(levelname)s %(message)s",
-            "logLevel": "DEBUG",
-            "colorLog": True,
-            "logFilePath": "./logger.log",
-            "logOutputType": "production"
+        "log": {
+            "level": "debug",
+            "filePath": "./tbears.log",
+            "outputType": "console|file"
         }
     }
 

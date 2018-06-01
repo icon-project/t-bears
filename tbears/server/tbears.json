@@ -11,11 +11,9 @@
         "address": "hx1000000000000000000000000000000000000000",
         "balance": "0x0"
     },
-    "Logger": {
-        "LogFormat": "%(asctime)s %(process)d %(thread)d %(levelname)s %(message)s",
-        "logLevel": "DEBUG",
-        "colorLog": true,
-        "logFilePath": "./logger.log",
-        "logOutputType": "production"
+    "log": {
+        "level": "DEBUG",
+        "filePath": "./tbears.log",
+        "outputType": "console|file"
     }
 }

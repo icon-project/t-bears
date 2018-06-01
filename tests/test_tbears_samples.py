@@ -180,10 +180,15 @@ class TestTBears(unittest.TestCase):
     def tearDown(self):
         stop_SCORE()
         clear_SCORE()
-        os.remove('logger.log')
-        shutil.rmtree('sample_token')
-        if os.path.exists('sample_crowd_sale'):
-            shutil.rmtree('sample_crowd_sale')
+
+        try:
+            os.remove('logger.log')
+            if os.path.exists('sample_token'):
+                shutil.rmtree('sample_token')
+            if os.path.exists('sample_crowd_sale'):
+                shutil.rmtree('sample_crowd_sale')
+        except:
+            pass
 
     def test_token(self):
         init_SCORE('sample_token', 'SampleToken')
