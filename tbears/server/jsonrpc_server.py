@@ -158,6 +158,7 @@ class MockDispatcher:
 class FlaskServer:
     def __init__(self):
         self.__app = Flask(__name__)
+        self.__app.testing = True
         self.__api = Api(self.__app)
         self.__parser = reqparse.RequestParser()
         self.__app.url_map.strict_slashes = False
