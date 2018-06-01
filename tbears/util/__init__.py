@@ -116,7 +116,7 @@ def make_install_json_payload(project: str) -> dict:
             "fee": "0x2386f26fc10000",
             "timestamp": str(int(time.time() * 10 ** 6)),
             "nonce": "0x7362",
-            "txHash": "4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
+            "txHash": "0x4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
             "dataType": "install",
             "data": {
                 "contentType": "application/tbears",

@@ -58,6 +58,15 @@ def shutdown():
     func()
 
 
+def integers_to_hex(res: dict)-> dict:
+    for k, v in res.items():
+        if isinstance(v, dict):
+            res = integers_to_hex(v)
+        elif isinstance(v, int):
+            res[k] = hex(v)
+    return res
+
+
 class MockDispatcher:
 
     @staticmethod
@@ -72,7 +81,14 @@ class MockDispatcher:
             )
         else:
             response = methods.dispatch(req)
-            return Response(str(response),
+            res = str(response)
+            response_json = json.loads(res)
+
+            if isinstance(response_json['result'], dict):
+                response_json['result'] = integers_to_hex(response_json['result'])
+                res = json.dumps(response_json)
+
+            return Response(res,
                             response.http_status,
                             mimetype='application/json')
 
@@ -87,7 +103,7 @@ class MockDispatcher:
         engine = get_icon_service_engine()
         tx_hash = hashlib.sha3_256(json.dumps(kwargs).encode()).digest()
         params = _type_converter.convert(kwargs, recursive=False)
-        params['txHash'] = tx_hash.hex()
+        params['txHash'] = f'0x{tx_hash.hex()}'
 
         tx = {
             'method': 'icx_sendTransaction',

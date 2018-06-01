@@ -178,7 +178,7 @@ class TestTBears(unittest.TestCase):
         # send transaction
         payload = get_payload('send_icx', fr=god_address, to=treasary_address, value1=hex(10*10**18))
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # get balance
         payload = get_payload('icx_get_balance', address=treasary_address)
@@ -199,7 +199,7 @@ class TestTBears(unittest.TestCase):
         payload = get_payload('transfer_token', fr=token_owner_address,
                               addr_to=treasary_address, value2=hex(10*10**18), to=token_score_address)
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # check token balance
         payload = get_payload('get_token_balance', to=token_score_address, addr_from=treasary_address)
@@ -214,18 +214,18 @@ class TestTBears(unittest.TestCase):
         # genesis -> hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(token_owner) 10icx
         payload = get_payload('send_icx', fr=god_address, to=token_owner_address, value1=hex(10*10**18))
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # seq2
         # check icx balance of token_owner value : 10*10**18
         payload = get_payload('icx_get_balance', address=token_owner_address)
-        res = post(self.url, payload).json()["result"]
+        res = post(self.url, payload).json()['result']
         self.assertEqual(res, hex(10 * 10 ** 18))
 
         # seq3
         # check token balance token_owner. value : 1000*10**18
         payload = get_payload('get_token_balance', to=token_score_address, addr_from=token_owner_address)
-        res = post(self.url, payload).json()["result"]
+        res = post(self.url, payload).json()['result']
         self.assertEqual(res, hex(1000 * 10 ** 18))
 
         # seq4
@@ -233,7 +233,7 @@ class TestTBears(unittest.TestCase):
         payload = get_payload('transfer_token', fr=token_owner_address, to=token_score_address,
                               addr_to=crowd_sale_score_address, value2=hex(1000*10**18))
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # seq5
         # check token balance of CrowdSale_address. value : 1000*10**18
@@ -251,7 +251,7 @@ class TestTBears(unittest.TestCase):
         # transfer icx to CrowdSale. value : 2*10**18
         payload = get_payload('send_icx', fr=token_owner_address, to=crowd_sale_score_address, value1=hex(2*10**18))
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # seq8
         # check icx balance of token_owner. value : 8*10**18
@@ -269,31 +269,31 @@ class TestTBears(unittest.TestCase):
         # transfer icx to CrowdSale. value : 8*10**18
         payload = get_payload('send_icx', fr=token_owner_address, to=crowd_sale_score_address, value=hex(8*10**18))
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # seq11
         # genesis -> test_address. value 90*10**18
         payload = get_payload('send_icx', fr=god_address, to=test_addr, value1=hex(90*10**18))
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # seq12
         # transfer icx to CrowdSale. value : 90*10**18
         payload = get_payload('send_icx', fr=test_addr, to=crowd_sale_score_address, value1=hex(90*10**18))
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # seq13
         # check CrowdSaleEnd
         payload = get_payload('check_crowd_sale_end', to=crowd_sale_score_address, fr=token_owner_address)
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # seq14
         # safe withrawal
         payload = get_payload('crowd_sale_withrawal', fr=token_owner_address, to=crowd_sale_score_address)
         res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, 1)
+        self.assertEqual(res, hex(1))
 
         # seq15
         # check icx balance of token_owner value : 100*10**18
