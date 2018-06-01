@@ -110,7 +110,7 @@ check_token_supply = {
     "id": 60889,
     "params": {
         "from": "hx0000000000000000000000000000000000000000",
-        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
+        "to": "",
         "dataType": "call",
         "data": {
             "method": "total_supply",
@@ -162,15 +162,9 @@ treasary_address = "hx1000000000000000000000000000000000000000"
 class TestTBears(unittest.TestCase):
     def setUp(self):
         self.url = "http://localhost:9000/api/v3"
-        self.send_icx_json = copy.deepcopy(send_icx_json)
-        self.get_token_balance_json = copy.deepcopy(get_token_balance_json)
-        self.icx_get_balance_json = copy.deepcopy(icx_get_balance_json)
-        self.transfer_token_json = copy.deepcopy(transfer_token_json)
-        self.check_crowd_sale_end_json = copy.deepcopy(check_crowd_sale_end_json)
-        self.crowd_sale_withrawal_json = copy.deepcopy(crowd_sale_withrawal_json)
-        self.check_token_supply = copy.deepcopy(check_token_supply)
 
     def tearDown(self):
+        stop_SCORE()
         clear_SCORE()
         os.remove('logger.log')
         shutil.rmtree('sample_token')
@@ -192,7 +186,7 @@ class TestTBears(unittest.TestCase):
         self.assertEqual(res, hex(10 * 10 ** 18))
 
         # check token supply
-        payload = get_payload('check_token_supply')
+        payload = get_payload('check_token_supply', to=token_score_address)
         res = post(self.url, payload).json()['result']
         self.assertEqual(res, hex(1000*10**18))
 
@@ -236,8 +230,6 @@ class TestTBears(unittest.TestCase):
 
         # seq4
         # transfer token to CrowdSale_address. value: 1000*10**18
-        self.transfer_token_json['params']['from'] = token_owner_address
-        self.transfer_token_json['params']['data']['params']['addr_to'] = crowd_sale_score_address
         payload = get_payload('transfer_token', fr=token_owner_address, to=token_score_address,
                               addr_to=crowd_sale_score_address, value2=hex(1000*10**18))
         res = post(self.url, payload).json()['result']['status']
@@ -257,32 +249,24 @@ class TestTBears(unittest.TestCase):
 
         # seq7
         # transfer icx to CrowdSale. value : 2*10**18
-        self.send_icx_json['params']['from'] = token_owner_address
-        self.send_icx_json['params']['to'] = crowd_sale_score_address
-        self.send_icx_json['params']['value'] = hex(2 * 10 ** 18)
         payload = get_payload('send_icx', fr=token_owner_address, to=crowd_sale_score_address, value1=hex(2*10**18))
         res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, 1)
 
         # seq8
         # check icx balance of token_owner. value : 8*10**18
-        self.icx_get_balance_json['params']['address'] = token_owner_address
         payload = get_payload('icx_get_balance', address=token_owner_address)
         res = post(self.url, payload).json()['result']
         self.assertEqual(res, hex(8 * 10 ** 18))
 
         # seq9
         # check token balance of token_owner. value : 0x2
-        self.get_token_balance_json['params']['data']['params']['addr_from'] = token_owner_address
         payload = get_payload('get_token_balance', to=token_score_address, addr_from=token_owner_address)
         res = post(self.url, payload).json()['result']
         self.assertEqual(res, hex(2))
 
         # seq10
         # transfer icx to CrowdSale. value : 8*10**18
-        self.send_icx_json['params']['from'] = token_owner_address
-        self.send_icx_json['params']['to'] = crowd_sale_score_address
-        self.send_icx_json['params']['value'] = hex(8 * 10 ** 18)
         payload = get_payload('send_icx', fr=token_owner_address, to=crowd_sale_score_address, value=hex(8*10**18))
         res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, 1)
