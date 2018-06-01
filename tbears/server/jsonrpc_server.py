@@ -212,6 +212,8 @@ class MockDispatcher:
         if MockDispatcher.flask_server is not None:
             MockDispatcher.flask_server.app.stop()
 
+        return '0x0'
+
 
 class FlaskServer:
     def __init__(self):
