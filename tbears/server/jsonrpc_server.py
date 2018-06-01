@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import json
-import logging
 import sys
 import time
 import hashlib
@@ -22,17 +21,35 @@ from jsonrpcserver.aio import methods
 from sanic import Sanic, response as sanic_response
 
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
-from iconservice import configure as conf
-from iconservice.utils.type_converter import TypeConverter
+from json import JSONDecodeError
 
+from iconservice.utils.type_converter import TypeConverter
+from iconservice.logger import Logger
+from iconservice.icon_config import *
+
+from typing import Optional
+
+MQ_TEST = False
+if not MQ_TEST:
+    from iconservice.icon_inner_service import IconScoreInnerTask
+
+TBEARS_LOG_TAG = 'tbears'
 SEPARATE_PROCESS_DEBUG = False
+
+__block_height = 0
+__icon_score_service = None
+__icon_score_stub = None
+__icon_inner_task = None
+__type_converter = None
+
+PARSE_ERROR_RESPONSE = '{"jsonrpc":"2.0", "error":{"code":-32700, "message": "Parse error"}, "id": "null"}'
 
 sys.path.append('..')
 sys.path.append('.')
 
-__block_height = 0
-__icon_score_stub = None
-__type_converter = None
+
+def get_icon_inner_task() -> Optional['IconScoreInnerTask']:
+    return __icon_inner_task
 
 
 def get_icon_score_stub() -> IconScoreInnerStub:
@@ -48,9 +65,17 @@ def get_type_converter() -> TypeConverter:
 def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
                               icon_score_root_path: str, icon_score_state_db_root_path: str,
                               **kwargs) -> IconScoreInnerService:
-    icon_score_queue_name = conf.ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
-                                                                     amqp_key=amqp_key,
-                                                                     rpc_port=rpc_port)
+    icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
+                                                                amqp_key=amqp_key,
+                                                                rpc_port=rpc_port)
+
+    Logger.debug(f'==========create_icon_score_service==========', TBEARS_LOG_TAG)
+    Logger.debug(f'icon_score_root_path : {icon_score_root_path}', TBEARS_LOG_TAG)
+    Logger.debug(f'icon_score_state_db_root_path  : {icon_score_state_db_root_path}', TBEARS_LOG_TAG)
+    Logger.debug(f'amqp_target  : {amqp_target}', TBEARS_LOG_TAG)
+    Logger.debug(f'icon_score_queue_name  : {icon_score_queue_name}', TBEARS_LOG_TAG)
+    Logger.debug(f'kwargs : {kwargs}', TBEARS_LOG_TAG)
+    Logger.debug(f'==========create_icon_score_service==========', TBEARS_LOG_TAG)
 
     return IconScoreInnerService(amqp_target, icon_score_queue_name,
                                  icon_score_root_path=icon_score_root_path,
@@ -59,9 +84,15 @@ def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, rpc
 
 def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
                            **kwargs) -> IconScoreInnerStub:
-    icon_score_queue_name = conf.ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
-                                                                     amqp_key=amqp_key,
-                                                                     rpc_port=rpc_port)
+    icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
+                                                                amqp_key=amqp_key,
+                                                                rpc_port=rpc_port)
+
+    Logger.debug(f'==========create_icon_score_stub==========', TBEARS_LOG_TAG)
+    Logger.debug(f'icon_score_queue_name  : {icon_score_queue_name}', TBEARS_LOG_TAG)
+    Logger.debug(f'kwargs : {kwargs}', TBEARS_LOG_TAG)
+    Logger.debug(f'==========create_icon_score_stub==========', TBEARS_LOG_TAG)
+
     return IconScoreInnerStub(amqp_target, icon_score_queue_name)
 
 
@@ -76,17 +107,20 @@ class MockDispatcher:
 
     @staticmethod
     async def dispatch(request):
-        req = json.loads(request.body.decode())
-        req["params"] = req.get("params", {})
-        req["params"]["method"] = request.json["method"]
-
-        dispatch_response = await methods.dispatch(req)
-        return sanic_response.json(dispatch_response, status=dispatch_response.http_status)
+        try:
+            req = json.loads(request.body.decode())
+            req["params"] = req.get("params", {})
+            req["params"]["method"] = request.json["method"]
+        except JSONDecodeError:
+            return sanic_response.json(PARSE_ERROR_RESPONSE, 400)
+        else:
+            dispatch_response = await methods.dispatch(req)
+            return sanic_response.json(dispatch_response, status=dispatch_response.http_status)
 
     @staticmethod
     @methods.add
     async def hello(**request_params):
-        logging.debug(f'json_rpc_server hello!')
+        Logger.debug(f'json_rpc_server hello!', TBEARS_LOG_TAG)
 
     @staticmethod
     @methods.add
@@ -97,66 +131,84 @@ class MockDispatcher:
         :param request_params: jsonrpc params field.
         """
 
-        logging.debug(f'json_rpc_server icx_sendTransaction!')
+        Logger.debug(f'json_rpc_server icx_sendTransaction!', TBEARS_LOG_TAG)
 
         make_request = dict()
 
         block_height: int = get_block_height()
-        data: str = f'block_height{block_height}'
+        data: str = f'blockHeight{block_height}'
         block_hash: str = hashlib.sha3_256(data.encode()).digest()
         block_timestamp_us = int(time.time() * 10 ** 6)
-        make_request['block'] = {'block_height': block_height,
-                                 'block_hash': block_hash,
-                                 'block_timestamp': block_timestamp_us}
-        params = get_type_converter().convert(request_params, recursive=False)
+        make_request['block'] = {'blockHeight': block_height,
+                                 'blockHash': block_hash,
+                                 'blockTimestamp': block_timestamp_us}
         tx = {
-            'method': 'icx_send_transaction',
-            'params': params
+            'method': 'icx_sendTransaction',
+            'params': request_params
         }
 
         make_request['transactions'] = [tx]
-        response = await get_icon_score_stub().task().icx_send_transaction(make_request)
-        if not isinstance(response, list):
-            commit_response = await get_icon_score_stub().task().remove_precommit_state({})
-        elif response[0]['status'] == 1:
-            commit_response = await get_icon_score_stub().task().write_precommit_state({})
+
+        if MQ_TEST:
+            response = await get_icon_score_stub().task().icx_send_transaction(make_request)
+            if not isinstance(response, list):
+                commit_response = await get_icon_score_stub().task().remove_precommit_state({})
+            elif response[0]['status'] == 1:
+                commit_response = await get_icon_score_stub().task().write_precommit_state({})
+            else:
+                commit_response = await get_icon_score_stub().task().remove_precommit_state({})
+            return {'response': response, 'commitResponse': commit_response}
         else:
-            commit_response = await get_icon_score_stub().task().remove_precommit_state({})
-        return {'response': response, 'commit_response' : commit_response}
+            response = await get_icon_inner_task().icx_send_transaction(make_request)
+            if not isinstance(response, list):
+                commit_response = await get_icon_inner_task().remove_precommit_state({})
+            elif response[0]['status'] == 1:
+                commit_response = await get_icon_inner_task().write_precommit_state({})
+            else:
+                commit_response = await get_icon_inner_task().remove_precommit_state({})
+            return {'response': response, 'commitResponse': commit_response}
 
     @staticmethod
     @methods.add
     async def icx_call(**request_params):
-        logging.debug(f'json_rpc_server icx_call!')
+        Logger.debug(f'json_rpc_server icx_call!', TBEARS_LOG_TAG)
+        make_request = {'method': 'icx_call', 'params': request_params}
 
-        params = get_type_converter().convert(request_params, recursive=False)
-        make_request = {'method': 'icx_call', 'params': params}
-        return await get_icon_score_stub().task().icx_call(make_request)
+        if MQ_TEST:
+            return await get_icon_score_stub().task().icx_call(make_request)
+        else:
+            return await get_icon_inner_task().icx_call(make_request)
 
     @staticmethod
     @methods.add
     async def icx_getBalance(**request_params):
-        logging.debug(f'json_rpc_server icx_getBalance!')
+        Logger.debug(f'json_rpc_server icx_getBalance!', TBEARS_LOG_TAG)
+        make_request = {'method': 'icx_getBalance', 'params': request_params}
 
-        params = get_type_converter().convert(request_params, recursive=False)
-        make_request = {'method': 'icx_get_balance', 'params': params}
-        return await get_icon_score_stub().task().icx_call(make_request)
+        if MQ_TEST:
+            return await get_icon_score_stub().task().icx_call(make_request)
+        else:
+            return await get_icon_inner_task().icx_call(make_request)
 
     @staticmethod
     @methods.add
     async def icx_getTotalSupply(**request_params):
-        logging.debug(f'json_rpc_server icx_getTotalSupply!')
+        Logger.debug(f'json_rpc_server icx_getTotalSupply!', TBEARS_LOG_TAG)
+        make_request = {'method': 'icx_getTotalSupply', 'params': request_params}
 
-        params = get_type_converter().convert(request_params, recursive=False)
-        make_request = {'method': 'icx_get_total_supply', 'params': params}
-        return await get_icon_score_stub().task().icx_call(make_request)
+        if MQ_TEST:
+            return await get_icon_score_stub().task().icx_call(make_request)
+        else:
+            return await get_icon_inner_task().icx_call(make_request)
 
     @staticmethod
     @methods.add
     async def server_exit(**request_params):
-        logging.debug(f'json_rpc_server server_exit!')
+        Logger.debug(f'json_rpc_server server_exit!', TBEARS_LOG_TAG)
 
-        await get_icon_score_stub().task().close()
+        if MQ_TEST:
+            await get_icon_score_stub().task().close()
+
         if MockDispatcher.flask_server is not None:
             MockDispatcher.flask_server.app.stop()
 
@@ -170,12 +222,8 @@ class FlaskServer:
     def app(self):
         return self.__app
 
-    @property
-    def ssl_context(self):
-        return self.__ssl_context
-
     def set_resource(self):
-        self.__app.add_route(MockDispatcher.dispatch, '/api/v2', methods=['POST'])
+        self.__app.add_route(MockDispatcher.dispatch, '/api/v3/', methods=['POST'], strict_slashes=False)
 
 
 class SimpleRestServer:
@@ -190,7 +238,8 @@ class SimpleRestServer:
         return self.__server.app
 
     def run(self):
-        logging.error(f"SimpleRestServer run... {self.__port}")
+        Logger.info(f"SimpleRestServer run... {self.__port}", TBEARS_LOG_TAG)
+
         self.__server.app.run(port=self.__port,
                               host=self.__ip_address,
                               debug=False)
@@ -199,19 +248,23 @@ class SimpleRestServer:
 def serve():
     async def __serve():
         init_type_converter()
-        if not SEPARATE_PROCESS_DEBUG:
-            await init_icon_score_service()
-        await init_icon_score_stub(tbears_conf)
+        if MQ_TEST:
+            if not SEPARATE_PROCESS_DEBUG:
+                await init_icon_score_service()
+            await init_icon_score_stub(conf)
+        else:
+            await init_icon_inner_task(conf)
 
     if len(sys.argv) == 2:
         path = sys.argv[1]
     else:
         path = './tbears.json'
 
-    logging.info(f'config_file: {path}')
-    tbears_conf = load_config(path)
+    conf = load_config(path)
+    Logger(path)
+    Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
 
-    server = SimpleRestServer(tbears_conf['port'])
+    server = SimpleRestServer(conf['port'], "0.0.0.0")
     server.get_app().add_task(__serve)
     server.run()
 
@@ -233,38 +286,57 @@ def load_config(path: str) -> dict:
                 "address": "hx1000000000000000000000000000000000000000",
                 "balance": "0x0"
             }
-        ]
+        ],
+        "logger": {
+            "logFormat": "%(asctime)s %(process)d %(thread)d %(levelname)s %(message)s",
+            "logLevel": "DEBUG",
+            "colorLog": True,
+            "logFilePath": "./logger.log",
+            "logOutputType": "production"
+        }
     }
 
     try:
         with open(path) as f:
-            tbears_conf = json.load(f)
+            conf = json.load(f)
     except (OSError, IOError):
         return default_conf
 
     for key in default_conf:
-        if key not in tbears_conf:
-            tbears_conf[key] = default_conf[key]
+        if key not in conf:
+            conf[key] = default_conf[key]
 
-    return tbears_conf
+    return conf
 
 
 async def init_icon_score_service():
-    __icon_score_service = create_icon_score_service(**conf.DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
+    global __icon_score_service
+    __icon_score_service = create_icon_score_service(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
     await __icon_score_service.connect(exclusive=True)
 
 
-async def init_icon_score_stub(tbears_conf: dict):
+async def init_icon_score_stub(conf: dict):
     global __icon_score_stub
-    __icon_score_stub = create_icon_score_stub(**conf.DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
+    __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
     await __icon_score_stub.connect()
     if not SEPARATE_PROCESS_DEBUG:
         await __icon_score_stub.task().open()
 
-    accounts = get_type_converter().convert(tbears_conf['accounts'], recursive=False)
+    accounts = get_type_converter().convert(conf['accounts'], recursive=False)
     make_request = dict()
     make_request['accounts'] = accounts
     await __icon_score_stub.task().genesis_invoke(make_request)
+
+
+async def init_icon_inner_task(conf: dict):
+    global __icon_inner_task
+    __icon_inner_task = IconScoreInnerTask(conf['score_root'], conf['db_root'])
+    await __icon_inner_task.open()
+
+    accounts = get_type_converter().convert(conf['accounts'], recursive=False)
+    make_request = dict()
+    make_request['accounts'] = accounts
+    await __icon_inner_task.genesis_invoke(make_request)
 
 
 def init_type_converter():
