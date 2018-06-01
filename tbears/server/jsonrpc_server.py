@@ -170,6 +170,8 @@ class MockDispatcher:
         engine.close()
         shutdown()
 
+        return '0x0'
+
 
 class FlaskServer:
     def __init__(self):
