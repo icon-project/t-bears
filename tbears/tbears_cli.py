@@ -58,10 +58,10 @@ tbears commands:
         result = stop_SCORE()
     elif command == 'clear':
         result = clear_SCORE()
-    elif command == 'samples':
-        result = make_SCORE_samples()
         if result is 1:  # success
             print('Cleared the score successfully.')
+    elif command == 'samples':
+        result = make_SCORE_samples()
     else:
         parser.print_help()
         result = ExitCode.COMMAND_IS_WRONG.value
