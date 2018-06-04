@@ -202,7 +202,7 @@ class SimpleRestServer:
         self.__server.set_resource()
 
     def run(self):
-        Logger.error(f"SimpleRestServer run... {self.__port}", TBEARS_LOG_TAG)
+        Logger.info(f"SimpleRestServer run... {self.__port}", TBEARS_LOG_TAG)
 
         self.__server.app.run(port=self.__port,
                               host=self.__ip_address,
