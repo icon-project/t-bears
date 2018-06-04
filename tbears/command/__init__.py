@@ -39,6 +39,7 @@ class ExitCode(IntEnum):
     WRITE_FILE_ERROR = 4
     DELETE_TREE_ERROR = 5
     SCORE_AlREADY_EXISTS = 6
+    PROJECT_AND_CLASS_NAME_EQUAL = 7
 
 
 def init_SCORE(project: str, score_class: str) -> int:
@@ -48,9 +49,12 @@ def init_SCORE(project: str, score_class: str) -> int:
     :param score_class: class name of SCORE.
     :return: ExitCode, Succeeded
     """
+    if project == score_class:
+        print(f'<project> and <score_class> must be different.')
+        return ExitCode.IMPROPER_SCORE_NAME.value
     if os.path.exists(f"./{project}"):
         logging.debug(f'{project} directory is not empty.')
-        return ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value
+        return ExitCode.PROJECT_AND_CLASS_NAME_EQUAL.value
 
     package_json_dict = get_package_json_dict(project, score_class)
     package_json_contents = json.dumps(package_json_dict, indent=4)
