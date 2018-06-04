@@ -27,6 +27,8 @@ from iconservice.utils.type_converter import TypeConverter
 from iconservice.logger import Logger
 from iconservice.icon_config import *
 
+from collections import Iterable
+
 from typing import Optional
 
 MQ_TEST = False
@@ -102,12 +104,23 @@ def get_block_height():
     return __block_height
 
 
-def integers_to_hex(res: dict) -> dict:
-    for k, v in res.items():
-        if isinstance(v, dict):
-            res = integers_to_hex(v)
-        elif isinstance(v, int):
-            res[k] = hex(v)
+def integers_to_hex(res: Iterable) -> Iterable:
+    if isinstance(res, dict):
+        for k, v in res.items():
+            if isinstance(v, dict):
+                res[k] = integers_to_hex(v)
+            elif isinstance(v, list):
+                res[k] = integers_to_hex(v)
+            elif isinstance(v, int):
+                res[k] = hex(v)
+    elif isinstance(res, list):
+        for k, v in enumerate(res):
+            if isinstance(v, dict):
+                res[k] = integers_to_hex(v)
+            elif isinstance(v, list):
+                res[k] = integers_to_hex(v)
+            elif isinstance(v, int):
+                res[k] = hex(v)
     return res
 
 
@@ -128,9 +141,8 @@ class MockDispatcher:
             res = str(dispatch_response)
             response_json = json.loads(res)
 
-            if isinstance(response_json['result'], dict):
+            if isinstance(response_json['result'], (dict, list)):
                 response_json['result'] = integers_to_hex(response_json['result'])
-
             return sanic_response.json(response_json, status=dispatch_response.http_status)
 
     @staticmethod
@@ -165,7 +177,7 @@ class MockDispatcher:
         block_timestamp_us = int(time.time() * 10 ** 6)
         make_request['block'] = {'blockHeight': block_height,
                                  'blockHash': block_hash,
-                                 'blockTimestamp': block_timestamp_us}
+                                 'timestamp': block_timestamp_us}
 
         if MQ_TEST:
             response = await get_icon_score_stub().task().icx_send_transaction(make_request)
