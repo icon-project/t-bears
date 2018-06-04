@@ -130,9 +130,8 @@ class MockDispatcher:
 
             if isinstance(response_json['result'], dict):
                 response_json['result'] = integers_to_hex(response_json['result'])
-                res = json.dumps(response_json)
 
-            return sanic_response.json(res, status=dispatch_response.http_status)
+            return sanic_response.json(response_json, status=dispatch_response.http_status)
 
     @staticmethod
     @methods.add

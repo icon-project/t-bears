@@ -196,7 +196,7 @@ class TestTBears(unittest.TestCase):
 
         # send transaction
         payload = get_payload('send_icx', fr=god_address, to=treasary_address, value1=hex(10*10**18))
-        res = post(self.url, payload).json()['result']['status']
+        res = post(self.url, payload).json()['result'][0]['status']
         self.assertEqual(res, hex(1))
 
         # get balance
