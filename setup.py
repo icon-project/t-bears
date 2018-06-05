@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
-from tbears import __version__
 
 requires = [
     'requests==2.18.4',
-    'Flask==1.0.2',
-    'Flask-RESTful==0.3.6',
-    'jsonrpcserver==3.5.4'
+    'jsonrpcserver==3.5.4',
+    'aio_pika == 2.8.1',
+    'sanic == 0.7.0'
 ]
 
 
 setup_options = {
     'name': 'tbears',
-    'version': __version__,
+    'version': '0.0.1',
     'description': '`tbears` for ICON SCORE development',
     'author': 'ICON foundation',
     'author_email': 'foo@icon.foundation',

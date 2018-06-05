@@ -41,6 +41,8 @@ class TestTBears(unittest.TestCase):
 
     def tearDown(self):
         clear_SCORE()
+        if os.path.exists('./sample_token'):
+            shutil.rmtree('./sample_token')
 
     @staticmethod
     def touch(path):
