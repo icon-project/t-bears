@@ -51,10 +51,10 @@ def init_SCORE(project: str, score_class: str) -> int:
     """
     if project == score_class:
         print(f'<project> and <score_class> must be different.')
-        return ExitCode.IMPROPER_SCORE_NAME.value
+        return ExitCode.PROJECT_AND_CLASS_NAME_EQUAL.value
     if os.path.exists(f"./{project}"):
         logging.debug(f'{project} directory is not empty.')
-        return ExitCode.PROJECT_AND_CLASS_NAME_EQUAL.value
+        return ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value
 
     package_json_dict = get_package_json_dict(project, score_class)
     package_json_contents = json.dumps(package_json_dict, indent=4)
