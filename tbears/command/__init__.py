@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import hashlib
 import json
 import os
 import sys
@@ -21,6 +21,9 @@ import time
 import logging
 import socket
 from enum import IntEnum
+
+from iconservice import Address
+from iconservice.base import AddressPrefix
 
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
@@ -72,10 +75,11 @@ def init_SCORE(project: str, score_class: str) -> int:
     return ExitCode.SUCCEEDED.value
 
 
-def run_SCORE(project: str) -> tuple:
+def run_SCORE(project: str, *options) -> tuple:
     """Run SCORE, embedding SCORE on the server.
 
     :param project: name of SCORE.
+    :param options: install config path or update config path will be given.
     :return: ExitCode, Succeeded
     """
 
@@ -83,7 +87,7 @@ def run_SCORE(project: str) -> tuple:
         __start_server()
         time.sleep(2)
 
-    respond = __embed_SCORE_on_server(project)
+    respond = __embed_SCORE_on_server(project, options[0], options[1])
 
     return ExitCode.SUCCEEDED.value, respond
 
@@ -159,11 +163,24 @@ def __start_server():
     logging.debug('start_server() end')
 
 
-def __embed_SCORE_on_server(project: str) -> dict:
+def __embed_SCORE_on_server(project: str, *options: str) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
+    :param option: install config path or update config path will be given.
     """
+    params = {}
+    contract_address = None
+
     project_dict = make_install_json_payload(project)
+
+    if options:
+        params = __get_param_info(options[0])
+    if options[1] == 'update':
+        contract_address = create_address(AddressPrefix.CONTRACT, project.encode())
+        project_dict['params']['to'] = str(contract_address)
+
+    project_dict['params']['data']['params'] = params
+
     response = post(JSON_RPC_SERVER_URL, project_dict)
     return response
 
@@ -191,3 +208,13 @@ def __is_server_running():
 
     return result is 0
 
+
+def __get_param_info(path: str):
+    with open(path, mode='rb') as param_json:
+        contents = param_json.read()
+    return json.loads(contents)
+
+
+def create_address(prefix: AddressPrefix, data: bytes):
+    hash_value = hashlib.sha3_256(data).digest()
+    return Address(prefix, hash_value[-20:])

@@ -41,6 +41,12 @@ tbears commands:
         'command',
         nargs='*',
         help='init, run, stop, clear')
+    parser.add_argument(
+        '--install', dest='install', help='install config json path'
+    )
+    parser.add_argument(
+        '--update', dest='update', help='update config json path'
+    )
 
     args = parser.parse_args()
 
@@ -50,10 +56,17 @@ tbears commands:
 
     command = args.command[0]
 
+    options = None
+
+    if args.install:
+        options = args.install, 'install'
+    elif args.update:
+        options = args.update, 'update'
+
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])
     elif command == 'run' and len(args.command) == 2:
-        result, _ = run_SCORE(args.command[1])
+        result, _ = run_SCORE(args.command[1], *options)
     elif command == 'stop':
         result = stop_SCORE()
     elif command == 'clear':
