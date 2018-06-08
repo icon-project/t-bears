@@ -22,9 +22,6 @@ import logging
 import socket
 from enum import IntEnum
 
-from iconservice import Address
-from iconservice.base import AddressPrefix
-
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
     delete_score_info, get_init_template, get_sample_crowd_sale_contents
@@ -43,6 +40,7 @@ class ExitCode(IntEnum):
     DELETE_TREE_ERROR = 5
     SCORE_AlREADY_EXISTS = 6
     PROJECT_AND_CLASS_NAME_EQUAL = 7
+    CONFIG_FILE_PATH_IS_WRONG = 8
 
 
 def init_SCORE(project: str, score_class: str) -> int:
@@ -82,12 +80,16 @@ def run_SCORE(project: str, *options) -> tuple:
     :param options: install config path or update config path will be given.
     :return: ExitCode, Succeeded
     """
+    params = {}
+
+    if options[1]:
+        params = __get_param_info(options[0])
 
     if not __is_server_running():
         __start_server()
         time.sleep(2)
 
-    respond = __embed_SCORE_on_server(project, options[0], options[1])
+    respond = __embed_SCORE_on_server(project, params, options[0], options[1])
 
     return ExitCode.SUCCEEDED.value, respond
 
@@ -163,20 +165,17 @@ def __start_server():
     logging.debug('start_server() end')
 
 
-def __embed_SCORE_on_server(project: str, *options: str) -> dict:
+def __embed_SCORE_on_server(project: str, params: dict, *options) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
     :param option: install config path or update config path will be given.
     """
-    params = {}
     contract_address = None
 
     project_dict = make_install_json_payload(project)
 
-    if options:
-        params = __get_param_info(options[0])
     if options[1] == 'update':
-        contract_address = create_address(AddressPrefix.CONTRACT, project.encode())
+        contract_address = f'cx{create_address(project.encode())}'
         project_dict['params']['to'] = str(contract_address)
 
     project_dict['params']['data']['params'] = params
@@ -210,11 +209,22 @@ def __is_server_running():
 
 
 def __get_param_info(path: str):
-    with open(path, mode='rb') as param_json:
-        contents = param_json.read()
-    return json.loads(contents)
+    try:
+        with open(path, mode='rb') as param_json:
+            contents = param_json.read()
+    except IsADirectoryError:
+        print(f'{path} is a directory')
+        sys.exit(ExitCode.CONFIG_FILE_PATH_IS_WRONG.value)
+    except FileNotFoundError:
+        print(f'{path} not found.')
+        sys.exit(ExitCode.CONFIG_FILE_PATH_IS_WRONG.value)
+    except PermissionError:
+        print(f'can not access {path}')
+        sys.exit(ExitCode.CONFIG_FILE_PATH_IS_WRONG.value)
+    else:
+        return json.loads(contents)
 
 
-def create_address(prefix: AddressPrefix, data: bytes):
+def create_address(data: bytes):
     hash_value = hashlib.sha3_256(data).digest()
-    return Address(prefix, hash_value[-20:])
+    return hash_value[-20:].hex()
