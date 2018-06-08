@@ -13,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-class TbearsBaseException(Exception):
-    """Base exception for tbears."""
-    pass
+from jsonrpcserver.exceptions import JsonRpcServerError
 
 
-class TBearsWriteFileException(TbearsBaseException):
-    """Error while write file."""
-    pass
+class CustomRpcError(JsonRpcServerError):
+    """
+    Raised when there's an application-specific error on the server side.
 
+    :param data: Extra information about the error that occurred (optional).
+    """
+    code = -12345
+    message = 'Server error'
+    http_status = 500
 
-class TBearsDeleteTreeException(TbearsBaseException):
-    """Error while write file."""
-    pass
+    def __init__(self, data=None):
+        super(CustomRpcError, self).__init__(data)

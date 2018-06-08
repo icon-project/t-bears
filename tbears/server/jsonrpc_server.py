@@ -31,6 +31,8 @@ from collections import Iterable
 
 from typing import Optional
 
+from tbears.server.jsonrpc_exception import CustomRpcError
+
 MQ_TEST = False
 if not MQ_TEST:
     from iconservice.icon_inner_service import IconScoreInnerTask
@@ -180,14 +182,16 @@ class MockDispatcher:
             res = str(dispatch_response)
             response_json = json.loads(res)
 
-            if isinstance(response_json['result'], (dict, list)):
-                response_json['result'] = integers_to_hex(response_json['result'])
+            if response_json.get('result') is not None:
+                result = response_json['result']
+                if isinstance(result, (dict, list)):
+                    response_json['result'] = integers_to_hex(result)
             return sanic_response.json(response_json, status=dispatch_response.http_status)
 
     @staticmethod
     @methods.add
     async def hello(**request_params):
-        raise Exception()
+        raise CustomRpcError()
         # Logger.debug(f'json_rpc_server hello!', TBEARS_LOG_TAG)
 
     @staticmethod
