@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import hashlib
 import json
 import os
 import sys
@@ -40,6 +40,7 @@ class ExitCode(IntEnum):
     DELETE_TREE_ERROR = 5
     SCORE_AlREADY_EXISTS = 6
     PROJECT_AND_CLASS_NAME_EQUAL = 7
+    CONFIG_FILE_PATH_IS_WRONG = 8
 
 
 def init_SCORE(project: str, score_class: str) -> int:
@@ -72,18 +73,23 @@ def init_SCORE(project: str, score_class: str) -> int:
     return ExitCode.SUCCEEDED.value
 
 
-def run_SCORE(project: str) -> tuple:
+def run_SCORE(project: str, *options) -> tuple:
     """Run SCORE, embedding SCORE on the server.
 
     :param project: name of SCORE.
+    :param options: install config path or update config path will be given.
     :return: ExitCode, Succeeded
     """
+    params = {}
+
+    if options[1]:
+        params = __get_param_info(options[0])
 
     if not __is_server_running():
         __start_server()
         time.sleep(2)
 
-    respond = __embed_SCORE_on_server(project)
+    respond = __embed_SCORE_on_server(project, params, options[0], options[1])
 
     return ExitCode.SUCCEEDED.value, respond
 
@@ -159,11 +165,21 @@ def __start_server():
     logging.debug('start_server() end')
 
 
-def __embed_SCORE_on_server(project: str) -> dict:
+def __embed_SCORE_on_server(project: str, params: dict, *options) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
+    :param option: install config path or update config path will be given.
     """
+    contract_address = None
+
     project_dict = make_install_json_payload(project)
+
+    if options[1] == 'update':
+        contract_address = f'cx{create_address(project.encode())}'
+        project_dict['params']['to'] = str(contract_address)
+
+    project_dict['params']['data']['params'] = params
+
     response = post(JSON_RPC_SERVER_URL, project_dict)
     return response
 
@@ -191,3 +207,24 @@ def __is_server_running():
 
     return result is 0
 
+
+def __get_param_info(path: str):
+    try:
+        with open(path, mode='rb') as param_json:
+            contents = param_json.read()
+    except IsADirectoryError:
+        print(f'{path} is a directory')
+        sys.exit(ExitCode.CONFIG_FILE_PATH_IS_WRONG.value)
+    except FileNotFoundError:
+        print(f'{path} not found.')
+        sys.exit(ExitCode.CONFIG_FILE_PATH_IS_WRONG.value)
+    except PermissionError:
+        print(f'can not access {path}')
+        sys.exit(ExitCode.CONFIG_FILE_PATH_IS_WRONG.value)
+    else:
+        return json.loads(contents)
+
+
+def create_address(data: bytes):
+    hash_value = hashlib.sha3_256(data).digest()
+    return hash_value[-20:].hex()

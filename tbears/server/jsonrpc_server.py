@@ -43,6 +43,7 @@ __icon_score_service = None
 __icon_score_stub = None
 __icon_inner_task = None
 __type_converter = None
+__tx_result_mapper = None
 
 PARSE_ERROR_RESPONSE = '{"jsonrpc":"2.0", "error":{"code":-32700, "message": "Parse error"}, "id": "null"}'
 
@@ -124,6 +125,44 @@ def integers_to_hex(res: Iterable) -> Iterable:
     return res
 
 
+def get_tx_result_mapper():
+    global __tx_result_mapper
+    return __tx_result_mapper
+
+
+def response_to_json(response):
+    if isinstance(response, list):
+        key = response[0]['txHash']
+        get_tx_result_mapper().put(key, response[0])
+        return key
+    else:
+        return response
+
+
+class TxResultMapper:
+    def __init__(self, limit_capacity = 1000):
+        self.__limit_capacity = limit_capacity
+        self.__mapper = dict()
+        self.__key_list = []
+
+    def put(self, key, value) -> None:
+        self.__check_limit()
+        self.__key_list.append(key)
+        self.__mapper[key] = value
+
+    def get(self, key):
+        return self.__mapper.get(key, None)
+
+    def __check_limit(self):
+        if self.len() > self.__limit_capacity:
+            key = self.__key_list[0]
+            self.__key_list.pop(0)
+            del self.__mapper[key]
+
+    def len(self) -> int:
+        return len(self.__mapper)
+
+
 class MockDispatcher:
     flask_server = None
 
@@ -187,7 +226,7 @@ class MockDispatcher:
                 await get_icon_score_stub().task().write_precommit_state({})
             else:
                 await get_icon_score_stub().task().remove_precommit_state({})
-            return response
+            return response_to_json(response)
         else:
             response = await get_icon_inner_task().icx_send_transaction(make_request)
             if not isinstance(response, list):
@@ -196,7 +235,7 @@ class MockDispatcher:
                 await get_icon_inner_task().write_precommit_state({})
             else:
                 await get_icon_inner_task().remove_precommit_state({})
-            return response
+            return response_to_json(response)
 
     @staticmethod
     @methods.add
@@ -230,6 +269,15 @@ class MockDispatcher:
             return await get_icon_score_stub().task().icx_call(make_request)
         else:
             return await get_icon_inner_task().icx_call(make_request)
+
+    @staticmethod
+    @methods.add
+    async def icx_getTransactionResult(**request_params):
+        Logger.debug(f'json_rpc_server getTransactionResult!', TBEARS_LOG_TAG)
+
+        key = request_params['txHash']
+        tx_result = get_tx_result_mapper().get(key)
+        return tx_result
 
     @staticmethod
     @methods.add
@@ -280,6 +328,7 @@ class SimpleRestServer:
 
 def serve():
     async def __serve():
+        init_tbears()
         init_type_converter()
         if MQ_TEST:
             if not SEPARATE_PROCESS_DEBUG:
@@ -382,6 +431,11 @@ def init_type_converter():
         'balance': 'int'
     }
     __type_converter = TypeConverter(type_table)
+
+
+def init_tbears():
+    global __tx_result_mapper
+    __tx_result_mapper = TxResultMapper()
 
 
 if __name__ == '__main__':

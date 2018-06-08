@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
+from tbears import __version__
+
 
 requires = [
     'requests==2.18.4',
     'jsonrpcserver==3.5.4',
     'aio_pika == 2.8.1',
-    'sanic == 0.7.0'
+    'sanic == 0.7.0',
+    'aio_pika == 2.8.1'
 ]
 
 
 setup_options = {
     'name': 'tbears',
-    'version': '0.0.1',
+    'version': __version__,
     'description': '`tbears` for ICON SCORE development',
     'author': 'ICON foundation',
     'author_email': 'foo@icon.foundation',
@@ -20,7 +23,7 @@ setup_options = {
     'py_modules': ['tbears'],
     'license': "Apache License 2.0",
     'install_requires': requires,
-    'test_suite': 'tests.test_tbears',
+    'test_suite': 'tests',
     'entry_points': {
         'console_scripts': [
             'tbears=tbears:main'

@@ -31,7 +31,7 @@ tbears version : v{tbears.__version__}
 ==========================
 tbears commands:
     init <project> <score_class> : Generate files, both <project>.py and package.json in <project> directory. The name of the score class is <score_class>.
-    run <project> : Run the score.
+    run <project> : Run the score. | --install <config param path> | --update <config param path>
     stop : Stop the score.
     clear : Delete the score, both .score and .db directory.
     samples : Create two score samples (sampleCrowdSale, tokentest)
@@ -41,6 +41,12 @@ tbears commands:
         'command',
         nargs='*',
         help='init, run, stop, clear')
+    parser.add_argument(
+        '--install', dest='install', help='install config json file path'
+    )
+    parser.add_argument(
+        '--update', dest='update', help='update config json file path'
+    )
 
     args = parser.parse_args()
 
@@ -50,10 +56,17 @@ tbears commands:
 
     command = args.command[0]
 
+    config_options = None, None
+
+    if args.install:
+        config_options = args.install, 'install'
+    elif args.update:
+        config_options = args.update, 'update'
+
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])
     elif command == 'run' and len(args.command) == 2:
-        result, _ = run_SCORE(args.command[1])
+        result, _ = run_SCORE(args.command[1], *config_options)
     elif command == 'stop':
         result = stop_SCORE()
     elif command == 'clear':

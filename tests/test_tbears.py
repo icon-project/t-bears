@@ -37,6 +37,7 @@ class TestTBears(unittest.TestCase):
         self.token_total_supply_json = token_total_supply_json
         self.token_transfer_json = token_transfer_json
         self.url = "http://localhost:9000/api/v3/"
+        self.config = None, None
         self.give_icx_to_token_owner_json = give_icx_to_token_owner_json
 
     def tearDown(self):
@@ -83,14 +84,14 @@ class TestTBears(unittest.TestCase):
     def test_run_SCORE_1(self):
         # Case when running SCORE and returning the right result code.
         init_SCORE('a_test_run', 'ATestRun')
-        result_code, _ = run_SCORE('a_test_run')
+        result_code, _ = run_SCORE('a_test_run', *self.config)
         self.assertEqual(1, result_code)
         shutil.rmtree('./a_test_run')
 
     def test_stop_SCORE_1(self):
         # Case when stopping SCORE and checking if socket is unconnected.
         init_SCORE('a_test_stop', 'ATestStop')
-        result_code, _ = run_SCORE('a_test_stop')
+        result_code, _ = run_SCORE('a_test_stop', *self.config)
         self.assertEqual(1, result_code)
 
         stop_SCORE()
@@ -103,7 +104,7 @@ class TestTBears(unittest.TestCase):
     def test_clear_SCORE_1(self):
         # Case when clearing SCORE and checking if the directories are cleared.
         init_SCORE('a_test_clear', 'ATestClear')
-        result_code, _ = run_SCORE('a_test_clear')
+        result_code, _ = run_SCORE('a_test_clear', *self.config)
         self.assertEqual(1, result_code)
         stop_SCORE()
         clear_SCORE()
@@ -164,7 +165,7 @@ class TestTBears(unittest.TestCase):
     @staticmethod
     def run_SCORE_for_testing():
         init_SCORE("sample_token", "SampleToken")
-        result, _ = run_SCORE('sample_token')
+        result, _ = run_SCORE('sample_token', None, None)
 
 
 if __name__ == "__main__":
