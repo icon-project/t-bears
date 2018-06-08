@@ -62,6 +62,15 @@ icx_get_balance_json = {
     }
 }
 
+icx_get_transaction_result_json = {
+    "jsonrpc": "2.0",
+    "method": "icx_getTransactionResult",
+    "id": 40889,
+    "params": {
+        "txHash": ""
+    }
+}
+
 transfer_token_json = {
     "jsonrpc": "2.0",
     "method": "icx_sendTransaction",
@@ -118,7 +127,7 @@ crowd_sale_withrawal_json = {
         }
     }
 }
-check_token_supply = {
+check_token_supply_json = {
     "jsonrpc": "2.0",
     "method": "icx_call",
     "id": 60889,
@@ -139,7 +148,8 @@ method_dict = {
     'transfer_token': transfer_token_json,
     'check_crowd_sale_end': check_crowd_sale_end_json,
     'crowd_sale_withrawal': crowd_sale_withrawal_json,
-    'check_token_supply': check_token_supply
+    'check_token_supply': check_token_supply_json,
+    'icx_get_transaction_result': icx_get_transaction_result_json
 }
 
 
@@ -196,7 +206,9 @@ class TestTBears(unittest.TestCase):
 
         # send transaction
         payload = get_payload('send_icx', fr=god_address, to=treasary_address, value1=hex(10*10**18))
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # get balance
@@ -217,7 +229,9 @@ class TestTBears(unittest.TestCase):
         # send token to test_addr
         payload = get_payload('transfer_token', fr=token_owner_address,
                               addr_to=treasary_address, value2=hex(10*10**18), to=token_score_address)
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # check token balance
@@ -232,7 +246,9 @@ class TestTBears(unittest.TestCase):
         # seq1
         # genesis -> hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(token_owner) 10icx
         payload = get_payload('send_icx', fr=god_address, to=token_owner_address, value1=hex(10*10**18))
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # seq2
@@ -251,7 +267,9 @@ class TestTBears(unittest.TestCase):
         # transfer token to CrowdSale_address. value: 1000*10**18
         payload = get_payload('transfer_token', fr=token_owner_address, to=token_score_address,
                               addr_to=crowd_sale_score_address, value2=hex(1000*10**18))
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # seq5
@@ -269,7 +287,9 @@ class TestTBears(unittest.TestCase):
         # seq7
         # transfer icx to CrowdSale. value : 2*10**18
         payload = get_payload('send_icx', fr=token_owner_address, to=crowd_sale_score_address, value1=hex(2*10**18))
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # seq8
@@ -287,31 +307,41 @@ class TestTBears(unittest.TestCase):
         # seq10
         # transfer icx to CrowdSale. value : 8*10**18
         payload = get_payload('send_icx', fr=token_owner_address, to=crowd_sale_score_address, value=hex(8*10**18))
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # seq11
         # genesis -> test_address. value 90*10**18
         payload = get_payload('send_icx', fr=god_address, to=test_addr, value1=hex(90*10**18))
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # seq12
         # transfer icx to CrowdSale. value : 90*10**18
         payload = get_payload('send_icx', fr=test_addr, to=crowd_sale_score_address, value1=hex(90*10**18))
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # seq13
         # check CrowdSaleEnd
         payload = get_payload('check_crowd_sale_end', to=crowd_sale_score_address, fr=token_owner_address)
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # seq14
         # safe withrawal
         payload = get_payload('crowd_sale_withrawal', fr=token_owner_address, to=crowd_sale_score_address)
-        res = post(self.url, payload).json()['result'][0]['status']
+        res = post(self.url, payload).json()['result']
+        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
         # seq15

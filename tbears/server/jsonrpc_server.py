@@ -127,7 +127,6 @@ def integers_to_hex(res: Iterable) -> Iterable:
 
 def get_tx_result_mapper():
     global __tx_result_mapper
-    __tx_result_mapper = TxResultMapper()
     return __tx_result_mapper
 
 
@@ -274,7 +273,7 @@ class MockDispatcher:
 
     @staticmethod
     @methods.add
-    async def getTransactionResult(**request_params):
+    async def icx_getTransactionResult(**request_params):
         Logger.debug(f'json_rpc_server getTransactionResult!', TBEARS_LOG_TAG)
 
         key = request_params['txHash']
@@ -330,6 +329,7 @@ class SimpleRestServer:
 
 def serve():
     async def __serve():
+        init_tbears()
         init_type_converter()
         if MQ_TEST:
             if not SEPARATE_PROCESS_DEBUG:
@@ -432,6 +432,11 @@ def init_type_converter():
         'balance': 'int'
     }
     __type_converter = TypeConverter(type_table)
+
+
+def init_tbears():
+    global __tx_result_mapper
+    __tx_result_mapper = TxResultMapper()
 
 
 if __name__ == '__main__':
