@@ -23,6 +23,13 @@ from tbears.command import run_SCORE, clear_SCORE, make_SCORE_samples, stop_SCOR
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 
+hello_json = {
+    "jsonrpc": "2.0",
+    "method": "hello",
+    "id": 1,
+    "params": {}
+}
+
 send_icx_json = {
     "jsonrpc": "2.0",
     "method": "icx_sendTransaction",
@@ -142,6 +149,7 @@ check_token_supply_json = {
     }
 }
 method_dict = {
+    'hello': hello_json,
     'send_icx': send_icx_json,
     'get_token_balance': get_token_balance_json,
     'icx_get_balance': icx_get_balance_json,
@@ -203,6 +211,10 @@ class TestTBears(unittest.TestCase):
     def test_token(self):
         init_SCORE('sample_token', 'SampleToken')
         result, _ = run_SCORE('sample_token', None, None)
+
+        # # hello!
+        # payload = get_payload('hello')
+        # res = post(self.url, payload)
 
         # send transaction
         payload = get_payload('send_icx', fr=god_address, to=treasary_address, value1=hex(10*10**18))

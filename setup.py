@@ -7,9 +7,7 @@ from tbears import __version__
 requires = [
     'requests==2.18.4',
     'jsonrpcserver==3.5.4',
-    'aio_pika == 2.8.1',
     'sanic == 0.7.0',
-    'aio_pika == 2.8.1'
 ]
 
 

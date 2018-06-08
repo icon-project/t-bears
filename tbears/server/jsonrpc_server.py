@@ -187,7 +187,8 @@ class MockDispatcher:
     @staticmethod
     @methods.add
     async def hello(**request_params):
-        Logger.debug(f'json_rpc_server hello!', TBEARS_LOG_TAG)
+        raise Exception()
+        # Logger.debug(f'json_rpc_server hello!', TBEARS_LOG_TAG)
 
     @staticmethod
     @methods.add
