@@ -20,7 +20,7 @@ setup_options = {
     'py_modules': ['tbears'],
     'license': "Apache License 2.0",
     'install_requires': requires,
-    'test_suite': 'tests.test_tbears',
+    'test_suite': 'tests',
     'entry_points': {
         'console_scripts': [
             'tbears=tbears:main'
