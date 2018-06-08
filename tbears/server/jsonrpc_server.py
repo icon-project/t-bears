@@ -165,7 +165,6 @@ class TxResultMapper:
 
 class MockDispatcher:
     flask_server = None
-    tx_results_table = TxResultMapper()
 
     @staticmethod
     async def dispatch(request):
