@@ -192,7 +192,7 @@ class TestTBears(unittest.TestCase):
 
     def test_token(self):
         init_SCORE('sample_token', 'SampleToken')
-        result, _ = run_SCORE('sample_token')
+        result, _ = run_SCORE('sample_token', None, None)
 
         # send transaction
         payload = get_payload('send_icx', fr=god_address, to=treasary_address, value1=hex(10*10**18))
@@ -227,8 +227,8 @@ class TestTBears(unittest.TestCase):
 
     def test_score_methods(self):
         make_SCORE_samples()
-        result, _ = run_SCORE('sample_token')
-        result, _ = run_SCORE('sample_crowd_sale')
+        result, _ = run_SCORE('sample_token', None, None)
+        result, _ = run_SCORE('sample_crowd_sale', None, None)
         # seq1
         # genesis -> hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(token_owner) 10icx
         payload = get_payload('send_icx', fr=god_address, to=token_owner_address, value1=hex(10*10**18))
