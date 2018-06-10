@@ -183,6 +183,15 @@ def get_payload(method: str, **kwargs):
     return method_json
 
 
+def get_request_of_icx_getTransactionResult(tx_hash: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "id": 40889,
+        "method": "icx_getTransactionResult",
+        "params": {"txHash": tx_hash}
+    }
+
+
 god_address = "hx0000000000000000000000000000000000000000"
 token_owner_address = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 token_score_address = "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf"
@@ -218,10 +227,24 @@ class TestTBears(unittest.TestCase):
 
         # send transaction
         payload = get_payload('send_icx', fr=god_address, to=treasary_address, value1=hex(10*10**18))
-        res = post(self.url, payload).json()['result']
-        payload = get_payload('icx_get_transaction_result', txHash=res)
+        res = post(self.url, payload).json()
+        tx_hash = res['result']
+        self.assertTrue(isinstance(tx_hash, str))
+        self.assertEqual(66, len(tx_hash))
+
+        payload = get_request_of_icx_getTransactionResult(tx_hash)
         res = post(self.url, payload).json()['result']['status']
         self.assertEqual(res, hex(1))
+
+        # icx_sendTransaction error check
+        payload = get_payload('send_icx', fr='', to=treasary_address, value1=hex(10*10**18))
+        res = post(self.url, payload).json()
+        error: dict = res['error']
+        self.assertTrue(isinstance(error, dict))
+        code: int = error['code']
+        self.assertTrue(isinstance(code, int) and code < 0)
+        message: str = error['message']
+        self.assertTrue(isinstance(message, str))
 
         # get balance
         payload = get_payload('icx_get_balance', address=treasary_address)
@@ -251,6 +274,15 @@ class TestTBears(unittest.TestCase):
         res = post(self.url, payload).json()['result']
         self.assertEqual(res, hex(10 * 10 ** 18))
 
+        # icx_getTransactionResult error check
+        req = get_request_of_icx_getTransactionResult(tx_hash='0x00')
+        res = post(self.url, req).json()
+        print(res)
+        self.assertEqual(req['id'], res['id'])
+        self.assertTrue('error' in res)
+        self.assertTrue(isinstance(res['error']['code'], int))
+        self.assertTrue(isinstance(res['error']['message'], str))
+
     def test_score_methods(self):
         make_SCORE_samples()
         result, _ = run_SCORE('sample_token', None, None)
@@ -260,8 +292,9 @@ class TestTBears(unittest.TestCase):
         payload = get_payload('send_icx', fr=god_address, to=token_owner_address, value1=hex(10*10**18))
         res = post(self.url, payload).json()['result']
         payload = get_payload('icx_get_transaction_result', txHash=res)
-        res = post(self.url, payload).json()['result']['status']
-        self.assertEqual(res, hex(1))
+        result = post(self.url, payload).json()['result']
+        self.assertEqual(result['status'], hex(1))
+        print(result)
 
         # seq2
         # check icx balance of token_owner value : 10*10**18

@@ -16,18 +16,19 @@ import json
 import sys
 import time
 import hashlib
-
-from jsonrpcserver.aio import methods
-from sanic import Sanic, response as sanic_response
-
-from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
+from collections import Iterable
 from json import JSONDecodeError
 
+from jsonrpcserver import status
+from jsonrpcserver.aio import methods
+from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams, ServerError
+from sanic import Sanic, response as sanic_response
+from iconservice.base.jsonrpc_message_validator import JsonRpcMessageValidator
+from iconservice.base.exception import IconServiceBaseException
+from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
 from iconservice.utils.type_converter import TypeConverter
 from iconservice.logger import Logger
 from iconservice.icon_config import *
-
-from collections import Iterable
 
 from typing import Optional
 
@@ -49,6 +50,10 @@ PARSE_ERROR_RESPONSE = '{"jsonrpc":"2.0", "error":{"code":-32700, "message": "Pa
 
 sys.path.append('..')
 sys.path.append('.')
+
+
+def create_hash(data: bytes) -> str:
+    return f'0x{hashlib.sha3_256(data).hexdigest()}'
 
 
 def get_icon_inner_task() -> Optional['IconScoreInnerTask']:
@@ -131,15 +136,68 @@ def get_tx_result_mapper():
 
 
 def response_to_json(response):
+    # if response is tx_result list
     if isinstance(response, list):
-        key = response[0]['txHash']
-        get_tx_result_mapper().put(key, response[0])
-        return key
+        tx_result = response[0]
+        tx_hash = tx_result['txHash']
+        get_tx_result_mapper().put(tx_hash, tx_result)
+        return tx_hash
     else:
-        return response
+        # response is dict including code(int)( and message(str)
+        raise GenericJsonRpcServerError(
+            code=-response['code'],
+            message=response['message'],
+            http_status=status.HTTP_BAD_REQUEST
+        )
 
 
-class TxResultMapper:
+def validate_jsonrpc_message(method: str, params: dict) -> None:
+    """Check params of message
+    (icx_call, icx_getBalance, icx_getTotalSupply, icx_sendTransaction)
+
+    if params is not valid, raise a sort of IconServiceBaseException
+
+    :param method:
+    :param params:
+    """
+    try:
+        JsonRpcMessageValidator.validate(method, params)
+        return
+    except IconServiceBaseException as e:
+        code = -e.code
+        message = e.message
+    except Exception as e:
+        code = ServerError.code
+        message = repr(e)
+
+    raise GenericJsonRpcServerError(
+        code=code,
+        message=message,
+        http_status=status.HTTP_BAD_REQUEST)
+
+
+class GenericJsonRpcServerError(JsonRpcServerError):
+    """Raised when the request is not a valid JSON-RPC object.
+    User can change code and message properly
+
+    :param data: Extra information about the error that occurred (optional).
+    """
+    def __init__(self, code: int, message: str, http_status: int, data=None):
+        """
+
+        :param code: json-rpc error code
+        :param message: json-rpc error message
+        :param http_status: http status code
+        :param data: json-rpc error data (optional)
+        """
+        super().__init__(data)
+
+        self.code = code
+        self.message = message
+        self.http_status = http_status
+
+
+class TxResultMapper(object):
     def __init__(self, limit_capacity = 1000):
         self.__limit_capacity = limit_capacity
         self.__mapper = dict()
@@ -152,6 +210,9 @@ class TxResultMapper:
 
     def get(self, key):
         return self.__mapper.get(key, None)
+
+    def __getitem__(self, item):
+        return self.__mapper[item]
 
     def __check_limit(self):
         if self.len() > self.__limit_capacity:
@@ -175,14 +236,12 @@ class MockDispatcher:
         except JSONDecodeError:
             return sanic_response.json(PARSE_ERROR_RESPONSE, 400)
         else:
-            dispatch_response = await methods.dispatch(req)
+            res = await methods.dispatch(req)
 
-            res = str(dispatch_response)
-            response_json = json.loads(res)
-
-            if isinstance(response_json['result'], (dict, list)):
-                response_json['result'] = integers_to_hex(response_json['result'])
-            return sanic_response.json(response_json, status=dispatch_response.http_status)
+            if 'result' in res:
+                if isinstance(res['result'], (dict, list, int)):
+                    res['result'] = integers_to_hex(res['result'])
+            return sanic_response.json(res, status=res.http_status)
 
     @staticmethod
     @methods.add
@@ -198,26 +257,27 @@ class MockDispatcher:
 
         :param request_params: jsonrpc params field.
         """
-
         Logger.debug(f'json_rpc_server icx_sendTransaction!', TBEARS_LOG_TAG)
 
-        make_request = dict()
+        method = 'icx_sendTransaction'
+        validate_jsonrpc_message(method, request_params)
 
-        tx_hash = hashlib.sha3_256(json.dumps(request_params).encode()).digest()
-        request_params['txHash'] = f'0x{tx_hash.hex()}'
+        # Insert txHash into request params
+        tx_hash = create_hash(json.dumps(request_params).encode())
+        request_params['txHash'] = tx_hash
         tx = {
             'method': 'icx_sendTransaction',
             'params': request_params
         }
-        make_request['transactions'] = [tx]
+        make_request = {'transactions': [tx]}
 
         block_height: int = get_block_height()
-        data: str = f'blockHeight{block_height}'
-        block_hash: str = hashlib.sha3_256(data.encode()).digest()
         block_timestamp_us = int(time.time() * 10 ** 6)
-        make_request['block'] = {'blockHeight': block_height,
-                                 'blockHash': block_hash,
-                                 'timestamp': block_timestamp_us}
+        make_request['block'] = {
+            'blockHeight': block_height,
+            'blockHash': create_hash(block_timestamp_us.to_bytes(8, 'big')),
+            'timestamp': block_timestamp_us
+        }
 
         if MQ_TEST:
             response = await get_icon_score_stub().task().icx_send_transaction(make_request)
@@ -242,7 +302,11 @@ class MockDispatcher:
     @methods.add
     async def icx_call(**request_params):
         Logger.debug(f'json_rpc_server icx_call!', TBEARS_LOG_TAG)
-        make_request = {'method': 'icx_call', 'params': request_params}
+
+        method = 'icx_call'
+        validate_jsonrpc_message(method, request_params)
+
+        make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
             return await get_icon_score_stub().task().icx_call(make_request)
@@ -253,7 +317,11 @@ class MockDispatcher:
     @methods.add
     async def icx_getBalance(**request_params):
         Logger.debug(f'json_rpc_server icx_getBalance!', TBEARS_LOG_TAG)
-        make_request = {'method': 'icx_getBalance', 'params': request_params}
+
+        method = 'icx_getBalance'
+        make_request = {'method': method, 'params': request_params}
+
+        validate_jsonrpc_message(method, request_params)
 
         if MQ_TEST:
             return await get_icon_score_stub().task().icx_call(make_request)
@@ -264,7 +332,9 @@ class MockDispatcher:
     @methods.add
     async def icx_getTotalSupply(**request_params):
         Logger.debug(f'json_rpc_server icx_getTotalSupply!', TBEARS_LOG_TAG)
-        make_request = {'method': 'icx_getTotalSupply', 'params': request_params}
+
+        method = 'icx_getTotalSupply'
+        make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
             return await get_icon_score_stub().task().icx_call(make_request)
@@ -276,9 +346,14 @@ class MockDispatcher:
     async def icx_getTransactionResult(**request_params):
         Logger.debug(f'json_rpc_server getTransactionResult!', TBEARS_LOG_TAG)
 
-        key = request_params['txHash']
-        tx_result = get_tx_result_mapper().get(key)
-        return tx_result
+        try:
+            tx_hash = request_params['txHash']
+            return get_tx_result_mapper()[tx_hash]
+        except Exception:
+            raise GenericJsonRpcServerError(
+                code=InvalidParams.code,
+                message='TransactionResult not found',
+                http_status=status.HTTP_BAD_REQUEST)
 
     @staticmethod
     @methods.add
