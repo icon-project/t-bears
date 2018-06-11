@@ -59,6 +59,7 @@ def create_hash(data: bytes) -> str:
 
 
 def get_icon_inner_task() -> Optional['IconScoreInnerTask']:
+    global __icon_inner_task
     return __icon_inner_task
 
 
