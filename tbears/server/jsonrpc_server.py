@@ -32,6 +32,8 @@ from iconservice.icon_config import *
 
 from typing import Optional
 
+from tbears.server.jsonrpc_exception import CustomRpcError
+
 MQ_TEST = False
 if not MQ_TEST:
     from iconservice.icon_inner_service import IconScoreInnerTask
@@ -246,7 +248,7 @@ class MockDispatcher:
     @staticmethod
     @methods.add
     async def hello(**request_params):
-        raise Exception()
+        raise CustomRpcError()
         # Logger.debug(f'json_rpc_server hello!', TBEARS_LOG_TAG)
 
     @staticmethod
