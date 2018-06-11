@@ -1,131 +1,147 @@
-send_transaction_json = {
-    "jsonrpc": "2.0", "method": "icx_sendTransaction", "id": 10889,
-    "params": {
-        "from": "hx0000000000000000000000000000000000000000",
-        "to": "hx1000000000000000000000000000000000000000",
-        "value": "0xde0b6b3a7640000", "fee": "0x2386f26fc10000",
-        "timestamp": "1523327456264040",
-        "txHash": "1b06cfef02fd6c69e38f2d3079720f2c44be94455a7e664803a4fcbc3a695802"
+def get_request_json_of_call_hello():
+    return {
+        "jsonrpc": "2.0",
+        "method": "hello",
+        "id": 1,
+        "params": {}
     }
-}
 
-give_icx_to_token_owner_json = {
-    "jsonrpc": "2.0",
-    "method": "icx_sendTransaction",
-    "id": 10889,
-    "params": {
-        "from": "hx0000000000000000000000000000000000000000",
-        "to": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "value": "0xde0b6b3a7640000",
-        "fee": "0x2386f26fc10000",
-        "timestamp": "1523327456264040",
-        "txHash": "1b06cfef02fd6c69e38f2d3079720f2c44be94455a7e664803a4fcbc3a695802"
+
+def get_request_of_icx_getTransactionResult(tx_hash: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "id": 40889,
+        "method": "icx_getTransactionResult",
+        "params": {"txHash": tx_hash}
     }
-}
 
-god_balance_json = {
-    "jsonrpc": "2.0",
-    "method": "icx_getBalance",
-    "id": 30889,
-    "params": {
-        "address": "hx0000000000000000000000000000000000000000"
+
+def get_request_json_of_get_icx_balance(address: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "method": "icx_getBalance",
+        "id": 30889,
+        "params": {
+            "address": address
+        }
     }
-}
 
-test_balance_json = {
-    "jsonrpc": "2.0",
-    "method": "icx_getBalance",
-    "id": 30889,
-    "params": {
-        "address": "hx1000000000000000000000000000000000000000"
+
+def get_request_json_of_send_icx(fr: str, to: str, value: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "method": "icx_sendTransaction",
+        "id": 10889,
+        "params": {
+            "from": fr,
+            "to": to,
+            "value": value,
+            "fee": "0x2386f26fc10000",
+            "timestamp": "0x1523327456264040",
+        }
     }
-}
 
-token_balance_json1 = {
-    "jsonrpc": "2.0",
-    "method": "icx_call",
-    "id": 50889,
-    "params": {
-        "from": "hx1000000000000000000000000000000000000000",
-        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
-        "dataType": "call",
-        "data": {
-            "method": "balance_of",
-            "params": {
-                "addr_from": "hx1000000000000000000000000000000000000000"
+
+def get_request_json_of_get_token_balance(to: str, addr_from: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "method": "icx_call",
+        "id": 50889,
+        "params": {
+            "from": "hx0000000000000000000000000000000000000000",
+            "to": to,
+            "dataType": "call",
+            "data": {
+                "method": "balance_of",
+                "params": {
+                    "addr_from": addr_from
+                }
             }
         }
     }
-}
 
-token_balance_json2 = {
-    "jsonrpc": "2.0",
-    "method": "icx_call",
-    "id": 50889,
-    "params": {
-        "from": "hx0000000000000000000000000000000000000000",
-        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
-        "dataType": "call",
-        "data": {
-            "method": "balance_of",
-            "params": {
-                "addr_from": "hx0000000000000000000000000000000000000000"
+
+def get_request_json_of_transfer_token(fr: str, to: str, addr_to: str, value: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "method": "icx_sendTransaction",
+        "id": 110889,
+        "params": {
+            "from": fr,
+            "to": to,
+            "value": "0x0",
+            "fee": "0x2386f26fc10000",
+            "timestamp": "0x1523327456264040",
+            "dataType": "call",
+            "data": {
+                "method": "transfer",
+                "params": {
+                    "addr_to": addr_to,
+                    "value": value
+                }
             }
         }
     }
-}
 
-token_god_balance_json = {
-    "jsonrpc": "2.0",
-    "method": "icx_call",
-    "id": 50889,
-    "params": {
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
-        "dataType": "call",
-        "data": {
-            "method": "balance_of",
-            "params": {
-                "addr_from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+def get_request_json_of_check_crowd_end(fr: str, to: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "method": "icx_sendTransaction",
+        "id": 200889,
+        "params": {
+            "from": fr,
+            "to": to,
+            "value": "0x0",
+            "fee": "0x2386f26fc10000",
+            "timestamp": "0x1523327456264040",
+            "dataType": "call",
+            "data": {
+                "method": "check_goal_reached",
+                "params": {}
             }
         }
     }
-}
 
-token_total_supply_json = {
-    "jsonrpc": "2.0",
-    "method": "icx_call",
-    "id": 60889,
-    "params": {
-        "from": "hx0000000000000000000000000000000000000000",
-        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
-        "dataType": "call",
-        "data": {
-            "method": "total_supply",
-            "params":
-                {}
-        }
-    }
-}
 
-token_transfer_json = {
-    "jsonrpc": "2.0",
-    "method": "icx_sendTransaction",
-    "id": 70889,
-    "params": {
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "to": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
-        "value": "0x0",
-        "fee": "0x2386f26fc10000",
-        "timestamp": "1523327456264040",
-        "txHash": "1b06cfef02fd6c69e38f2d3079720f2c44be94455a7e664803a4fcbc3a695802",
-        "dataType": "call",
-        "data": {
-            "method": "transfer",
-            "params": {
-                "addr_to": "hx1000000000000000000000000000000000000000",
-                "value": "0x1"
+def get_request_json_of_crowd_withrawal(fr: str, to: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "method": "icx_sendTransaction",
+        "id": 210889,
+        "params": {
+            "from": fr,
+            "to": to,
+            "value": "0x0",
+            "fee": "0x2386f26fc10000",
+            "timestamp": "0x1523327456264040",
+            "dataType": "call",
+            "data": {
+                "method": "safe_withdrawal",
+                "params": {}
             }
         }
     }
-}
+
+
+def get_request_json_of_token_total_supply(token_addr: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "method": "icx_call",
+        "id": 60889,
+        "params": {
+            "from": "hx0000000000000000000000000000000000000000",
+            "to": token_addr,
+            "dataType": "call",
+            "data": {
+                "method": "total_supply",
+                "params": {}
+            }
+        }
+    }
+
+
+god_address = f'hx{"0"*40}'
+test_address = f'hx1{"0"*39}'
+token_owner_address = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+token_score_address = "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf"
