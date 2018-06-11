@@ -66,6 +66,7 @@ def init_SCORE(project: str, score_class: str) -> int:
         write_file(project, f"{project}.py", project_py_contents)
         write_file(project, "package.json", package_json_contents)
         write_file(project, '__init__.py', init_contents)
+        write_file(f'{project}/tests', f'test_{project}.py', '')
     except TBearsWriteFileException:
         logging.debug("Except raised while writing files.")
         return ExitCode.WRITE_FILE_ERROR.value
@@ -147,6 +148,11 @@ def make_SCORE_samples():
         return ExitCode.WRITE_FILE_ERROR.value
 
     return ExitCode.SUCCEEDED
+
+
+def test_SCORE(project: str) -> int:
+    print(project, 'test')
+    pass
 
 
 def __start_server():

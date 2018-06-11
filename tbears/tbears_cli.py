@@ -17,7 +17,7 @@ import argparse
 import sys
 
 import tbears
-from .command import ExitCode, make_SCORE_samples
+from .command import ExitCode, make_SCORE_samples, test_SCORE
 from .command import init_SCORE
 from .command import run_SCORE
 from .command import stop_SCORE
@@ -75,6 +75,8 @@ tbears commands:
             print('Cleared the score successfully.')
     elif command == 'samples':
         result = make_SCORE_samples()
+    elif command == 'test' and len(args.command) == 2:
+        result = test_SCORE(args.command[1])
     else:
         parser.print_help()
         result = ExitCode.COMMAND_IS_WRONG.value
