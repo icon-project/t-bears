@@ -208,6 +208,8 @@ channel_manage_data_test2.json
 channel_manage_data_ori.json
 run_a_test.sh
 todo.md
+.*.swp
+log.txt
 
 gen_docs/_build
 gen_docs/docs
