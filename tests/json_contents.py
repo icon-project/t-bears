@@ -141,6 +141,23 @@ def get_request_json_of_token_total_supply(token_addr: str) -> dict:
     }
 
 
+def get_request_json_of_nonexist_method(token_addr: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "method": "icx_call",
+        "id": 60889,
+        "params": {
+            "from": "hx0000000000000000000000000000000000000000",
+            "to": token_addr,
+            "dataType": "call",
+            "data": {
+                "method": "total_supp",
+                "params": {}
+            }
+        }
+    }
+
+
 god_address = f'hx{"0"*40}'
 test_address = f'hx1{"0"*39}'
 token_owner_address = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
