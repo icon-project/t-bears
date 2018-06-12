@@ -32,7 +32,7 @@ from iconservice.icon_config import *
 
 from typing import Optional
 
-# from tbears.server.jsonrpc_exception import CustomRpcError
+from .jsonrpc_exception import CustomRpcError
 
 MQ_TEST = False
 if not MQ_TEST:

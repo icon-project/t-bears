@@ -161,12 +161,11 @@ def __start_server():
     root_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '../'))
 
-    path = os.path.join(root_path, 'server', 'jsonrpc_server.py')
-
-    logging.info(f'path: {path}')
+    root_path_directory_name = root_path[root_path.rfind('/')+1:]
+    python_module_string = f'{root_path_directory_name}.server.jsonrpc_server'
 
     # Run jsonrpc_server on background mode
-    subprocess.Popen([sys.executable, path], close_fds=True)
+    subprocess.Popen([sys.executable, '-m', python_module_string], close_fds=True)
 
     logging.debug('start_server() end')
 
