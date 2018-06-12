@@ -53,25 +53,23 @@ class SampleToken(IconScoreBase):
     __TOTAL_SUPPLY = 'total_supply'
 
     @eventlog
-    def eventlog_transfer(self, addr_from: Indexed, addr_to: Indexed, value: Indexed): pass
+    def Transfer(self, addr_from: Indexed[Address], addr_to: Indexed[Address], value: Indexed[int]): pass
 
     def __init__(self, db: IconScoreDatabase, addr_owner: Address) -> None:
         super().__init__(db, addr_owner)
         self.__total_supply = VarDB(self.__TOTAL_SUPPLY, db, value_type=int)
         self.__balances = DictDB(self.__BALANCES, db, value_type=int)
 
-    def on_install(self, params: dict) -> None:
-        super().on_install(params)
+    def on_install(self, init_supply: int = 1000, decimal: int = 18) -> None:
+        super().on_install()
 
-        init_supply = 1000
-        decimal = 18
         total_supply = init_supply * 10 ** decimal
 
         self.__total_supply.set(total_supply)
         self.__balances[self.msg.sender] = total_supply
 
-    def on_update(self, params: dict) -> None:
-        super().on_update(params)
+    def on_update(self) -> None:
+        super().on_update()
 
     @external(readonly=True)
     def total_supply(self) -> int:
@@ -89,7 +87,7 @@ class SampleToken(IconScoreBase):
         self.__balances[_addr_from] = self.__balances[_addr_from] - _value
         self.__balances[_addr_to] = self.__balances[_addr_to] + _value
 
-        self.eventlog_transfer(Indexed(_addr_from), Indexed(_addr_to), Indexed(_value))
+        self.Transfer(Indexed(_addr_from), Indexed(_addr_to), Indexed(_value))
         return True
 
     @external
@@ -192,10 +190,12 @@ class SampleCrowdSale(IconScoreBase):
     __JOINER_LIST = 'joiner_list'
 
     @eventlog
-    def eventlog_fund_transfer(self, backer: Indexed, amount: Indexed, is_contribution: Indexed): pass
+    def FundTransfer(self, backer: Indexed[Address], amount: Indexed[int], is_contribution: Indexed[bool]):
+        pass
 
     @eventlog
-    def eventlog_goal_reached(self, recipient: Indexed, total_amount_raised: Indexed): pass
+    def GoalReached(self, recipient: Indexed[Address], total_amount_raised: Indexed[int]):
+        pass
 
     def __init__(self, db: IconScoreDatabase, owner: Address) -> None:
         super().__init__(db, owner)
@@ -213,8 +213,9 @@ class SampleCrowdSale(IconScoreBase):
 
         self.__sample_token_score = self.create_interface_score(self.__addr_token_score.get(), SampleTokenInterface)
 
-    def on_install(self, params) -> None:
-        super().on_install(params)
+    def on_install(self, funding_goal_in_icx: int = 100, duration_in_minutes: int = 1,
+                   icx_cost_of_each_token: int = 1) -> None:
+        super().on_install()
 
         one_icx = 1 * 10 ** 18
         one_minute_to_sec = 1 * 60
@@ -225,10 +226,6 @@ class SampleCrowdSale(IconScoreBase):
         if_successful_send_to = self.msg.sender
         addr_token_score = Address.from_string('cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf')
 
-        funding_goal_in_icx = 100
-        duration_in_minutes = 1
-        icx_cost_of_each_token = 1
-
         self.__addr_beneficiary.set(if_successful_send_to)
         self.__addr_token_score.set(addr_token_score)
         self.__funding_goal.set(funding_goal_in_icx * one_icx)
@@ -238,8 +235,8 @@ class SampleCrowdSale(IconScoreBase):
 
         self.__sample_token_score = self.create_interface_score(self.__addr_token_score.get(), SampleTokenInterface)
 
-    def on_update(self, params) -> None:
-        super().on_update(params)
+    def on_update(self) -> None:
+        super().on_update()
 
     @external(readonly=True)
     def total_joiner_count(self):
@@ -260,7 +257,7 @@ class SampleCrowdSale(IconScoreBase):
         if self.msg.sender not in self.__joiner_list:
             self.__joiner_list.put(self.msg.sender)
 
-        self.eventlog_fund_transfer(Indexed(self.msg.sender), Indexed(amount), Indexed(True))
+        self.FundTransfer(Indexed(self.msg.sender), Indexed(amount), Indexed(True))
 
     @external
     def check_goal_reached(self):
@@ -269,7 +266,7 @@ class SampleCrowdSale(IconScoreBase):
 
         if self.__amount_raise.get() >= self.__funding_goal.get():
             self.__funding_goal_reached.set(True)
-            self.eventlog_goal_reached(Indexed(self.__addr_beneficiary.get()), Indexed(self.__amount_raise.get()))
+            self.GoalReached(Indexed(self.__addr_beneficiary.get()), Indexed(self.__amount_raise.get()))
         self.__crowd_sale_closed.set(True)
 
     def __after_dead_line(self):
@@ -282,16 +279,17 @@ class SampleCrowdSale(IconScoreBase):
 
         if not self.__funding_goal_reached.get():
             amount = self.__balances[self.msg.sender]
+            self.__balances[self.msg.sender] = 0
             if amount > 0:
                 if self.send(self.msg.sender, amount):
-                    self.eventlog_fund_transfer(Indexed(self.msg.sender), Indexed(amount), Indexed(False))
+                    self.FundTransfer(Indexed(self.msg.sender), Indexed(amount), Indexed(False))
                 else:
                     self.__balances[self.msg.sender] = amount
 
         if self.__funding_goal_reached.get() and self.__addr_beneficiary.get() == self.msg.sender:
             if self.send(self.__addr_beneficiary.get(), self.__amount_raise.get()):
-                self.eventlog_fund_transfer(Indexed(self.__addr_beneficiary.get()), Indexed(self.__amount_raise.get()),
-                                            Indexed(False))
+                self.FundTransfer(Indexed(self.__addr_beneficiary.get()), Indexed(self.__amount_raise.get()),
+                                  Indexed(False))
             else:
                 self.__funding_goal_reached.set(False)
 
