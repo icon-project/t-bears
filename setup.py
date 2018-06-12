@@ -3,11 +3,11 @@
 from setuptools import setup, find_packages
 from tbears import __version__
 
+
 requires = [
     'requests==2.18.4',
-    'Flask==1.0.2',
-    'Flask-RESTful==0.3.6',
-    'jsonrpcserver==3.5.4'
+    'jsonrpcserver==3.5.4',
+    'sanic == 0.7.0',
 ]
 
 
@@ -21,7 +21,7 @@ setup_options = {
     'py_modules': ['tbears'],
     'license': "Apache License 2.0",
     'install_requires': requires,
-    'test_suite': 'tests.test_tbears',
+    'test_suite': 'tests',
     'entry_points': {
         'console_scripts': [
             'tbears=tbears:main'
