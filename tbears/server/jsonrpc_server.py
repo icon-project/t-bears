@@ -25,8 +25,8 @@ from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams, ServerEr
 from sanic import Sanic, response as sanic_response
 from iconservice.base.jsonrpc_message_validator import JsonRpcMessageValidator
 from iconservice.base.exception import IconServiceBaseException
+from iconservice.base.type_converter import TypeConverter
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
-from iconservice.utils.type_converter import TypeConverter
 from iconservice.logger import Logger
 from iconservice.icon_config import *
 
@@ -63,19 +63,19 @@ def get_icon_inner_task() -> Optional['IconScoreInnerTask']:
     return __icon_inner_task
 
 
-def get_icon_score_stub() -> IconScoreInnerStub:
+def get_icon_score_stub() -> 'IconScoreInnerStub':
     global __icon_score_stub
     return __icon_score_stub
 
 
-def get_type_converter() -> TypeConverter:
+def get_type_converter() -> 'TypeConverter':
     global __type_converter
     return __type_converter
 
 
 def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
                               icon_score_root_path: str, icon_score_state_db_root_path: str,
-                              **kwargs) -> IconScoreInnerService:
+                              **kwargs) -> 'IconScoreInnerService':
     icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
                                                                 amqp_key=amqp_key,
                                                                 rpc_port=rpc_port)
@@ -94,7 +94,7 @@ def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, rpc
 
 
 def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
-                           **kwargs) -> IconScoreInnerStub:
+                           **kwargs) -> 'IconScoreInnerStub':
     icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
                                                                 amqp_key=amqp_key,
                                                                 rpc_port=rpc_port)
@@ -398,7 +398,8 @@ class SimpleRestServer:
         return self.__server.app
 
     def run(self):
-        Logger.info(f"SimpleRestServer run... {self.__port}", TBEARS_LOG_TAG)
+        port = self.__port
+        Logger.info(f"SimpleRestServer run... {port}", TBEARS_LOG_TAG)
 
         self.__server.app.run(port=self.__port,
                               host=self.__ip_address,
