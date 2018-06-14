@@ -74,13 +74,6 @@ class TestTransactionResult(unittest.TestCase):
         res = post(url, payload).json()
         self.assertEqual(res['result'], None)
 
-    def test_invalid_param_get_balance_icx(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
-        payload = get_request_json_of_get_icx_balance('123')
-        res = post(url, payload).json()
-        self.assertEqual(res['result'], None)
-
     # def test_nonexistent_score_address_query(self):
     #     init_SCORE('sample_token', 'SampleToken')
     #     run_SCORE('sample_token', None, None)
