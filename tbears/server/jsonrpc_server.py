@@ -48,8 +48,6 @@ __icon_inner_task = None
 __type_converter = None
 __tx_result_mapper = None
 
-PARSE_ERROR_RESPONSE = '{"jsonrpc":"2.0", "error":{"code":-32700, "message": "Parse error"}, "id": "null"}'
-
 sys.path.append('..')
 sys.path.append('.')
 
@@ -237,7 +235,11 @@ class MockDispatcher:
             req["params"] = req.get("params", {})
             req["params"]["method"] = request.json["method"]
         except JSONDecodeError:
-            return sanic_response.json(PARSE_ERROR_RESPONSE, 400)
+            raise GenericJsonRpcServerError(
+                code=-32700,
+                message="Parse error",
+                http_status=status.HTTP_BAD_REQUEST
+            )
         else:
             res = await methods.dispatch(req)
 
@@ -357,6 +359,19 @@ class MockDispatcher:
                 code=InvalidParams.code,
                 message='TransactionResult not found',
                 http_status=status.HTTP_BAD_REQUEST)
+
+    @staticmethod
+    @methods.add
+    async def icx_getScoreApi(**request_params):
+        Logger.debug(f'json_rpc_server icx_getScoreApi!', TBEARS_LOG_TAG)
+
+        method = 'icx_getScoreApi'
+        make_request = {'method': method, 'params': request_params}
+
+        if MQ_TEST:
+            return await get_icon_score_stub().task().icx_call(make_request)
+        else:
+            return await get_icon_inner_task().icx_call(make_request)
 
     @staticmethod
     @methods.add

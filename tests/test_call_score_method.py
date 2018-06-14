@@ -22,8 +22,8 @@ from .json_contents import *
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 
-
 class TestCallScoreMethod(unittest.TestCase):
+
     def setUp(self):
         self.path = './'
         self.url = "http://localhost:9000/api/v3/"
