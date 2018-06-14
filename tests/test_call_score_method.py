@@ -22,113 +22,6 @@ from .json_contents import *
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 
-pre_define_api = \
-        [
-            {
-                'type': 'function',
-                'name': 'balance_of',
-                'inputs':
-                    [
-                        {
-                            'name': 'addr_from',
-                            'type': 'Address'
-                        }
-                    ],
-                'readonly': '0x1',
-                'payable': '0x0',
-                'outputs':
-                    [
-                        {
-                            'type': 'int'
-                        }
-                    ]
-            },
-            {
-                'type': 'fallback',
-                'name': 'fallback',
-                'inputs': [],
-                'payable': '0x0'
-            },
-            {
-                'type': 'on_install',
-                'name': 'on_install',
-                'inputs':
-                    [
-                        {
-                            'name': 'init_supply',
-                            'type': 'int'
-                        },
-                        {
-                            'name': 'decimal',
-                            'type': 'int'
-                        }
-                    ]
-            },
-            {
-                'type': 'on_update',
-                'name': 'on_update',
-                'inputs': []
-            },
-            {
-                'type': 'function',
-                'name': 'total_supply',
-                'inputs': [],
-                'readonly': '0x1',
-                'payable': '0x0',
-                'outputs':
-                    [
-                        {
-                            'type': 'int'
-                        }
-                    ]
-            },
-            {
-                'type': 'function',
-                'name': 'transfer',
-                'inputs':
-                    [
-                        {
-                            'name': 'addr_to',
-                            'type': 'Address'
-                        },
-                        {
-                            'name': 'value',
-                            'type': 'int'
-                        }
-                    ],
-                'readonly': '0x0',
-                'payable': '0x0',
-                'outputs':
-                    [
-                        {
-                            'type': 'bool'
-                        }
-                    ]
-            },
-            {
-                'type': 'eventlog',
-                'name': 'Transfer',
-                'inputs':
-                    [
-                        {
-                            'name': 'addr_from',
-                            'type': 'Address',
-                            'indexed': '0x1'
-                        },
-                        {
-                            'name': 'addr_to',
-                            'type': 'Address',
-                            'indexed': '0x1'
-                        },
-                        {
-                            'name': 'value',
-                            'type': 'int',
-                            'indexed': '0x1'
-                        }
-                    ]
-            }
-        ]
-
 class TestCallScoreMethod(unittest.TestCase):
 
     def setUp(self):
@@ -168,14 +61,6 @@ class TestCallScoreMethod(unittest.TestCase):
         res = post(self.url, payload).json()
         res_icx_val = int(res["result"], 0) / (10 ** 18)
         self.assertEqual(1.0, res_icx_val)
-        stop_SCORE()
-
-    def test_get_score_api(self):
-        self.run_SCORE_for_testing()
-        payload = get_request_json_of_get_score_api(to=token_score_address)
-        result = post(self.url, payload)
-        api_result = result.json()["result"]
-        self.assertEqual(pre_define_api, api_result)
         stop_SCORE()
 
     def test_get_balance_token(self):

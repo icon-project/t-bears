@@ -16,7 +16,7 @@ import os
 import shutil
 import unittest
 
-from tbears.command import init_SCORE, run_SCORE, clear_SCORE
+from tbears.command import init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
 from tbears.util import post
 
 from .json_contents import *
@@ -24,6 +24,88 @@ from .jsonrpc_error_code import *
 
 
 url = "http://localhost:9000/api/v3"
+
+pre_define_api = \
+        [
+            {
+                'type': 'function',
+                'name': 'balance_of',
+                'inputs':
+                    [
+                        {
+                            'name': 'addr_from',
+                            'type': 'Address'
+                        }
+                    ],
+                'readonly': '0x1',
+                'outputs':
+                    [
+                        {
+                            'type': 'int'
+                        }
+                    ]
+            },
+            {
+                'type': 'fallback',
+                'name': 'fallback',
+                'inputs': [],
+            },
+            {
+                'type': 'function',
+                'name': 'total_supply',
+                'inputs': [],
+                'readonly': '0x1',
+                'outputs':
+                    [
+                        {
+                            'type': 'int'
+                        }
+                    ]
+            },
+            {
+                'type': 'function',
+                'name': 'transfer',
+                'inputs':
+                    [
+                        {
+                            'name': 'addr_to',
+                            'type': 'Address'
+                        },
+                        {
+                            'name': 'value',
+                            'type': 'int'
+                        }
+                    ],
+                'outputs':
+                    [
+                        {
+                            'type': 'bool'
+                        }
+                    ]
+            },
+            {
+                'type': 'eventlog',
+                'name': 'Transfer',
+                'inputs':
+                    [
+                        {
+                            'name': 'addr_from',
+                            'type': 'Address',
+                            'indexed': '0x1'
+                        },
+                        {
+                            'name': 'addr_to',
+                            'type': 'Address',
+                            'indexed': '0x1'
+                        },
+                        {
+                            'name': 'value',
+                            'type': 'int',
+                            'indexed': '0x1'
+                        }
+                    ]
+            }
+        ]
 
 
 class TestTransactionResult(unittest.TestCase):
@@ -44,6 +126,7 @@ class TestTransactionResult(unittest.TestCase):
         payload = get_request_json_of_nonexist_method(token_addr=token_score_address)
         res = post(url, payload).json()
         self.assertEqual(res['result'], None)
+        stop_SCORE()
 
     def test_method_not_found(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -52,6 +135,7 @@ class TestTransactionResult(unittest.TestCase):
         payload['method'] = 'unknown'
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], METHOD_NOT_FOUND)
+        stop_SCORE()
 
     def test_invalid_param_get_balance_icx(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -59,6 +143,7 @@ class TestTransactionResult(unittest.TestCase):
         payload = get_request_json_of_get_icx_balance('123')
         res = post(url, payload).json()
         self.assertEqual(res['result'], None)
+        stop_SCORE()
 
     def test_invalid_param_score(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -66,6 +151,7 @@ class TestTransactionResult(unittest.TestCase):
         payload = get_request_json_of_get_token_balance(to=token_score_address, addr_from='123')
         res = post(url, payload).json()
         self.assertEqual(res['result'], hex(0))
+        stop_SCORE()
 
     def test_invalid_score_address_query(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -73,6 +159,16 @@ class TestTransactionResult(unittest.TestCase):
         payload = get_request_json_of_get_token_balance(to='123', addr_from=god_address)
         res = post(url, payload).json()
         self.assertEqual(res['result'], None)
+        stop_SCORE()
+
+    def test_get_score_api(self):
+        init_SCORE('sample_token', 'SampleToken')
+        run_SCORE('sample_token', None, None)
+        payload = get_request_json_of_get_score_api(to=token_score_address)
+        result = post(url, payload)
+        api_result = result.json()["result"]
+        self.assertEqual(pre_define_api, api_result)
+        stop_SCORE()
 
     # def test_nonexistent_score_address_query(self):
     #     init_SCORE('sample_token', 'SampleToken')

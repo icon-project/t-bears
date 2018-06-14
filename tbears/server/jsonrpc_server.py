@@ -362,6 +362,19 @@ class MockDispatcher:
 
     @staticmethod
     @methods.add
+    async def icx_getScoreApi(**request_params):
+        Logger.debug(f'json_rpc_server icx_getScoreApi!', TBEARS_LOG_TAG)
+
+        method = 'icx_getScoreApi'
+        make_request = {'method': method, 'params': request_params}
+
+        if MQ_TEST:
+            return await get_icon_score_stub().task().icx_call(make_request)
+        else:
+            return await get_icon_inner_task().icx_call(make_request)
+
+    @staticmethod
+    @methods.add
     async def server_exit(**request_params):
         Logger.debug(f'json_rpc_server server_exit!', TBEARS_LOG_TAG)
 
