@@ -42,14 +42,13 @@ def get_request_json_of_send_icx(fr: str, to: str, value: str) -> dict:
     }
 
 
-def get_request_json_of_get_score_api(to: str) -> dict:
+def get_request_json_of_get_score_api(address: str) -> dict:
     return {
         "jsonrpc": "2.0",
         "method": "icx_getScoreApi",
         "id": 50889,
         "params": {
-            "from": "hx0000000000000000000000000000000000000000",
-            "to": to
+            "address": address
         }
     }
 
