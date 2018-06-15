@@ -196,10 +196,10 @@ class TestTBears(unittest.TestCase):
         init_SCORE('sample_token', 'SampleToken')
         result, _ = run_SCORE('sample_token', None, None)
 
-        # hello!
-        payload = get_request_json_of_call_hello()
-        res = post(self.url, payload).json()
-        # error!
+        # # hello!
+        # payload = get_request_json_of_call_hello()
+        # res = post(self.url, payload).json()
+        # # error!
 
         # send transaction
         payload = get_request_json_of_send_icx(fr=god_address, to=treasary_address, value=hex(10 * 10 ** 18))

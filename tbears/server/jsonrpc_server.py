@@ -16,7 +16,6 @@ import json
 import sys
 import time
 import hashlib
-from collections import Iterable
 from json import JSONDecodeError
 
 from jsonrpcserver import status
@@ -25,14 +24,12 @@ from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams, ServerEr
 from sanic import Sanic, response as sanic_response
 from iconservice.base.jsonrpc_message_validator import JsonRpcMessageValidator
 from iconservice.base.exception import IconServiceBaseException
-from iconservice.base.type_converter import TypeConverter
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
 from iconservice.logger import Logger
 from iconservice.icon_config import *
+from iconservice.utils import check_error_response
 
 from typing import Optional
-
-from .jsonrpc_exception import CustomRpcError
 
 MQ_TEST = False
 if not MQ_TEST:
@@ -45,7 +42,6 @@ __block_height = 0
 __icon_score_service = None
 __icon_score_stub = None
 __icon_inner_task = None
-__type_converter = None
 __tx_result_mapper = None
 
 sys.path.append('..')
@@ -64,11 +60,6 @@ def get_icon_inner_task() -> Optional['IconScoreInnerTask']:
 def get_icon_score_stub() -> 'IconScoreInnerStub':
     global __icon_score_stub
     return __icon_score_stub
-
-
-def get_type_converter() -> 'TypeConverter':
-    global __type_converter
-    return __type_converter
 
 
 def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
@@ -111,26 +102,6 @@ def get_block_height():
     return __block_height
 
 
-def integers_to_hex(res: Iterable) -> Iterable:
-    if isinstance(res, dict):
-        for k, v in res.items():
-            if isinstance(v, dict):
-                res[k] = integers_to_hex(v)
-            elif isinstance(v, list):
-                res[k] = integers_to_hex(v)
-            elif isinstance(v, int):
-                res[k] = hex(v)
-    elif isinstance(res, list):
-        for k, v in enumerate(res):
-            if isinstance(v, dict):
-                res[k] = integers_to_hex(v)
-            elif isinstance(v, list):
-                res[k] = integers_to_hex(v)
-            elif isinstance(v, int):
-                res[k] = hex(v)
-    return res
-
-
 def get_tx_result_mapper():
     global __tx_result_mapper
     return __tx_result_mapper
@@ -143,13 +114,20 @@ def response_to_json(response):
         tx_hash = tx_result['txHash']
         get_tx_result_mapper().put(tx_hash, tx_result)
         return tx_hash
+    elif isinstance(response, dict):
+        api = response.get('api')
+        if api is not None:
+            response = api
+            return response
+        elif check_error_response(response):
+            response = response['failure']
+            raise GenericJsonRpcServerError(
+                code=-response['code'],
+                message=response['message'],
+                http_status=status.HTTP_BAD_REQUEST
+            )
     else:
-        # response is dict including code(int)( and message(str)
-        raise GenericJsonRpcServerError(
-            code=-response['code'],
-            message=response['message'],
-            http_status=status.HTTP_BAD_REQUEST
-        )
+        return response
 
 
 def validate_jsonrpc_message(method: str, params: dict) -> None:
@@ -183,6 +161,7 @@ class GenericJsonRpcServerError(JsonRpcServerError):
 
     :param data: Extra information about the error that occurred (optional).
     """
+
     def __init__(self, code: int, message: str, http_status: int, data=None):
         """
 
@@ -199,7 +178,7 @@ class GenericJsonRpcServerError(JsonRpcServerError):
 
 
 class TxResultMapper(object):
-    def __init__(self, limit_capacity = 1000):
+    def __init__(self, limit_capacity=1000):
         self.__limit_capacity = limit_capacity
         self.__mapper = dict()
         self.__key_list = []
@@ -242,17 +221,13 @@ class MockDispatcher:
             )
         else:
             res = await methods.dispatch(req)
-
-            if 'result' in res:
-                if isinstance(res['result'], (dict, list, int)):
-                    res['result'] = integers_to_hex(res['result'])
             return sanic_response.json(res, status=res.http_status)
 
     @staticmethod
     @methods.add
     async def hello(**request_params):
-        raise CustomRpcError()
-        # Logger.debug(f'json_rpc_server hello!', TBEARS_LOG_TAG)
+        Logger.debug(f'json_rpc_server hello!', TBEARS_LOG_TAG)
+        # raise CustomRpcError()
 
     @staticmethod
     @methods.add
@@ -288,7 +263,7 @@ class MockDispatcher:
             response = await get_icon_score_stub().task().icx_send_transaction(make_request)
             if not isinstance(response, list):
                 await get_icon_score_stub().task().remove_precommit_state({})
-            elif response[0]['status'] == 1:
+            elif response[0]['status'] == hex(1):
                 await get_icon_score_stub().task().write_precommit_state({})
             else:
                 await get_icon_score_stub().task().remove_precommit_state({})
@@ -297,7 +272,7 @@ class MockDispatcher:
             response = await get_icon_inner_task().icx_send_transaction(make_request)
             if not isinstance(response, list):
                 await get_icon_inner_task().remove_precommit_state({})
-            elif response[0]['status'] == 1:
+            elif response[0]['status'] == hex(1):
                 await get_icon_inner_task().write_precommit_state({})
             else:
                 await get_icon_inner_task().remove_precommit_state({})
@@ -314,9 +289,11 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            return await get_icon_score_stub().task().icx_call(make_request)
+            response = await get_icon_score_stub().task().icx_call(make_request)
+            return response_to_json(response)
         else:
-            return await get_icon_inner_task().icx_call(make_request)
+            response = await get_icon_inner_task().icx_call(make_request)
+            return response_to_json(response)
 
     @staticmethod
     @methods.add
@@ -329,9 +306,11 @@ class MockDispatcher:
         validate_jsonrpc_message(method, request_params)
 
         if MQ_TEST:
-            return await get_icon_score_stub().task().icx_call(make_request)
+            response = await get_icon_score_stub().task().icx_call(make_request)
+            return response_to_json(response)
         else:
-            return await get_icon_inner_task().icx_call(make_request)
+            response = await get_icon_inner_task().icx_call(make_request)
+            return response_to_json(response)
 
     @staticmethod
     @methods.add
@@ -342,9 +321,11 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            return await get_icon_score_stub().task().icx_call(make_request)
+            response = await get_icon_score_stub().task().icx_call(make_request)
+            return response_to_json(response)
         else:
-            return await get_icon_inner_task().icx_call(make_request)
+            response = await get_icon_inner_task().icx_call(make_request)
+            return response_to_json(response)
 
     @staticmethod
     @methods.add
@@ -369,9 +350,11 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            return await get_icon_score_stub().task().icx_call(make_request)
+            response = await get_icon_score_stub().task().icx_call(make_request)
+            return response_to_json(response)
         else:
-            return await get_icon_inner_task().icx_call(make_request)
+            response = await get_icon_inner_task().icx_call(make_request)
+            return response_to_json(response)
 
     @staticmethod
     @methods.add
@@ -424,7 +407,6 @@ class SimpleRestServer:
 def serve():
     async def __serve():
         init_tbears()
-        init_type_converter()
         if MQ_TEST:
             if not SEPARATE_PROCESS_DEBUG:
                 await init_icon_score_service()
@@ -497,9 +479,8 @@ async def init_icon_score_stub(conf: dict):
     if not SEPARATE_PROCESS_DEBUG:
         await __icon_score_stub.task().open()
 
-    accounts = get_type_converter().convert(conf['accounts'], recursive=False)
     make_request = dict()
-    make_request['accounts'] = accounts
+    make_request['accounts'] = conf['accounts']
     await __icon_score_stub.task().genesis_invoke(make_request)
 
 
@@ -508,24 +489,9 @@ async def init_icon_inner_task(conf: dict):
     __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
     await __icon_inner_task.open()
 
-    accounts = get_type_converter().convert(conf['accounts'], recursive=False)
     make_request = dict()
-    make_request['accounts'] = accounts
+    make_request['accounts'] = conf['accounts']
     await __icon_inner_task.genesis_invoke(make_request)
-
-
-def init_type_converter():
-    global __type_converter
-
-    type_table = {
-        'from': 'address',
-        'to': 'address',
-        'address': 'address',
-        'fee': 'int',
-        'value': 'int',
-        'balance': 'int'
-    }
-    __type_converter = TypeConverter(type_table)
 
 
 def init_tbears():
