@@ -107,27 +107,37 @@ def get_tx_result_mapper():
     return __tx_result_mapper
 
 
-def response_to_json(response):
+def response_to_json_invoke(response):
     # if response is tx_result list
     if isinstance(response, list):
         tx_result = response[0]
         tx_hash = tx_result['txHash']
         get_tx_result_mapper().put(tx_hash, tx_result)
         return tx_hash
-    elif isinstance(response, dict):
-        api = response.get('api')
-        if api is not None:
-            response = api
-            return response
-        elif check_error_response(response):
-            response = response['failure']
-            raise GenericJsonRpcServerError(
-                code=-response['code'],
-                message=response['message'],
-                http_status=status.HTTP_BAD_REQUEST
-            )
+    elif check_error_response(response):
+        response = response['error']
+        raise GenericJsonRpcServerError(
+            code=-response['code'],
+            message=response['message'],
+            http_status=status.HTTP_BAD_REQUEST
+        )
     else:
-        return response
+        raise GenericJsonRpcServerError(
+            code=-32603,
+            message="can't response_to_json_invoke_convert",
+            http_status=status.HTTP_BAD_REQUEST
+        )
+
+
+def response_to_json_query(response):
+    if check_error_response(response):
+        response = response['error']
+        raise GenericJsonRpcServerError(
+            code=-response['code'],
+            message=response['message'],
+            http_status=status.HTTP_BAD_REQUEST
+        )
+    return response
 
 
 def validate_jsonrpc_message(method: str, params: dict) -> None:
@@ -260,23 +270,23 @@ class MockDispatcher:
         }
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().icx_send_transaction(make_request)
+            response = await get_icon_score_stub().task().invoke(make_request)
             if not isinstance(response, list):
                 await get_icon_score_stub().task().remove_precommit_state({})
             elif response[0]['status'] == hex(1):
                 await get_icon_score_stub().task().write_precommit_state({})
             else:
                 await get_icon_score_stub().task().remove_precommit_state({})
-            return response_to_json(response)
+            return response_to_json_invoke(response)
         else:
-            response = await get_icon_inner_task().icx_send_transaction(make_request)
+            response = await get_icon_inner_task().invoke(make_request)
             if not isinstance(response, list):
                 await get_icon_inner_task().remove_precommit_state({})
             elif response[0]['status'] == hex(1):
                 await get_icon_inner_task().write_precommit_state({})
             else:
                 await get_icon_inner_task().remove_precommit_state({})
-            return response_to_json(response)
+            return response_to_json_invoke(response)
 
     @staticmethod
     @methods.add
@@ -289,11 +299,11 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().icx_call(make_request)
-            return response_to_json(response)
+            response = await get_icon_score_stub().task().query(make_request)
+            return response_to_json_query(response)
         else:
-            response = await get_icon_inner_task().icx_call(make_request)
-            return response_to_json(response)
+            response = await get_icon_inner_task().query(make_request)
+            return response_to_json_query(response)
 
     @staticmethod
     @methods.add
@@ -306,11 +316,11 @@ class MockDispatcher:
         validate_jsonrpc_message(method, request_params)
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().icx_call(make_request)
-            return response_to_json(response)
+            response = await get_icon_score_stub().task().query(make_request)
+            return response_to_json_query(response)
         else:
-            response = await get_icon_inner_task().icx_call(make_request)
-            return response_to_json(response)
+            response = await get_icon_inner_task().query(make_request)
+            return response_to_json_query(response)
 
     @staticmethod
     @methods.add
@@ -321,11 +331,11 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().icx_call(make_request)
-            return response_to_json(response)
+            response = await get_icon_score_stub().task().query(make_request)
+            return response_to_json_query(response)
         else:
-            response = await get_icon_inner_task().icx_call(make_request)
-            return response_to_json(response)
+            response = await get_icon_inner_task().query(make_request)
+            return response_to_json_query(response)
 
     @staticmethod
     @methods.add
@@ -350,11 +360,11 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().icx_call(make_request)
-            return response_to_json(response)
+            response = await get_icon_score_stub().task().query(make_request)
+            return response_to_json_query(response)
         else:
-            response = await get_icon_inner_task().icx_call(make_request)
-            return response_to_json(response)
+            response = await get_icon_inner_task().query(make_request)
+            return response_to_json_query(response)
 
     @staticmethod
     @methods.add
