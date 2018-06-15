@@ -164,7 +164,7 @@ class TestTransactionResult(unittest.TestCase):
     def test_get_score_api(self):
         init_SCORE('sample_token', 'SampleToken')
         run_SCORE('sample_token', None, None)
-        payload = get_request_json_of_get_score_api(to=token_score_address)
+        payload = get_request_json_of_get_score_api(address=token_score_address)
         result = post(url, payload).json()
         api_result = result["result"]
         self.assertEqual(pre_define_api, api_result)
