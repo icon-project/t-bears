@@ -87,7 +87,7 @@ def run_SCORE(project: str, *options) -> tuple:
         params = __get_param_info(options[0])
 
     if not __is_server_running():
-        __start_server()
+        __start_server(options[2])
         time.sleep(2)
 
     respond = __embed_SCORE_on_server(project, params, options[0], options[1])
@@ -155,7 +155,7 @@ def test_SCORE(project: str) -> int:
     pass
 
 
-def __start_server():
+def __start_server(tbears_db_path: str):
     logging.debug('start_server() start')
 
     root_path = os.path.abspath(
@@ -165,7 +165,10 @@ def __start_server():
     python_module_string = f'{root_path_directory_name}.server.jsonrpc_server'
 
     # Run jsonrpc_server on background mode
-    subprocess.Popen([sys.executable, '-m', python_module_string], close_fds=True)
+    if tbears_db_path:
+        subprocess.Popen([sys.executable, '-m', python_module_string, tbears_db_path], close_fds=True)
+    else:
+        subprocess.Popen([sys.executable, '-m', python_module_string], close_fds=True)
 
     logging.debug('start_server() end')
 

@@ -34,6 +34,13 @@ class TestCallScoreMethod(unittest.TestCase):
         clear_SCORE()
         if os.path.exists('./sample_token'):
             shutil.rmtree('./sample_token')
+        if os.path.exists('./test_tbears_db'):
+            shutil.rmtree('./test_tbears_db')
+
+        try:
+            os.remove('./tbears.log')
+        except:
+            pass
 
     @staticmethod
     def touch(path):
@@ -109,7 +116,7 @@ class TestCallScoreMethod(unittest.TestCase):
     @staticmethod
     def run_SCORE_for_testing():
         init_SCORE("sample_token", "SampleToken")
-        result, _ = run_SCORE('sample_token', None, None)
+        result, _ = run_SCORE('sample_token', None, None, os.path.join(DIRECTORY_PATH, 'test_tbears.json'))
 
 
 if __name__ == "__main__":

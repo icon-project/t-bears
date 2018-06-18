@@ -25,6 +25,9 @@ from .jsonrpc_error_code import *
 
 url = "http://localhost:9000/api/v3"
 
+DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
+TBEARS_JSON_PATH = os.path.join(DIRECTORY_PATH, 'test_tbears.json')
+
 pre_define_api = \
         [
             {
@@ -114,61 +117,57 @@ class TestTransactionResult(unittest.TestCase):
         clear_SCORE()
 
         try:
-            os.remove('logger.log')
             if os.path.exists('sample_token'):
                 shutil.rmtree('sample_token')
+            if os.path.exists('./test_tbears_db'):
+                shutil.rmtree('./test_tbears_db')
+            os.remove('./tbears.log')
         except:
             pass
 
     def test_unknown_score_method(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_nonexist_method(token_addr=token_score_address)
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], METHOD_NOT_FOUND)
-        stop_SCORE()
 
     def test_method_not_found(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_call_hello()
         payload['method'] = 'unknown'
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], METHOD_NOT_FOUND)
-        stop_SCORE()
 
     def test_invalid_param_get_balance_icx(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_get_icx_balance('123')
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], SERVER_ERROR)
-        stop_SCORE()
 
     def test_invalid_param_score(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_get_token_balance(to=token_score_address, addr_from='123')
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], INVALID_PARAMS)
-        stop_SCORE()
 
     def test_invalid_score_address_query(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_get_token_balance(to='123', addr_from=god_address)
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], SERVER_ERROR)
-        stop_SCORE()
 
     def test_get_score_api(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_get_score_api(address=token_score_address)
         result = post(url, payload).json()
         api_result = result["result"]
         self.assertEqual(pre_define_api, api_result)
-        stop_SCORE()
 
     # def test_nonexistent_score_address_query(self):
     #     init_SCORE('sample_token', 'SampleToken')

@@ -31,6 +31,8 @@ from iconservice.utils import check_error_response
 
 from typing import Optional
 
+from tbears.server.tbears_db import TbearsDB
+
 MQ_TEST = False
 if not MQ_TEST:
     from iconservice.icon_inner_service import IconScoreInnerTask
@@ -46,6 +48,8 @@ __tx_result_mapper = None
 
 sys.path.append('..')
 sys.path.append('.')
+
+TBEARS_DB = None
 
 
 def create_hash(data: bytes) -> str:
@@ -286,6 +290,10 @@ class MockDispatcher:
                 await get_icon_inner_task().write_precommit_state({})
             else:
                 await get_icon_inner_task().remove_precommit_state({})
+            tx_result = response[0]
+            tx_hash = tx_result['txHash']
+            tx_result['from'] = request_params.get('from', '')
+            TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
             return response_to_json_invoke(response)
 
     @staticmethod
@@ -375,6 +383,8 @@ class MockDispatcher:
             await get_icon_score_stub().task().close()
 
         if MockDispatcher.flask_server is not None:
+            global TBEARS_DB
+            TBEARS_DB.close()
             MockDispatcher.flask_server.app.stop()
 
         return '0x0'
@@ -435,6 +445,9 @@ def serve():
 
     server = SimpleRestServer(conf['port'], "0.0.0.0")
     server.get_app().add_task(__serve)
+    global TBEARS_DB
+    TBEARS_DB = TbearsDB(TbearsDB.make_db(conf['tbearsDB']))
+
     server.run()
 
 
@@ -444,6 +457,7 @@ def load_config(path: str) -> dict:
         "port": 9000,
         "scoreRoot": "./.score",
         "dbRoot": "./.db",
+        "tbearsDB": "./tbears_db",
         "accounts": [
             {
                 "name": "genesis",
