@@ -18,7 +18,7 @@ import os
 import json
 import shutil
 import socket
-from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE, make_SCORE_samples
+from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 
@@ -27,12 +27,14 @@ class TestTBearsCommands(unittest.TestCase):
     def setUp(self):
         self.path = './'
         self.url = "http://localhost:9000/api/v3/"
-        self.config = None, None
+        self.config = None, None, os.path.join(DIRECTORY_PATH, 'test_tbears.json')
 
     def tearDown(self):
         clear_SCORE()
         try:
-            os.remove('logger.log')
+            if os.path.exists('./test_tbears_db'):
+                shutil.rmtree('./test_tbears_db')
+            os.remove('./tbears.log')
         except:
             pass
 

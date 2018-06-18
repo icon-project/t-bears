@@ -1,3 +1,4 @@
 requests==2.18.4
 jsonrpcserver==3.5.4
 sanic==0.7.0
+plyvel==1.0.4

@@ -3,7 +3,7 @@
     "port": 9000,
     "scoreRoot": "./.score",
     "dbRoot": "./.db",
-    "tbearsDB": "./tbears_db",
+    "tbearsDB": "./test_tbears_db",
     "genesis": {
         "address": "hx0000000000000000000000000000000000000000",
         "balance": "0x2961fff8ca4a62327800000"

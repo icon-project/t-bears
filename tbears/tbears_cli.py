@@ -47,6 +47,9 @@ tbears commands:
     parser.add_argument(
         '--update', dest='update', help='update config json file path'
     )
+    parser.add_argument(
+        '--db', dest='tbears_db', help='tbears database path'
+    )
 
     args = parser.parse_args()
 
@@ -56,12 +59,15 @@ tbears commands:
 
     command = args.command[0]
 
-    config_options = None, None
+    config_options = [None, None, None]
 
     if args.install:
-        config_options = args.install, 'install'
+        config_options = [args.install, 'install', None]
     elif args.update:
-        config_options = args.update, 'update'
+        config_options = [args.update, 'update', None]
+
+    if args.tbears_db:
+        config_options[2] = args.tbears_db
 
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])

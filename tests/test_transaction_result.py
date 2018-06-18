@@ -25,6 +25,9 @@ from .jsonrpc_error_code import *
 
 url = "http://localhost:9000/api/v3"
 
+DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
+TBEARS_JSON_PATH = os.path.join(DIRECTORY_PATH, 'test_tbears.json')
+
 
 class TestTransactionResult(unittest.TestCase):
 
@@ -32,15 +35,17 @@ class TestTransactionResult(unittest.TestCase):
         clear_SCORE()
 
         try:
-            os.remove('logger.log')
             if os.path.exists('sample_token'):
                 shutil.rmtree('sample_token')
+            if os.path.exists('test_tbears_db'):
+                shutil.rmtree('test_tbears_db')
+            os.remove('./tbears.log')
         except:
             pass
 
     def test_missing_param_send_icx(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_send_icx(god_address, '123', hex(10 * 10 ** 18))
 
         del payload['params']['from']
@@ -49,7 +54,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_invalid_param_send_icx(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_send_icx(god_address, '123', hex(10 * 10 ** 18))
         response = post(url, payload).json()
         self.assertEqual(response['error']['code'], INVALID_PARAMS)
@@ -60,7 +65,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_invalid_score_address_invoke(self):
         init_SCORE('sample_token', "SampleToken")
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_transfer_token(fr=god_address, to='', addr_to=test_address, value=hex(1*10**18))
         response = post(url, payload).json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=response)
@@ -69,7 +74,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_invalid_param_score_invoke(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
 
         payload = get_request_json_of_transfer_token(fr=token_owner_address, to='123',
                                                      addr_to=test_address, value=god_address)
@@ -82,7 +87,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_invalid_param_in_score_invoke(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
 
         payload = get_request_json_of_transfer_token(fr=token_owner_address, to=token_score_address,
                                                      addr_to=test_address, value=god_address)
@@ -95,7 +100,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_not_enough_value_score_invoke(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
 
         payload = get_request_json_of_transfer_token(fr=token_owner_address, to=token_score_address,
                                                      addr_to=test_address, value=hex(100000*10**18))
@@ -108,7 +113,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_not_enough_balance_send_icx(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None)
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_send_icx(test_address, god_address, hex(10 * 10 ** 18))
 
         response = post(url, payload).json()
