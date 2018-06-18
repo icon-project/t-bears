@@ -119,7 +119,6 @@ def make_install_json_payload(project: str) -> dict:
         "id": 111,
         "params": {
             "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "to":   "cxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "fee": "0x2386f26fc10000",
             "timestamp": str(int(time.time() * 10 ** 6)),
             "nonce": "0x7362",
@@ -287,7 +286,7 @@ class SampleCrowdSale(IconScoreBase):
                     self.__balances[self.msg.sender] = amount
 
         if self.__funding_goal_reached.get() and self.__addr_beneficiary.get() == self.msg.sender:
-            if self.send(self.__addr_beneficiary.get(), self.__amount_raise.get()):
+            if self.icx.send(self.__addr_beneficiary.get(), self.__amount_raise.get()):
                 self.FundTransfer(Indexed(self.__addr_beneficiary.get()), Indexed(self.__amount_raise.get()),
                                   Indexed(False))
             else:

@@ -19,8 +19,8 @@ import unittest
 from tbears.command import init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
 from tbears.util import post
 
-from .json_contents import *
-from .jsonrpc_error_code import *
+from tests.json_contents import *
+from tests.jsonrpc_error_code import *
 
 
 url = "http://localhost:9000/api/v3"
@@ -131,6 +131,7 @@ class TestTransactionResult(unittest.TestCase):
         payload = get_request_json_of_nonexist_method(token_addr=token_score_address)
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], METHOD_NOT_FOUND)
+        stop_SCORE()
 
     def test_method_not_found(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -139,6 +140,7 @@ class TestTransactionResult(unittest.TestCase):
         payload['method'] = 'unknown'
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], METHOD_NOT_FOUND)
+        stop_SCORE()
 
     def test_invalid_param_get_balance_icx(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -146,6 +148,7 @@ class TestTransactionResult(unittest.TestCase):
         payload = get_request_json_of_get_icx_balance('123')
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], SERVER_ERROR)
+        stop_SCORE()
 
     def test_invalid_param_score(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -153,6 +156,7 @@ class TestTransactionResult(unittest.TestCase):
         payload = get_request_json_of_get_token_balance(to=token_score_address, addr_from='123')
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], INVALID_PARAMS)
+        stop_SCORE()
 
     def test_invalid_score_address_query(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -160,6 +164,7 @@ class TestTransactionResult(unittest.TestCase):
         payload = get_request_json_of_get_token_balance(to='123', addr_from=god_address)
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], SERVER_ERROR)
+        stop_SCORE()
 
     def test_get_score_api(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -168,6 +173,7 @@ class TestTransactionResult(unittest.TestCase):
         result = post(url, payload).json()
         api_result = result["result"]
         self.assertEqual(pre_define_api, api_result)
+        stop_SCORE()
 
     # def test_nonexistent_score_address_query(self):
     #     init_SCORE('sample_token', 'SampleToken')

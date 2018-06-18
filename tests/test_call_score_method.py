@@ -18,7 +18,7 @@ import os
 import shutil
 from tbears.command import init_SCORE, run_SCORE, stop_SCORE, clear_SCORE, make_SCORE_samples
 from tbears.util import post
-from .json_contents import *
+from tests.json_contents import *
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 

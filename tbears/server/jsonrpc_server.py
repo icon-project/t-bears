@@ -20,10 +20,8 @@ from json import JSONDecodeError
 
 from jsonrpcserver import status
 from jsonrpcserver.aio import methods
-from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams, ServerError
+from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams
 from sanic import Sanic, response as sanic_response
-from iconservice.base.jsonrpc_message_validator import JsonRpcMessageValidator
-from iconservice.base.exception import IconServiceBaseException
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
 from iconservice.logger import Logger
 from iconservice.icon_config import *
@@ -144,31 +142,6 @@ def response_to_json_query(response):
     return response
 
 
-def validate_jsonrpc_message(method: str, params: dict) -> None:
-    """Check params of message
-    (icx_call, icx_getBalance, icx_getTotalSupply, icx_sendTransaction)
-
-    if params is not valid, raise a sort of IconServiceBaseException
-
-    :param method:
-    :param params:
-    """
-    try:
-        JsonRpcMessageValidator.validate(method, params)
-        return
-    except IconServiceBaseException as e:
-        code = -e.code
-        message = e.message
-    except Exception as e:
-        code = ServerError.code
-        message = repr(e)
-
-    raise GenericJsonRpcServerError(
-        code=code,
-        message=message,
-        http_status=status.HTTP_BAD_REQUEST)
-
-
 class GenericJsonRpcServerError(JsonRpcServerError):
     """Raised when the request is not a valid JSON-RPC object.
     User can change code and message properly
@@ -254,17 +227,22 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server icx_sendTransaction!', TBEARS_LOG_TAG)
 
         method = 'icx_sendTransaction'
-        validate_jsonrpc_message(method, request_params)
-
         # Insert txHash into request params
         tx_hash = create_hash(json.dumps(request_params).encode())
         request_params['txHash'] = tx_hash
         tx = {
-            'method': 'icx_sendTransaction',
+            'method': method,
             'params': request_params
         }
-        make_request = {'transactions': [tx]}
 
+        if MQ_TEST:
+            response = await get_icon_score_stub().task().pre_validate_check(tx)
+            response_to_json_query(response)
+        else:
+            response = await get_icon_inner_task().pre_validate_check(tx)
+            response_to_json_query(response)
+
+        make_request = {'transactions': [tx]}
         block_height: int = get_block_height()
         block_timestamp_us = int(time.time() * 10 ** 6)
         make_request['block'] = {
@@ -276,20 +254,20 @@ class MockDispatcher:
         if MQ_TEST:
             response = await get_icon_score_stub().task().invoke(make_request)
             if not isinstance(response, list):
-                await get_icon_score_stub().task().remove_precommit_state({})
+                await get_icon_score_stub().task().remove_precommit_state()
             elif response[0]['status'] == hex(1):
-                await get_icon_score_stub().task().write_precommit_state({})
+                await get_icon_score_stub().task().write_precommit_state()
             else:
-                await get_icon_score_stub().task().remove_precommit_state({})
+                await get_icon_score_stub().task().remove_precommit_state()
             return response_to_json_invoke(response)
         else:
             response = await get_icon_inner_task().invoke(make_request)
             if not isinstance(response, list):
-                await get_icon_inner_task().remove_precommit_state({})
+                await get_icon_inner_task().remove_precommit_state()
             elif response[0]['status'] == hex(1):
-                await get_icon_inner_task().write_precommit_state({})
+                await get_icon_inner_task().write_precommit_state()
             else:
-                await get_icon_inner_task().remove_precommit_state({})
+                await get_icon_inner_task().remove_precommit_state()
             tx_result = response[0]
             tx_hash = tx_result['txHash']
             tx_result['from'] = request_params.get('from', '')
@@ -302,8 +280,6 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server icx_call!', TBEARS_LOG_TAG)
 
         method = 'icx_call'
-        validate_jsonrpc_message(method, request_params)
-
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
@@ -320,8 +296,6 @@ class MockDispatcher:
 
         method = 'icx_getBalance'
         make_request = {'method': method, 'params': request_params}
-
-        validate_jsonrpc_message(method, request_params)
 
         if MQ_TEST:
             response = await get_icon_score_stub().task().query(make_request)
