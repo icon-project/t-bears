@@ -22,6 +22,7 @@ import logging
 import socket
 from enum import IntEnum
 
+from tbears.util.in_memory_zip import InMemoryZip
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
     delete_score_info, get_init_template, get_sample_crowd_sale_contents
@@ -146,6 +147,16 @@ def make_SCORE_samples():
     except TBearsWriteFileException:
         logging.debug("Except raised while writing files.")
         return ExitCode.WRITE_FILE_ERROR.value
+
+    return ExitCode.SUCCEEDED
+
+
+def deploy_SCORE(project: str) -> int:
+    memory_zip = InMemoryZip()
+    memory_zip.zip_in_memory(project)
+    install_json = make_install_json_payload(project)
+    install_json['params']['data']['contentType'] = 'application/zip'
+    install_json['params']['data']['content'] = f'0x{memory_zip.data.hex()}'
 
     return ExitCode.SUCCEEDED
 
