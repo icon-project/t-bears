@@ -17,7 +17,7 @@ import argparse
 import sys
 
 import tbears
-from .command import ExitCode, make_SCORE_samples, test_SCORE
+from .command import ExitCode, make_SCORE_samples, test_SCORE, deploy_SCORE
 from .command import init_SCORE
 from .command import run_SCORE
 from .command import stop_SCORE
@@ -81,6 +81,8 @@ tbears commands:
             print('Cleared the score successfully.')
     elif command == 'samples':
         result = make_SCORE_samples()
+    elif command == 'deploy' and len(args.command) == 2:
+        result = deploy_SCORE(args.command[1])
     elif command == 'test' and len(args.command) == 2:
         result = test_SCORE(args.command[1])
     else:
