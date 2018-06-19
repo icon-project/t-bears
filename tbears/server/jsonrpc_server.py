@@ -236,7 +236,7 @@ class MockDispatcher:
         }
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().pre_validate_check(tx)
+            response = await get_icon_score_stub().async_task().pre_validate_check(tx)
             response_to_json_query(response)
         else:
             response = await get_icon_inner_task().pre_validate_check(tx)
@@ -252,13 +252,13 @@ class MockDispatcher:
         }
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().invoke(make_request)
+            response = await get_icon_score_stub().async_task().invoke(make_request)
             if not isinstance(response, list):
-                await get_icon_score_stub().task().remove_precommit_state()
+                await get_icon_score_stub().async_task().remove_precommit_state()
             elif response[0]['status'] == hex(1):
-                await get_icon_score_stub().task().write_precommit_state()
+                await get_icon_score_stub().async_task().write_precommit_state()
             else:
-                await get_icon_score_stub().task().remove_precommit_state()
+                await get_icon_score_stub().async_task().remove_precommit_state()
             return response_to_json_invoke(response)
         else:
             response = await get_icon_inner_task().invoke(make_request)
@@ -283,7 +283,7 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().query(make_request)
+            response = await get_icon_score_stub().async_task().query(make_request)
             return response_to_json_query(response)
         else:
             response = await get_icon_inner_task().query(make_request)
@@ -298,7 +298,7 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().query(make_request)
+            response = await get_icon_score_stub().async_task().query(make_request)
             return response_to_json_query(response)
         else:
             response = await get_icon_inner_task().query(make_request)
@@ -313,7 +313,7 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().query(make_request)
+            response = await get_icon_score_stub().async_task().query(make_request)
             return response_to_json_query(response)
         else:
             response = await get_icon_inner_task().query(make_request)
@@ -342,7 +342,7 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().query(make_request)
+            response = await get_icon_score_stub().async_task().query(make_request)
             return response_to_json_query(response)
         else:
             response = await get_icon_inner_task().query(make_request)
@@ -354,7 +354,7 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server server_exit!', TBEARS_LOG_TAG)
 
         if MQ_TEST:
-            await get_icon_score_stub().task().close()
+            await get_icon_score_stub().async_task().close()
 
         if MockDispatcher.flask_server is not None:
             global TBEARS_DB
@@ -475,11 +475,11 @@ async def init_icon_score_stub(conf: dict):
     __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
     await __icon_score_stub.connect()
     if not SEPARATE_PROCESS_DEBUG:
-        await __icon_score_stub.task().open()
+        await __icon_score_stub.async_task().open()
 
     make_request = dict()
     make_request['accounts'] = conf['accounts']
-    await __icon_score_stub.task().genesis_invoke(make_request)
+    await __icon_score_stub.async_task().genesis_invoke(make_request)
 
 
 async def init_icon_inner_task(conf: dict):
