@@ -19,8 +19,8 @@ import unittest
 from tbears.command import init_SCORE, run_SCORE, clear_SCORE
 from tbears.util import post
 
-from .json_contents import *
-from .jsonrpc_error_code import *
+from tests.json_contents import *
+from tests.jsonrpc_error_code import *
 
 
 url = "http://localhost:9000/api/v3"
@@ -67,10 +67,8 @@ class TestTransactionResult(unittest.TestCase):
         init_SCORE('sample_token', "SampleToken")
         run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_transfer_token(fr=god_address, to='', addr_to=test_address, value=hex(1*10**18))
-        response = post(url, payload).json()['result']
-        payload = get_request_of_icx_getTransactionResult(tx_hash=response)
-        tx_result = post(url, payload).json()
-        self.assertEqual(int(tx_result['result']['failure']['code'], 0), -SERVER_ERROR)
+        res = post(url, payload).json()
+        self.assertEqual(res['error']['code'], SERVER_ERROR)
 
     def test_invalid_param_score_invoke(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -78,12 +76,8 @@ class TestTransactionResult(unittest.TestCase):
 
         payload = get_request_json_of_transfer_token(fr=token_owner_address, to='123',
                                                      addr_to=test_address, value=god_address)
-        res = post(url, payload)
-
-        # tx_result payload
-        payload = get_request_of_icx_getTransactionResult(tx_hash=res.json()['result'])
-        tx_result = post(url, payload).json()
-        self.assertEqual(int(tx_result['result']['failure']['code'], 0), -SERVER_ERROR)
+        res = post(url, payload).json()
+        self.assertEqual(res['error']['code'], INVALID_PARAMS)
 
     def test_invalid_param_in_score_invoke(self):
         init_SCORE('sample_token', 'SampleToken')
@@ -116,10 +110,6 @@ class TestTransactionResult(unittest.TestCase):
         run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_send_icx(test_address, god_address, hex(10 * 10 ** 18))
 
-        response = post(url, payload).json()
-
-        # tx_result payload
-        payload = get_request_of_icx_getTransactionResult(tx_hash=response['result'])
-        tx_result = post(url, payload).json()
-        self.assertEqual(int(tx_result['result']['failure']['code'], 0), -INVALID_PARAMS)
+        res = post(url, payload).json()
+        self.assertEqual(res['error']['code'], INVALID_REQUEST)
         # failure : INVALID PARAMS
