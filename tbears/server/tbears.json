@@ -4,14 +4,18 @@
     "scoreRoot": "./.score",
     "dbRoot": "./.db",
     "tbearsDB": "./tbears_db",
-    "genesis": {
-        "address": "hx0000000000000000000000000000000000000000",
-        "balance": "0x2961fff8ca4a62327800000"
-    },
-    "treasury": {
-        "address": "hx1000000000000000000000000000000000000000",
-        "balance": "0x0"
-    },
+    "accounts": [
+            {
+                "name": "genesis",
+                "address": "hx0000000000000000000000000000000000000000",
+                "balance": "0x2961fff8ca4a62327800000"
+            },
+            {
+                "name": "treasury",
+                "address": "hx1000000000000000000000000000000000000000",
+                "balance": "0x0"
+            }
+    ],
     "log": {
         "level": "DEBUG",
         "filePath": "./tbears.log",
