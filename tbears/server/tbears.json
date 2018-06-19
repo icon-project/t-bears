@@ -5,19 +5,19 @@
     "dbRoot": "./.db",
     "tbearsDB": "./tbears_db",
     "accounts": [
-            {
-                "name": "genesis",
-                "address": "hx0000000000000000000000000000000000000000",
-                "balance": "0x2961fff8ca4a62327800000"
-            },
-            {
-                "name": "treasury",
-                "address": "hx1000000000000000000000000000000000000000",
-                "balance": "0x0"
-            }
+        {
+            "name": "genesis",
+            "address": "hx0000000000000000000000000000000000000000",
+            "balance": "0x2961fff8ca4a62327800000"
+        },
+        {
+            "name": "fee_treasury",
+            "address": "hx1000000000000000000000000000000000000000",
+            "balance": "0x0"
+        }
     ],
     "log": {
-        "level": "DEBUG",
+        "level": "debug",
         "filePath": "./tbears.log",
         "outputType": "console|file"
     }

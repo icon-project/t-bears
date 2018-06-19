@@ -439,7 +439,7 @@ def load_config(path: str) -> dict:
                 "balance": "0x2961fff8ca4a62327800000"
             },
             {
-                "name": "treasury",
+                "name": "fee_treasury",
                 "address": "hx1000000000000000000000000000000000000000",
                 "balance": "0x0"
             }
