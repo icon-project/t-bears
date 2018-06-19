@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 PYVER=$(python -c 'import sys; print(sys.version_info[0])')
 if [[ PYVER -ne 3 ]];then
@@ -12,8 +13,12 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
   VER=$(cat tbears/__init__.py | sed -nE 's/__version__ += +"([0-9\.]+)"/\1/p')
   mkdir -p $VER
 
-  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/iconservice-$VER-py3-none-any.whl" -P $VER
-  pip install --force-reinstall $VER/iconservice-$VER-py3-none-any.whl
+  if [[ -z "${ICONSERVICEPATH}" ]]; then
+    wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/iconservice-$VER-py3-none-any.whl" -P $VER
+    pip install --force-reinstall $VER/iconservice-$VER-py3-none-any.whl
+  else
+    export PYTHONPATH=$ICONSERVICEPATH:$PYTHONPATH
+  fi
 
   if [[ "$2" != "--ignore-test" ]]; then
     python setup.py test
