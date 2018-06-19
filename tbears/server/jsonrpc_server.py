@@ -212,12 +212,6 @@ class MockDispatcher:
 
     @staticmethod
     @methods.add
-    async def hello(**request_params):
-        Logger.debug(f'json_rpc_server hello!', TBEARS_LOG_TAG)
-        # raise CustomRpcError()
-
-    @staticmethod
-    @methods.add
     async def icx_sendTransaction(**request_params):
         """ icx_sendTransaction jsonrpc handler.
         We assume that only one tx in a block.
@@ -474,9 +468,6 @@ async def init_icon_score_stub(conf: dict):
     global __icon_score_stub
     __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
     await __icon_score_stub.connect()
-    if not SEPARATE_PROCESS_DEBUG:
-        await __icon_score_stub.async_task().open()
-
     make_request = dict()
     make_request['accounts'] = conf['accounts']
     await __icon_score_stub.async_task().genesis_invoke(make_request)
