@@ -17,6 +17,9 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
     wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/iconservice-$VER-py3-none-any.whl" -P $VER
     pip install --force-reinstall $VER/iconservice-$VER-py3-none-any.whl
   else
+    if ![ -z "$(pip3 list | grep iconservice)" ]; then
+        pip uninstall iconservice -y
+    fi
     export PYTHONPATH=$ICONSERVICEPATH:$PYTHONPATH
   fi
 
