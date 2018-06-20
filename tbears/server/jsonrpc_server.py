@@ -64,12 +64,11 @@ def get_icon_score_stub() -> 'IconScoreInnerStub':
     return __icon_score_stub
 
 
-def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
+def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str,
                               icon_score_root_path: str, icon_score_state_db_root_path: str,
                               **kwargs) -> 'IconScoreInnerService':
     icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
-                                                                amqp_key=amqp_key,
-                                                                rpc_port=rpc_port)
+                                                                amqp_key=amqp_key)
 
     Logger.debug(f'==========create_icon_score_service==========', TBEARS_LOG_TAG)
     Logger.debug(f'icon_score_root_path : {icon_score_root_path}', TBEARS_LOG_TAG)
