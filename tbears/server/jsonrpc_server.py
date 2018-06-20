@@ -476,7 +476,6 @@ async def init_icon_score_stub(conf: dict):
 async def init_icon_inner_task(conf: dict):
     global __icon_inner_task
     __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
-    await __icon_inner_task.open()
 
     make_request = dict()
     make_request['accounts'] = conf['accounts']
