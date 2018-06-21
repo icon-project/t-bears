@@ -109,18 +109,19 @@ def get_tx_result_mapper():
 
 def response_to_json_invoke(response):
     # if response is tx_result list
-    if isinstance(response, list):
-        tx_result = response[0]
-        tx_hash = tx_result['txHash']
-        get_tx_result_mapper().put(tx_hash, tx_result)
-        return tx_hash
-    elif check_error_response(response):
+    if check_error_response(response):
         response = response['error']
         raise GenericJsonRpcServerError(
             code=-int(response['code'], 16),
             message=response['message'],
             http_status=status.HTTP_BAD_REQUEST
         )
+    elif isinstance(response, dict):
+        tx_result = list(response.values())
+        tx_result = tx_result[0]
+        tx_hash = tx_result['txHash']
+        get_tx_result_mapper().put(tx_hash, tx_result)
+        return tx_hash
     else:
         raise GenericJsonRpcServerError(
             code=-32603,
@@ -131,7 +132,7 @@ def response_to_json_invoke(response):
 
 def response_to_json_query(response):
     if check_error_response(response):
-        response = response['error']
+        response: dict = response['error']
         raise GenericJsonRpcServerError(
             code=-int(response['code'], 16),
             message=response['message'],
@@ -252,20 +253,21 @@ class MockDispatcher:
             response = await get_icon_score_stub().async_task().invoke(make_request)
             if not isinstance(response, list):
                 await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
-            elif response[0]['status'] == hex(1):
+            elif response[tx_hash]['status'] == hex(1):
                 await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
             else:
                 await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
             return response_to_json_invoke(response)
         else:
             response = await get_icon_inner_task().invoke(make_request)
-            if not isinstance(response, list):
+            if not isinstance(response, dict):
                 await get_icon_inner_task().remove_precommit_state(precommit_request)
-            elif response[0]['status'] == hex(1):
+            elif response[tx_hash]['status'] == hex(1):
                 await get_icon_inner_task().write_precommit_state(precommit_request)
             else:
                 await get_icon_inner_task().remove_precommit_state(precommit_request)
-            tx_result = response[0]
+
+            tx_result = response[tx_hash]
             tx_hash = tx_result['txHash']
             tx_result['from'] = request_params.get('from', '')
             TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
@@ -495,14 +497,14 @@ async def init_icon_score_stub(conf: dict):
                          'blockHash': block_hash}
 
     response = await get_icon_score_stub().async_task().genesis_invoke(make_request)
-    if not isinstance(response, list):
+    if not isinstance(response, dict):
         await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
-    elif response[0]['status'] == hex(1):
+    elif response[tx_hash]['status'] == hex(1):
         await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
     else:
         await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
 
-    tx_result = response[0]
+    tx_result = response[tx_hash]
     tx_hash = tx_result['txHash']
     tx_result['from'] = request_params.get('from', '')
     TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
@@ -536,14 +538,14 @@ async def init_icon_inner_task(conf: dict):
                          'blockHash': block_hash}
 
     response = await get_icon_inner_task().genesis_invoke(make_request)
-    if not isinstance(response, list):
+    if not isinstance(response, dict):
         await get_icon_inner_task().remove_precommit_state(precommit_request)
-    elif response[0]['status'] == hex(1):
+    elif response[tx_hash]['status'] == hex(1):
         await get_icon_inner_task().write_precommit_state(precommit_request)
     else:
         await get_icon_inner_task().remove_precommit_state(precommit_request)
 
-    tx_result = response[0]
+    tx_result = response[tx_hash]
     tx_hash = tx_result['txHash']
     tx_result['from'] = request_params.get('from', '')
     TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
