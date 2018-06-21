@@ -38,7 +38,7 @@ if not MQ_TEST:
 TBEARS_LOG_TAG = 'tbears'
 SEPARATE_PROCESS_DEBUG = False
 
-__block_height = 0
+__block_height = -1
 __icon_score_service = None
 __icon_score_stub = None
 __icon_inner_task = None
@@ -109,18 +109,19 @@ def get_tx_result_mapper():
 
 def response_to_json_invoke(response):
     # if response is tx_result list
-    if isinstance(response, list):
-        tx_result = response[0]
-        tx_hash = tx_result['txHash']
-        get_tx_result_mapper().put(tx_hash, tx_result)
-        return tx_hash
-    elif check_error_response(response):
+    if check_error_response(response):
         response = response['error']
         raise GenericJsonRpcServerError(
-            code=-response['code'],
+            code=-int(response['code'], 16),
             message=response['message'],
             http_status=status.HTTP_BAD_REQUEST
         )
+    elif isinstance(response, dict):
+        tx_result = list(response.values())
+        tx_result = tx_result[0]
+        tx_hash = tx_result['txHash']
+        get_tx_result_mapper().put(tx_hash, tx_result)
+        return tx_hash
     else:
         raise GenericJsonRpcServerError(
             code=-32603,
@@ -131,9 +132,9 @@ def response_to_json_invoke(response):
 
 def response_to_json_query(response):
     if check_error_response(response):
-        response = response['error']
+        response: dict = response['error']
         raise GenericJsonRpcServerError(
-            code=-response['code'],
+            code=-int(response['code'], 16),
             message=response['message'],
             http_status=status.HTTP_BAD_REQUEST
         )
@@ -252,20 +253,21 @@ class MockDispatcher:
             response = await get_icon_score_stub().async_task().invoke(make_request)
             if not isinstance(response, list):
                 await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
-            elif response[0]['status'] == hex(1):
+            elif response[tx_hash]['status'] == hex(1):
                 await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
             else:
                 await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
             return response_to_json_invoke(response)
         else:
             response = await get_icon_inner_task().invoke(make_request)
-            if not isinstance(response, list):
+            if not isinstance(response, dict):
                 await get_icon_inner_task().remove_precommit_state(precommit_request)
-            elif response[0]['status'] == hex(1):
+            elif response[tx_hash]['status'] == hex(1):
                 await get_icon_inner_task().write_precommit_state(precommit_request)
             else:
                 await get_icon_inner_task().remove_precommit_state(precommit_request)
-            tx_result = response[0]
+
+            tx_result = response[tx_hash]
             tx_hash = tx_result['txHash']
             tx_result['from'] = request_params.get('from', '')
             TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
@@ -471,18 +473,83 @@ async def init_icon_score_stub(conf: dict):
     global __icon_score_stub
     __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
     await __icon_score_stub.connect()
-    make_request = dict()
-    make_request['accounts'] = conf['accounts']
-    await __icon_score_stub.async_task().genesis_invoke(make_request)
+
+    tx_hash = create_hash('genesis'.encode())
+    request_params = {'txHash': tx_hash}
+    tx = {
+        'method': '',
+        'params': {'txHash': tx_hash},
+        'accounts': conf['accounts']
+    }
+
+    make_request = {'transactions': [tx]}
+    block_height: int = get_block_height()
+    block_timestamp_us = int(time.time() * 10 ** 6)
+    block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+
+    make_request['block'] = {
+        'blockHeight': block_height,
+        'blockHash': block_hash,
+        'timestamp': block_timestamp_us
+    }
+
+    precommit_request = {'blockHeight': block_height,
+                         'blockHash': block_hash}
+
+    response = await get_icon_score_stub().async_task().genesis_invoke(make_request)
+    if not isinstance(response, dict):
+        await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
+    elif response[tx_hash]['status'] == hex(1):
+        await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
+    else:
+        await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
+
+    tx_result = response[tx_hash]
+    tx_hash = tx_result['txHash']
+    tx_result['from'] = request_params.get('from', '')
+    TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
+    return response_to_json_invoke(response)
 
 
 async def init_icon_inner_task(conf: dict):
     global __icon_inner_task
     __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
 
-    make_request = dict()
-    make_request['accounts'] = conf['accounts']
-    await __icon_inner_task.genesis_invoke(make_request)
+    tx_hash = create_hash('genesis'.encode())
+    request_params = {'txHash': tx_hash}
+    tx = {
+        'method': '',
+        'params': {'txHash': tx_hash},
+        'accounts': conf['accounts']
+    }
+
+    make_request = {'transactions': [tx]}
+    block_height: int = get_block_height()
+    block_timestamp_us = int(time.time() * 10 ** 6)
+    block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+
+    make_request['block'] = {
+        'blockHeight': block_height,
+        'blockHash': block_hash,
+        'timestamp': block_timestamp_us
+    }
+
+    precommit_request = {'blockHeight': block_height,
+                         'blockHash': block_hash}
+
+    response = await get_icon_inner_task().genesis_invoke(make_request)
+    if not isinstance(response, dict):
+        await get_icon_inner_task().remove_precommit_state(precommit_request)
+    elif response[tx_hash]['status'] == hex(1):
+        await get_icon_inner_task().write_precommit_state(precommit_request)
+    else:
+        await get_icon_inner_task().remove_precommit_state(precommit_request)
+
+    tx_result = response[tx_hash]
+    tx_hash = tx_result['txHash']
+    tx_result['from'] = request_params.get('from', '')
+    TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
+    return response_to_json_invoke(response)
 
 
 def init_tbears():
