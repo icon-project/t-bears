@@ -237,29 +237,34 @@ class MockDispatcher:
         make_request = {'transactions': [tx]}
         block_height: int = get_block_height()
         block_timestamp_us = int(time.time() * 10 ** 6)
+        block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+
         make_request['block'] = {
             'blockHeight': block_height,
-            'blockHash': create_hash(block_timestamp_us.to_bytes(8, 'big')),
+            'blockHash': block_hash,
             'timestamp': block_timestamp_us
         }
+
+        precommit_request = {'blockHeight': block_height,
+                             'blockHash': block_hash}
 
         if MQ_TEST:
             response = await get_icon_score_stub().async_task().invoke(make_request)
             if not isinstance(response, list):
-                await get_icon_score_stub().async_task().remove_precommit_state()
+                await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
             elif response[0]['status'] == hex(1):
-                await get_icon_score_stub().async_task().write_precommit_state()
+                await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
             else:
-                await get_icon_score_stub().async_task().remove_precommit_state()
+                await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
             return response_to_json_invoke(response)
         else:
             response = await get_icon_inner_task().invoke(make_request)
             if not isinstance(response, list):
-                await get_icon_inner_task().remove_precommit_state()
+                await get_icon_inner_task().remove_precommit_state(precommit_request)
             elif response[0]['status'] == hex(1):
-                await get_icon_inner_task().write_precommit_state()
+                await get_icon_inner_task().write_precommit_state(precommit_request)
             else:
-                await get_icon_inner_task().remove_precommit_state()
+                await get_icon_inner_task().remove_precommit_state(precommit_request)
             tx_result = response[0]
             tx_hash = tx_result['txHash']
             tx_result['from'] = request_params.get('from', '')
