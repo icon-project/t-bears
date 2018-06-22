@@ -475,16 +475,17 @@ async def init_icon_score_stub(conf: dict):
     await __icon_score_stub.connect()
 
     tx_hash = create_hash('genesis'.encode())
-    request_params = {'txHash': tx_hash}
+    tx_timestamp_us = int(time.time() * 10 ** 6)
+    request_params = {'txHash': tx_hash, 'timestamp' : tx_timestamp_us}
     tx = {
         'method': '',
-        'params': {'txHash': tx_hash},
+        'params': request_params,
         'accounts': conf['accounts']
     }
 
     make_request = {'transactions': [tx]}
     block_height: int = get_block_height()
-    block_timestamp_us = int(time.time() * 10 ** 6)
+    block_timestamp_us = tx_timestamp_us
     block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
 
     make_request['block'] = {
@@ -516,16 +517,17 @@ async def init_icon_inner_task(conf: dict):
     __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
 
     tx_hash = create_hash('genesis'.encode())
-    request_params = {'txHash': tx_hash}
+    tx_timestamp_us = int(time.time() * 10 ** 6)
+    request_params = {'txHash': tx_hash, 'timestamp': tx_timestamp_us}
     tx = {
         'method': '',
-        'params': {'txHash': tx_hash},
+        'params': request_params,
         'accounts': conf['accounts']
     }
 
     make_request = {'transactions': [tx]}
     block_height: int = get_block_height()
-    block_timestamp_us = int(time.time() * 10 ** 6)
+    block_timestamp_us = tx_timestamp_us
     block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
 
     make_request['block'] = {
