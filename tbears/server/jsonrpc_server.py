@@ -241,12 +241,12 @@ class MockDispatcher:
         block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
 
         make_request['block'] = {
-            'blockHeight': block_height,
+            'blockHeight': hex(block_height),
             'blockHash': block_hash,
-            'timestamp': block_timestamp_us
+            'timestamp': hex(block_timestamp_us)
         }
 
-        precommit_request = {'blockHeight': block_height,
+        precommit_request = {'blockHeight': hex(block_height),
                              'blockHash': block_hash}
 
         if MQ_TEST:
@@ -476,7 +476,7 @@ async def init_icon_score_stub(conf: dict):
 
     tx_hash = create_hash('genesis'.encode())
     tx_timestamp_us = int(time.time() * 10 ** 6)
-    request_params = {'txHash': tx_hash, 'timestamp' : tx_timestamp_us}
+    request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
     tx = {
         'method': '',
         'params': request_params,
@@ -489,12 +489,12 @@ async def init_icon_score_stub(conf: dict):
     block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
 
     make_request['block'] = {
-        'blockHeight': block_height,
+        'blockHeight': hex(block_height),
         'blockHash': block_hash,
-        'timestamp': block_timestamp_us
+        'timestamp': hex(block_timestamp_us)
     }
 
-    precommit_request = {'blockHeight': block_height,
+    precommit_request = {'blockHeight': hex(block_height),
                          'blockHash': block_hash}
 
     response = await get_icon_score_stub().async_task().genesis_invoke(make_request)
@@ -518,7 +518,7 @@ async def init_icon_inner_task(conf: dict):
 
     tx_hash = create_hash('genesis'.encode())
     tx_timestamp_us = int(time.time() * 10 ** 6)
-    request_params = {'txHash': tx_hash, 'timestamp': tx_timestamp_us}
+    request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
     tx = {
         'method': '',
         'params': request_params,
@@ -531,12 +531,12 @@ async def init_icon_inner_task(conf: dict):
     block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
 
     make_request['block'] = {
-        'blockHeight': block_height,
+        'blockHeight': hex(block_height),
         'blockHash': block_hash,
-        'timestamp': block_timestamp_us
+        'timestamp': hex(block_timestamp_us)
     }
 
-    precommit_request = {'blockHeight': block_height,
+    precommit_request = {'blockHeight': hex(block_height),
                          'blockHash': block_hash}
 
     response = await get_icon_inner_task().genesis_invoke(make_request)
