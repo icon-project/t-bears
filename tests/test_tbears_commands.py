@@ -32,8 +32,8 @@ class TestTBearsCommands(unittest.TestCase):
     def tearDown(self):
         clear_SCORE()
         try:
-            if os.path.exists('./test_tbears_db'):
-                shutil.rmtree('./test_tbears_db')
+            if os.path.exists('./.test_tbears_db'):
+                shutil.rmtree('./.test_tbears_db')
             os.remove('./tbears.log')
         except:
             pass

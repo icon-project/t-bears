@@ -3,7 +3,7 @@
     "port": 9000,
     "scoreRoot": "./.score",
     "dbRoot": "./.db",
-    "tbearsDB": "./test_tbears_db",
+    "tbearsDB": "./.test_tbears_db",
     "accounts": [
             {
                 "name": "genesis",
@@ -11,7 +11,7 @@
                 "balance": "0x2961fff8ca4a62327800000"
             },
             {
-                "name": "treasury",
+                "name": "fee_treasury",
                 "address": "hx1000000000000000000000000000000000000000",
                 "balance": "0x0"
             }

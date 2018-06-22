@@ -188,8 +188,8 @@ class TestTBears(unittest.TestCase):
                 shutil.rmtree('sample_token')
             if os.path.exists('sample_crowd_sale'):
                 shutil.rmtree('sample_crowd_sale')
-            if os.path.exists('test_tbears_db'):
-                shutil.rmtree('test_tbears_db')
+            if os.path.exists('.test_tbears_db'):
+                shutil.rmtree('.test_tbears_db')
             os.remove('./tbears.log')
         except:
             pass
