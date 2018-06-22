@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 
 import plyvel
 
@@ -18,6 +19,8 @@ import plyvel
 class TbearsDB:
     @staticmethod
     def make_db(path: str, create_if_missing: bool = True) -> plyvel.DB:
+        if not os.path.exists(path):
+            os.makedirs(path)
         return plyvel.DB(path, create_if_missing=create_if_missing)
 
     def __init__(self, db: plyvel.DB) -> None:

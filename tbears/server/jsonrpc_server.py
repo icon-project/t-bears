@@ -270,7 +270,7 @@ class MockDispatcher:
             tx_result = response[tx_hash]
             tx_hash = tx_result['txHash']
             tx_result['from'] = request_params.get('from', '')
-            TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
+            TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
             return response_to_json_invoke(response)
 
     @staticmethod
@@ -430,7 +430,7 @@ def load_config(path: str) -> dict:
         "port": 9000,
         "scoreRoot": "./.score",
         "dbRoot": "./.db",
-        "tbearsDB": "./tbears_db",
+        "tbearsDB": "./.db/tbears",
         "accounts": [
             {
                 "name": "genesis",

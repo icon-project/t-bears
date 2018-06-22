@@ -34,8 +34,8 @@ class TestCallScoreMethod(unittest.TestCase):
         clear_SCORE()
         if os.path.exists('./sample_token'):
             shutil.rmtree('./sample_token')
-        if os.path.exists('./test_tbears_db'):
-            shutil.rmtree('./test_tbears_db')
+        if os.path.exists('./.test_tbears_db'):
+            shutil.rmtree('./.test_tbears_db')
 
         try:
             os.remove('./tbears.log')

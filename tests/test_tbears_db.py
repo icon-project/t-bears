@@ -19,7 +19,7 @@ import unittest
 from tbears.server.tbears_db import TbearsDB
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
-DB_PATH = os.path.join(DIRECTORY_PATH, 'test_tbears_db')
+DB_PATH = os.path.join(DIRECTORY_PATH, './.tbears_db')
 
 
 class TestTBearsDB(unittest.TestCase):
