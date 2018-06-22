@@ -419,7 +419,7 @@ def serve():
     server = SimpleRestServer(conf['port'], "0.0.0.0")
     server.get_app().add_task(__serve)
     global TBEARS_DB
-    TBEARS_DB = TbearsDB(TbearsDB.make_db(conf['tbearsDB']))
+    TBEARS_DB = TbearsDB(TbearsDB.make_db(f'{conf["dbRoot"]}/tbears'))
 
     server.run()
 
@@ -430,7 +430,6 @@ def load_config(path: str) -> dict:
         "port": 9000,
         "scoreRoot": "./.score",
         "dbRoot": "./.db",
-        "tbearsDB": "./.db/tbears",
         "accounts": [
             {
                 "name": "genesis",
