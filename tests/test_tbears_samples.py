@@ -342,20 +342,6 @@ class TestTBears(unittest.TestCase):
         res = test_client.send_req('icx_getTransactionResult', payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
-    # # seq14
-    # # safe withrawal
-    # payload = get_request_json_of_crowd_withrawal(fr=token_owner_address, to=crowd_sale_score_address)
-    # res = post(self.url, payload).json()['result']
-    # payload = get_request_of_icx_getTransactionResult(tx_hash=res)
-    # res = post(self.url, payload).json()['result']['status']
-    # self.assertEqual(res, hex(1))
-
-    # # seq15
-    # # check icx balance of token_owner value : 100*10**18
-    # payload = get_request_json_of_get_icx_balance(address=token_owner_address)
-    # res = post(self.url, payload).json()['result']
-    # self.assertEqual(res, hex(100 * 10 ** 18))
-
 
 if __name__ == "__main__":
     unittest.main()

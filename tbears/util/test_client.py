@@ -56,8 +56,10 @@ class TestClient:
         for item in list_value:
             if isinstance(item, dict):
                 item = self.convert_dict(item)
-            if isinstance(item, list):
-                item = self.convert_dict(item)
+            elif isinstance(item, list):
+                item = self.convert_list(item)
+            else:
+                item = self.convert_value(item)
 
             output.append(item)
         return output
