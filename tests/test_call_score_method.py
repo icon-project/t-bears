@@ -53,26 +53,22 @@ class TestCallScoreMethod(unittest.TestCase):
             byte_data = f.read()
             return byte_data
 
-    def test_get_balance_icx(self):
+    def test_call_score_methods(self):
         self.run_SCORE_for_testing()
         payload = get_request_json_of_get_icx_balance(address=god_address)
         response = post(self.url, payload).json()
         result = response["result"]
         self.assertEqual("0x2961fff8ca4a62327800000", result)
-        stop_SCORE()
 
-    def test_send_icx(self):
-        self.run_SCORE_for_testing()
+        # send icx test
         payload = get_request_json_of_send_icx(fr=god_address, to=test_address, value="0xde0b6b3a7640000")
         post(self.url, payload)
         payload = get_request_json_of_get_icx_balance(address=test_address)
         res = post(self.url, payload).json()
         res_icx_val = int(res["result"], 0) / (10 ** 18)
         self.assertEqual(1.0, res_icx_val)
-        stop_SCORE()
 
-    def test_get_balance_token(self):
-        self.run_SCORE_for_testing()
+        # token get balance test
         payload = get_request_json_of_get_token_balance(to=token_score_address, addr_from=token_owner_address)
         result = post(self.url, payload)
         god_result = result.json()["result"]
@@ -82,18 +78,14 @@ class TestCallScoreMethod(unittest.TestCase):
         result2 = post(self.url, payload)
         user_result = result2.json()["result"]
         self.assertEqual("0x0", user_result)
-        stop_SCORE()
 
-    def test_token_total_supply(self):
-        self.run_SCORE_for_testing()
+        # test token total supply
         payload = get_request_json_of_token_total_supply(token_addr=token_score_address)
         result = post(self.url, payload)
         supply = result.json()["result"]
         self.assertEqual("0x3635c9adc5dea00000", supply)
-        stop_SCORE()
 
-    def test_token_transfer(self):
-        self.run_SCORE_for_testing()
+        # test token transfer
         payload = get_request_json_of_send_icx(fr=god_address, to=token_owner_address, value="0xde0b6b3a7640000")
         post(self.url, payload)
         payload = get_request_json_of_transfer_token(fr=token_owner_address, to=token_score_address,
@@ -104,14 +96,7 @@ class TestCallScoreMethod(unittest.TestCase):
         token_balance_res1 = post(self.url, payload)
         token_balance = token_balance_res1.json()["result"]
         self.assertEqual("0x1", token_balance)
-        stop_SCORE()
 
-    def test_samples(self):
-        make_SCORE_samples()
-        self.assertTrue(os.path.exists('./sample_crowd_sale'))
-        self.assertTrue(os.path.exists('./sample_token'))
-        shutil.rmtree('./sample_crowd_sale')
-        shutil.rmtree('./sample_token')
 
     @staticmethod
     def run_SCORE_for_testing():
