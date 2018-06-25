@@ -3,7 +3,6 @@
     "port": 9000,
     "scoreRoot": "./.score",
     "dbRoot": "./.db",
-    "tbearsDB": "./.test_tbears_db",
     "accounts": [
             {
                 "name": "genesis",
