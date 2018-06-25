@@ -46,15 +46,14 @@ class TestTransactionResult(unittest.TestCase):
     def test_missing_param_send_icx(self):
         init_SCORE('sample_token', 'SampleToken')
         run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # send icx (missing params)
         payload = get_request_json_of_send_icx(god_address, '123', hex(10 * 10 ** 18))
 
         del payload['params']['from']
         response = post(url, payload).json()
         self.assertEqual(response['error']['code'], INVALID_PARAMS)
 
-    def test_invalid_param_send_icx(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # send icx with invalid param
         payload = get_request_json_of_send_icx(god_address, '123', hex(10 * 10 ** 18))
         response = post(url, payload).json()
         self.assertEqual(response['error']['code'], INVALID_PARAMS)
@@ -63,26 +62,19 @@ class TestTransactionResult(unittest.TestCase):
         response = post(url, payload).json()
         self.assertEqual(response['error']['code'], INVALID_PARAMS)
 
-    def test_invalid_score_address_invoke(self):
-        init_SCORE('sample_token', "SampleToken")
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # send transaction to invalid score address
         payload = get_request_json_of_transfer_token(fr=god_address, to='', addr_to=test_address, value=hex(1*10**18))
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], SERVER_ERROR)
 
-    def test_invalid_param_score_invoke(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # send transaction to score with invalid param
 
         payload = get_request_json_of_transfer_token(fr=token_owner_address, to='123',
                                                      addr_to=test_address, value=god_address)
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], INVALID_PARAMS)
 
-    def test_invalid_param_in_score_invoke(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
-
+        # send transaction to score with invalid param in score's method.
         payload = get_request_json_of_transfer_token(fr=token_owner_address, to=token_score_address,
                                                      addr_to=test_address, value=god_address)
         res = post(url, payload)
@@ -92,10 +84,7 @@ class TestTransactionResult(unittest.TestCase):
         tx_result = post(url, payload).json()
         self.assertEqual(int(tx_result['result']['failure']['code'], 0), -SERVER_ERROR)
 
-    def test_not_enough_value_score_invoke(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
-
+        # not enough value
         payload = get_request_json_of_transfer_token(fr=token_owner_address, to=token_score_address,
                                                      addr_to=test_address, value=hex(100000*10**18))
         tx_hash = post(url, payload).json()['result']
@@ -105,9 +94,7 @@ class TestTransactionResult(unittest.TestCase):
         tx_result = post(url, payload)
         self.assertEqual(int(tx_result.json()['result']['failure']['code'], 0), -SCORE_ERROR)
 
-    def test_not_enough_balance_send_icx(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # not enough icx
         payload = get_request_json_of_send_icx(test_address, god_address, hex(10 * 10 ** 18))
 
         res = post(url, payload).json()

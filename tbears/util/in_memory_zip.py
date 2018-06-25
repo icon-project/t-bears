@@ -43,3 +43,7 @@ class InMemoryZip:
                             continue
                         full_path = os.path.join(root, file)
                         zf.write(full_path)
+
+    def extract(self, path):
+        with zipfile.ZipFile(self._in_memory) as z:
+            z.extractall(path)

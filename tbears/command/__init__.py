@@ -68,6 +68,7 @@ def init_SCORE(project: str, score_class: str) -> int:
         write_file(project, "package.json", package_json_contents)
         write_file(project, '__init__.py', init_contents)
         write_file(f'{project}/tests', f'test_{project}.py', '')
+        write_file(f'{project}/tests', f'__init__.py', '')
     except TBearsWriteFileException:
         logging.debug("Except raised while writing files.")
         return ExitCode.WRITE_FILE_ERROR.value
@@ -162,8 +163,11 @@ def deploy_SCORE(project: str) -> int:
 
 
 def test_SCORE(project: str) -> int:
-    print(project, 'test')
-    pass
+    os.chdir(project)
+    subprocess.Popen([sys.executable, '-m', 'unittest'])
+    time.sleep(1)
+
+    return ExitCode.SUCCEEDED
 
 
 def __start_server(tbears_db_path: str):

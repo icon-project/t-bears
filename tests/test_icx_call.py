@@ -125,59 +125,44 @@ class TestTransactionResult(unittest.TestCase):
         except:
             pass
 
-    def test_unknown_score_method(self):
+    def test_score_queries_filed(self):
+        # unknown score method test
         init_SCORE('sample_token', 'SampleToken')
         run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_nonexist_method(token_addr=token_score_address)
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], METHOD_NOT_FOUND)
-        stop_SCORE()
 
-    def test_method_not_found(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # method not found.
         payload = get_request_json_of_call_hello()
         payload['method'] = 'unknown'
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], METHOD_NOT_FOUND)
-        stop_SCORE()
 
-    def test_invalid_param_get_balance_icx(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # invalid param - icx get balance
         payload = get_request_json_of_get_icx_balance('123')
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], SERVER_ERROR)
-        stop_SCORE()
 
-    def test_invalid_param_score(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # call score method with invalid param
         payload = get_request_json_of_get_token_balance(to=token_score_address, addr_from='123')
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], INVALID_PARAMS)
-        stop_SCORE()
 
-    def test_invalid_score_address_query(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # call score method(invalid score address)
         payload = get_request_json_of_get_token_balance(to='123', addr_from=god_address)
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], SERVER_ERROR)
-        stop_SCORE()
 
-    def test_get_score_api(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        # get score api test
         payload = get_request_json_of_get_score_api(address=token_score_address)
         result = post(url, payload).json()
         api_result = result["result"]
         self.assertEqual(pre_define_api, api_result)
-        stop_SCORE()
 
     # def test_nonexistent_score_address_query(self):
     #     init_SCORE('sample_token', 'SampleToken')
-    #     run_SCORE('sample_token', None, None)
+    #     run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
     #     payload = get_request_json_of_get_token_balance(to=f'cx{"0"*40}', addr_from=god_address)
     #     res = post(url, payload)
     #     self.assertEqual(res['result'], None)
