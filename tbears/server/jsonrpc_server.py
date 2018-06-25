@@ -241,12 +241,12 @@ class MockDispatcher:
         block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
 
         make_request['block'] = {
-            'blockHeight': block_height,
+            'blockHeight': hex(block_height),
             'blockHash': block_hash,
-            'timestamp': block_timestamp_us
+            'timestamp': hex(block_timestamp_us)
         }
 
-        precommit_request = {'blockHeight': block_height,
+        precommit_request = {'blockHeight': hex(block_height),
                              'blockHash': block_hash}
 
         if MQ_TEST:
@@ -270,7 +270,7 @@ class MockDispatcher:
             tx_result = response[tx_hash]
             tx_hash = tx_result['txHash']
             tx_result['from'] = request_params.get('from', '')
-            TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
+            TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
             return response_to_json_invoke(response)
 
     @staticmethod
@@ -419,7 +419,7 @@ def serve():
     server = SimpleRestServer(conf['port'], "0.0.0.0")
     server.get_app().add_task(__serve)
     global TBEARS_DB
-    TBEARS_DB = TbearsDB(TbearsDB.make_db(conf['tbearsDB']))
+    TBEARS_DB = TbearsDB(TbearsDB.make_db(f'{conf["dbRoot"]}/tbears'))
 
     server.run()
 
@@ -430,7 +430,6 @@ def load_config(path: str) -> dict:
         "port": 9000,
         "scoreRoot": "./.score",
         "dbRoot": "./.db",
-        "tbearsDB": "./tbears_db",
         "accounts": [
             {
                 "name": "genesis",
@@ -475,25 +474,26 @@ async def init_icon_score_stub(conf: dict):
     await __icon_score_stub.connect()
 
     tx_hash = create_hash('genesis'.encode())
-    request_params = {'txHash': tx_hash}
+    tx_timestamp_us = int(time.time() * 10 ** 6)
+    request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
     tx = {
         'method': '',
-        'params': {'txHash': tx_hash},
+        'params': request_params,
         'accounts': conf['accounts']
     }
 
     make_request = {'transactions': [tx]}
     block_height: int = get_block_height()
-    block_timestamp_us = int(time.time() * 10 ** 6)
+    block_timestamp_us = tx_timestamp_us
     block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
 
     make_request['block'] = {
-        'blockHeight': block_height,
+        'blockHeight': hex(block_height),
         'blockHash': block_hash,
-        'timestamp': block_timestamp_us
+        'timestamp': hex(block_timestamp_us)
     }
 
-    precommit_request = {'blockHeight': block_height,
+    precommit_request = {'blockHeight': hex(block_height),
                          'blockHash': block_hash}
 
     response = await get_icon_score_stub().async_task().genesis_invoke(make_request)
@@ -516,25 +516,26 @@ async def init_icon_inner_task(conf: dict):
     __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
 
     tx_hash = create_hash('genesis'.encode())
-    request_params = {'txHash': tx_hash}
+    tx_timestamp_us = int(time.time() * 10 ** 6)
+    request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
     tx = {
         'method': '',
-        'params': {'txHash': tx_hash},
+        'params': request_params,
         'accounts': conf['accounts']
     }
 
     make_request = {'transactions': [tx]}
     block_height: int = get_block_height()
-    block_timestamp_us = int(time.time() * 10 ** 6)
+    block_timestamp_us = tx_timestamp_us
     block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
 
     make_request['block'] = {
-        'blockHeight': block_height,
+        'blockHeight': hex(block_height),
         'blockHash': block_hash,
-        'timestamp': block_timestamp_us
+        'timestamp': hex(block_timestamp_us)
     }
 
-    precommit_request = {'blockHeight': block_height,
+    precommit_request = {'blockHeight': hex(block_height),
                          'blockHash': block_hash}
 
     response = await get_icon_inner_task().genesis_invoke(make_request)
