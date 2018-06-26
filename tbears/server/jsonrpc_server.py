@@ -112,7 +112,7 @@ def response_to_json_invoke(response):
     if check_error_response(response):
         response = response['error']
         raise GenericJsonRpcServerError(
-            code=-int(response['code'], 16),
+            code=-int(response['code']),
             message=response['message'],
             http_status=status.HTTP_BAD_REQUEST
         )
@@ -134,7 +134,7 @@ def response_to_json_query(response):
     if check_error_response(response):
         response: dict = response['error']
         raise GenericJsonRpcServerError(
-            code=-int(response['code'], 16),
+            code=-int(response['code']),
             message=response['message'],
             http_status=status.HTTP_BAD_REQUEST
         )
@@ -515,7 +515,7 @@ async def init_icon_inner_task(conf: dict):
     global __icon_inner_task
     __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
 
-    tx_hash = create_hash('genesis'.encode())
+    tx_hash = create_hash(b'genesis')
     tx_timestamp_us = int(time.time() * 10 ** 6)
     request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
     tx = {
