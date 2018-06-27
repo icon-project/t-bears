@@ -16,7 +16,7 @@ import os
 import shutil
 import unittest
 
-from tbears.command import init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
+from tbears.command import init_SCORE, run_SCORE, clear_SCORE
 from tbears.util import post
 
 from tests.json_contents import *
@@ -164,5 +164,5 @@ class TestTransactionResult(unittest.TestCase):
     #     init_SCORE('sample_token', 'SampleToken')
     #     run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
     #     payload = get_request_json_of_get_token_balance(to=f'cx{"0"*40}', addr_from=god_address)
-    #     res = post(url, payload)
+    #     res = post(url, payload).json()
     #     self.assertEqual(res['result'], None)

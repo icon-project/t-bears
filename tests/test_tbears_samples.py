@@ -229,7 +229,6 @@ class TestTBears(unittest.TestCase):
         make_SCORE_samples()
         result, _ = run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         result, _ = run_SCORE('sample_crowd_sale', None, None, TBEARS_JSON_PATH)
-        test_client = TestClient()
         # seq1
         # genesis -> hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(token_owner) 10icx
         payload = get_request_json_of_send_icx(fr=Address.from_string(god_address),
@@ -340,6 +339,20 @@ class TestTBears(unittest.TestCase):
         payload = get_request_of_icx_getTransactionResult(tx_hash=res)
         res = send_req('icx_getTransactionResult', payload).json()['result']['status']
         self.assertEqual(res, hex(1))
+
+        # seq14
+        # safe withrawal
+        payload = get_request_json_of_crowd_withrawal(fr=token_owner_address, to=crowd_sale_score_address)
+        res = send_req('icx_sendTransaction', payload).json()['result']
+        payload = get_request_of_icx_getTransactionResult(tx_hash=res)
+        res = send_req('icx_getTransactionResult', payload).json()['result']['status']
+        self.assertEqual(res, hex(1))
+
+        # seq15
+        # check icx balance of token_owner value : 100*10**18
+        payload = get_request_json_of_get_icx_balance(address=token_owner_address)
+        res = send_req('icx_getBalance', payload).json()['result']
+        self.assertEqual(res, hex(100 * 10 ** 18))
 
 
 if __name__ == "__main__":
