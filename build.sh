@@ -13,6 +13,9 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
   VER=$(cat tbears/__init__.py | sed -nE 's/__version__ += +"([0-9\.]+)"/\1/p')
   mkdir -p $VER
 
+  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey-0.0.0-py3-none-any.whl" -P $VER
+  pip install --force-reinstall $VER/earlgrey-0.0.0-py3-none-any.whl
+
   if [[ -z "${ICONSERVICEPATH}" || ("$1" = "deploy") ]]; then
     wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/iconservice-$VER-py3-none-any.whl" -P $VER
     pip install --force-reinstall $VER/iconservice-$VER-py3-none-any.whl
@@ -40,11 +43,15 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
       tar -cvzf tbears-$VER.tar.gz $VER/*.whl $VER/*.md
       mv tbears-$VER.tar.gz $VER
 
+      if [[ -z "${AWS_ACCESS_KEY_ID}" || -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
+        echo "Error: AWS keys should be in your environment"
+        exit 1
+      fi
+
       pip install awscli
-      export AWS_ACCESS_KEY_ID=AKIAJYKHNVJS4GYQTV2Q
-      export AWS_SECRET_ACCESS_KEY=aVX6bv5nJ1etOgYWyWC9k/5UxZkQQVnxHz3G7X6z
       aws s3 cp $VER/tbears-$VER.tar.gz s3://tbears.icon.foundation --acl public-read
       aws s3 cp $VER/CHANGELOG.md s3://tbears.icon.foundation --acl public-read
+      aws s3 cp earlgrey-0.0.0-py3-none-any.whl s3://tbears.icon.foundation --acl public-read
     fi
   fi
 
