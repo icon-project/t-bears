@@ -158,7 +158,7 @@ def deploy_SCORE(project: str) -> int:
     install_json = make_install_json_payload(project)
     install_json['params']['data']['contentType'] = 'application/zip'
     install_json['params']['data']['content'] = f'0x{memory_zip.data.hex()}'
-
+    print(install_json)
     return ExitCode.SUCCEEDED
 
 

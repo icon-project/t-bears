@@ -506,10 +506,11 @@ async def init_icon_score_stub(conf: dict):
     tx_hash = create_hash('genesis'.encode())
     tx_timestamp_us = int(time.time() * 10 ** 6)
     request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
+    genesis_data = conf['genesisData']
     tx = {
         'method': '',
         'params': request_params,
-        'accounts': conf['accounts']
+        'genesisData': {'accounts': genesis_data['accounts']}
     }
 
     make_request = {'transactions': [tx]}
@@ -554,10 +555,12 @@ async def init_icon_inner_task(conf: dict):
     tx_hash = create_hash(b'genesis')
     tx_timestamp_us = int(time.time() * 10 ** 6)
     request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
+
+    genesis_data = conf['genesisData']
     tx = {
         'method': '',
         'params': request_params,
-        'genesisData': {'accounts' : conf['accounts']}
+        'genesisData': {'accounts': genesis_data['accounts']}
     }
 
     make_request = {'transactions': [tx]}
