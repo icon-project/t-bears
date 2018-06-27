@@ -18,59 +18,59 @@ import time
 import requests
 
 
-class TestClient:
-    url = 'http://localhost:9000/api/v3'
+def send_req(method: str, params: dict, url: str=None):
+    if method == 'icx_sendTransaction':
+        check_timestamp(params)
 
-    def send_req(self, method: str, params: dict):
-        if method == 'icx_sendTransaction':
-            self.check_timestamp(params)
+    if url is None:
+        url = 'http://localhost:9000/api/v3'
 
-        json_content = {
-            "jsonrpc": "2.0",
-            "method": method,
-            "id": 1,
-            "params": self.convert_values(params)
-        }
-        res = requests.post(self.url, json.dumps(json_content))
-        return res
+    json_content = {
+        "jsonrpc": "2.0",
+        "method": method,
+        "id": 1,
+        "params": convert_dict(params)
+    }
+    res = requests.post(url, json.dumps(json_content))
+    return res
 
-    def convert_values(self, params) -> dict:
-        return self.convert_dict(params)
 
-    def convert_dict(self, dict_value) -> dict:
-        output = {}
+def convert_dict(dict_value) -> dict:
+    output = {}
 
-        for key, value in dict_value.items():
-            if isinstance(value, dict):
-                output[key] = self.convert_dict(value)
-            elif isinstance(value, list):
-                output[key] = self.convert_list(value)
-            else:
-                output[key] = self.convert_value(value)
-
-        return output
-
-    def convert_list(self, list_value) -> list:
-        output = []
-
-        for item in list_value:
-            if isinstance(item, dict):
-                item = self.convert_dict(item)
-            elif isinstance(item, list):
-                item = self.convert_list(item)
-            else:
-                item = self.convert_value(item)
-
-            output.append(item)
-        return output
-
-    @staticmethod
-    def convert_value(value):
-        if isinstance(value, int):
-            return hex(value)
+    for key, value in dict_value.items():
+        if isinstance(value, dict):
+            output[key] = convert_dict(value)
+        elif isinstance(value, list):
+            output[key] = convert_list(value)
         else:
-            return str(value)
+            output[key] = convert_value(value)
 
-    def check_timestamp(self, params):
-        if 'timestamp' not in params:
-            params['timestamp'] = int(time.time() * 10 ** 6)
+    return output
+
+
+def convert_list(list_value) -> list:
+    output = []
+
+    for item in list_value:
+        if isinstance(item, dict):
+            item = convert_dict(item)
+        elif isinstance(item, list):
+            item = convert_list(item)
+        else:
+            item = convert_value(item)
+
+        output.append(item)
+    return output
+
+
+def convert_value(value):
+    if isinstance(value, int):
+        return hex(value)
+    else:
+        return str(value)
+
+
+def check_timestamp(params):
+    if 'timestamp' not in params:
+        params['timestamp'] = int(time.time() * 10 ** 6)

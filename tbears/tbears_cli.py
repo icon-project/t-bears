@@ -34,7 +34,10 @@ tbears commands:
     run <project> : Run the score. | --install <config param path> | --update <config param path>
     stop : Stop the score.
     clear : Delete the score, both .score and .db directory.
-    samples : Create two score samples (sampleCrowdSale, tokentest)
+    deploy <project> <deploy_config_path> <keystore_file_path>:
+    deploy config file is has score address(needed when update score),
+    network(mainnet or testnet), params(optional). params will be used in on_install or on_update method in your SCORE.
+    samples : Create two score samples (sample_crowdSale, sample_token)
         """)
 
     parser.add_argument(
@@ -81,8 +84,9 @@ tbears commands:
             print('Cleared the score successfully.')
     elif command == 'samples':
         result = make_SCORE_samples()
-    elif command == 'deploy' and len(args.command) == 2:
-        result = deploy_SCORE(args.command[1])
+    elif command == 'deploy' and len(args.command) == 4:
+        password = input("input your key store password: ")
+        result = deploy_SCORE(args.command[1], args.command[2], args.command[3], password)
     elif command == 'test' and len(args.command) == 2:
         result = test_SCORE(args.command[1])
     else:

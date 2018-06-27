@@ -18,19 +18,28 @@ import os
 from eth_keyfile import extract_key_from_keyfile
 from secp256k1 import PrivateKey
 
+from tbears.tbears_exception import KeyStoreException
+
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, os.pardir, os.pardir))
 
 
 def key_from_key_store(file_path, password):
-    with open(file_path, 'rb') as file:
-        private_key = extract_key_from_keyfile(file, password)
-    return private_key
+    try:
+        with open(file_path, 'rb') as file:
+            private_key = extract_key_from_keyfile(file, password)
+    except ValueError:
+        print('check your password')
+        raise KeyStoreException
+    except:
+        raise KeyStoreException
+    else:
+        return private_key
 
 
 class IcxSigner:
-    def __init__(self, file_path, password):
-        self._private_key = key_from_key_store(file_path, password)
+    def __init__(self, private_key: bytes):
+        self._private_key = private_key
         self._private_key_object = PrivateKey(self._private_key)
 
     def sign_recoverable(self, msg_hash):
