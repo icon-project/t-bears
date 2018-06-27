@@ -160,7 +160,7 @@ def make_SCORE_samples():
 def deploy_SCORE(project: str, config_path: str=None, key_store_path: str=None, password: str="") -> int:
     try:
         if config_path is None:
-            config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears.json')
+            config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
         deploy_config = get_deploy_config(config_path)
         url = get_network_url(deploy_config['network'])
         score_address = f'cx{"0"*40}' if not deploy_config.get('scoreAddress', 0) else deploy_config['scoreAddress']
@@ -203,7 +203,7 @@ def test_SCORE(project: str) -> int:
     return ExitCode.SUCCEEDED
 
 
-def __start_server(tbears_db_path: str):
+def __start_server(tbears_config_path: str):
     logging.debug('start_server() start')
 
     root_path = os.path.abspath(
@@ -213,8 +213,8 @@ def __start_server(tbears_db_path: str):
     python_module_string = f'{root_path_directory_name}.server.jsonrpc_server'
 
     # Run jsonrpc_server on background mode
-    if tbears_db_path:
-        subprocess.Popen([sys.executable, '-m', python_module_string, tbears_db_path], close_fds=True)
+    if tbears_config_path:
+        subprocess.Popen([sys.executable, '-m', python_module_string, tbears_config_path], close_fds=True)
     else:
         subprocess.Popen([sys.executable, '-m', python_module_string], close_fds=True)
 

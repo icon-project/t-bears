@@ -51,9 +51,6 @@ tbears commands:
         '--update', dest='update', help='update config json file path'
     )
     parser.add_argument(
-        '--db', dest='tbears_db', help='tbears database path'
-    )
-    parser.add_argument(
         '--k', dest='keystore_path', help='keystore file path'
     )
     parser.add_argument(
@@ -75,8 +72,8 @@ tbears commands:
     elif args.update:
         config_options = [args.update, 'update', None]
 
-    if args.tbears_db:
-        config_options[2] = args.tbears_db
+    if args.config_file:
+        config_options[2] = args.config_file
 
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])

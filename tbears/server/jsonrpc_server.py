@@ -427,7 +427,7 @@ def serve():
     if len(sys.argv) == 2:
         path = sys.argv[1]
     else:
-        path = os.path.join(PROJECT_ROOT_PATH, 'tbears.json')
+        path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
 
     conf = load_config(path)
     Logger(path)
