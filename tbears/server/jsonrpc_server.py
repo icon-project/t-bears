@@ -235,10 +235,10 @@ class MockDispatcher:
         }
 
         if MQ_TEST:
-            response = await get_icon_score_stub().async_task().pre_validate_check(tx)
+            response = await get_icon_score_stub().async_task().validate_transaction(tx)
             response_to_json_query(response)
         else:
-            response = await get_icon_inner_task().pre_validate_check(tx)
+            response = await get_icon_inner_task().validate_transaction(tx)
             response_to_json_query(response)
 
         make_request = {'transactions': [tx]}
