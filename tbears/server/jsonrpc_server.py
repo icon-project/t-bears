@@ -51,7 +51,7 @@ TBEARS_DB = None
 
 
 def create_hash(data: bytes) -> str:
-    return f'0x{hashlib.sha3_256(data).hexdigest()}'
+    return f'{hashlib.sha3_256(data).hexdigest()}'
 
 
 def get_icon_inner_task() -> Optional['IconScoreInnerTask']:
