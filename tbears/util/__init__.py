@@ -22,7 +22,7 @@ from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeExcepti
 
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
-PROJECT_ROOT_PATH = os.path.join(DIR_PATH, '..', '..')
+PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, '..', '..'))
 
 
 def write_file(parent_directory: str, file_name: str, contents: str) -> None:

@@ -45,16 +45,16 @@ tbears commands:
         nargs='*',
         help='init, run, stop, clear')
     parser.add_argument(
-        '--install', dest='install', help='install config json file path'
+        '--install', '-i', dest='install', help='install config json file path'
     )
     parser.add_argument(
-        '--update', dest='update', help='update config json file path'
+        '--update', '-u', dest='update', help='update config json file path'
     )
     parser.add_argument(
-        '--k', dest='keystore_path', help='keystore file path'
+        '--keystore', '-k', dest='keystore_path', help='keystore file path'
     )
     parser.add_argument(
-        '--c', dest='config_file', help='tbears config path'
+        '--config', '-c', dest='config_file', help='tbears config path'
     )
 
     args = parser.parse_args()

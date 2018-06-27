@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import base64
+import hashlib
 import os
 
 from eth_keyfile import extract_key_from_keyfile
@@ -53,3 +54,10 @@ class IcxSigner:
         recoverable_sig = bytes(bytearray(signature) + recovery_id.to_bytes(1, 'big'))
         return base64.b64encode(recoverable_sig)
 
+    @property
+    def public_key(self):
+        return self._private_key_object.pubkey.serialize(compressed=False)
+
+    @property
+    def address(self):
+        return hashlib.sha3_256(self.public_key[1:]).digest()[-20:]

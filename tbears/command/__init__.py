@@ -182,8 +182,9 @@ def deploy_SCORE(project: str, config_path: str=None, key_store_path: str=None, 
         deploy_json['signature'] = signature.decode()
         deploy_json['stepLimit'] = step_limit
         deploy_json['to'] = score_address
+        deploy_json['from'] = f'hx{signer.address.hex()}'
 
-        # send_req
+        # send_req('icx_sendTransaction', deploy_json)
 
     except TbearsConfigFileException:
         return ExitCode.CONFIG_FILE_ERROR.value
