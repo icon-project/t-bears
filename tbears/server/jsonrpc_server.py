@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+import os
 import sys
 import time
 import hashlib
@@ -30,6 +31,7 @@ from iconservice.utils import check_error_response
 from typing import Optional
 
 from tbears.server.tbears_db import TbearsDB
+from tbears.util import PROJECT_ROOT_PATH
 
 MQ_TEST = False
 if not MQ_TEST:
@@ -425,7 +427,7 @@ def serve():
     if len(sys.argv) == 2:
         path = sys.argv[1]
     else:
-        path = './tbears.json'
+        path = os.path.join(PROJECT_ROOT_PATH, 'tbears.json')
 
     conf = load_config(path)
     Logger(path)

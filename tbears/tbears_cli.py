@@ -53,6 +53,12 @@ tbears commands:
     parser.add_argument(
         '--db', dest='tbears_db', help='tbears database path'
     )
+    parser.add_argument(
+        '--k', dest='keystore_path', help='keystore file path'
+    )
+    parser.add_argument(
+        '--c', dest='config_file', help='tbears config path'
+    )
 
     args = parser.parse_args()
 
@@ -84,9 +90,10 @@ tbears commands:
             print('Cleared the score successfully.')
     elif command == 'samples':
         result = make_SCORE_samples()
-    elif command == 'deploy' and len(args.command) == 4:
+    elif command == 'deploy' and len(args.command) == 2:
         password = input("input your key store password: ")
-        result = deploy_SCORE(args.command[1], args.command[2], args.command[3], password)
+        result = deploy_SCORE(args.command[1], config_path=args.config_file, key_store_path=args.keystore_path,
+                              password=password)
     elif command == 'test' and len(args.command) == 2:
         result = test_SCORE(args.command[1])
     else:

@@ -21,6 +21,10 @@ import requests
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException
 
 
+DIR_PATH = os.path.abspath(os.path.dirname(__file__))
+PROJECT_ROOT_PATH = os.path.join(DIR_PATH, '..', '..')
+
+
 def write_file(parent_directory: str, file_name: str, contents: str) -> None:
     try:
         if not os.path.exists(parent_directory):
@@ -298,23 +302,18 @@ class SampleCrowdSale(IconScoreBase):
 
 def get_deploy_payload():
     payload = {
-        "jsonrpc": "2.0",
-        "method": "icx_sendTransaction",
-        "id": 1234,
-        "params": {
-            "version": "0x3",
-            "from": "",
-            "to": "",
-            "stepLimit": "0x12345",
-            "timestamp": "0x563a6cf330136",
-            "nonce": "0x1",
-            "signature": "",
-            "dataType": "deploy",
-            "data": {
-                "contentType": "application/zip",
-                "content": "",
-                "params": {
-                }
+        "version": "0x3",
+        "from": "",
+        "to": "",
+        "stepLimit": "0x12345",
+        "timestamp": "0x563a6cf330136",
+        "nonce": "0x1",
+        "signature": "",
+        "dataType": "deploy",
+        "data": {
+            "contentType": "application/zip",
+            "content": "",
+            "params": {
             }
         }
     }
@@ -325,10 +324,11 @@ def get_deploy_config(path: str) -> dict:
     try:
         with open(path, mode='rb') as config_file:
             config_dict = json.load(config_file)
+        deploy_config = config_dict['deploy']
     except:
         raise TbearsConfigFileException
     else:
-        return config_dict
+        return deploy_config
 
 
 def get_tx_phrase(params: dict) -> str:
@@ -342,7 +342,6 @@ def get_tx_phrase(params: dict) -> str:
     if not params[keys[0]]:
         phrase += keys[0]
     elif not isinstance(params[keys[0]], dict):
-        print('ddd', keys[0])
         phrase += f'{keys[0]}.{params[keys[0]]}'
     else:
         phrase += f'{keys[0]}.{get_tx_phrase(params[keys[0]])}'
@@ -361,7 +360,6 @@ def get_tx_phrase(params: dict) -> str:
 
 
 def get_network_url(network_name: str) -> str:
-
     if network_name == "mainnet":
         return "https://wallet.icon.foundation/api/"
     else:

@@ -29,9 +29,10 @@ def key_from_key_store(file_path, password):
         with open(file_path, 'rb') as file:
             private_key = extract_key_from_keyfile(file, password)
     except ValueError:
-        print('check your password')
+        print('check your password.')
         raise KeyStoreException
     except:
+        print('check your keystore file.')
         raise KeyStoreException
     else:
         return private_key
