@@ -41,6 +41,7 @@ TBEARS_LOG_TAG = 'tbears'
 SEPARATE_PROCESS_DEBUG = False
 
 __block_height = -1
+__prev_block_hash = None
 __icon_score_service = None
 __icon_score_stub = None
 __icon_inner_task = None
@@ -104,10 +105,19 @@ def get_block_height():
     return __block_height
 
 
-def rollback_block_height():
+def get_prev_block_hash():
+    global __prev_block_hash
+    return __prev_block_hash
+
+
+def set_prev_block_hash(block_hash: str):
+    global __prev_block_hash
+    __prev_block_hash = block_hash
+
+
+def rollback_block():
     global __block_height
     __block_height -= 1
-    return __block_height
 
 
 def get_tx_result_mapper():
@@ -251,7 +261,8 @@ class MockDispatcher:
         make_request['block'] = {
             'blockHeight': hex(block_height),
             'blockHash': block_hash,
-            'timestamp': hex(block_timestamp_us)
+            'timestamp': hex(block_timestamp_us),
+            'prevBlockHash': get_prev_block_hash()
         }
 
         precommit_request = {'blockHeight': hex(block_height),
@@ -259,29 +270,31 @@ class MockDispatcher:
 
         if MQ_TEST:
             if not isinstance(response, dict):
-                rollback_block_height()
+                rollback_block()
                 await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
             elif check_error_response(response):
-                rollback_block_height()
+                rollback_block()
                 await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
             elif response[tx_hash]['status'] == hex(1):
+                set_prev_block_hash(block_hash)
                 await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
             else:
-                rollback_block_height()
+                rollback_block()
                 await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
             return response_to_json_invoke(response)
         else:
             response = await get_icon_inner_task().invoke(make_request)
             if not isinstance(response, dict):
-                rollback_block_height()
+                rollback_block()
                 await get_icon_inner_task().remove_precommit_state(precommit_request)
             elif check_error_response(response):
-                rollback_block_height()
+                rollback_block()
                 await get_icon_inner_task().remove_precommit_state(precommit_request)
             elif response[tx_hash]['status'] == hex(1):
+                set_prev_block_hash(block_hash)
                 await get_icon_inner_task().write_precommit_state(precommit_request)
             else:
-                rollback_block_height()
+                rollback_block()
                 await get_icon_inner_task().remove_precommit_state(precommit_request)
 
             tx_result = response[tx_hash]
@@ -447,18 +460,20 @@ def load_config(path: str) -> dict:
         "port": 9000,
         "scoreRoot": "./.score",
         "dbRoot": "./.db",
-        "accounts": [
-            {
-                "name": "genesis",
-                "address": "hx0000000000000000000000000000000000000000",
-                "balance": "0x2961fff8ca4a62327800000"
-            },
-            {
-                "name": "fee_treasury",
-                "address": "hx1000000000000000000000000000000000000000",
-                "balance": "0x0"
-            }
-        ],
+        "genesisData": {
+            "accounts": [
+                {
+                    "name": "genesis",
+                    "address": "hx0000000000000000000000000000000000000000",
+                    "balance": "0x2961fff8ca4a62327800000"
+                },
+                {
+                    "name": "fee_treasury",
+                    "address": "hx1000000000000000000000000000000000000000",
+                    "balance": "0x0"
+                }
+            ]
+        },
         "log": {
             "level": "debug",
             "filePath": "./tbears.log",
@@ -493,10 +508,11 @@ async def init_icon_score_stub(conf: dict):
     tx_hash = create_hash('genesis'.encode())
     tx_timestamp_us = int(time.time() * 10 ** 6)
     request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
+    genesis_data = conf['genesisData']
     tx = {
         'method': '',
         'params': request_params,
-        'accounts': conf['accounts']
+        'genesisData': {'accounts': genesis_data['accounts']}
     }
 
     make_request = {'transactions': [tx]}
@@ -513,17 +529,18 @@ async def init_icon_score_stub(conf: dict):
     precommit_request = {'blockHeight': hex(block_height),
                          'blockHash': block_hash}
 
-    response = await get_icon_score_stub().async_task().genesis_invoke(make_request)
+    response = await get_icon_score_stub().async_task().invoke(make_request)
     if not isinstance(response, dict):
-        rollback_block_height()
+        rollback_block()
         await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
     elif check_error_response(response):
-        rollback_block_height()
+        rollback_block()
         await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
     elif response[tx_hash]['status'] == hex(1):
+        set_prev_block_hash(block_hash)
         await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
     else:
-        rollback_block_height()
+        rollback_block()
         await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
 
     tx_result = response[tx_hash]
@@ -540,10 +557,12 @@ async def init_icon_inner_task(conf: dict):
     tx_hash = create_hash(b'genesis')
     tx_timestamp_us = int(time.time() * 10 ** 6)
     request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
+
+    genesis_data = conf['genesisData']
     tx = {
         'method': '',
         'params': request_params,
-        'accounts': conf['accounts']
+        'genesisData': {'accounts': genesis_data['accounts']}
     }
 
     make_request = {'transactions': [tx]}
@@ -560,17 +579,18 @@ async def init_icon_inner_task(conf: dict):
     precommit_request = {'blockHeight': hex(block_height),
                          'blockHash': block_hash}
 
-    response = await get_icon_inner_task().genesis_invoke(make_request)
+    response = await get_icon_inner_task().invoke(make_request)
     if not isinstance(response, dict):
-        rollback_block_height()
+        rollback_block()
         await get_icon_inner_task().remove_precommit_state(precommit_request)
     elif check_error_response(response):
-        rollback_block_height()
+        rollback_block()
         await get_icon_inner_task().remove_precommit_state(precommit_request)
     elif response[tx_hash]['status'] == hex(1):
+        set_prev_block_hash(block_hash)
         await get_icon_inner_task().write_precommit_state(precommit_request)
     else:
-        rollback_block_height()
+        rollback_block()
         await get_icon_inner_task().remove_precommit_state(precommit_request)
 
     tx_result = response[tx_hash]
