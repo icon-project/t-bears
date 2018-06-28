@@ -162,8 +162,8 @@ class TestTBears(unittest.TestCase):
         response = response.json()
 
         # send transaction
-        json_content = get_request_json_of_send_icx(fr=str(god_address),
-                                                    to=str(treasary_address), value=10 * 10 ** 18)
+        json_content = get_request_json_of_send_icx(fr=Address.from_string(god_address),
+                                                    to=Address.from_string(treasary_address), value=10 * 10 ** 18)
         tx_hash = send_req('icx_sendTransaction', json_content).json()['result']
 
         payload = get_request_of_icx_getTransactionResult(tx_hash)
