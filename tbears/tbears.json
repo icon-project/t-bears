@@ -19,5 +19,14 @@
         "level": "debug",
         "filePath": "./tbears.log",
         "outputType": "console|file"
+    },
+    "deploy": {
+        "network": "mainnet",
+        "scoreAddress": "cx0000000000000000000000000000000000000000",
+        "params": {
+
+        },
+        "keystorePath": "./keystore",
+        "stepLimit": "0x12345"
     }
 }

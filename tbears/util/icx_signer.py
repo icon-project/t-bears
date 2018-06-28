@@ -13,24 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import base64
+import hashlib
 import os
 
 from eth_keyfile import extract_key_from_keyfile
 from secp256k1 import PrivateKey
+
+from tbears.tbears_exception import KeyStoreException
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, os.pardir, os.pardir))
 
 
 def key_from_key_store(file_path, password):
-    with open(file_path, 'rb') as file:
-        private_key = extract_key_from_keyfile(file, password)
-    return private_key
+    try:
+        with open(file_path, 'rb') as file:
+            private_key = extract_key_from_keyfile(file, password)
+    except ValueError:
+        print('check your password.')
+        raise KeyStoreException
+    except:
+        print('check your keystore file.')
+        raise KeyStoreException
+    else:
+        return private_key
 
 
 class IcxSigner:
-    def __init__(self, file_path, password):
-        self._private_key = key_from_key_store(file_path, password)
+    def __init__(self, private_key: bytes):
+        self._private_key = private_key
         self._private_key_object = PrivateKey(self._private_key)
 
     def sign_recoverable(self, msg_hash):
@@ -43,3 +54,10 @@ class IcxSigner:
         recoverable_sig = bytes(bytearray(signature) + recovery_id.to_bytes(1, 'big'))
         return base64.b64encode(recoverable_sig)
 
+    @property
+    def public_key(self):
+        return self._private_key_object.pubkey.serialize(compressed=False)
+
+    @property
+    def address(self):
+        return hashlib.sha3_256(self.public_key[1:]).digest()[-20:]

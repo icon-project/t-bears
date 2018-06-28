@@ -34,7 +34,10 @@ tbears commands:
     run <project> : Run the score. | --install <config param path> | --update <config param path>
     stop : Stop the score.
     clear : Delete the score, both .score and .db directory.
-    samples : Create two score samples (sampleCrowdSale, tokentest)
+    deploy <project> <deploy_config_path> <keystore_file_path>:
+    deploy config file is has score address(needed when update score),
+    network(mainnet or testnet), params(optional). params will be used in on_install or on_update method in your SCORE.
+    samples : Create two score samples (sample_crowdSale, sample_token)
         """)
 
     parser.add_argument(
@@ -42,13 +45,16 @@ tbears commands:
         nargs='*',
         help='init, run, stop, clear')
     parser.add_argument(
-        '--install', dest='install', help='install config json file path'
+        '--install', '-i', dest='install', help='install config json file path'
     )
     parser.add_argument(
-        '--update', dest='update', help='update config json file path'
+        '--update', '-u', dest='update', help='update config json file path'
     )
     parser.add_argument(
-        '--db', dest='tbears_db', help='tbears database path'
+        '--keystore', '-k', dest='keystore_path', help='keystore file path'
+    )
+    parser.add_argument(
+        '--config', '-c', dest='config_file', help='tbears config path'
     )
 
     args = parser.parse_args()
@@ -66,8 +72,8 @@ tbears commands:
     elif args.update:
         config_options = [args.update, 'update', None]
 
-    if args.tbears_db:
-        config_options[2] = args.tbears_db
+    if args.config_file:
+        config_options[2] = args.config_file
 
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])
@@ -82,7 +88,9 @@ tbears commands:
     elif command == 'samples':
         result = make_SCORE_samples()
     elif command == 'deploy' and len(args.command) == 2:
-        result = deploy_SCORE(args.command[1])
+        password = input("input your key store password: ")
+        result = deploy_SCORE(args.command[1], config_path=args.config_file, key_store_path=args.keystore_path,
+                              password=password)
     elif command == 'test' and len(args.command) == 2:
         result = test_SCORE(args.command[1])
     else:

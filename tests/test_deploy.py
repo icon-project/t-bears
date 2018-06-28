@@ -45,6 +45,16 @@ class TestDeploy(unittest.TestCase):
 
         mz.extract('test_in_memory_zip')
 
+        with zipfile.ZipFile('testt.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
+            for root, dirs, files in os.walk(DEPLOY_TEST_DIRECTORY):
+                for file in files:
+                    zf.write(os.path.join(root, file))
+
+        with open('testt.zip', mode='rb') as zf:
+            zip_content = zf.read()
+
+        self.assertTrue(zip_content == mz._in_memory.getvalue())
+
         for root, dirs, files in os.walk('test_in_memory_zip'):
             for file in files:
                 with open(f'{root}/{file}', mode='rb') as f:
@@ -59,3 +69,6 @@ class TestDeploy(unittest.TestCase):
 
         if os.path.exists("test_in_memory_zip"):
             shutil.rmtree('test_in_memory_zip')
+
+        if os.path.exists('testt.zip'):
+            os.remove('testt.zip')

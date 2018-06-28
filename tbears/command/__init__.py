@@ -22,13 +22,17 @@ import logging
 import socket
 from enum import IntEnum
 
+from tbears.util import get_tx_phrase, get_network_url, PROJECT_ROOT_PATH
+from tbears.util.icx_signer import key_from_key_store, IcxSigner
 from tbears.util.in_memory_zip import InMemoryZip
-from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
+from tbears.util.test_client import send_req
+from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
+    KeyStoreException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
-    delete_score_info, get_init_template, get_sample_crowd_sale_contents
+    delete_score_info, get_init_template, get_sample_crowd_sale_contents, get_deploy_payload, get_deploy_config
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
-DIR_PATH = os.path.abspath(os.path.dirname(__file__))
+
 JSON_RPC_SERVER_URL = "http://localhost:9000/api/v3"
 
 
@@ -41,7 +45,8 @@ class ExitCode(IntEnum):
     DELETE_TREE_ERROR = 5
     SCORE_AlREADY_EXISTS = 6
     PROJECT_AND_CLASS_NAME_EQUAL = 7
-    CONFIG_FILE_PATH_IS_WRONG = 8
+    CONFIG_FILE_ERROR = 8
+    KEY_STORE_ERROR = 9
 
 
 def init_SCORE(project: str, score_class: str) -> int:
@@ -152,13 +157,42 @@ def make_SCORE_samples():
     return ExitCode.SUCCEEDED
 
 
-def deploy_SCORE(project: str) -> int:
-    memory_zip = InMemoryZip()
-    memory_zip.zip_in_memory(project)
-    install_json = make_install_json_payload(project)
-    install_json['params']['data']['contentType'] = 'application/zip'
-    install_json['params']['data']['content'] = f'0x{memory_zip.data.hex()}'
-    print(install_json)
+def deploy_SCORE(project: str, config_path: str=None, key_store_path: str=None, password: str="") -> int:
+    try:
+        if config_path is None:
+            config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
+        deploy_config = get_deploy_config(config_path)
+        url = get_network_url(deploy_config['network'])
+        score_address = f'cx{"0"*40}' if not deploy_config.get('scoreAddress', 0) else deploy_config['scoreAddress']
+        step_limit = hex(12345) if not deploy_config.get('stepLimit', 0) else deploy_config['stepLimit']
+
+        if key_store_path is None:
+            key_store_path = deploy_config['keystorePath']
+        private_key = key_from_key_store(key_store_path, password)
+        signer = IcxSigner(private_key)
+
+        memory_zip = InMemoryZip()
+        memory_zip.zip_in_memory(project)
+        deploy_json = get_deploy_payload()
+        deploy_json['data']['content'] = f'0x{memory_zip.data.hex()}'
+        msg_phrase = f'IcxSendTransaction.{get_tx_phrase(deploy_json)}'
+        msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest()
+
+        signature = signer.sign(msg_hash)
+        deploy_json['signature'] = signature.decode()
+        deploy_json['stepLimit'] = step_limit
+        deploy_json['to'] = score_address
+        deploy_json['from'] = f'hx{signer.address.hex()}'
+
+        send_req('icx_sendTransaction', deploy_json)
+
+    except TbearsConfigFileException:
+        return ExitCode.CONFIG_FILE_ERROR.value
+    except KeyError:
+        return ExitCode.CONFIG_FILE_ERROR.value
+    except KeyStoreException:
+        return ExitCode.KEY_STORE_ERROR.value
+
     return ExitCode.SUCCEEDED
 
 
@@ -170,7 +204,7 @@ def test_SCORE(project: str) -> int:
     return ExitCode.SUCCEEDED
 
 
-def __start_server(tbears_db_path: str):
+def __start_server(tbears_config_path: str):
     logging.debug('start_server() start')
 
     root_path = os.path.abspath(
@@ -180,8 +214,8 @@ def __start_server(tbears_db_path: str):
     python_module_string = f'{root_path_directory_name}.server.jsonrpc_server'
 
     # Run jsonrpc_server on background mode
-    if tbears_db_path:
-        subprocess.Popen([sys.executable, '-m', python_module_string, tbears_db_path], close_fds=True)
+    if tbears_config_path:
+        subprocess.Popen([sys.executable, '-m', python_module_string, tbears_config_path], close_fds=True)
     else:
         subprocess.Popen([sys.executable, '-m', python_module_string], close_fds=True)
 
@@ -237,13 +271,13 @@ def __get_param_info(path: str):
             contents = param_json.read()
     except IsADirectoryError:
         print(f'{path} is a directory')
-        sys.exit(ExitCode.CONFIG_FILE_PATH_IS_WRONG.value)
+        sys.exit(ExitCode.CONFIG_FILE_ERROR.value)
     except FileNotFoundError:
         print(f'{path} not found.')
-        sys.exit(ExitCode.CONFIG_FILE_PATH_IS_WRONG.value)
+        sys.exit(ExitCode.CONFIG_FILE_ERROR.value)
     except PermissionError:
         print(f'can not access {path}')
-        sys.exit(ExitCode.CONFIG_FILE_PATH_IS_WRONG.value)
+        sys.exit(ExitCode.CONFIG_FILE_ERROR.value)
     else:
         return json.loads(contents)
 
