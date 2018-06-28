@@ -269,6 +269,8 @@ class MockDispatcher:
                              'blockHash': block_hash}
 
         if MQ_TEST:
+            response = await get_icon_score_stub().async_task().invoke(make_request)
+            response = response['txResults']
             if not isinstance(response, dict):
                 rollback_block()
                 await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
@@ -284,6 +286,7 @@ class MockDispatcher:
             return response_to_json_invoke(response)
         else:
             response = await get_icon_inner_task().invoke(make_request)
+            response = response['txResults']
             if not isinstance(response, dict):
                 rollback_block()
                 await get_icon_inner_task().remove_precommit_state(precommit_request)
@@ -580,6 +583,7 @@ async def init_icon_inner_task(conf: dict):
                          'blockHash': block_hash}
 
     response = await get_icon_inner_task().invoke(make_request)
+    response = response['txResults']
     if not isinstance(response, dict):
         rollback_block()
         await get_icon_inner_task().remove_precommit_state(precommit_request)

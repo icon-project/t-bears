@@ -7,7 +7,10 @@ from tbears import __version__
 requires = [
     'requests==2.18.4',
     'jsonrpcserver==3.5.4',
-    'sanic == 0.7.0',
+    'sanic==0.7.0',
+    'plyvel==1.0.4',
+    'secp256k1==0.13.2',
+    'eth-keyfile==0.5.1',
 ]
 
 

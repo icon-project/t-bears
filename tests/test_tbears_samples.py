@@ -158,21 +158,18 @@ class TestTBears(unittest.TestCase):
 
     def test_token(self):
         init_SCORE('sample_token', 'SampleToken')
-        result, _ = run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
-
-        # hello!
-        payload = get_request_json_of_call_hello()
-        res = post(self.url, payload).json()
-        # error!
+        result, response = run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        response = response.json()
 
         # send transaction
-        json_content = get_request_json_of_send_icx(fr=Address.from_string(god_address),
-                                                    to=Address.from_string(treasary_address), value=10 * 10 ** 18)
+        json_content = get_request_json_of_send_icx(fr=str(god_address),
+                                                    to=str(treasary_address), value=10 * 10 ** 18)
         tx_hash = send_req('icx_sendTransaction', json_content).json()['result']
 
         payload = get_request_of_icx_getTransactionResult(tx_hash)
         json_content = {'txHash': tx_hash}
-        res = send_req('icx_getTransactionResult', json_content).json()['result']['status']
+        res = send_req('icx_getTransactionResult', json_content).json()
+        res = res['result']['status']
         self.assertEqual(res, hex(1))
 
         # icx_sendTransaction error check

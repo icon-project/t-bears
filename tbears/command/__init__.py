@@ -184,7 +184,7 @@ def deploy_SCORE(project: str, config_path: str=None, key_store_path: str=None, 
         deploy_json['to'] = score_address
         deploy_json['from'] = f'hx{signer.address.hex()}'
 
-        send_req('icx_sendTransaction', deploy_json)
+        send_req('icx_sendTransaction', deploy_json, "127.0.0.1/api/v3")
 
     except TbearsConfigFileException:
         return ExitCode.CONFIG_FILE_ERROR.value
@@ -227,8 +227,6 @@ def __embed_SCORE_on_server(project: str, params: dict, *options) -> dict:
     :param project: Project directory name.
     :param option: install config path or update config path will be given.
     """
-    contract_address = None
-
     project_dict = make_install_json_payload(project)
 
     if options[1] == 'update':
