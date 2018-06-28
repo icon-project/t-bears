@@ -220,7 +220,7 @@ class SampleCrowdSale(IconScoreBase):
         self.__sample_token_score = self.create_interface_score(self.__addr_token_score.get(), SampleTokenInterface)
 
     def on_install(self, funding_goal_in_icx: int = 100, duration_in_minutes: int = 1,
-                   icx_cost_of_each_token: int = 1) -> None:
+                   icx_cost_of_each_token: int = 1, token_address: str='cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf') -> None:
         super().on_install()
 
         one_icx = 1 * 10 ** 18
@@ -230,7 +230,7 @@ class SampleCrowdSale(IconScoreBase):
 
         # genesis params
         if_successful_send_to = self.msg.sender
-        addr_token_score = Address.from_string('cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf')
+        addr_token_score = Address.from_string(token_address)
 
         self.__addr_beneficiary.set(if_successful_send_to)
         self.__addr_token_score.set(addr_token_score)

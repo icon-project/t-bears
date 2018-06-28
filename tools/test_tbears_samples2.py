@@ -13,15 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import shutil
 import unittest
 import os
 
 from iconservice import Address
 
-from tbears.util import post
 
-from tbears.command import run_SCORE, clear_SCORE, make_SCORE_samples, stop_SCORE, init_SCORE
+from tbears.command import run_SCORE, make_SCORE_samples, deploy_SCORE
 from tbears.util.test_client import send_req
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
@@ -129,10 +127,8 @@ def get_request_json_of_token_total_supply(token_addr: str) -> dict:
     }
 
 
+token_owner_address = "hx4873b94352c8c1f3b2f09aaeccea31ce9e90bd31"
 god_address = "hx0000000000000000000000000000000000000000"
-token_owner_address = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-token_score_address = "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf"
-crowd_sale_score_address = "cx8c814aa96fefbbb85131f87f6e0cb7878a95c1d3"
 test_addr = "hxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 treasary_address = "hx1000000000000000000000000000000000000000"
 
@@ -141,12 +137,26 @@ class TestTBears(unittest.TestCase):
     def setUp(self):
         self.url = "http://localhost:9000/api/v3"
 
-    def test_score_methods(self):
+    def test_call_score_methods(self):
+        make_SCORE_samples()
+
+        exit_code, response = deploy_SCORE('sample_token', key_store_path=os.path.join(DIRECTORY_PATH, 'keystore'),
+                                           password='qwer1234%')
+
+        tx_hash = response.json()['result']
+        token_score_address = send_req('icx_getTransactionResult', {'txHash': tx_hash}).json()['result']['scoreAddress']
+
+        exit_code, response = deploy_SCORE('sample_crowd_sale', key_store_path=os.path.join(DIRECTORY_PATH, 'keystore'),
+                                           password='qwer1234%', params={'token_address': token_score_address})
+        tx_hash = response.json()['result']
+        crowd_sale_score_address = send_req('icx_getTransactionResult',
+                                            {'txHash': tx_hash}).json()['result']['scoreAddress']
+
         # seq1
         # genesis -> hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(token_owner) 10icx
         payload = get_request_json_of_send_icx(fr=Address.from_string(god_address),
                                                to=Address.from_string(token_owner_address),
-                                               value=10*10**18)
+                                               value=10 * 10 ** 18)
 
         res = send_req('icx_sendTransaction', payload).json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=res)
@@ -172,7 +182,7 @@ class TestTBears(unittest.TestCase):
         payload = get_request_json_of_transfer_token(fr=Address.from_string(token_owner_address),
                                                      to=Address.from_string(token_score_address),
                                                      addr_to=Address.from_string(crowd_sale_score_address),
-                                                     value=1000*10**18)
+                                                     value=1000 * 10 ** 18)
         res = send_req('icx_sendTransaction', payload).json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=res)
         res = send_req('icx_getTransactionResult', payload).json()['result']['status']
@@ -193,10 +203,11 @@ class TestTBears(unittest.TestCase):
 
         # seq7
         # transfer icx to CrowdSale. value : 2*10**18
-        payload = get_request_json_of_send_icx(fr=token_owner_address, to=crowd_sale_score_address,
-                                               value=hex(2*10**18))
-        res = send_req('icx_sendTransaction', payload).json()['result']
-        payload = get_request_of_icx_getTransactionResult(tx_hash=res)
+        payload = get_request_json_of_send_icx(fr=Address.from_string(token_owner_address),
+                                               to=Address.from_string(crowd_sale_score_address),
+                                               value=hex(2 * 10 ** 18))
+        tx_hash = send_req('icx_sendTransaction', payload).json()['result']
+        payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
         res = send_req('icx_getTransactionResult', payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
@@ -218,7 +229,7 @@ class TestTBears(unittest.TestCase):
         # transfer icx to CrowdSale. value : 8*10**18
         payload = get_request_json_of_send_icx(fr=Address.from_string(token_owner_address),
                                                to=Address.from_string(crowd_sale_score_address),
-                                               value=8*10**18)
+                                               value=8 * 10 ** 18)
         res = send_req('icx_sendTransaction', payload).json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=res)
         res = send_req('icx_getTransactionResult', payload).json()['result']['status']
@@ -228,7 +239,7 @@ class TestTBears(unittest.TestCase):
         # genesis -> test_address. value 90*10**18
         payload = get_request_json_of_send_icx(fr=Address.from_string(god_address),
                                                to=Address.from_string(test_addr),
-                                               value=90*10**18)
+                                               value=90 * 10 ** 18)
         res = send_req('icx_sendTransaction', payload).json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=res)
         res = send_req('icx_getTransactionResult', payload).json()['result']['status']
@@ -238,7 +249,7 @@ class TestTBears(unittest.TestCase):
         # transfer icx to CrowdSale. value : 90*10**18
         payload = get_request_json_of_send_icx(fr=Address.from_string(test_addr),
                                                to=Address.from_string(crowd_sale_score_address),
-                                               value=90*10**18)
+                                               value=90 * 10 ** 18)
         res = send_req('icx_sendTransaction', payload).json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=res)
         res = send_req('icx_getTransactionResult', payload).json()['result']['status']
