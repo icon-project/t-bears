@@ -122,12 +122,15 @@ def make_install_json_payload(project: str) -> dict:
         "method": "icx_sendTransaction",
         "id": 111,
         "params": {
+            "version": "0x3",
             "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "to": f'cx{"0"*40}',
+            "stepLimit": "0x12345",
             "fee": "0x2386f26fc10000",
             "timestamp": str(int(time.time() * 10 ** 6)),
             "nonce": "0x7362",
             "txHash": "0x4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
-            "dataType": "install",
+            "dataType": "deploy",
             "data": {
                 "contentType": "application/tbears",
                 "content": path
