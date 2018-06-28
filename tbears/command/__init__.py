@@ -184,7 +184,7 @@ def deploy_SCORE(project: str, config_path: str=None, key_store_path: str=None, 
         deploy_json['to'] = score_address
         deploy_json['from'] = f'hx{signer.address.hex()}'
 
-        send_req('icx_sendTransaction', deploy_json, "127.0.0.1/api/v3")
+        send_req('icx_sendTransaction', deploy_json, "http://localhost:9000/api/v3")
 
     except TbearsConfigFileException:
         return ExitCode.CONFIG_FILE_ERROR.value
