@@ -306,7 +306,7 @@ def get_deploy_payload():
         "from": "",
         "to": "",
         "stepLimit": "0x12345",
-        "timestamp": "0x563a6cf330136",
+        "timestamp": f'{hex(int(time.time() * 10 ** 6))}',
         "nonce": "0x1",
         "dataType": "deploy",
         "data": {
