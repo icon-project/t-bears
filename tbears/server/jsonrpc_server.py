@@ -216,7 +216,6 @@ class MockDispatcher:
         try:
             req = json.loads(request.body.decode())
             req["params"] = req.get("params", {})
-            req["params"]["method"] = request.json["method"]
         except JSONDecodeError:
             raise GenericJsonRpcServerError(
                 code=-32700,
