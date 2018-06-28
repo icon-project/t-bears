@@ -175,11 +175,11 @@ def deploy_SCORE(project: str, config_path: str=None, key_store_path: str=None, 
         memory_zip.zip_in_memory(project)
         deploy_json = get_deploy_payload()
         deploy_json['data']['content'] = f'0x{memory_zip.data.hex()}'
-        msg_phrase = f'IcxSendTransaction.{get_tx_phrase(deploy_json)}'
-        msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest()
         deploy_json['stepLimit'] = step_limit
         deploy_json['to'] = score_address
         deploy_json['from'] = f'hx{signer.address.hex()}'
+        msg_phrase = f'IcxSendTransaction.{get_tx_phrase(deploy_json)}'
+        msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest()
 
         signature = signer.sign(msg_hash)
         deploy_json['signature'] = signature.decode()
