@@ -308,7 +308,6 @@ def get_deploy_payload():
         "stepLimit": "0x12345",
         "timestamp": "0x563a6cf330136",
         "nonce": "0x1",
-        "signature": "",
         "dataType": "deploy",
         "data": {
             "contentType": "application/zip",
