@@ -89,8 +89,8 @@ tbears commands:
         result = make_SCORE_samples()
     elif command == 'deploy' and len(args.command) == 2:
         password = input("input your key store password: ")
-        result = deploy_SCORE(args.command[1], config_path=args.config_file, key_store_path=args.keystore_path,
-                              password=password)
+        result, _ = deploy_SCORE(args.command[1], config_path=args.config_file, key_store_path=args.keystore_path,
+                                 password=password)
     elif command == 'test' and len(args.command) == 2:
         result = test_SCORE(args.command[1])
     else:

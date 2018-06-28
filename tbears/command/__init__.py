@@ -32,7 +32,6 @@ from ..util import post, make_install_json_payload, make_exit_json_payload, \
     delete_score_info, get_init_template, get_sample_crowd_sale_contents, get_deploy_payload, get_deploy_config
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
-
 JSON_RPC_SERVER_URL = "http://localhost:9000/api/v3"
 
 
@@ -131,7 +130,6 @@ def clear_SCORE() -> int:
 
 
 def make_SCORE_samples():
-
     tokentest_package_json_dict = get_package_json_dict("sample_token", "SampleToken")
     tokentest_package_json_contents = json.dumps(tokentest_package_json_dict, indent=4)
     tokentest_py_contents = get_score_main_template("SampleToken")
@@ -157,7 +155,8 @@ def make_SCORE_samples():
     return ExitCode.SUCCEEDED
 
 
-def deploy_SCORE(project: str, config_path: str=None, key_store_path: str=None, password: str="") -> int:
+def deploy_SCORE(project: str, config_path: str = None, key_store_path: str = None, password: str = "",
+                 params: dict={}) -> object:
     try:
         if config_path is None:
             config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
@@ -181,10 +180,16 @@ def deploy_SCORE(project: str, config_path: str=None, key_store_path: str=None, 
         msg_phrase = f'IcxSendTransaction.{get_tx_phrase(deploy_json)}'
         msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest()
 
+        if params:
+            deploy_json['data']['params'] = params
+
+        msg_phrase = f'IcxSendTransaction.{get_tx_phrase(deploy_json)}'
+        msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest()
+
         signature = signer.sign(msg_hash)
         deploy_json['signature'] = signature.decode()
 
-        send_req('icx_sendTransaction', deploy_json, "http://localhost:9000/api/v3")
+        response = send_req('icx_sendTransaction', deploy_json, "http://localhost:9000/api/v3")
 
     except TbearsConfigFileException:
         return ExitCode.CONFIG_FILE_ERROR.value
@@ -193,7 +198,7 @@ def deploy_SCORE(project: str, config_path: str=None, key_store_path: str=None, 
     except KeyStoreException:
         return ExitCode.KEY_STORE_ERROR.value
 
-    return ExitCode.SUCCEEDED
+    return ExitCode.SUCCEEDED, response
 
 
 def test_SCORE(project: str) -> int:
@@ -210,7 +215,7 @@ def __start_server(tbears_config_path: str):
     root_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '../'))
 
-    root_path_directory_name = root_path[root_path.rfind('/')+1:]
+    root_path_directory_name = root_path[root_path.rfind('/') + 1:]
     python_module_string = f'{root_path_directory_name}.server.jsonrpc_server'
 
     # Run jsonrpc_server on background mode
