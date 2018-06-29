@@ -16,6 +16,7 @@ import json
 import time
 
 import requests
+from iconservice import Logger
 
 
 def send_req(method: str, params: dict, url: str=None):
@@ -31,8 +32,13 @@ def send_req(method: str, params: dict, url: str=None):
         "id": 1,
         "params": convert_dict(params)
     }
-    res = requests.post(url, json.dumps(json_content))
-    return res
+    try:
+        res = requests.post(url, json.dumps(json_content))
+    except Exception as e:
+        print(f'\n##############{str(e)}################\n')
+    else:
+        print(f'\n###############response : {res.json()}###############')
+        return res
 
 
 def convert_dict(dict_value) -> dict:
