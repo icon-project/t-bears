@@ -12,12 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import hashlib
 import json
 import os
 import shutil
 import time
 
 import requests
+from tbears.util.icx_signer import IcxSigner
+
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException
 
 
@@ -366,3 +369,10 @@ def get_network_url(network_name: str) -> str:
         return "https://wallet.icon.foundation/api/"
     else:
         return "https://testwallet.icon.foundation/api/"
+
+
+def put_signature_to_params(params: dict, signer: 'IcxSigner'):
+    phrase = f'icx_sendTransaction.{get_tx_phrase(params)}'
+    msg_hash = hashlib.sha3_256(phrase.encode()).digest()
+    signature = signer.sign(msg_hash)
+    params['signature'] = signature.decode()

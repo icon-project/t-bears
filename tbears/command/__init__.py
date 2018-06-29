@@ -156,7 +156,7 @@ def make_SCORE_samples():
 
 
 def deploy_SCORE(project: str, config_path: str = None, key_store_path: str = None, password: str = "",
-                 params: dict={}) -> object:
+                 params: dict=None) -> object:
     try:
         if config_path is None:
             config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
@@ -177,7 +177,7 @@ def deploy_SCORE(project: str, config_path: str = None, key_store_path: str = No
         deploy_json['stepLimit'] = step_limit
         deploy_json['to'] = score_address
         deploy_json['from'] = f'hx{signer.address.hex()}'
-        msg_phrase = f'IcxSendTransaction.{get_tx_phrase(deploy_json)}'
+        msg_phrase = f'icx_sendTransaction.{get_tx_phrase(deploy_json)}'
         msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest()
 
         if params:
