@@ -77,6 +77,8 @@ tbears commands:
 
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])
+        if result is 1:  # success
+            print('init the score successfully.')
     elif command == 'run' and len(args.command) == 2:
         result, _ = run_SCORE(args.command[1], *config_options)
     elif command == 'stop':
@@ -87,6 +89,8 @@ tbears commands:
             print('Cleared the score successfully.')
     elif command == 'samples':
         result = make_SCORE_samples()
+        if result is 1:  # success
+            print('Made samples successfully.')
     elif command == 'deploy' and len(args.command) == 2:
         password = input("input your key store password: ")
         result, _ = deploy_SCORE(args.command[1], config_path=args.config_file, key_store_path=args.keystore_path,

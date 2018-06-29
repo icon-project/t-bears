@@ -16,7 +16,6 @@ import json
 import time
 
 import requests
-from iconservice import Logger
 
 
 def send_req(method: str, params: dict, url: str=None):

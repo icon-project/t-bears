@@ -17,6 +17,8 @@ import io
 import os
 import zipfile
 
+from tbears.tbears_exception import ZipException
+
 
 class InMemoryZip:
 
@@ -29,20 +31,23 @@ class InMemoryZip:
         return self._in_memory.read()
 
     def zip_in_memory(self, path):
-        with zipfile.ZipFile(self._in_memory, 'a', zipfile.ZIP_DEFLATED, False) as zf:
-            if os.path.isfile(path):
-                zf.write(path)
-            else:
-                for root, folders, files in os.walk(path):
-                    if root.find('__pycache__') != -1:
-                        continue
-                    if root.find('/.') != -1:
-                        continue
-                    for file in files:
-                        if file.startswith('.'):
+        try:
+            with zipfile.ZipFile(self._in_memory, 'a', zipfile.ZIP_DEFLATED, False) as zf:
+                if os.path.isfile(path):
+                    zf.write(path)
+                else:
+                    for root, folders, files in os.walk(path):
+                        if root.find('__pycache__') != -1:
                             continue
-                        full_path = os.path.join(root, file)
-                        zf.write(full_path)
+                        if root.find('/.') != -1:
+                            continue
+                        for file in files:
+                            if file.startswith('.'):
+                                continue
+                            full_path = os.path.join(root, file)
+                            zf.write(full_path)
+        except:
+            raise ZipException
 
     def extract(self, path):
         with zipfile.ZipFile(self._in_memory) as z:
