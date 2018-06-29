@@ -36,3 +36,13 @@ class TbearsConfigFileException(TbearsBaseException):
 
 class KeyStoreException(TbearsBaseException):
     pass
+
+
+class ZipException(TbearsBaseException):
+    """"Error while write zip in memory"""
+    pass
+
+
+class FillDeployPaylodException(TbearsBaseException):
+    """Error while fill deploy payload"""
+    pass

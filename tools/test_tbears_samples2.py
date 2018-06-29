@@ -15,13 +15,14 @@
 import time
 import unittest
 import os
+from time import sleep
 
 from iconservice import Address
 
 from tbears.util import put_signature_to_params
 from tbears.util.icx_signer import IcxSigner, key_from_key_store
 
-from tbears.command import run_SCORE, make_SCORE_samples, deploy_SCORE, clear_SCORE
+from tbears.command import make_SCORE_samples, deploy_SCORE
 from tbears.util.test_client import send_req
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
@@ -152,15 +153,9 @@ tester_signer = IcxSigner(private_key_tester)
 
 
 class TestTBears(unittest.TestCase):
-    def setUp(self):
-        self.url = "http://localhost:9000/api/v3"
-
-    def tearDown(self):
-        clear_SCORE()
 
     def test_call_score_methods(self):
         make_SCORE_samples()
-        run_SCORE('sample_token', None, None, None)
 
         exit_code, response = deploy_SCORE('sample_token', key_store_path=os.path.join(DIRECTORY_PATH, 'keystore'),
                                            password='qwer1234%')
@@ -191,8 +186,8 @@ class TestTBears(unittest.TestCase):
         resp_json = resp.json()
         tx_hash = resp_json['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
-        put_signature_to_params(payload, tester_signer)
 
+        sleep(3)
         resp = send_req('icx_getTransactionResult', payload)
         resp_json = resp.json()
         result = resp_json['result']
@@ -227,6 +222,7 @@ class TestTBears(unittest.TestCase):
         resp_json = resp.json()
         result = resp_json['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=result)
+        sleep(3)
         resp = send_req('icx_getTransactionResult', payload)
         resp_json = resp.json()
         result = resp_json['result']
@@ -258,6 +254,7 @@ class TestTBears(unittest.TestCase):
         put_signature_to_params(payload, token_owner_signer)
         tx_hash = send_req('icx_sendTransaction', payload).json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
+        sleep(3)
         resp = send_req('icx_getTransactionResult', payload)
         resp_json = resp.json()
         result = resp_json['result']
@@ -292,6 +289,7 @@ class TestTBears(unittest.TestCase):
         resp_json = resp.json()
         result = resp_json['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=result)
+        sleep(3)
         resp = send_req('icx_getTransactionResult', payload)
         resp_json = resp.json()
         result = resp_json['result']
@@ -308,6 +306,7 @@ class TestTBears(unittest.TestCase):
         resp_json = resp.json()
         result = resp_json['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=result)
+        sleep(3)
         resp = send_req('icx_getTransactionResult', payload)
         resp_json = resp.json()
         result = resp_json['result']
@@ -322,6 +321,7 @@ class TestTBears(unittest.TestCase):
         put_signature_to_params(payload, tester_signer)
         res = send_req('icx_sendTransaction', payload).json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=res)
+        sleep(3)
         res = send_req('icx_getTransactionResult', payload).json()['result']['status']
         self.assertEqual(res, hex(1))
 
@@ -334,6 +334,7 @@ class TestTBears(unittest.TestCase):
         resp_json = resp.json()
         result = resp_json['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=result)
+        sleep(3)
         resp = send_req('icx_getTransactionResult', payload)
         resp_json = resp.json()
         result = resp_json['result']
@@ -348,6 +349,7 @@ class TestTBears(unittest.TestCase):
         resp_json = resp.json()
         result = resp_json['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=result)
+        sleep(3)
         resp = send_req('icx_getTransactionResult', payload)
         resp_json = resp.json()
         result = resp_json['result']

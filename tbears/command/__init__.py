@@ -22,7 +22,8 @@ import logging
 import socket
 from enum import IntEnum
 
-from tbears.util import get_tx_phrase, get_network_url, PROJECT_ROOT_PATH
+from tbears.util import get_tx_phrase, get_network_url, PROJECT_ROOT_PATH, fill_deploy_payload, \
+    fill_optional_deploy_field
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
 from tbears.util.in_memory_zip import InMemoryZip
 from tbears.util.test_client import send_req
@@ -46,6 +47,7 @@ class ExitCode(IntEnum):
     PROJECT_AND_CLASS_NAME_EQUAL = 7
     CONFIG_FILE_ERROR = 8
     KEY_STORE_ERROR = 9
+    DEPLOY_ERROR = 10
 
 
 def init_SCORE(project: str, score_class: str) -> int:
@@ -87,6 +89,10 @@ def run_SCORE(project: str, *options) -> tuple:
     :param options: install config path or update config path will be given.
     :return: ExitCode, Succeeded
     """
+    if os.path.isdir(project) is False:
+        print(f'check score path.')
+        return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value
+
     params = {}
 
     if options[1]:
@@ -156,57 +162,50 @@ def make_SCORE_samples():
 
 
 def deploy_SCORE(project: str, config_path: str = None, key_store_path: str = None, password: str = "",
-                 params: dict=None) -> object:
+                 params: dict = None) -> object:
     try:
         if config_path is None:
             config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
         deploy_config = get_deploy_config(config_path)
-        url = get_network_url(deploy_config['network'])
-        score_address = f'cx{"0"*40}' if not deploy_config.get('scoreAddress', 0) else deploy_config['scoreAddress']
-        step_limit = hex(12345) if not deploy_config.get('stepLimit', 0) else deploy_config['stepLimit']
 
         if key_store_path is None:
             key_store_path = deploy_config['keystorePath']
         private_key = key_from_key_store(key_store_path, password)
+
         signer = IcxSigner(private_key)
+        url = get_network_url(deploy_config['network'])
+        score_address = f'cx{"0"*40}' if not deploy_config.get('scoreAddress', 0) else deploy_config['scoreAddress']
+        step_limit = hex(12345) if not deploy_config.get('stepLimit', 0) else deploy_config['stepLimit']
 
-        memory_zip = InMemoryZip()
-        memory_zip.zip_in_memory(project)
         deploy_json = get_deploy_payload()
-        deploy_json['data']['content'] = f'0x{memory_zip.data.hex()}'
-        deploy_json['stepLimit'] = step_limit
-        deploy_json['to'] = score_address
-        deploy_json['from'] = f'hx{signer.address.hex()}'
-        msg_phrase = f'icx_sendTransaction.{get_tx_phrase(deploy_json)}'
-        msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest()
 
-        if params:
-            deploy_json['data']['params'] = params
-
-        msg_phrase = f'IcxSendTransaction.{get_tx_phrase(deploy_json)}'
-        msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest()
-
-        signature = signer.sign(msg_hash)
-        deploy_json['signature'] = signature.decode()
+        fill_optional_deploy_field(deploy_json, step_limit, score_address, params)
+        fill_deploy_payload(deploy_json, project, signer)
 
         response = send_req('icx_sendTransaction', deploy_json, "http://localhost:9000/api/v3")
 
     except TbearsConfigFileException:
-        return ExitCode.CONFIG_FILE_ERROR.value
+        return ExitCode.CONFIG_FILE_ERROR.value, None
     except KeyError:
-        return ExitCode.CONFIG_FILE_ERROR.value
+        return ExitCode.CONFIG_FILE_ERROR.value, None
     except KeyStoreException:
-        return ExitCode.KEY_STORE_ERROR.value
-
-    return ExitCode.SUCCEEDED, response
+        return ExitCode.KEY_STORE_ERROR.value, None
+    except FillDeployPaylodException:
+        return ExitCode.DEPLOY_ERROR.value, None
+    else:
+        print('result : ', response.json())
+        return ExitCode.SUCCEEDED, response
 
 
 def test_SCORE(project: str) -> int:
+    if os.path.isdir(project) is False:
+        print(f'check score path.')
+        return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value
     os.chdir(project)
     subprocess.Popen([sys.executable, '-m', 'unittest'])
     time.sleep(1)
 
-    return ExitCode.SUCCEEDED
+    return ExitCode.SUCCEEDED.value
 
 
 def __start_server(tbears_config_path: str):
