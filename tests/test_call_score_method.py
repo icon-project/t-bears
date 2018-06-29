@@ -16,7 +16,7 @@
 import unittest
 import os
 import shutil
-from tbears.command import init_SCORE, run_SCORE, stop_SCORE, clear_SCORE, make_SCORE_samples
+from tbears.command import init_SCORE, run_SCORE, clear_SCORE
 from tbears.util import post
 from tests.json_contents import *
 

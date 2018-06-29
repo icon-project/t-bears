@@ -22,13 +22,12 @@ import logging
 import socket
 from enum import IntEnum
 
-from tbears.util import get_tx_phrase, get_network_url, PROJECT_ROOT_PATH, fill_deploy_payload, \
+from tbears.util import get_network_url, PROJECT_ROOT_PATH, fill_deploy_payload, \
     fill_optional_deploy_field
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
-from tbears.util.in_memory_zip import InMemoryZip
 from tbears.util.test_client import send_req
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
-    KeyStoreException
+    KeyStoreException, FillDeployPaylodException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
     delete_score_info, get_init_template, get_sample_crowd_sale_contents, get_deploy_payload, get_deploy_config
 from ..util import write_file, get_package_json_dict, get_score_main_template
@@ -91,7 +90,7 @@ def run_SCORE(project: str, *options) -> tuple:
     """
     if os.path.isdir(project) is False:
         print(f'check score path.')
-        return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value
+        return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value, None
 
     params = {}
 
