@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import time
 import unittest
 import os
 
@@ -57,7 +57,7 @@ def get_request_json_of_send_icx(fr: str, to: str, value: str) -> dict:
         "to": to,
         "value": value,
         "stepLimit": "0x12345",
-        "timestamp": "0x1523327456264040",
+        "timestamp": hex(int(time.time() * 10 ** 6)),
     }
 
 
@@ -83,7 +83,7 @@ def get_request_json_of_transfer_token(fr: str, to: str, addr_to: str, value: st
         "to": to,
         "value": "0x0",
         "stepLimit": "0x12345",
-        "timestamp": "0x1523327456264040",
+        "timestamp": hex(int(time.time() * 10 ** 6)),
         "dataType": "call",
         "data": {
             "method": "transfer",
@@ -102,7 +102,7 @@ def get_request_json_of_check_crowd_end(fr: str, to: str) -> dict:
         "to": to,
         "value": "0x0",
         "stepLimit": "0x12345",
-        "timestamp": "0x1523327456264040",
+        "timestamp": hex(int(time.time() * 10 ** 6)),
         "dataType": "call",
         "data": {
             "method": "check_goal_reached",
@@ -118,7 +118,7 @@ def get_request_json_of_crowd_withrawal(fr: str, to: str) -> dict:
         "to": to,
         "value": "0x0",
         "stepLimit": "0x12345",
-        "timestamp": "0x1523327456264040",
+        "timestamp": hex(int(time.time() * 10 ** 6)),
         "dataType": "call",
         "data": {
             "method": "safe_withdrawal",
