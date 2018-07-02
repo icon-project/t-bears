@@ -138,6 +138,8 @@ def response_to_json_invoke(response):
         tx_result = list(response.values())
         tx_result = tx_result[0]
         tx_hash = tx_result['txHash']
+        tx_hash = f'0x{tx_hash}'
+        tx_result['txHash'] = tx_hash
         get_tx_result_mapper().put(tx_hash, tx_result)
         return tx_hash
     else:
