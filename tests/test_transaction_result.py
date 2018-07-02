@@ -100,3 +100,18 @@ class TestTransactionResult(unittest.TestCase):
         res = post(url, payload).json()
         self.assertEqual(res['error']['code'], INVALID_REQUEST)
         # failure : INVALID PARAMS
+
+    def test_tx_result_prefix(self):
+        init_SCORE('sample_token', 'SampleToken')
+        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+
+        payload = get_request_json_of_send_icx(fr=god_address, to=test_address, value=hex(10*10**18))
+        resp = post(url, payload)
+        res_json = resp.json()
+        tx_hash = res_json['result']
+        self.assertTrue(tx_hash.startswith('0x'))
+
+        payload = get_request_of_icx_getTransactionResult(tx_hash)
+        resp = post(url, payload)
+        res_json = resp.json()
+        self.assertTrue(res_json['result']['txHash'].startswith('0x'))
