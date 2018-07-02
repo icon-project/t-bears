@@ -16,15 +16,19 @@
 import shutil
 import unittest
 
-from iconservice import Address
-
+from tbears.util.icon_client import IconClient, get_deploy_payload
+from tbears.util.icx_signer import key_from_key_store, IcxSigner
 from tbears.util.test_client import send_req
 
-from tbears.command import init_SCORE, run_SCORE, clear_SCORE, deploy_SCORE, make_SCORE_samples
+from tbears.command import init_SCORE, run_SCORE, clear_SCORE, make_SCORE_samples
 from tests.common import *
 from tests.test_tbears_samples import test_addr
 
 token_owner_address = "hx4873b94352c8c1f3b2f09aaeccea31ce9e90bd31"
+token_owner_private_key = key_from_key_store(os.path.join(DIRECTORY_PATH, 'keystore'), 'qwer1234%')
+token_score_name = 'sample_token'
+token_score_class = 'SampleToken'
+crowd_score_name = 'sample_crowd_sale'
 
 
 class TestDeployScore(unittest.TestCase):
@@ -43,173 +47,215 @@ class TestDeployScore(unittest.TestCase):
         except:
             pass
 
+    def setUp(self):
+        self.url = 'http://localhost:9000/api/v3'
+        self.token_owner_private_key = IcxSigner(token_owner_private_key)
+        self.icon_client_token_owner = IconClient(self.url, version=3, private_key=token_owner_private_key)
+
     def test_call_token_score(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        token_score_name = 'sample_token'
+        token_score_class = 'SampleToken'
+        init_SCORE(token_score_name, token_score_class)
+        run_SCORE(token_score_name, None, None, TBEARS_JSON_PATH)
 
-        exit_code, response = deploy_SCORE('sample_token', key_store_path=os.path.join(DIRECTORY_PATH, 'keystore'),
-                                           password='qwer1234%')
+        deploy_payload = get_deploy_payload(token_score_name, self.token_owner_private_key)
+        response = self.icon_client_token_owner.send('icx_sendTransaction', deploy_payload)
+        res_json = response.json()
+        tx_hash = res_json['result']
 
-        tx_hash = response.json()['result']
-        score_address = send_req('icx_getTransactionResult', {'txHash': tx_hash}).json()['result']['scoreAddress']
+        transaction_result_payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
 
+        response = self.icon_client_token_owner.send('icx_getTransactionResult', transaction_result_payload)
+        score_address = response.json()['result']['scoreAddress']
         payload = get_request_json_of_token_total_supply(score_address)
-        res = send_req('icx_call', payload).json()['result']
 
-        self.assertEqual(hex(1000*10**18), res)
+        response = self.icon_client_token_owner.send('icx_call', payload)
+        result = response.json()['result']
+
+        self.assertEqual(hex(1000 * 10 ** 18), result)
 
         payload = get_request_json_of_get_token_balance(score_address, token_owner_address)
-        res = send_req('icx_call', payload).json()['result']
+        response = self.icon_client_token_owner.send('icx_call', payload)
+        result = response.json()['result']
 
-        self.assertEqual(hex(1000*10**18), res)
+        self.assertEqual(hex(1000 * 10 ** 18), result)
 
-        payload = get_request_json_of_transfer_token(token_owner_address, score_address, god_address, hex(10*10**18))
-        send_req('icx_sendTransaction', payload)
+        payload = get_request_json_of_transfer_token(token_owner_address, score_address, god_address,
+                                                     hex(10 * 10 ** 18))
+        self.icon_client_token_owner.send('icx_sendTransaction', payload)
 
         payload = get_request_json_of_get_token_balance(score_address, god_address)
-        res = send_req('icx_call', payload).json()['result']
-        self.assertEqual(hex(10*10**18), res)
+        response = self.icon_client_token_owner.send('icx_call', payload)
+        result = response.json()['result']
+        self.assertEqual(hex(10 * 10 ** 18), result)
 
     def test_call_score_methods(self):
         make_SCORE_samples()
         run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
 
-        exit_code, response = deploy_SCORE('sample_token', key_store_path=os.path.join(DIRECTORY_PATH, 'keystore'),
-                                           password='qwer1234%')
-
+        deploy_payload = get_deploy_payload(token_score_name, self.token_owner_private_key)
+        response = self.icon_client_token_owner.send('icx_sendTransaction', deploy_payload)
         tx_hash = response.json()['result']
-        token_score_address = send_req('icx_getTransactionResult', {'txHash': tx_hash}).json()['result']['scoreAddress']
+        transaction_result_payload = get_request_of_icx_getTransactionResult(tx_hash)
 
-        exit_code, response = deploy_SCORE('sample_crowd_sale', key_store_path=os.path.join(DIRECTORY_PATH, 'keystore'),
-                                           password='qwer1234%', params={'token_address': token_score_address})
+        response = self.icon_client_token_owner.send('icx_getTransactionResult', transaction_result_payload)
+        token_score_address = response.json()['result']['scoreAddress']
+
+        crowd_deploy_payload = get_deploy_payload(crowd_score_name, self.token_owner_private_key,
+                                                  params={'token_address': token_score_address})
+        response = self.icon_client_token_owner.send('icx_sendTransaction', crowd_deploy_payload)
         tx_hash = response.json()['result']
-        crowd_sale_score_address = send_req('icx_getTransactionResult',
-                                            {'txHash': tx_hash}).json()['result']['scoreAddress']
+
+        transaction_result_payload = get_request_of_icx_getTransactionResult(tx_hash)
+        response = self.icon_client_token_owner.send('icx_getTransactionResult',
+                                                     transaction_result_payload)
+        crowd_sale_score_address = response.json()['result']['scoreAddress']
 
         # seq1
         # genesis -> token_owner 10icx
-        payload = get_request_json_of_send_icx(fr=Address.from_string(god_address),
-                                               to=Address.from_string(token_owner_address),
-                                               value=10 * 10 ** 18)
+        payload = get_request_json_of_send_icx(fr=god_address,
+                                               to=token_owner_address,
+                                               value=hex(10 * 10 ** 18))
 
-        res = send_req('icx_sendTransaction', payload).json()['result']
+        response = self.icon_client_token_owner.send('icx_sendTransaction', payload)
+        res = response.json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=res)
-        result = send_req('icx_getTransactionResult', payload).json()['result']
+        result = self.icon_client_token_owner.send('icx_getTransactionResult', payload).json()['result']
         self.assertEqual(result['status'], hex(1))
         print(result)
 
         # seq2
         # check icx balance of token_owner value : 10*10**18
-        payload = get_request_json_of_get_icx_balance(address=Address.from_string(token_owner_address))
-        res = send_req('icx_getBalance', payload).json()['result']
-        self.assertEqual(res, hex(10 * 10 ** 18))
+        payload = get_request_json_of_get_icx_balance(address=token_owner_address)
+        response = self.icon_client_token_owner.send('icx_getBalance', payload)
+        result = response.json()['result']
+        self.assertEqual(result, hex(10 * 10 ** 18))
 
         # seq3
         # check token balance token_owner. value : 1000*10**18
-        payload = get_request_json_of_get_token_balance(to=Address.from_string(token_score_address),
-                                                        addr_from=Address.from_string(token_owner_address))
-        res = send_req('icx_call', payload).json()['result']
-        self.assertEqual(res, hex(1000 * 10 ** 18))
+        payload = get_request_json_of_get_token_balance(to=token_score_address,
+                                                        addr_from=token_owner_address)
+        response = self.icon_client_token_owner.send('icx_call', payload)
+        result = response.json()['result']
+        self.assertEqual(result, hex(1000 * 10 ** 18))
 
         # seq4
         # transfer token to CrowdSale_address. value: 1000*10**18
-        payload = get_request_json_of_transfer_token(fr=Address.from_string(token_owner_address),
-                                                     to=Address.from_string(token_score_address),
-                                                     addr_to=Address.from_string(crowd_sale_score_address),
-                                                     value=1000 * 10 ** 18)
-        res = send_req('icx_sendTransaction', payload).json()['result']
-        payload = get_request_of_icx_getTransactionResult(tx_hash=res)
-        res = send_req('icx_getTransactionResult', payload).json()['result']['status']
-        self.assertEqual(res, hex(1))
+        payload = get_request_json_of_transfer_token(fr=token_owner_address,
+                                                     to=token_score_address,
+                                                     addr_to=crowd_sale_score_address,
+                                                     value=hex(1000 * 10 ** 18))
+        response = self.icon_client_token_owner.send('icx_sendTransaction', payload)
+        result = response.json()['result']
+        payload = get_request_of_icx_getTransactionResult(tx_hash=result)
+        res = self.icon_client_token_owner.send('icx_getTransactionResult', payload)
+        status = res.json()['result']['status']
+        self.assertEqual(status, hex(1))
 
         # seq5
         # check token balance of CrowdSale_address. value : 1000*10**18
-        payload = get_request_json_of_get_token_balance(to=Address.from_string(token_score_address),
-                                                        addr_from=Address.from_string(crowd_sale_score_address))
-        res = send_req('icx_call', payload).json()['result']
-        self.assertEqual(res, hex(1000 * 10 ** 18))
+        payload = get_request_json_of_get_token_balance(to=token_score_address,
+                                                        addr_from=crowd_sale_score_address)
+        response = self.icon_client_token_owner.send('icx_call', payload)
+        result = response.json()['result']
+        self.assertEqual(result, hex(1000 * 10 ** 18))
 
         # seq6
         # check token balance of token_owner. value : 0
         payload = get_request_json_of_get_token_balance(to=token_score_address, addr_from=token_owner_address)
-        res = send_req('icx_call', payload).json()['result']
-        self.assertEqual(res, hex(0))
+        response = send_req('icx_call', payload)
+        result = response.json()['result']
+        self.assertEqual(result, hex(0))
 
         # seq7
         # transfer icx to CrowdSale. value : 2*10**18
-        payload = get_request_json_of_send_icx(fr=Address.from_string(token_owner_address),
-                                               to=Address.from_string(crowd_sale_score_address),
+        payload = get_request_json_of_send_icx(fr=token_owner_address,
+                                               to=crowd_sale_score_address,
                                                value=hex(2 * 10 ** 18))
-        tx_hash = send_req('icx_sendTransaction', payload).json()['result']
+        response = self.icon_client_token_owner.send('icx_sendTransaction', payload)
+        tx_hash = response.json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
-        res = send_req('icx_getTransactionResult', payload).json()['result']['status']
-        self.assertEqual(res, hex(1))
+        response = send_req('icx_getTransactionResult', payload)
+        print('dddd', response.json())
+        status = response.json()['result']['status']
+        self.assertEqual(status, hex(1))
 
         # seq8
         # check icx balance of token_owner. value : 8*10**18
-        payload = get_request_json_of_get_icx_balance(address=Address.from_string(token_owner_address))
+        payload = get_request_json_of_get_icx_balance(address=token_owner_address)
 
-        res = send_req('icx_getBalance', payload).json()['result']
-        self.assertEqual(res, hex(8 * 10 ** 18))
+        response = self.icon_client_token_owner.send('icx_getBalance', payload)
+        result = response.json()['result']
+        self.assertEqual(result, hex(8 * 10 ** 18))
 
         # seq9
         # check token balance of token_owner. value : 0x2
-        payload = get_request_json_of_get_token_balance(to=Address.from_string(token_score_address),
-                                                        addr_from=Address.from_string(token_owner_address))
-        res = send_req('icx_call', payload).json()['result']
-        self.assertEqual(res, hex(2))
+        payload = get_request_json_of_get_token_balance(to=token_score_address,
+                                                        addr_from=token_owner_address)
+        response = send_req('icx_call', payload)
+        result = response.json()['result']
+        self.assertEqual(result, hex(2))
 
         # seq10
         # transfer icx to CrowdSale. value : 8*10**18
-        payload = get_request_json_of_send_icx(fr=Address.from_string(token_owner_address),
-                                               to=Address.from_string(crowd_sale_score_address),
+        payload = get_request_json_of_send_icx(fr=token_owner_address,
+                                               to=crowd_sale_score_address,
                                                value=8 * 10 ** 18)
-        res = send_req('icx_sendTransaction', payload).json()['result']
-        payload = get_request_of_icx_getTransactionResult(tx_hash=res)
-        res = send_req('icx_getTransactionResult', payload).json()['result']['status']
-        self.assertEqual(res, hex(1))
+        response = self.icon_client_token_owner.send('icx_sendTransaction', payload)
+        tx_hash = response.json()['result']
+        payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
+        response = send_req('icx_getTransactionResult', payload)
+        status = response.json()['result']['status']
+        self.assertEqual(status, hex(1))
 
         # seq11
         # genesis -> test_address. value 90*10**18
-        payload = get_request_json_of_send_icx(fr=Address.from_string(god_address),
-                                               to=Address.from_string(test_addr),
-                                               value=90 * 10 ** 18)
+        payload = get_request_json_of_send_icx(fr=god_address,
+                                               to=test_addr,
+                                               value=hex(90 * 10 ** 18))
         res = send_req('icx_sendTransaction', payload).json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=res)
-        res = send_req('icx_getTransactionResult', payload).json()['result']['status']
-        self.assertEqual(res, hex(1))
+        response = send_req('icx_getTransactionResult', payload)
+        status = response.json()['result']['status']
+        self.assertEqual(status, hex(1))
 
         # seq12
         # transfer icx to CrowdSale. value : 90*10**18
-        payload = get_request_json_of_send_icx(fr=Address.from_string(test_addr),
-                                               to=Address.from_string(crowd_sale_score_address),
-                                               value=90 * 10 ** 18)
-        res = send_req('icx_sendTransaction', payload).json()['result']
-        payload = get_request_of_icx_getTransactionResult(tx_hash=res)
-        res = send_req('icx_getTransactionResult', payload).json()['result']['status']
-        self.assertEqual(res, hex(1))
+        payload = get_request_json_of_send_icx(fr=test_addr,
+                                               to=crowd_sale_score_address,
+                                               value=hex(90 * 10 ** 18))
+        response = send_req('icx_sendTransaction', payload)
+        tx_hash = response.json()['result']
+        payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
+
+        response = send_req('icx_getTransactionResult', payload)
+        status = response.json()['result']['status']
+        self.assertEqual(status, hex(1))
 
         # seq13
         # check CrowdSaleEnd
-        payload = get_request_json_of_check_crowd_end(fr=Address.from_string(token_owner_address),
-                                                      to=Address.from_string(crowd_sale_score_address))
-        res = send_req('icx_sendTransaction', payload).json()['result']
-        payload = get_request_of_icx_getTransactionResult(tx_hash=res)
-        res = send_req('icx_getTransactionResult', payload).json()['result']['status']
-        self.assertEqual(res, hex(1))
+        payload = get_request_json_of_check_crowd_end(fr=token_owner_address,
+                                                      to=crowd_sale_score_address)
+        response = send_req('icx_sendTransaction', payload)
+        tx_hash = response.json()['result']
+        payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
+        response = send_req('icx_getTransactionResult', payload)
+        status = response.json()['result']['status']
+        self.assertEqual(status, hex(1))
 
-        # seq14
+        # # seq14
         # safe withrawal
         payload = get_request_json_of_crowd_withrawal(fr=token_owner_address, to=crowd_sale_score_address)
-        res = send_req('icx_sendTransaction', payload).json()['result']
-        payload = get_request_of_icx_getTransactionResult(tx_hash=res)
-        res = send_req('icx_getTransactionResult', payload).json()['result']['status']
-        self.assertEqual(res, hex(1))
+        response = send_req('icx_sendTransaction', payload)
+        tx_hash = response.json()['result']
+        payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
+        response = send_req('icx_getTransactionResult', payload)
+        status = response.json()['result']['status']
+        self.assertEqual(status, hex(1))
 
         # seq15
         # check icx balance of token_owner value : 100*10**18
         payload = get_request_json_of_get_icx_balance(address=token_owner_address)
-        res = send_req('icx_getBalance', payload).json()['result']
-        self.assertEqual(res, hex(100 * 10 ** 18))
-
-
+        response = send_req('icx_getBalance', payload)
+        result = response.json()['result']
+        self.assertEqual(result, hex(100 * 10 ** 18))
