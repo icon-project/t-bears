@@ -138,8 +138,7 @@ def response_to_json_invoke(response):
         tx_result = list(response.values())
         tx_result = tx_result[0]
         tx_hash = tx_result['txHash']
-        tx_hash = f'0x{tx_hash}'
-        tx_result['txHash'] = tx_hash
+
         get_tx_result_mapper().put(tx_hash, tx_result)
         return tx_hash
     else:
@@ -302,8 +301,9 @@ class MockDispatcher:
                 await get_icon_inner_task().remove_precommit_state(precommit_request)
 
             tx_result = response[tx_hash]
-            tx_hash = tx_result['txHash']
+            tx_hash = f'0x{tx_result["txHash"]}'
             tx_result['from'] = request_params.get('from', '')
+            tx_result['txHash'] = tx_hash
             TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
             return response_to_json_invoke(response)
 
@@ -359,7 +359,10 @@ class MockDispatcher:
 
         try:
             tx_hash = request_params['txHash']
-            return get_tx_result_mapper()[tx_hash]
+            tx_hash_result = TBEARS_DB.get(f'{tx_hash}-result'.encode())
+            tx_hash_result_str = tx_hash_result.decode()
+            tx_result_json = json.loads(tx_hash_result_str)
+            return tx_result_json
         except Exception:
             raise GenericJsonRpcServerError(
                 code=InvalidParams.code,
@@ -549,7 +552,9 @@ async def init_icon_score_stub(conf: dict):
 
     tx_result = response[tx_hash]
     tx_hash = tx_result['txHash']
+    tx_hash = f'0x{tx_hash}'
     tx_result['from'] = request_params.get('from', '')
+    tx_result['tx_hash'] = tx_hash
     TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
     return response_to_json_invoke(response)
 
@@ -600,7 +605,9 @@ async def init_icon_inner_task(conf: dict):
 
     tx_result = response[tx_hash]
     tx_hash = tx_result['txHash']
+    tx_hash = f'0x{tx_hash}'
     tx_result['from'] = request_params.get('from', '')
+    tx_result['tx_hash'] = tx_hash
     TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
     return response_to_json_invoke(response)
 
