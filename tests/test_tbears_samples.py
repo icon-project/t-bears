@@ -120,7 +120,7 @@ class TestTBears(unittest.TestCase):
         result, _ = run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         result, _ = run_SCORE('sample_crowd_sale', None, None, TBEARS_JSON_PATH)
         # seq1
-        # genesis -> hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(token_owner) 10icx
+        # genesis -> token_owner 10icx
         payload = get_request_json_of_send_icx(fr=Address.from_string(god_address),
                                                to=Address.from_string(token_owner_address),
                                                value=10*10**18)

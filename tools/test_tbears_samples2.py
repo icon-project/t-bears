@@ -20,6 +20,7 @@ from time import sleep
 from iconservice import Address
 
 from tbears.util import put_signature_to_params
+from tbears.util.icon_client import IconClient
 from tbears.util.icx_signer import IcxSigner, key_from_key_store
 
 from tbears.command import make_SCORE_samples, deploy_SCORE
@@ -153,6 +154,12 @@ tester_signer = IcxSigner(private_key_tester)
 
 
 class TestTBears(unittest.TestCase):
+
+    def setUp(self):
+        self.url = 'http://localhost:9000/api/v3/'
+        self.version = 3
+        self.icon_client_token_owner = IconClient(self.url, self.version, private_key_token_owner)
+        self.icon_client_tester = IconClient(self.url, self.version, private_key_tester)
 
     def test_call_score_methods(self):
         make_SCORE_samples()
