@@ -14,15 +14,11 @@
 # limitations under the License.
 import base64
 import hashlib
-import os
 
 from eth_keyfile import extract_key_from_keyfile
 from secp256k1 import PrivateKey
 
 from tbears.tbears_exception import KeyStoreException
-
-DIR_PATH = os.path.abspath(os.path.dirname(__file__))
-PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, os.pardir, os.pardir))
 
 
 def key_from_key_store(file_path, password):

@@ -87,7 +87,7 @@ class TestDeployScore(unittest.TestCase):
                                             {'txHash': tx_hash}).json()['result']['scoreAddress']
 
         # seq1
-        # genesis -> hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(token_owner) 10icx
+        # genesis -> token_owner 10icx
         payload = get_request_json_of_send_icx(fr=Address.from_string(god_address),
                                                to=Address.from_string(token_owner_address),
                                                value=10 * 10 ** 18)

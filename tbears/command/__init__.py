@@ -22,14 +22,13 @@ import logging
 import socket
 from enum import IntEnum
 
-from tbears.util import get_network_url, PROJECT_ROOT_PATH, fill_deploy_payload, \
-    fill_optional_deploy_field
+from tbears.util import PROJECT_ROOT_PATH
+from tbears.util.icon_client import IconClient, get_deploy_payload
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
-from tbears.util.test_client import send_req
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
     KeyStoreException, FillDeployPaylodException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
-    delete_score_info, get_init_template, get_sample_crowd_sale_contents, get_deploy_payload, get_deploy_config
+    delete_score_info, get_init_template, get_sample_crowd_sale_contents, get_deploy_config
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
 JSON_RPC_SERVER_URL = "http://localhost:9000/api/v3"
@@ -171,17 +170,16 @@ def deploy_SCORE(project: str, config_path: str = None, key_store_path: str = No
             key_store_path = deploy_config['keystorePath']
         private_key = key_from_key_store(key_store_path, password)
 
-        signer = IcxSigner(private_key)
-        url = get_network_url(deploy_config['network'])
+        # url = get_network_url(deploy_config['network'])
         score_address = f'cx{"0"*40}' if not deploy_config.get('scoreAddress', 0) else deploy_config['scoreAddress']
         step_limit = hex(12345) if not deploy_config.get('stepLimit', 0) else deploy_config['stepLimit']
 
-        deploy_json = get_deploy_payload()
+        icon_client = IconClient('http://localhost:9000/api/v3', 3, private_key)
 
-        fill_optional_deploy_field(deploy_json, step_limit, score_address, params)
-        fill_deploy_payload(deploy_json, project, signer)
+        deploy_payload = get_deploy_payload(path=project, signer=IcxSigner(private_key), params=params,
+                                            step_limit=step_limit, score_address=score_address)
 
-        response = send_req('icx_sendTransaction', deploy_json, "http://localhost:9000/api/v3")
+        response = icon_client.send('icx_sendTransaction', deploy_payload)
 
     except TbearsConfigFileException:
         return ExitCode.CONFIG_FILE_ERROR.value, None
