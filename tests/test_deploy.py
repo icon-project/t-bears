@@ -19,9 +19,9 @@ import unittest
 import zipfile
 
 from tbears.util.in_memory_zip import InMemoryZip
+from tests.common import DIRECTORY_PATH
 
-TEST_DIRECTORY_PATH = os.path.abspath(os.path.dirname(__file__))
-DEPLOY_TEST_DIRECTORY = os.path.join(TEST_DIRECTORY_PATH, 'test_deploy')
+DEPLOY_TEST_DIRECTORY = os.path.join(DIRECTORY_PATH, 'test_deploy')
 
 
 def zip_file_name_list(in_memory_zip: 'InMemoryZip') -> list:
@@ -43,7 +43,8 @@ class TestDeploy(unittest.TestCase):
         in_memory_zip_contents = []
         real_contents = []
 
-        mz.extract('test_in_memory_zip')
+        with zipfile.ZipFile(mz._in_memory) as mzf:
+            mzf.extractall('test_in_memory_zip')
 
         with zipfile.ZipFile('testt.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
             for root, dirs, files in os.walk(DEPLOY_TEST_DIRECTORY):

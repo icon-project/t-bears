@@ -14,20 +14,18 @@
 # limitations under the License.
 
 import unittest
-import os
 import json
 import shutil
 import socket
 from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
-
-DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
+from tests.common import *
 
 
 class TestTBearsCommands(unittest.TestCase):
     def setUp(self):
         self.path = './'
-        self.url = "http://localhost:9000/api/v3/"
-        self.config = None, None, os.path.join(DIRECTORY_PATH, 'test_tbears.json')
+        self.url = URL
+        self.config = None, None, TBEARS_JSON_PATH
 
     def tearDown(self):
         clear_SCORE()

@@ -38,12 +38,13 @@ class IconClient:
             "id": 12345,
         }
         if method == 'icx_sendTransaction':
-            params['version'] = hex(3)
+            if self._version == 3:
+                params['version'] = hex(3)
             params['timestamp'] = hex(int(time.time() * 10 ** 6))
             put_signature_to_payload(params, self._signer)
 
         if method != 'icx_getTotalSupply':
-            json_content['params'] = params
+            json_content['params'] = convert_dict(params)
 
         json_content = json.dumps(json_content)
         resp = requests.post(self._url, json_content)
@@ -137,3 +138,39 @@ def get_deploy_payload(path: str, signer: 'IcxSigner', step_limit: str=None, sco
                                params=params)
     fill_deploy_payload(payload, path, signer)
     return payload
+
+
+def convert_dict(dict_value) -> dict:
+    output = {}
+
+    for key, value in dict_value.items():
+        if isinstance(value, dict):
+            output[key] = convert_dict(value)
+        elif isinstance(value, list):
+            output[key] = convert_list(value)
+        else:
+            output[key] = convert_value(value)
+
+    return output
+
+
+def convert_list(list_value) -> list:
+    output = []
+
+    for item in list_value:
+        if isinstance(item, dict):
+            item = convert_dict(item)
+        elif isinstance(item, list):
+            item = convert_list(item)
+        else:
+            item = convert_value(item)
+
+        output.append(item)
+    return output
+
+
+def convert_value(value):
+    if isinstance(value, int):
+        return hex(value)
+    else:
+        return str(value)
