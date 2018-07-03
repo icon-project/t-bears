@@ -22,7 +22,6 @@ from tbears.command import run_SCORE, clear_SCORE, make_SCORE_samples, init_SCOR
 from tests.sample_test_client import send_req
 from tests.common import *
 
-TBEARS_JSON_PATH = os.path.join(DIRECTORY_PATH, 'test_tbears.json')
 token_owner_address = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 token_score_address = "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf"
 crowd_sale_score_address = "cx8c814aa96fefbbb85131f87f6e0cb7878a95c1d3"

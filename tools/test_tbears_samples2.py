@@ -23,8 +23,6 @@ from tbears.command import make_SCORE_samples, deploy_SCORE
 from tests.common import *
 from tests.sample_test_client import send_req
 
-TOOLS_DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
-
 test_addr = "hx0133de0d928d4972e6a2656689a54fadeb5f4af5"
 test_addr2 = "hx0133de0d928d4972e6a2656689a54fadeb5f4af4"
 

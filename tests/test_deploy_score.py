@@ -49,8 +49,6 @@ class TestDeployScore(unittest.TestCase):
         self.icon_client_token_owner = IconClient(self.url, version=3, private_key=deploy_token_owner_private_key)
 
     def test_call_token_score(self):
-        token_score_name = 'sample_token'
-        token_score_class = 'SampleToken'
         init_SCORE(token_score_name, token_score_class)
         run_SCORE(token_score_name, None, None, TBEARS_JSON_PATH)
 
