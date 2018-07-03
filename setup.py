@@ -5,8 +5,8 @@ from tbears import __version__
 
 
 requires = [
-    'requests==2.18.4',
-    'jsonrpcserver==3.5.4',
+    'requests==2.19.1',
+    'jsonrpcserver==3.5.3',
     'sanic==0.7.0',
     'plyvel==1.0.4',
     'secp256k1==0.13.2',
