@@ -283,6 +283,12 @@ class MockDispatcher:
             else:
                 rollback_block()
                 await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
+
+            tx_result = response[tx_hash]
+            tx_hash = f'0x{tx_result["txHash"]}'
+            tx_result['from'] = request_params.get('from', '')
+            tx_result['txHash'] = tx_hash
+            TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
             return response_to_json_invoke(response)
         else:
             response = await get_icon_inner_task().invoke(make_request)

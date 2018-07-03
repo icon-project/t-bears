@@ -200,7 +200,7 @@ class TestDeployScore(unittest.TestCase):
         # transfer icx to CrowdSale. value : 8*10**18
         payload = get_request_json_of_send_icx(fr=token_owner_address,
                                                to=crowd_sale_score_address,
-                                               value=8 * 10 ** 18)
+                                               value=hex(8 * 10 ** 18))
         response = self.icon_client_token_owner.send('icx_sendTransaction', payload)
         tx_hash = response.json()['result']
         payload = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
