@@ -158,7 +158,7 @@ class TestTransactionResult(unittest.TestCase):
         payload = get_request_json_of_get_token_balance(to='123', addr_from=god_address)
         response = self.icon_client.send(CALL, payload)
         response_json = response.json()
-        self.assertEqual(response_json['error']['code'], SERVER_ERROR)
+        self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
 
         # get score api test
         payload = get_request_json_of_get_score_api(address=token_score_address)
