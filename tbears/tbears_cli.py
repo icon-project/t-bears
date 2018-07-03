@@ -45,10 +45,10 @@ tbears commands:
         nargs='*',
         help='init, run, stop, clear')
     parser.add_argument(
-        '--install', '-i', dest='install', help='install config json file path'
+        '--install', '-i', dest='install', action='store_true', help='flag. call on_init() when tbears run.'
     )
     parser.add_argument(
-        '--update', '-u', dest='update', help='update config json file path'
+        '--update', '-u', dest='update', action='store_true', help='flag. call on_update() when tbears run.'
     )
     parser.add_argument(
         '--keystore', '-k', dest='keystore_path', help='keystore file path'
@@ -65,15 +65,15 @@ tbears commands:
 
     command = args.command[0]
 
-    config_options = [None, None, None]
+    config_options = [None, None]
 
     if args.install:
-        config_options = [args.install, 'install', None]
+        config_options = ['install', None]
     elif args.update:
-        config_options = [args.update, 'update', None]
+        config_options = ['update', None]
 
     if args.config_file:
-        config_options[2] = args.config_file
+        config_options[1] = args.config_file
 
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])
