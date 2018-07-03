@@ -19,6 +19,7 @@ import json
 import shutil
 import socket
 from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
+from tests.common import URL
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 
@@ -26,7 +27,7 @@ DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 class TestTBearsCommands(unittest.TestCase):
     def setUp(self):
         self.path = './'
-        self.url = "http://localhost:9000/api/v3/"
+        self.url = URL
         self.config = None, None, os.path.join(DIRECTORY_PATH, 'test_tbears.json')
 
     def tearDown(self):

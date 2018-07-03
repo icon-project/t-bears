@@ -17,13 +17,16 @@ import time
 
 import requests
 
+from tbears.util.icon_client import convert_dict
+from tests.common import URL
+
 
 def send_req(method: str, params: dict, url: str=None):
     if method == 'icx_sendTransaction':
         check_timestamp(params)
 
     if url is None:
-        url = 'http://localhost:9000/api/v3'
+        url = URL
 
     json_content = {
         "jsonrpc": "2.0",
@@ -38,42 +41,6 @@ def send_req(method: str, params: dict, url: str=None):
     else:
         print(f'\n###############response : {res.json()}###############')
         return res
-
-
-def convert_dict(dict_value) -> dict:
-    output = {}
-
-    for key, value in dict_value.items():
-        if isinstance(value, dict):
-            output[key] = convert_dict(value)
-        elif isinstance(value, list):
-            output[key] = convert_list(value)
-        else:
-            output[key] = convert_value(value)
-
-    return output
-
-
-def convert_list(list_value) -> list:
-    output = []
-
-    for item in list_value:
-        if isinstance(item, dict):
-            item = convert_dict(item)
-        elif isinstance(item, list):
-            item = convert_list(item)
-        else:
-            item = convert_value(item)
-
-        output.append(item)
-    return output
-
-
-def convert_value(value):
-    if isinstance(value, int):
-        return hex(value)
-    else:
-        return str(value)
 
 
 def check_timestamp(params):

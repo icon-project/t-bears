@@ -24,7 +24,7 @@ from tbears.util.icon_client import IconClient
 from tbears.util.icx_signer import IcxSigner, key_from_key_store
 
 from tbears.command import make_SCORE_samples, deploy_SCORE
-from tbears.util.test_client import send_req
+from tests.sample_test_client import send_req
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 

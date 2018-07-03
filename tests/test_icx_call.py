@@ -12,20 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 import shutil
 import unittest
 
-from tbears.command import init_SCORE, run_SCORE, clear_SCORE
-from tbears.util import post
+from secp256k1 import PrivateKey
 
-from tests.json_contents import *
+from tbears.command import init_SCORE, run_SCORE, clear_SCORE
+from tbears.util.icon_client import IconClient
+
+from tests.common import *
 from tests.jsonrpc_error_code import *
 
 
-url = "http://localhost:9000/api/v3"
-
-DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 TBEARS_JSON_PATH = os.path.join(DIRECTORY_PATH, 'test_tbears.json')
 
 pre_define_api = \
@@ -125,39 +123,50 @@ class TestTransactionResult(unittest.TestCase):
         except:
             pass
 
+    def setUp(self):
+        self.url = URL
+        self.private_key = PrivateKey().private_key
+        self.icon_client = IconClient(self.url, 3, self.private_key)
+
     def test_score_queries_filed(self):
         # unknown score method test
         init_SCORE('sample_token', 'SampleToken')
         run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
         payload = get_request_json_of_nonexist_method(token_addr=token_score_address)
-        res = post(url, payload).json()
-        self.assertEqual(res['error']['code'], METHOD_NOT_FOUND)
+        response = self.icon_client.send(CALL, payload)
+        response_json = response.json()
+        self.assertEqual(response_json['error']['code'], METHOD_NOT_FOUND)
 
         # method not found.
         payload = get_request_json_of_call_hello()
         payload['method'] = 'unknown'
-        res = post(url, payload).json()
-        self.assertEqual(res['error']['code'], METHOD_NOT_FOUND)
+        response = self.icon_client.send(CALL, payload)
+        response_json = response.json()
+        self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
 
         # invalid param - icx get balance
         payload = get_request_json_of_get_icx_balance('123')
-        res = post(url, payload).json()
-        self.assertEqual(res['error']['code'], INVALID_PARAMS)
+        response = self.icon_client.send(CALL, payload)
+        response_json = response.json()
+        self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
 
         # call score method with invalid param
         payload = get_request_json_of_get_token_balance(to=token_score_address, addr_from='123')
-        res = post(url, payload).json()
-        self.assertEqual(res['error']['code'], INVALID_PARAMS)
+        response = self.icon_client.send(CALL, payload)
+        response_json = response.json()
+        self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
 
         # call score method(invalid score address)
         payload = get_request_json_of_get_token_balance(to='123', addr_from=god_address)
-        res = post(url, payload).json()
-        self.assertEqual(res['error']['code'], INVALID_PARAMS)
+        response = self.icon_client.send(CALL, payload)
+        response_json = response.json()
+        self.assertEqual(response_json['error']['code'], SERVER_ERROR)
 
         # get score api test
         payload = get_request_json_of_get_score_api(address=token_score_address)
-        result = post(url, payload).json()
-        api_result = result["result"]
+        response = self.icon_client.send(API, payload)
+        response_json = response.json()
+        api_result = response_json["result"]
         self.assertEqual(pre_define_api, api_result)
 
     # def test_nonexistent_score_address_query(self):

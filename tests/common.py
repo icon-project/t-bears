@@ -120,4 +120,31 @@ def get_request_json_of_token_total_supply(token_addr: str) -> dict:
     }
 
 
-god_address = "hx0000000000000000000000000000000000000000"
+def get_request_json_of_nonexist_method(token_addr: str) -> dict:
+    return {
+        "from": "hx0000000000000000000000000000000000000000",
+        "to": token_addr,
+        "dataType": "call",
+        "data": {
+            "method": "total_supp",
+            "params": {}
+        }
+    }
+
+
+def get_request_json_of_get_score_api(address: str) -> dict:
+    return {
+        "address": address
+    }
+
+
+god_address = f'hx{"0"*40}'
+test_address = f'hx1{"0"*39}'
+token_owner_address = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+token_score_address = "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf"
+CALL = 'icx_call'
+SEND = 'icx_sendTransaction'
+BAL = 'icx_getBalance'
+TX_RESULT = 'icx_getTransactionResult'
+API = 'icx_getScoreApi'
+URL = "http://localhost:9000/api/v3"
