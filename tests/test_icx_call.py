@@ -142,7 +142,7 @@ class TestTransactionResult(unittest.TestCase):
         # invalid param - icx get balance
         payload = get_request_json_of_get_icx_balance('123')
         res = post(url, payload).json()
-        self.assertEqual(res['error']['code'], SERVER_ERROR)
+        self.assertEqual(res['error']['code'], INVALID_PARAMS)
 
         # call score method with invalid param
         payload = get_request_json_of_get_token_balance(to=token_score_address, addr_from='123')
@@ -152,7 +152,7 @@ class TestTransactionResult(unittest.TestCase):
         # call score method(invalid score address)
         payload = get_request_json_of_get_token_balance(to='123', addr_from=god_address)
         res = post(url, payload).json()
-        self.assertEqual(res['error']['code'], SERVER_ERROR)
+        self.assertEqual(res['error']['code'], INVALID_PARAMS)
 
         # get score api test
         payload = get_request_json_of_get_score_api(address=token_score_address)
