@@ -15,6 +15,8 @@
 
 import os
 
+from tbears.util.icx_signer import key_from_key_store, IcxSigner
+
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 TBEARS_JSON_PATH = os.path.join(DIRECTORY_PATH, 'test_tbears.json')
 
@@ -148,3 +150,6 @@ BAL = 'icx_getBalance'
 TX_RESULT = 'icx_getTransactionResult'
 API = 'icx_getScoreApi'
 URL = "http://localhost:9000/api/v3"
+deploy_token_owner_private_key = key_from_key_store(os.path.join(DIRECTORY_PATH, 'keystore'), 'qwer1234%')
+token_owner_signer = IcxSigner(deploy_token_owner_private_key)
+deploy_token_owner_address = f'hx{token_owner_signer.address.hex()}'

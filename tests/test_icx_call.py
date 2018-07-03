@@ -24,8 +24,6 @@ from tests.common import *
 from tests.jsonrpc_error_code import *
 
 
-TBEARS_JSON_PATH = os.path.join(DIRECTORY_PATH, 'test_tbears.json')
-
 pre_define_api = \
         [
             {

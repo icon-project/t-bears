@@ -48,7 +48,3 @@ class InMemoryZip:
                             zf.write(full_path)
         except:
             raise ZipException
-
-    def extract(self, path):
-        with zipfile.ZipFile(self._in_memory) as z:
-            z.extractall(path)

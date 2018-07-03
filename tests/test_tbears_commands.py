@@ -14,14 +14,11 @@
 # limitations under the License.
 
 import unittest
-import os
 import json
 import shutil
 import socket
 from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
-from tests.common import URL
-
-DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
+from tests.common import *
 
 
 class TestTBearsCommands(unittest.TestCase):

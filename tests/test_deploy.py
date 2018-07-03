@@ -43,7 +43,8 @@ class TestDeploy(unittest.TestCase):
         in_memory_zip_contents = []
         real_contents = []
 
-        mz.extract('test_in_memory_zip')
+        with zipfile.ZipFile(mz._in_memory) as mzf:
+            mzf.extractall('test_in_memory_zip')
 
         with zipfile.ZipFile('testt.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
             for root, dirs, files in os.walk(DEPLOY_TEST_DIRECTORY):
