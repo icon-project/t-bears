@@ -102,6 +102,7 @@ def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str,
 def get_block_height():
     global __block_height
     __block_height += 1
+    TBEARS_DB.put(b'blockHeight', str(__block_height).encode())
     return __block_height
 
 
@@ -113,11 +114,13 @@ def get_prev_block_hash():
 def set_prev_block_hash(block_hash: str):
     global __prev_block_hash
     __prev_block_hash = block_hash
+    TBEARS_DB.put(b'prevBlockHash', bytes.fromhex(__prev_block_hash))
 
 
 def rollback_block():
     global __block_height
     __block_height -= 1
+    TBEARS_DB.put(b'blockHeight', str(__block_height).encode())
 
 
 def get_tx_result_mapper():
@@ -518,6 +521,9 @@ async def init_icon_score_stub(conf: dict):
     __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
     await __icon_score_stub.connect()
 
+    if is_icon_dex_db_exist():
+        return None
+
     tx_hash = create_hash('genesis'.encode())
     tx_timestamp_us = int(time.time() * 10 ** 6)
     request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
@@ -568,6 +574,9 @@ async def init_icon_score_stub(conf: dict):
 async def init_icon_inner_task(conf: dict):
     global __icon_inner_task
     __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
+
+    if is_icon_dex_db_exist():
+        return None
 
     tx_hash = create_hash(b'genesis')
     tx_timestamp_us = int(time.time() * 10 ** 6)
@@ -621,6 +630,27 @@ async def init_icon_inner_task(conf: dict):
 def init_tbears():
     global __tx_result_mapper
     __tx_result_mapper = TxResultMapper()
+    load_tbears_global_variable()
+
+
+def load_tbears_global_variable():
+    global __block_height
+    global __prev_block_hash
+
+    byte_block_height = TBEARS_DB.get(b'blockHeight')
+    byte_prev_block_hash = TBEARS_DB.get(b'prevBlockHash')
+
+    if byte_block_height is not None:
+        block_height = byte_block_height.decode()
+        __block_height = int(block_height)
+    if byte_prev_block_hash is not None:
+        __prev_block_hash = bytes.hex(byte_prev_block_hash)
+
+
+def is_icon_dex_db_exist() -> bool:
+    state_root_path = DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT['icon_score_state_db_root_path']
+    path = os.path.join(state_root_path, ICON_DEX_DB_NAME)
+    return os.path.isdir(path)
 
 
 if __name__ == '__main__':
