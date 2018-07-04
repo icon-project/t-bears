@@ -120,7 +120,7 @@ def set_prev_block_hash(block_hash: str):
 def rollback_block():
     global __block_height
     __block_height -= 1
-    TBEARS_DB.put(b'blockHeight', __block_height)
+    TBEARS_DB.put(b'blockHeight', str(__block_height).encode())
 
 
 def get_tx_result_mapper():
