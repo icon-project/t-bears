@@ -12,15 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import unittest
 
 from secp256k1 import PrivateKey
 
 from tbears.command import run_SCORE, clear_SCORE
 from tbears.util import create_address
-from tbears.util.icon_client import IconClient
-from tests.common import *
+from tbears.util.libs.contents_of_json_payload import get_payload_of_icx_call
+from tbears.util.libs.icon_client import IconClient
+from tests.json_contents_for_tests import *
 
 TEST_ON_INT_SCORE_PATH = os.path.abspath(os.path.join(DIRECTORY_PATH, 'test_on_init'))
 ON_INIT_PARAM_JSON_PATH = os.path.join(DIRECTORY_PATH, 'on_init_test.json')
@@ -33,14 +33,14 @@ class TestOnMethods(unittest.TestCase):
             os.remove('./logger.log')
 
     def setUp(self):
-        self.url = URL
+        self.url = TBEARS_LOCAL_URL
         self.private_key = PrivateKey().private_key
         self.icon_client = IconClient(self.url, 3, self.private_key)
 
     def test_on_init(self):
         run_SCORE(TEST_ON_INT_SCORE_PATH, 'install', ON_INIT_PARAM_JSON_PATH)
         test_on_init_address = f'cx{create_address(b"test_on_init")}'
-        payload = get_request_json_of_token_total_supply(test_on_init_address)
+        payload = get_payload_of_icx_call(god_address, test_on_init_address, 'total_supply')
         response = self.icon_client.send(CALL, payload)
         response_json = response.json()
         result = response_json['result']

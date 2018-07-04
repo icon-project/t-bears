@@ -23,8 +23,8 @@ import socket
 from enum import IntEnum
 
 from tbears.util import PROJECT_ROOT_PATH, create_address, get_tbears_config_json
-from tbears.util.icon_client import IconClient, get_deploy_payload
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
+from tbears.util.libs.icon_client import IconClient, get_deploy_payload
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
     KeyStoreException, FillDeployPaylodException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \

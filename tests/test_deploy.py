@@ -18,10 +18,12 @@ import shutil
 import unittest
 import zipfile
 
-from tbears.util.in_memory_zip import InMemoryZip
-from tests.common import DIRECTORY_PATH
+from tbears.util import PROJECT_ROOT_PATH
 
-DEPLOY_TEST_DIRECTORY = os.path.join(DIRECTORY_PATH, 'test_deploy')
+from tbears.util.in_memory_zip import InMemoryZip
+
+TEST_DIRECTORY = os.path.abspath(os.path.join(PROJECT_ROOT_PATH, 'tests'))
+DEPLOY_TEST_DIRECTORY = os.path.join(TEST_DIRECTORY, 'test_deploy')
 
 
 def zip_file_name_list(in_memory_zip: 'InMemoryZip') -> list:

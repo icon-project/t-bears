@@ -17,8 +17,8 @@ import time
 
 import requests
 
-from tbears.util.icon_client import convert_dict
-from tests.common import URL
+from tbears.util.libs.icon_client import convert_dict
+from tests.json_contents_for_tests import TBEARS_LOCAL_URL
 
 
 def send_req(method: str, params: dict, url: str=None):
@@ -26,7 +26,7 @@ def send_req(method: str, params: dict, url: str=None):
         check_timestamp(params)
 
     if url is None:
-        url = URL
+        url = TBEARS_LOCAL_URL
 
     json_content = {
         "jsonrpc": "2.0",

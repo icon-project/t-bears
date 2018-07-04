@@ -12,19 +12,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
 import unittest
 import json
 import shutil
 import socket
 from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
-from tests.common import *
+from tests.json_contents_for_tests import TBEARS_LOCAL_URL
 
 
 class TestTBearsCommands(unittest.TestCase):
     def setUp(self):
         self.path = './'
-        self.url = URL
+        self.url = TBEARS_LOCAL_URL
         self.config = None, None
 
     def tearDown(self):
