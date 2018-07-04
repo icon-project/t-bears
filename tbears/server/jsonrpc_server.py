@@ -517,12 +517,11 @@ async def init_icon_score_service():
 
 
 async def init_icon_score_stub(conf: dict):
-    global __icon_score_stub
-    __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
-    await __icon_score_stub.connect()
-
     if is_icon_dex_db_exist():
         return None
+
+    global __icon_score_stub
+    __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
 
     tx_hash = create_hash('genesis'.encode())
     tx_timestamp_us = int(time.time() * 10 ** 6)
@@ -572,11 +571,12 @@ async def init_icon_score_stub(conf: dict):
 
 
 async def init_icon_inner_task(conf: dict):
-    global __icon_inner_task
-    __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
 
     if is_icon_dex_db_exist():
         return None
+
+    global __icon_inner_task
+    __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
 
     tx_hash = create_hash(b'genesis')
     tx_timestamp_us = int(time.time() * 10 ** 6)
@@ -650,6 +650,7 @@ def load_tbears_global_variable():
 def is_icon_dex_db_exist() -> bool:
     state_root_path = DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT['icon_score_state_db_root_path']
     path = os.path.join(state_root_path, ICON_DEX_DB_NAME)
+    print(path)
     return os.path.isdir(path)
 
 
