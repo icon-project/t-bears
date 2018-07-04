@@ -22,7 +22,7 @@ import logging
 import socket
 from enum import IntEnum
 
-from tbears.util import PROJECT_ROOT_PATH
+from tbears.util import PROJECT_ROOT_PATH, create_address
 from tbears.util.icon_client import IconClient, get_deploy_payload
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
@@ -161,12 +161,8 @@ def make_SCORE_samples():
 def deploy_SCORE(project: str, config_path: str = None, key_store_path: str = None, password: str = "",
                  params: dict = None) -> object:
     try:
-        if config_path is None:
-            config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
-        deploy_config = get_deploy_config(config_path)
+        deploy_config = __get_deploy_info_using_path(config_path)
 
-        if key_store_path is None:
-            key_store_path = deploy_config['keystorePath']
         private_key = key_from_key_store(key_store_path, password)
 
         uri = deploy_config['uri']
@@ -263,15 +259,8 @@ def __is_server_running():
     return result is 0
 
 
-def create_address(data: bytes):
-    hash_value = hashlib.sha3_256(data).digest()
-    return hash_value[-20:].hex()
-
-
 def __get_params_info(method: str, config_path: str) -> dict:
-    if config_path is None:
-        config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
-    deploy_config = get_deploy_config(config_path)
+    deploy_config = __get_deploy_info_using_path(config_path)
     if method == 'install':
         params = deploy_config['onInitParams']
     elif method == 'update':
@@ -279,3 +268,10 @@ def __get_params_info(method: str, config_path: str) -> dict:
     else:
         params = {}
     return params
+
+
+def __get_deploy_info_using_path(config_path: str) -> dict:
+    if not config_path:
+        config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
+    deploy_config = get_deploy_config(config_path)
+    return deploy_config

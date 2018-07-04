@@ -25,7 +25,7 @@ class TestTBearsCommands(unittest.TestCase):
     def setUp(self):
         self.path = './'
         self.url = URL
-        self.config = None, None, TBEARS_JSON_PATH
+        self.config = None, None
 
     def tearDown(self):
         clear_SCORE()

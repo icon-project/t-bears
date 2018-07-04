@@ -27,7 +27,6 @@
         },
         "onUpdateParams": {
         },
-        "keystorePath": "./keystore",
         "stepLimit": "0x12345"
     }
 }

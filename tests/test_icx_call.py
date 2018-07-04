@@ -129,7 +129,7 @@ class TestTransactionResult(unittest.TestCase):
     def test_score_queries_filed(self):
         # unknown score method test
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        run_SCORE('sample_token', None, None)
         payload = get_request_json_of_nonexist_method(token_addr=token_score_address)
         response = self.icon_client.send(CALL, payload)
         response_json = response.json()

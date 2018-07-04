@@ -19,5 +19,13 @@
         "level": "DEBUG",
         "filePath": "./tbears.log",
         "outputType": "console|file"
+    },
+    "deploy": {
+        "uri": "http://localhost:9000/api/v3",
+        "onInitParams": {
+            "init_supply": "0x07d0",
+            "decimal": "0x12"
+        },
+        "stepLimit": "0x12345"
     }
 }

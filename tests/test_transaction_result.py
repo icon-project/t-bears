@@ -44,7 +44,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_transaction_result(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        run_SCORE('sample_token', None, None)
 
         # send icx with invalid param
         payload = get_request_json_of_send_icx(god_address, '123', hex(10 * 10 ** 18))
@@ -103,7 +103,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_tx_result_prefix(self):
         init_SCORE('sample_token', 'SampleToken')
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        run_SCORE('sample_token', None, None)
 
         payload = get_request_json_of_send_icx(fr=god_address, to=test_address, value=hex(10*10**18))
         response = self.icon_client.send(SEND, payload)

@@ -50,7 +50,7 @@ class TestDeployScore(unittest.TestCase):
 
     def test_call_token_score(self):
         init_SCORE(token_score_name, token_score_class)
-        run_SCORE(token_score_name, None, None, TBEARS_JSON_PATH)
+        run_SCORE(token_score_name, None, None)
 
         deploy_payload = get_deploy_payload(token_score_name, token_owner_signer)
         response = self.icon_client_token_owner.send(SEND, deploy_payload)
@@ -88,7 +88,7 @@ class TestDeployScore(unittest.TestCase):
 
     def test_call_score_methods(self):
         make_SCORE_samples()
-        run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        run_SCORE('sample_token', None, None)
 
         deploy_payload = get_deploy_payload(token_score_name, token_owner_signer)
         response = self.icon_client_token_owner.send(SEND, deploy_payload)

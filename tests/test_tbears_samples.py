@@ -47,7 +47,7 @@ class TestTBears(unittest.TestCase):
 
     def test_token(self):
         init_SCORE('sample_token', 'SampleToken')
-        result, response = run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
+        result, response = run_SCORE('sample_token', None, None)
         response = response.json()
 
         # send transaction
@@ -129,8 +129,8 @@ class TestTBears(unittest.TestCase):
 
     def test_score_methods(self):
         make_SCORE_samples()
-        result, _ = run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
-        result, _ = run_SCORE('sample_crowd_sale', None, None, TBEARS_JSON_PATH)
+        result, _ = run_SCORE('sample_token', None, None)
+        result, _ = run_SCORE('sample_crowd_sale', None, None)
         # seq1
         # genesis -> token_owner 10icx
         payload = get_request_json_of_send_icx(fr=Address.from_string(god_address),
