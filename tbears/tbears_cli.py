@@ -31,12 +31,10 @@ tbears version : v{tbears.__version__}
 ==========================
 tbears commands:
     init <project> <score_class> : Generate files, both <project>.py and package.json in <project> directory. The name of the score class is <score_class>.
-    run <project> : Run the score. | --install <config param path> | --update <config param path>
+    run <project> : Run the score. | [ --install | -i] | [ --update | -u] | [ --config | -c ]
     stop : Stop the score.
     clear : Delete the score, both .score and .db directory.
-    deploy <project> <deploy_config_path> <keystore_file_path>:
-    deploy config file is has score address(needed when update score),
-    network(mainnet or testnet), params(optional). params will be used in on_install or on_update method in your SCORE.
+    deploy <project> <--keystore | -k> <keystore path> [--config | -c]
     samples : Create two score samples (sample_crowdSale, sample_token)
         """)
 
@@ -45,10 +43,12 @@ tbears commands:
         nargs='*',
         help='init, run, stop, clear')
     parser.add_argument(
-        '--install', '-i', dest='install', help='install config json file path'
+        '--install', '-i', dest='install', action='store_true',
+        help='This option is flag. call on_init() when tbears run.'
     )
     parser.add_argument(
-        '--update', '-u', dest='update', help='update config json file path'
+        '--update', '-u', dest='update', action='store_true',
+        help='This option is flag. call on_update() when tbears run.'
     )
     parser.add_argument(
         '--keystore', '-k', dest='keystore_path', help='keystore file path'
@@ -65,15 +65,18 @@ tbears commands:
 
     command = args.command[0]
 
-    config_options = [None, None, None]
+    config_options = [None, None]
 
-    if args.install:
-        config_options = [args.install, 'install', None]
+    if args.install and args.update:
+        print('You CAN NOT use both install and update options.')
+        sys.exit(ExitCode.COMMAND_IS_WRONG.value)
+    elif args.install:
+        config_options = ['install', None]
     elif args.update:
-        config_options = [args.update, 'update', None]
+        config_options = ['update', None]
 
     if args.config_file:
-        config_options[2] = args.config_file
+        config_options[1] = args.config_file
 
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])

@@ -21,12 +21,12 @@
         "outputType": "console|file"
     },
     "deploy": {
-        "network": "mainnet",
+        "uri": "http://localhost:9000/api/v3",
         "scoreAddress": "cx0000000000000000000000000000000000000000",
-        "params": {
-
+        "onInitParams": {
         },
-        "keystorePath": "./keystore",
+        "onUpdateParams": {
+        },
         "stepLimit": "0x12345"
     }
 }

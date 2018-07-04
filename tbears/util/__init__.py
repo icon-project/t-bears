@@ -16,6 +16,7 @@ import json
 import os
 import shutil
 import time
+import hashlib
 
 import requests
 from tbears.util.in_memory_zip import InMemoryZip
@@ -119,7 +120,7 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
 
 
 def make_install_json_payload(project: str) -> dict:
-    path = os.path.abspath(f'./{project}')
+    path = os.path.abspath(project)
     payload = {
         "jsonrpc": "2.0",
         "method": "icx_sendTransaction",
@@ -317,9 +318,6 @@ def get_deploy_config(path: str) -> dict:
         return deploy_config
 
 
-def get_network_url(network_name: str) -> str:
-    if network_name == "mainnet":
-        return "https://wallet.icon.foundation/api/"
-    else:
-        return "https://testwallet.icon.foundation/api/"
-
+def create_address(data: bytes):
+    hash_value = hashlib.sha3_256(data).digest()
+    return hash_value[-20:].hex()

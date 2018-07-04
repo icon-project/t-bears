@@ -22,7 +22,7 @@ import logging
 import socket
 from enum import IntEnum
 
-from tbears.util import PROJECT_ROOT_PATH
+from tbears.util import PROJECT_ROOT_PATH, create_address
 from tbears.util.icon_client import IconClient, get_deploy_payload
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
@@ -93,11 +93,10 @@ def run_SCORE(project: str, *options) -> tuple:
 
     params = {}
 
-    if options[1]:
-        params = __get_param_info(options[0])
+    params = __get_params_info(options[0], options[1])
 
     if not __is_server_running():
-        __start_server(options[2])
+        __start_server(options[1])
         time.sleep(2)
 
     respond = __embed_SCORE_on_server(project, params, options[0], options[1])
@@ -162,19 +161,15 @@ def make_SCORE_samples():
 def deploy_SCORE(project: str, config_path: str = None, key_store_path: str = None, password: str = "",
                  params: dict = None) -> object:
     try:
-        if config_path is None:
-            config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
-        deploy_config = get_deploy_config(config_path)
+        deploy_config = __get_deploy_info_using_path(config_path)
 
-        if key_store_path is None:
-            key_store_path = deploy_config['keystorePath']
         private_key = key_from_key_store(key_store_path, password)
 
-        # url = get_network_url(deploy_config['network'])
+        uri = deploy_config['uri']
         score_address = f'cx{"0"*40}' if not deploy_config.get('scoreAddress', 0) else deploy_config['scoreAddress']
         step_limit = hex(12345) if not deploy_config.get('stepLimit', 0) else deploy_config['stepLimit']
 
-        icon_client = IconClient('http://localhost:9000/api/v3', 3, private_key)
+        icon_client = IconClient(uri, 3, private_key)
 
         deploy_payload = get_deploy_payload(path=project, signer=IcxSigner(private_key), params=params,
                                             step_limit=step_limit, score_address=score_address)
@@ -230,7 +225,7 @@ def __embed_SCORE_on_server(project: str, params: dict, *options) -> dict:
     """
     project_dict = make_install_json_payload(project)
 
-    if options[1] == 'update':
+    if options[0] == 'update':
         contract_address = f'cx{create_address(project.encode())}'
         project_dict['params']['to'] = str(contract_address)
 
@@ -264,23 +259,19 @@ def __is_server_running():
     return result is 0
 
 
-def __get_param_info(path: str):
-    try:
-        with open(path, mode='rb') as param_json:
-            contents = param_json.read()
-    except IsADirectoryError:
-        print(f'{path} is a directory')
-        sys.exit(ExitCode.CONFIG_FILE_ERROR.value)
-    except FileNotFoundError:
-        print(f'{path} not found.')
-        sys.exit(ExitCode.CONFIG_FILE_ERROR.value)
-    except PermissionError:
-        print(f'can not access {path}')
-        sys.exit(ExitCode.CONFIG_FILE_ERROR.value)
+def __get_params_info(method: str, config_path: str) -> dict:
+    deploy_config = __get_deploy_info_using_path(config_path)
+    if method == 'install':
+        params = deploy_config['onInitParams']
+    elif method == 'update':
+        params = deploy_config['onUpdateParams']
     else:
-        return json.loads(contents)
+        params = {}
+    return params
 
 
-def create_address(data: bytes):
-    hash_value = hashlib.sha3_256(data).digest()
-    return hash_value[-20:].hex()
+def __get_deploy_info_using_path(config_path: str) -> dict:
+    if not config_path:
+        config_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
+    deploy_config = get_deploy_config(config_path)
+    return deploy_config
