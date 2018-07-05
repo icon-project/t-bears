@@ -18,7 +18,7 @@ from secp256k1 import PrivateKey
 
 from tbears.command import run_SCORE, clear_SCORE
 from tbears.util import create_address
-from tbears.util.libs.contents_of_json_payload import get_payload_of_icx_call
+from tbears.util.libs.icon_json import json_icx_call
 from tbears.util.libs.icon_client import IconClient
 from tests.json_contents_for_tests import *
 
@@ -40,8 +40,8 @@ class TestOnMethods(unittest.TestCase):
     def test_on_init(self):
         run_SCORE(TEST_ON_INT_SCORE_PATH, 'install', ON_INIT_PARAM_JSON_PATH)
         test_on_init_address = f'cx{create_address(b"test_on_init")}'
-        payload = get_payload_of_icx_call(god_address, test_on_init_address, 'total_supply')
-        response = self.icon_client.send(CALL, payload)
+        payload = json_icx_call(god_address, test_on_init_address, 'total_supply')
+        response = self.icon_client.send(payload)
         response_json = response.json()
         result = response_json['result']
         self.assertEqual(result, hex(2000*10**18))

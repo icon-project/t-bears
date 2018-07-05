@@ -37,25 +37,10 @@ def get_request_json_of_nonexist_method(token_addr: str) -> dict:
         }
     }
 
-
-def get_request_json_of_call_hello():
-    return {
-        "jsonrpc": "2.0",
-        "method": "hello",
-        "id": 1,
-        "params": {}
-    }
-
-
 god_address = f'hx{"0"*40}'
 test_address = f'hx1{"0"*39}'
 token_owner_address = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 token_score_address = "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf"
-CALL = 'icx_call'
-SEND = 'icx_sendTransaction'
-BAL = 'icx_getBalance'
-TX_RESULT = 'icx_getTransactionResult'
-API = 'icx_getScoreApi'
 TBEARS_LOCAL_URL = "http://localhost:9000/api/v3"
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 deploy_token_owner_private_key = key_from_key_store(os.path.join(DIRECTORY_PATH, 'keystore'), 'qwer1234%')
