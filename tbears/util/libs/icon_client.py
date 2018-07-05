@@ -16,18 +16,22 @@ import json
 
 import requests
 
+from tbears.tbears_exception import IconClientError
 from tbears.util import IcxSigner
 
 
 class IconClient:
 
-    def __init__(self, url: str, version: int, private_key: bytes):
+    def __init__(self, url: str):
         self._url = url
-        self._version = version
-        self._private_key = private_key
-        self._signer = IcxSigner(self._private_key)
 
     def send(self, payload: dict) -> requests.Response:
-        json_content = json.dumps(payload)
-        resp = requests.post(self._url, json_content)
-        return resp
+        try:
+            json_content = json.dumps(payload)
+            resp = requests.post(self._url, json_content)
+        except requests.exceptions.Timeout:
+             raise RuntimeError("time out")
+        except:
+            raise IconClientError
+        else:
+            return resp

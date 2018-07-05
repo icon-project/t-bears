@@ -46,3 +46,8 @@ class ZipException(TbearsBaseException):
 class FillDeployPaylodException(TbearsBaseException):
     """Error while fill deploy payload"""
     pass
+
+
+class IconClientError(TbearsBaseException):
+    """Error while request"""
+    pass

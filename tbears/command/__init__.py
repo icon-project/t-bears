@@ -26,7 +26,7 @@ from tbears.util import PROJECT_ROOT_PATH, create_address, get_tbears_config_jso
 from tbears.util.icon_client import IconClient, get_deploy_payload
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
-    KeyStoreException, FillDeployPaylodException
+    KeyStoreException, FillDeployPaylodException, IconClientError
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
     delete_score_info, get_init_template, get_sample_crowd_sale_contents, get_deploy_config
 from ..util import write_file, get_package_json_dict, get_score_main_template
@@ -46,6 +46,7 @@ class ExitCode(IntEnum):
     CONFIG_FILE_ERROR = 8
     KEY_STORE_ERROR = 9
     DEPLOY_ERROR = 10
+    ICON_CLIENT_ERROR = 11
 
 
 def init_SCORE(project: str, score_class: str) -> int:
@@ -186,12 +187,12 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
             score_address = f'cx{"0"*40}'
             params = install_info['params']
 
-        icon_client = IconClient(uri, 3, private_key)
+        icon_client = IconClient(uri)
 
         deploy_payload = get_deploy_payload(path=project, signer=IcxSigner(private_key), params=params,
                                             step_limit=step_limit, score_address=score_address)
 
-        response = icon_client.send('icx_sendTransaction', deploy_payload)
+        response = icon_client.send(deploy_payload)
 
     except TbearsConfigFileException:
         return ExitCode.CONFIG_FILE_ERROR.value, None
@@ -201,6 +202,8 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
         return ExitCode.KEY_STORE_ERROR.value, None
     except FillDeployPaylodException:
         return ExitCode.DEPLOY_ERROR.value, None
+    except IconClientError:
+        return ExitCode.ICON_CLIENT_ERROR.value, None
     else:
         print('result : ', response.json())
         return ExitCode.SUCCEEDED, response
