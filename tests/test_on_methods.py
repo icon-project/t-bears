@@ -35,7 +35,7 @@ class TestOnMethods(unittest.TestCase):
     def setUp(self):
         self.url = TBEARS_LOCAL_URL
         self.private_key = PrivateKey().private_key
-        self.icon_client = IconClient(self.url, 3, self.private_key)
+        self.icon_client = IconClient(self.url)
 
     def test_on_init(self):
         run_SCORE(TEST_ON_INT_SCORE_PATH, 'install', ON_INIT_PARAM_JSON_PATH)

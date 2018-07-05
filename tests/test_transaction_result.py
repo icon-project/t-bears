@@ -43,10 +43,15 @@ class TestTransactionResult(unittest.TestCase):
             pass
 
     def setUp(self):
+<<<<<<< HEAD
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(None)
         self.path = API_PATH
         self.app = init_mock_server()
+=======
+        self.private_key = PrivateKey().private_key
+        self.icon_client = IconClient(TBEARS_LOCAL_URL)
+>>>>>>> Fix unit test(#39)
 
     def test_transaction_result(self):
         init_SCORE('sample_token', 'SampleToken')

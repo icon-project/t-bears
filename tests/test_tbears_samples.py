@@ -48,10 +48,16 @@ class TestTBears(unittest.TestCase):
             pass
 
     def setUp(self):
+<<<<<<< HEAD
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(None)
         self.path = API_PATH
         self.app = init_mock_server()
+=======
+        self.url = TBEARS_LOCAL_URL
+        self.private_key = PrivateKey().private_key
+        self.icon_client = IconClient(self.url)
+>>>>>>> Fix unit test(#39)
 
     def test_token(self):
         init_SCORE('sample_token', 'SampleToken')
