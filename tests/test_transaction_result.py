@@ -96,7 +96,12 @@ class TestTransactionResult(unittest.TestCase):
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         # tx_result payload
-        self.assertEqual(int(response_json['error']['code']), SERVER_ERROR)
+        tx_hash = response_json['result']
+        params = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
+        payload = fill_json_content(TX_RESULT, params)
+        _, response = self.app.test_client.post(self.path, json=payload)
+        response_json = response.json
+        self.assertEqual(int(response_json['result']['failure']['code'], 0), -SERVER_ERROR)
 
         # not enough value
         params = get_request_json_of_transfer_token(fr=token_owner_address, to=token_score_address,
@@ -106,7 +111,12 @@ class TestTransactionResult(unittest.TestCase):
         response_json = response.json
 
         # get tx_result payload
-        self.assertEqual(int(response_json['error']['code']), SERVER_ERROR) #SCORE_ERROR
+        tx_hash = response_json['result']
+        params = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
+        payload = fill_json_content(TX_RESULT, params)
+        _, response = self.app.test_client.post(self.path, json=payload)
+        response_json = response.json
+        self.assertEqual(int(response_json['result']['failure']['code'], 0), -SCORE_ERROR)
 
         # not enough icx
         params = get_request_json_of_send_icx(test_address, god_address, hex(1000000 * 10 ** 18))
