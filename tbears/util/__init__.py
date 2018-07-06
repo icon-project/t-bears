@@ -307,6 +307,41 @@ class SampleCrowdSale(IconScoreBase):
     return contents
 
 
+def get_tbears_config_json() -> str:
+    return """{
+        "log": {
+            "colorLog": true,
+            "level": "debug",
+            "filePath": "./tbears.log",
+            "outputType": "console|file"
+        },
+        "global": {
+            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "port": 9000,
+            "scoreRoot": "./.score",
+            "dbRoot": "./.db",
+            "genesisData": {
+                "accounts": [
+                    {
+                        "name": "genesis",
+                        "address": "hx0000000000000000000000000000000000000000",
+                        "balance": "0x2961fff8ca4a62327800000"
+                    },
+                    {
+                        "name": "fee_treasury",
+                        "address": "hx1000000000000000000000000000000000000000",
+                        "balance": "0x0"
+                    }
+                ]
+            }
+        },
+        "deploy": {
+            "uri": "http://localhost:9000/api/v3",
+            "stepLimit": "0x12345"
+        }
+}"""
+
+
 def get_deploy_config(path: str) -> dict:
     try:
         with open(path, mode='rb') as config_file:

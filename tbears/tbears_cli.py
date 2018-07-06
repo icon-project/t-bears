@@ -31,10 +31,10 @@ tbears version : v{tbears.__version__}
 ==========================
 tbears commands:
     init <project> <score_class> : Generate files, both <project>.py and package.json in <project> directory. The name of the score class is <score_class>.
-    run <project> : Run the score. | [ --install | -i] | [ --update | -u] | [ --config | -c ]
+    run <project> : Run the score. | [ --install | -i] <on_install param info path> | [ --update | -u] <on_update param info path>
     stop : Stop the score.
     clear : Delete the score, both .score and .db directory.
-    deploy <project> <--keystore | -k> <keystore path> [--config | -c]
+    deploy <project> <--keystore | -k> <keystore path> [ --install | -i] <on_install param info path> | [ --update | -u] <on_update param info path>
     samples : Create two score samples (sample_crowdSale, sample_token)
         """)
 
@@ -43,18 +43,13 @@ tbears commands:
         nargs='*',
         help='init, run, stop, clear')
     parser.add_argument(
-        '--install', '-i', dest='install', action='store_true',
-        help='This option is flag. call on_init() when tbears run.'
+        '--install', '-i', dest='install'
     )
     parser.add_argument(
-        '--update', '-u', dest='update', action='store_true',
-        help='This option is flag. call on_update() when tbears run.'
+        '--update', '-u', dest='update'
     )
     parser.add_argument(
         '--keystore', '-k', dest='keystore_path', help='keystore file path'
-    )
-    parser.add_argument(
-        '--config', '-c', dest='config_file', help='tbears config path'
     )
 
     args = parser.parse_args()
@@ -71,12 +66,9 @@ tbears commands:
         print('You CAN NOT use both install and update options.')
         sys.exit(ExitCode.COMMAND_IS_WRONG.value)
     elif args.install:
-        config_options = ['install', None]
+        config_options = ['install', args.install]
     elif args.update:
-        config_options = ['update', None]
-
-    if args.config_file:
-        config_options[1] = args.config_file
+        config_options = ['update', args.update]
 
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])
@@ -96,8 +88,7 @@ tbears commands:
             print('Made samples successfully.')
     elif command == 'deploy' and len(args.command) == 2:
         password = input("input your key store password: ")
-        result, _ = deploy_SCORE(args.command[1], config_path=args.config_file, key_store_path=args.keystore_path,
-                                 password=password)
+        result, _ = deploy_SCORE(args.command[1], *config_options, key_store_path=args.keystore_path, password=password)
     elif command == 'test' and len(args.command) == 2:
         result = test_SCORE(args.command[1])
     else:
