@@ -20,7 +20,7 @@ from tbears.util import make_install_json_payload
 from tbears.util.icon_client import get_deploy_payload
 from tbears.util.tbears_mock_server import API_PATH, init_mock_server, fill_json_content
 
-from tbears.command import init_SCORE, run_SCORE, make_SCORE_samples
+from tbears.command import init_SCORE, make_SCORE_samples
 from tests.common import *
 from tests.test_tbears_samples import test_addr
 
