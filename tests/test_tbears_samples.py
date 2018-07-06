@@ -35,6 +35,8 @@ class TestTBears(unittest.TestCase):
         try:
             if os.path.exists('sample_token'):
                 shutil.rmtree('sample_token')
+            if os.path.exists('sample_crowd_sale'):
+                shutil.rmtree('sample_crowd_sale')
             if os.path.exists('./.test_tbears_db'):
                 shutil.rmtree('./.test_tbears_db')
             if os.path.exists('./.score'):

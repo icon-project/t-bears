@@ -93,8 +93,13 @@ def run_SCORE(project: str, *options) -> tuple:
         return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value, None
 
     params = {}
-    if options[0]:
-        params = __get_param_info(options[1])
+    try:
+        if options[0]:
+            deploy_info = __get_deploy_optional_info(options[1])
+            params = deploy_info['params']
+    except KeyError:
+        print('check your deploy config file')
+        return ExitCode.CONFIG_FILE_ERROR.value, None
 
     if not __is_server_running():
         __start_server()
@@ -163,7 +168,7 @@ def make_SCORE_samples():
 def deploy_SCORE(project: str, *config_options, key_store_path: str = None, password: str = "",
                  params: dict = {}) -> object:
     try:
-        deploy_config = __get_deploy_info_using_path()
+        deploy_config = __get_deploy_info()
 
         private_key = key_from_key_store(key_store_path, password)
 
@@ -173,13 +178,13 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
         score_address = f'cx{"0"*40}'
 
         if config_options[0] == 'update':
-            update_info = __get_param_info(config_options[1])
-            score_address = update_info['score_address']
-            params = update_info['update']['params']
+            update_info = __get_deploy_optional_info(config_options[1])
+            score_address = update_info['scoreAddress']
+            params = update_info['params']
         elif config_options[0] == 'install':
-            install_info = __get_param_info(config_options[1])
+            install_info = __get_deploy_optional_info(config_options[1])
             score_address = f'cx{"0"*40}'
-            params = install_info['install']['params']
+            params = install_info['params']
 
         icon_client = IconClient(uri, 3, private_key)
 
@@ -268,7 +273,7 @@ def __is_server_running():
     return result is 0
 
 
-def __get_param_info(path: str):
+def __get_deploy_optional_info(path: str):
     try:
         with open(path, mode='rb') as param_json:
             contents = param_json.read()
@@ -285,6 +290,6 @@ def __get_param_info(path: str):
         return json.loads(contents)
 
 
-def __get_deploy_info_using_path() -> dict:
+def __get_deploy_info() -> dict:
     deploy_config = get_deploy_config('./tbears.json')
     return deploy_config

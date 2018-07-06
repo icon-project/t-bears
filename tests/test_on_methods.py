@@ -29,6 +29,8 @@ ON_INIT_PARAM_JSON_PATH = os.path.join(DIRECTORY_PATH, 'on_init_test.json')
 class TestOnMethods(unittest.TestCase):
     def tearDown(self):
         clear_SCORE()
+        if os.path.exists('./logger.log'):
+            os.remove('./logger.log')
 
     def setUp(self):
         self.url = URL

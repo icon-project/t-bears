@@ -34,8 +34,10 @@ class TestDeployScore(unittest.TestCase):
     def tearDown(self):
 
         try:
-            if os.path.exists('sample_token'):
-                shutil.rmtree('sample_token')
+            if os.path.exists(token_score_name):
+                shutil.rmtree(token_score_name)
+            if os.path.exists(crowd_score_name):
+                shutil.rmtree(crowd_score_name)
             if os.path.exists('./.test_tbears_db'):
                 shutil.rmtree('./.test_tbears_db')
             if os.path.exists('./.score'):
