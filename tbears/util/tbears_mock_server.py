@@ -18,6 +18,11 @@ from tbears.server.jsonrpc_server import init_tbears, init_icon_inner_task, load
 
 
 def init_mock_server(path: str='./tbears.json'):
+    """Mock sanic server for unit testing.
+
+    :param path: Configuration file path to refer.
+    :return:
+    """
 
     async def __serve():
         init_tbears(conf)

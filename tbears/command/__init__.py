@@ -141,6 +141,10 @@ def clear_SCORE() -> int:
 
 
 def make_SCORE_samples():
+    """Create two score samples (sample_crowdSale, sample_token)
+
+    :return: ExitCode
+    """
     tokentest_package_json_dict = get_package_json_dict("sample_token", "SampleToken")
     tokentest_package_json_contents = json.dumps(tokentest_package_json_dict, indent=4)
     tokentest_py_contents = get_score_main_template("SampleToken")
@@ -169,6 +173,16 @@ def make_SCORE_samples():
 
 def deploy_SCORE(project: str, *config_options, key_store_path: str = None, password: str = "",
                  params: dict = {}) -> object:
+    """
+
+    :param project: Project which you want to deploy.
+    :param config_options: 'install' or 'update' and deploy.json path.
+    :param key_store_path: Keystore path. you can get keystore file from icxcli(python package) or
+    Icon Wallet(chrome extension)
+    :param password: password of keystore file.
+    :param params: Parameters passed to the on_init or on_update methods.
+    :return:
+    """
     try:
         deploy_config = __get_deploy_info()
 
