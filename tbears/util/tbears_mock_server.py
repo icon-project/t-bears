@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+# Copyright 2017-2018 theloop Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+from tbears.server.jsonrpc_server import init_tbears, init_icon_inner_task, load_config, SimpleRestServer
+
+
+def init_mock_server(path: str='./tbears.json'):
+
+    async def __serve():
+        init_tbears(conf)
+        await init_icon_inner_task(conf)
+    conf = load_config(path)['global']
+    server = SimpleRestServer(conf['port'], "0.0.0.0")
+    server.get_app().add_task(__serve)
+
+    return server.get_app()
+
+
+API_PATH = '/api/v3/'
+
+
+def fill_json_content(method, payload: dict):
+    json_content = {
+        "jsonrpc": "2.0",
+        "method": method,
+        "id": 12345,
+    }
+    if method != "icx_getTotalSupply":
+        json_content['params'] = payload
+    return json_content

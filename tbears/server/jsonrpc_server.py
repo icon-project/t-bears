@@ -445,7 +445,7 @@ class SimpleRestServer:
 
 def serve():
     async def __serve():
-        init_tbears()
+        init_tbears(conf)
         if MQ_TEST:
             if not SEPARATE_PROCESS_DEBUG:
                 await init_icon_score_service()
@@ -453,47 +453,49 @@ def serve():
         else:
             await init_icon_inner_task(conf)
 
-    if len(sys.argv) == 2:
-        path = sys.argv[1]
-    else:
-        path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'tbears.json')
+    path = './tbears.json'
 
-    conf = load_config(path)
+    conf = load_config(path)['global']
     Logger(path)
     Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
 
     server = SimpleRestServer(conf['port'], "0.0.0.0")
     server.get_app().add_task(__serve)
-    global TBEARS_DB
-    TBEARS_DB = TbearsDB(TbearsDB.make_db(f'{conf["dbRoot"]}/tbears'))
 
     server.run()
 
 
 def load_config(path: str) -> dict:
     default_conf = {
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "port": 9000,
-        "scoreRoot": "./.score",
-        "dbRoot": "./.db",
-        "genesisData": {
-            "accounts": [
-                {
-                    "name": "genesis",
-                    "address": "hx0000000000000000000000000000000000000000",
-                    "balance": "0x2961fff8ca4a62327800000"
-                },
-                {
-                    "name": "fee_treasury",
-                    "address": "hx1000000000000000000000000000000000000000",
-                    "balance": "0x0"
-                }
-            ]
-        },
         "log": {
+            "colorLog": True,
             "level": "debug",
             "filePath": "./tbears.log",
             "outputType": "console|file"
+        },
+        "global": {
+            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "port": 9000,
+            "scoreRoot": "./.score",
+            "dbRoot": "./.db",
+            "genesisData": {
+                "accounts": [
+                    {
+                        "name": "genesis",
+                        "address": "hx0000000000000000000000000000000000000000",
+                        "balance": "0x2961fff8ca4a62327800000"
+                    },
+                    {
+                        "name": "fee_treasury",
+                        "address": "hx1000000000000000000000000000000000000000",
+                        "balance": "0x0"
+                    }
+                ]
+            }
+        },
+        "deploy": {
+            "uri": "http://localhost:9000/api/v3",
+            "stepLimit": "0x12345"
         }
     }
 
@@ -517,7 +519,6 @@ async def init_icon_score_service():
 
 
 async def init_icon_score_stub(conf: dict):
-
     global __icon_score_stub
     __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
 
@@ -572,7 +573,6 @@ async def init_icon_score_stub(conf: dict):
 
 
 async def init_icon_inner_task(conf: dict):
-
     global __icon_inner_task
     __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
 
@@ -628,9 +628,11 @@ async def init_icon_inner_task(conf: dict):
     return response_to_json_invoke(response)
 
 
-def init_tbears():
+def init_tbears(conf: dict):
     global __tx_result_mapper
     __tx_result_mapper = TxResultMapper()
+    global TBEARS_DB
+    TBEARS_DB = TbearsDB(TbearsDB.make_db(f'{conf["dbRoot"]}/tbears'))
     load_tbears_global_variable()
 
 

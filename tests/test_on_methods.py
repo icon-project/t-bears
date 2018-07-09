@@ -23,11 +23,14 @@ from tbears.util.icon_client import IconClient
 from tests.common import *
 
 TEST_ON_INT_SCORE_PATH = os.path.abspath(os.path.join(DIRECTORY_PATH, 'test_on_init'))
+ON_INIT_PARAM_JSON_PATH = os.path.join(DIRECTORY_PATH, 'on_init_test.json')
 
 
 class TestOnMethods(unittest.TestCase):
     def tearDown(self):
         clear_SCORE()
+        if os.path.exists('./logger.log'):
+            os.remove('./logger.log')
 
     def setUp(self):
         self.url = URL
@@ -35,7 +38,7 @@ class TestOnMethods(unittest.TestCase):
         self.icon_client = IconClient(self.url, 3, self.private_key)
 
     def test_on_init(self):
-        run_SCORE(TEST_ON_INT_SCORE_PATH, 'install', TBEARS_JSON_PATH)
+        run_SCORE(TEST_ON_INT_SCORE_PATH, 'install', ON_INIT_PARAM_JSON_PATH)
         test_on_init_address = f'cx{create_address(b"test_on_init")}'
         payload = get_request_json_of_token_total_supply(test_on_init_address)
         response = self.icon_client.send(CALL, payload)
