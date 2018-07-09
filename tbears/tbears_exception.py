@@ -48,6 +48,11 @@ class FillDeployPaylodException(TbearsBaseException):
     pass
 
 
-class IconClientError(TbearsBaseException):
+class IconClientException(TbearsBaseException):
     """Error while request"""
+    pass
+
+
+class JsonContentsException(TbearsBaseException):
+    """Error when initialize JsonContent object"""
     pass

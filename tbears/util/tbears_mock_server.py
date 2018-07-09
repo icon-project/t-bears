@@ -30,14 +30,3 @@ def init_mock_server(path: str='./tbears.json'):
 
 
 API_PATH = '/api/v3/'
-
-
-def fill_json_content(method, payload: dict):
-    json_content = {
-        "jsonrpc": "2.0",
-        "method": method,
-        "id": 12345,
-    }
-    if method != "icx_getTotalSupply":
-        json_content['params'] = payload
-    return json_content

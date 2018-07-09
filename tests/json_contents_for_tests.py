@@ -22,20 +22,23 @@ def get_params_for_get_token_balance(addr_from: str) -> tuple:
     return 'balance_of', {"addr_from": addr_from}
 
 
-def get_params_for_transfer_token(addr_to: str, value: str) -> tuple:
-    return 'transfer', {"addr_to": addr_to, "value": value}
-
-
-def get_request_json_of_nonexist_method(token_addr: str) -> dict:
+def get_data_for_transfer_token(addr_to: str, value: str) -> dict:
     return {
-        "from": "hx0000000000000000000000000000000000000000",
-        "to": token_addr,
-        "dataType": "call",
-        "data": {
-            "method": "total_supp",
-            "params": {}
+        "method": 'transfer',
+        "params": {
+            "addr_to": addr_to,
+            "value": value
         }
     }
+
+
+def get_params_for_transfer_token(addr_to: str, value: str) -> tuple:
+    return 'transfer', { "addr_to": addr_to, "value": value}
+
+
+def get_request_json_of_nonexist_method() -> tuple:
+    return 'nonexistent_method', {}
+
 
 god_address = f'hx{"0"*40}'
 test_address = f'hx1{"0"*39}'

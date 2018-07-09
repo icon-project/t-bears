@@ -32,6 +32,8 @@ class TestTBearsCommands(unittest.TestCase):
         try:
             if os.path.exists('./.test_tbears_db'):
                 shutil.rmtree('./.test_tbears_db')
+            if os.path.exists('./tbears.json'):
+                os.remove('./tbears.json')
             os.remove('./tbears.log')
         except:
             pass

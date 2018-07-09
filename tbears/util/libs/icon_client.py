@@ -16,8 +16,7 @@ import json
 
 import requests
 
-from tbears.tbears_exception import IconClientError
-from tbears.util import IcxSigner
+from tbears.tbears_exception import IconClientException
 
 
 class IconClient:
@@ -32,6 +31,6 @@ class IconClient:
         except requests.exceptions.Timeout:
              raise RuntimeError("time out")
         except:
-            raise IconClientError
+            raise IconClientException
         else:
             return resp

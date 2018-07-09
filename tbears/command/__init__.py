@@ -22,11 +22,12 @@ import logging
 import socket
 from enum import IntEnum
 
-from tbears.util import PROJECT_ROOT_PATH, create_address, get_tbears_config_json
-from tbears.util.icon_client import IconClient, get_deploy_payload
+from tbears.util import create_address, get_tbears_config_json
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
+from tbears.util.libs.icon_client import IconClient
+from tbears.util.libs.icon_json import get_icx_sendTransaction_deploy_payload
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
-    KeyStoreException, FillDeployPaylodException, IconClientError
+    KeyStoreException, FillDeployPaylodException, IconClientException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
     delete_score_info, get_init_template, get_sample_crowd_sale_contents, get_deploy_config
 from ..util import write_file, get_package_json_dict, get_score_main_template
@@ -189,8 +190,9 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
 
         icon_client = IconClient(uri)
 
-        deploy_payload = get_deploy_payload(path=project, signer=IcxSigner(private_key), params=params,
-                                            step_limit=step_limit, score_address=score_address)
+        deploy_payload = get_icx_sendTransaction_deploy_payload(signer=IcxSigner(private_key), path=project,
+                                                                to=score_address, deploy_params=params,
+                                                                step_limit=step_limit)
 
         response = icon_client.send(deploy_payload)
 
@@ -202,7 +204,7 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
         return ExitCode.KEY_STORE_ERROR.value, None
     except FillDeployPaylodException:
         return ExitCode.DEPLOY_ERROR.value, None
-    except IconClientError:
+    except IconClientException:
         return ExitCode.ICON_CLIENT_ERROR.value, None
     else:
         print('result : ', response.json())
