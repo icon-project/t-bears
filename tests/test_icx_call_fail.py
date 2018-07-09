@@ -18,11 +18,10 @@ import unittest
 
 from tbears.command import init_SCORE
 from tbears.util import make_install_json_payload
-from tbears.util.tbears_mock_server import API_PATH, init_mock_server, fill_json_content
-
-from tests.common import *
-from tests.jsonrpc_error_code import *
-
+from tbears.util.libs.icon_json import get_icx_call_payload, get_icx_getScoreApi_payload, get_icx_getBalance_payload
+from tbears.util.libs.jsonrpc_error_code import METHOD_NOT_FOUND, INVALID_PARAMS
+from tbears.util.tbears_mock_server import API_PATH, init_mock_server
+from tests.json_contents_for_tests import *
 
 pre_define_api = \
         [
@@ -120,6 +119,8 @@ class TestTransactionResult(unittest.TestCase):
                 shutil.rmtree('./.score')
             if os.path.exists('./.db'):
                 shutil.rmtree('./.db')
+            if os.path.exists('./tbears.json'):
+                os.remove('./tbears.json')
             os.remove('./tbears.log')
         except:
             pass
@@ -136,43 +137,34 @@ class TestTransactionResult(unittest.TestCase):
         run_payload = make_install_json_payload('sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
 
-        params = get_request_json_of_nonexist_method(token_addr=token_score_address)
-        payload = fill_json_content(CALL, params)
-        _, response = self.app.test_client.post(self.path, json=payload)
-        response_json = response.json
-        self.assertEqual(response_json['error']['code'], METHOD_NOT_FOUND)
-
-        # method not found.
-        payload = get_request_json_of_call_hello()
-        payload['method'] = 'unknown'
+        method_n_params = get_request_json_of_nonexist_method()
+        payload = get_icx_call_payload(token_owner_address, token_score_address, *method_n_params)
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertEqual(response_json['error']['code'], METHOD_NOT_FOUND)
 
         # invalid param - icx get balance
-        params = get_request_json_of_get_icx_balance('123')
-        payload = fill_json_content(CALL, params)
+        payload = get_icx_getBalance_payload('123')
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
 
         # call score method with invalid param
-        params = get_request_json_of_get_token_balance(to=token_score_address, addr_from='123')
-        payload = fill_json_content(CALL, params)
+        method_n_params = get_params_for_get_token_balance(addr_from='123')
+        payload = get_icx_call_payload(token_owner_address, token_score_address, *method_n_params)
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
 
         # call score method(invalid score address)
-        params = get_request_json_of_get_token_balance(to='123', addr_from=god_address)
-        payload = fill_json_content(CALL, params)
+        method_n_params = get_params_for_get_token_balance(god_address)
+        payload = get_icx_call_payload(token_owner_address, 'invalid_score_address', *method_n_params)
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
 
         # get score api test
-        params = get_request_json_of_get_score_api(address=token_score_address)
-        payload = fill_json_content(API, params)
+        payload = get_icx_getScoreApi_payload(address=token_score_address)
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         api_result = response_json["result"]

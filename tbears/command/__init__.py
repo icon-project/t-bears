@@ -22,11 +22,12 @@ import logging
 import socket
 from enum import IntEnum
 
-from tbears.util import PROJECT_ROOT_PATH, create_address, get_tbears_config_json
-from tbears.util.icon_client import IconClient, get_deploy_payload
+from tbears.util import create_address, get_tbears_config_json
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
+from tbears.util.libs.icon_client import IconClient
+from tbears.util.libs.icon_json import get_icx_sendTransaction_deploy_payload
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
-    KeyStoreException, FillDeployPaylodException
+    KeyStoreException, FillDeployPaylodException, IconClientException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
     delete_score_info, get_init_template, get_sample_crowd_sale_contents, get_deploy_config
 from ..util import write_file, get_package_json_dict, get_score_main_template
@@ -46,6 +47,7 @@ class ExitCode(IntEnum):
     CONFIG_FILE_ERROR = 8
     KEY_STORE_ERROR = 9
     DEPLOY_ERROR = 10
+    ICON_CLIENT_ERROR = 11
 
 
 def init_SCORE(project: str, score_class: str) -> int:
@@ -139,6 +141,10 @@ def clear_SCORE() -> int:
 
 
 def make_SCORE_samples():
+    """Create two score samples (sample_crowdSale, sample_token)
+
+    :return: ExitCode
+    """
     tokentest_package_json_dict = get_package_json_dict("sample_token", "SampleToken")
     tokentest_package_json_contents = json.dumps(tokentest_package_json_dict, indent=4)
     tokentest_py_contents = get_score_main_template("SampleToken")
@@ -167,6 +173,16 @@ def make_SCORE_samples():
 
 def deploy_SCORE(project: str, *config_options, key_store_path: str = None, password: str = "",
                  params: dict = {}) -> object:
+    """
+
+    :param project: Project which you want to deploy.
+    :param config_options: 'install' or 'update' and deploy.json path.
+    :param key_store_path: Keystore path. you can get keystore file from icxcli(python package) or
+    Icon Wallet(chrome extension)
+    :param password: password of keystore file.
+    :param params: Parameters passed to the on_init or on_update methods.
+    :return:
+    """
     try:
         deploy_config = __get_deploy_info()
 
@@ -186,12 +202,13 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
             score_address = f'cx{"0"*40}'
             params = install_info['params']
 
-        icon_client = IconClient(uri, 3, private_key)
+        icon_client = IconClient(uri)
 
-        deploy_payload = get_deploy_payload(path=project, signer=IcxSigner(private_key), params=params,
-                                            step_limit=step_limit, score_address=score_address)
+        deploy_payload = get_icx_sendTransaction_deploy_payload(signer=IcxSigner(private_key), path=project,
+                                                                to=score_address, deploy_params=params,
+                                                                step_limit=step_limit)
 
-        response = icon_client.send('icx_sendTransaction', deploy_payload)
+        response = icon_client.send(deploy_payload)
 
     except TbearsConfigFileException:
         return ExitCode.CONFIG_FILE_ERROR.value, None
@@ -201,6 +218,8 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
         return ExitCode.KEY_STORE_ERROR.value, None
     except FillDeployPaylodException:
         return ExitCode.DEPLOY_ERROR.value, None
+    except IconClientException:
+        return ExitCode.ICON_CLIENT_ERROR.value, None
     else:
         print('result : ', response.json())
         return ExitCode.SUCCEEDED, response

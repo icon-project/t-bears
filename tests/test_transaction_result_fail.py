@@ -16,13 +16,13 @@ import asyncio
 import shutil
 import unittest
 
-
 from tbears.command import init_SCORE
 from tbears.util import make_install_json_payload
-from tbears.util.tbears_mock_server import API_PATH, init_mock_server, fill_json_content
-
-from tests.common import *
-from tests.jsonrpc_error_code import *
+from tbears.util.libs.icon_json import *
+from tbears.util.libs.jsonrpc_error_code import INVALID_PARAMS, SERVER_ERROR, SCORE_ERROR, INVALID_REQUEST
+from tbears.util.tbears_mock_server import API_PATH, init_mock_server
+from tests.json_contents_for_tests import god_address, test_address, get_data_for_transfer_token, token_owner_address, \
+    token_score_address
 
 
 class TestTransactionResult(unittest.TestCase):
@@ -38,6 +38,8 @@ class TestTransactionResult(unittest.TestCase):
                 shutil.rmtree('./.score')
             if os.path.exists('./.db'):
                 shutil.rmtree('./.db')
+            if os.path.exists('./tbears.json'):
+                os.remove('./tbears.json')
             os.remove('./tbears.log')
         except:
             pass
@@ -53,74 +55,51 @@ class TestTransactionResult(unittest.TestCase):
         run_payload = make_install_json_payload('sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
 
-        params = get_request_json_of_send_icx(god_address, test_address, hex(10 * 10 ** 18))
-        payload = fill_json_content(SEND, params)
+        payload = get_dummy_icx_sendTransaction_payload(god_address, test_address, hex(10 * 10 ** 18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertTrue(response_json['result'].startswith('0x'))
 
         # send icx with invalid param
-        params = get_request_json_of_send_icx(god_address, '123', hex(10 * 10 ** 18))
-        payload = fill_json_content(SEND, params)
+        payload = get_dummy_icx_sendTransaction_payload(god_address, '123', hex(10 * 10 ** 18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
 
-        params = get_request_json_of_send_icx('1', god_address, hex(10 * 10 ** 18))
-        payload = fill_json_content(SEND, params)
-        _, response = self.app.test_client.post(self.path, json=payload)
-        response_json = response.json
-        self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
-
-        # send transaction to invalid score address
-        params = get_request_json_of_transfer_token(fr=god_address, to='', addr_to=test_address, value=hex(1*10**18))
-        payload = fill_json_content(SEND, params)
-        _, response = self.app.test_client.post(self.path, json=payload)
-        response_json = response.json
-        self.assertEqual(response_json['error']['code'], SERVER_ERROR)
-
-        # send transaction to score with invalid param
-
-        params = get_request_json_of_transfer_token(fr=token_owner_address, to='123',
-                                                    addr_to=test_address, value=god_address)
-        payload = fill_json_content(SEND, params)
-
+        payload = get_dummy_icx_sendTransaction_payload('1', god_address, hex(10 * 10 ** 18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertEqual(response_json['error']['code'], INVALID_PARAMS)
 
         # send transaction to score with invalid param in score's method.
-        params = get_request_json_of_transfer_token(fr=token_owner_address, to=token_score_address,
-                                                    addr_to=test_address, value=god_address)
-        payload = fill_json_content(SEND, params)
+        data = get_data_for_transfer_token(test_address, god_address)
+        payload = get_dummy_icx_sendTransaction_payload(token_owner_address, token_score_address, hex(0),
+                                                        data_type='call', data=data)
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         # tx_result payload
         tx_hash = response_json['result']
-        params = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
-        payload = fill_json_content(TX_RESULT, params)
+        payload = get_icx_getTransactionResult_payload(tx_hash=tx_hash)
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertEqual(int(response_json['result']['failure']['code'], 0), -SERVER_ERROR)
 
         # not enough value
-        params = get_request_json_of_transfer_token(fr=token_owner_address, to=token_score_address,
-                                                    addr_to=test_address, value=hex(100000*10**18))
-        payload = fill_json_content(SEND, params)
+        data= get_data_for_transfer_token(test_address, hex(1000000*10**18))
+        payload = get_dummy_icx_sendTransaction_payload(token_owner_address, token_score_address, hex(0),
+                                                        data_type='call', data=data)
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
 
         # get tx_result payload
         tx_hash = response_json['result']
-        params = get_request_of_icx_getTransactionResult(tx_hash=tx_hash)
-        payload = fill_json_content(TX_RESULT, params)
+        payload = get_icx_getTransactionResult_payload(tx_hash=tx_hash)
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertEqual(int(response_json['result']['failure']['code'], 0), -SCORE_ERROR)
 
         # not enough icx
-        params = get_request_json_of_send_icx(test_address, god_address, hex(1000000 * 10 ** 18))
-        payload = fill_json_content(SEND, params)
+        payload = get_dummy_icx_sendTransaction_payload(test_address, god_address, hex(1000000 * 10 ** 18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         self.assertEqual(response_json['error']['code'], INVALID_REQUEST)

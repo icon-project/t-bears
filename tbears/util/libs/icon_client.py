@@ -12,26 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
+
+import requests
+
+from tbears.tbears_exception import IconClientException
 
 
-from tbears.server.jsonrpc_server import init_tbears, init_icon_inner_task, load_config, SimpleRestServer
+class IconClient:
 
+    def __init__(self, url: str):
+        self._url = url
 
-def init_mock_server(path: str='./tbears.json'):
-    """Mock sanic server for unit testing.
-
-    :param path: Configuration file path to refer.
-    :return:
-    """
-
-    async def __serve():
-        init_tbears(conf)
-        await init_icon_inner_task(conf)
-    conf = load_config(path)['global']
-    server = SimpleRestServer(conf['port'], "0.0.0.0")
-    server.get_app().add_task(__serve)
-
-    return server.get_app()
-
-
-API_PATH = '/api/v3/'
+    def send(self, payload: dict) -> requests.Response:
+        try:
+            json_content = json.dumps(payload)
+            resp = requests.post(self._url, json_content)
+        except requests.exceptions.Timeout:
+             raise RuntimeError("time out")
+        except:
+            raise IconClientException
+        else:
+            return resp
