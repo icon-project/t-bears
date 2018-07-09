@@ -14,36 +14,27 @@
 # limitations under the License.
 
 import unittest
-import os
 import json
 import shutil
 import socket
-from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE, make_SCORE_samples
-from tbears.util import post
-from .json_contents import *
-
-DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
+from tbears.command import ExitCode, init_SCORE, run_SCORE, stop_SCORE, clear_SCORE
+from tests.common import *
 
 
-class TestTBears(unittest.TestCase):
+class TestTBearsCommands(unittest.TestCase):
     def setUp(self):
         self.path = './'
-        self.send_transaction_json = send_transaction_json
-        self.get_god_balance_json = god_balance_json
-        self.get_test_balance_json = test_balance_json
-        self.get_token_balance_json1 = token_balance_json1
-        self.get_token_balance_json2 = token_balance_json2
-        self.get_god_token_balance_json = token_god_balance_json
-        self.token_total_supply_json = token_total_supply_json
-        self.token_transfer_json = token_transfer_json
-        self.url = "http://localhost:9000/api/v3/"
+        self.url = URL
         self.config = None, None
-        self.give_icx_to_token_owner_json = give_icx_to_token_owner_json
 
     def tearDown(self):
         clear_SCORE()
-        if os.path.exists('./sample_token'):
-            shutil.rmtree('./sample_token')
+        try:
+            if os.path.exists('./.test_tbears_db'):
+                shutil.rmtree('./.test_tbears_db')
+            os.remove('./tbears.log')
+        except:
+            pass
 
     @staticmethod
     def touch(path):
@@ -65,7 +56,7 @@ class TestTBears(unittest.TestCase):
 
     def test_init_SCORE_2(self):
         # Case when entering the existing SCORE path for initializing the SCORE.
-        TestTBears.touch('./a_test_init2')
+        self.touch('./a_test_init2')
         result_code = init_SCORE('./a_test_init2', 'ATestInit2')
         self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, result_code)
         os.remove('./a_test_init2')
@@ -111,62 +102,3 @@ class TestTBears(unittest.TestCase):
         self.assertFalse(os.path.exists('./.db'))
         self.assertFalse(os.path.exists('./.score'))
         shutil.rmtree('./a_test_clear')
-
-    def test_get_balance_icx(self):
-        self.run_SCORE_for_testing()
-        response = post(self.url, self.get_god_balance_json).json()
-        result = response["result"]
-        self.assertEqual("0x2961fff8ca4a62327800000", result)
-        stop_SCORE()
-
-    def test_send_icx(self):
-        self.run_SCORE_for_testing()
-        post(self.url, self.send_transaction_json).json()
-        res = post(self.url, self.get_test_balance_json).json()
-        res_icx_val = int(res["result"], 0) / (10 ** 18)
-        self.assertEqual(1.0, res_icx_val)
-        stop_SCORE()
-
-    def test_get_balance_token(self):
-        self.run_SCORE_for_testing()
-        result = post(self.url, self.get_god_token_balance_json)
-        god_result = result.json()["result"]
-        # assert 0x3635c9adc5dea00000 == 1000 * (10 ** 18)
-        self.assertEqual("0x3635c9adc5dea00000", god_result)
-        result2 = post(self.url, self.get_token_balance_json1)
-        user_result = result2.json()["result"]
-        self.assertEqual("0x0", user_result)
-
-        stop_SCORE()
-
-    def test_token_total_supply(self):
-        self.run_SCORE_for_testing()
-        result = post(self.url, self.token_total_supply_json)
-        supply = result.json()["result"]
-        self.assertEqual("0x3635c9adc5dea00000", supply)
-        stop_SCORE()
-
-    def test_token_transfer(self):
-        self.run_SCORE_for_testing()
-        post(self.url, self.give_icx_to_token_owner_json)
-        post(self.url, self.token_transfer_json)
-        token_balance_res1 = post(self.url, self.get_token_balance_json1)
-        token_balance = token_balance_res1.json()["result"]
-        self.assertEqual("0x1", token_balance)
-        stop_SCORE()
-
-    def test_samples(self):
-        make_SCORE_samples()
-        self.assertTrue(os.path.exists('./sample_crowd_sale'))
-        self.assertTrue(os.path.exists('./sample_token'))
-        shutil.rmtree('./sample_crowd_sale')
-        shutil.rmtree('./sample_token')
-
-    @staticmethod
-    def run_SCORE_for_testing():
-        init_SCORE("sample_token", "SampleToken")
-        result, _ = run_SCORE('sample_token', None, None)
-
-
-if __name__ == "__main__":
-    unittest.main()

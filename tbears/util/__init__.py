@@ -12,13 +12,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import json
 import os
 import shutil
 import time
+import hashlib
 
 import requests
-from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
+from tbears.util.in_memory_zip import InMemoryZip
+
+from tbears.util.icx_signer import IcxSigner
+
+from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException
+
+DIR_PATH = os.path.abspath(os.path.dirname(__file__))
+PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, '..', '..'))
 
 
 def write_file(parent_directory: str, file_name: str, contents: str) -> None:
@@ -52,26 +60,24 @@ class SampleToken(IconScoreBase):
     __BALANCES = 'balances'
     __TOTAL_SUPPLY = 'total_supply'
 
-    @eventlog
-    def eventlog_transfer(self, addr_from: Indexed, addr_to: Indexed, value: Indexed): pass
+    @eventlog(indexed=3)
+    def Transfer(self, addr_from: Address, addr_to: Address, value: int): pass
 
     def __init__(self, db: IconScoreDatabase, addr_owner: Address) -> None:
         super().__init__(db, addr_owner)
         self.__total_supply = VarDB(self.__TOTAL_SUPPLY, db, value_type=int)
         self.__balances = DictDB(self.__BALANCES, db, value_type=int)
 
-    def on_install(self, params: dict) -> None:
-        super().on_install(params)
+    def on_install(self, init_supply: int = 1000, decimal: int = 18) -> None:
+        super().on_install()
 
-        init_supply = 1000
-        decimal = 18
         total_supply = init_supply * 10 ** decimal
 
         self.__total_supply.set(total_supply)
         self.__balances[self.msg.sender] = total_supply
 
-    def on_update(self, params: dict) -> None:
-        super().on_update(params)
+    def on_update(self) -> None:
+        super().on_update()
 
     @external(readonly=True)
     def total_supply(self) -> int:
@@ -89,7 +95,7 @@ class SampleToken(IconScoreBase):
         self.__balances[_addr_from] = self.__balances[_addr_from] - _value
         self.__balances[_addr_to] = self.__balances[_addr_to] + _value
 
-        self.eventlog_transfer(Indexed(_addr_from), Indexed(_addr_to), Indexed(_value))
+        self.Transfer(_addr_from, _addr_to, _value)
         return True
 
     @external
@@ -114,19 +120,21 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
 
 
 def make_install_json_payload(project: str) -> dict:
-    path = os.path.abspath(f'./{project}')
+    path = os.path.abspath(project)
     payload = {
         "jsonrpc": "2.0",
         "method": "icx_sendTransaction",
         "id": 111,
         "params": {
+            "version": "0x3",
             "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "to":   "cxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "to": f'cx{"0"*40}',
+            "stepLimit": "0x12345",
             "fee": "0x2386f26fc10000",
             "timestamp": str(int(time.time() * 10 ** 6)),
             "nonce": "0x7362",
             "txHash": "0x4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
-            "dataType": "install",
+            "dataType": "deploy",
             "data": {
                 "contentType": "application/tbears",
                 "content": path
@@ -191,11 +199,13 @@ class SampleCrowdSale(IconScoreBase):
     __CROWD_SALE_CLOSED = 'crowd_sale_closed'
     __JOINER_LIST = 'joiner_list'
 
-    @eventlog
-    def eventlog_fund_transfer(self, backer: Indexed, amount: Indexed, is_contribution: Indexed): pass
+    @eventlog(indexed=3)
+    def FundTransfer(self, backer: Address, amount: int, is_contribution: bool):
+        pass
 
-    @eventlog
-    def eventlog_goal_reached(self, recipient: Indexed, total_amount_raised: Indexed): pass
+    @eventlog(indexed=2)
+    def GoalReached(self, recipient: Address, total_amount_raised: int):
+        pass
 
     def __init__(self, db: IconScoreDatabase, owner: Address) -> None:
         super().__init__(db, owner)
@@ -213,8 +223,9 @@ class SampleCrowdSale(IconScoreBase):
 
         self.__sample_token_score = self.create_interface_score(self.__addr_token_score.get(), SampleTokenInterface)
 
-    def on_install(self, params) -> None:
-        super().on_install(params)
+    def on_install(self, funding_goal_in_icx: int = 100, duration_in_minutes: int = 1,
+                   icx_cost_of_each_token: int = 1, token_address: str='cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf') -> None:
+        super().on_install()
 
         one_icx = 1 * 10 ** 18
         one_minute_to_sec = 1 * 60
@@ -223,11 +234,7 @@ class SampleCrowdSale(IconScoreBase):
 
         # genesis params
         if_successful_send_to = self.msg.sender
-        addr_token_score = Address.from_string('cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf')
-
-        funding_goal_in_icx = 100
-        duration_in_minutes = 1
-        icx_cost_of_each_token = 1
+        addr_token_score = Address.from_string(token_address)
 
         self.__addr_beneficiary.set(if_successful_send_to)
         self.__addr_token_score.set(addr_token_score)
@@ -238,8 +245,8 @@ class SampleCrowdSale(IconScoreBase):
 
         self.__sample_token_score = self.create_interface_score(self.__addr_token_score.get(), SampleTokenInterface)
 
-    def on_update(self, params) -> None:
-        super().on_update(params)
+    def on_update(self) -> None:
+        super().on_update()
 
     @external(readonly=True)
     def total_joiner_count(self):
@@ -260,7 +267,7 @@ class SampleCrowdSale(IconScoreBase):
         if self.msg.sender not in self.__joiner_list:
             self.__joiner_list.put(self.msg.sender)
 
-        self.eventlog_fund_transfer(Indexed(self.msg.sender), Indexed(amount), Indexed(True))
+        self.FundTransfer(self.msg.sender, amount, True)
 
     @external
     def check_goal_reached(self):
@@ -269,7 +276,7 @@ class SampleCrowdSale(IconScoreBase):
 
         if self.__amount_raise.get() >= self.__funding_goal.get():
             self.__funding_goal_reached.set(True)
-            self.eventlog_goal_reached(Indexed(self.__addr_beneficiary.get()), Indexed(self.__amount_raise.get()))
+            self.GoalReached(self.__addr_beneficiary.get(), self.__amount_raise.get())
         self.__crowd_sale_closed.set(True)
 
     def __after_dead_line(self):
@@ -282,18 +289,70 @@ class SampleCrowdSale(IconScoreBase):
 
         if not self.__funding_goal_reached.get():
             amount = self.__balances[self.msg.sender]
+            self.__balances[self.msg.sender] = 0
             if amount > 0:
-                if self.send(self.msg.sender, amount):
-                    self.eventlog_fund_transfer(Indexed(self.msg.sender), Indexed(amount), Indexed(False))
+                if self.icx.send(self.msg.sender, amount):
+                    self.FundTransfer(self.msg.sender, amount, False)
                 else:
                     self.__balances[self.msg.sender] = amount
 
         if self.__funding_goal_reached.get() and self.__addr_beneficiary.get() == self.msg.sender:
-            if self.send(self.__addr_beneficiary.get(), self.__amount_raise.get()):
-                self.eventlog_fund_transfer(Indexed(self.__addr_beneficiary.get()), Indexed(self.__amount_raise.get()),
-                                            Indexed(False))
+            if self.icx.send(self.__addr_beneficiary.get(), self.__amount_raise.get()):
+                self.FundTransfer(self.__addr_beneficiary.get(), self.__amount_raise.get(),
+                                  False)
             else:
                 self.__funding_goal_reached.set(False)
 
 """
     return contents
+
+
+def get_tbears_config_json() -> str:
+    return """{
+        "log": {
+            "colorLog": true,
+            "level": "debug",
+            "filePath": "./tbears.log",
+            "outputType": "console|file"
+        },
+        "global": {
+            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "port": 9000,
+            "scoreRoot": "./.score",
+            "dbRoot": "./.db",
+            "genesisData": {
+                "accounts": [
+                    {
+                        "name": "genesis",
+                        "address": "hx0000000000000000000000000000000000000000",
+                        "balance": "0x2961fff8ca4a62327800000"
+                    },
+                    {
+                        "name": "fee_treasury",
+                        "address": "hx1000000000000000000000000000000000000000",
+                        "balance": "0x0"
+                    }
+                ]
+            }
+        },
+        "deploy": {
+            "uri": "http://localhost:9000/api/v3",
+            "stepLimit": "0x12345"
+        }
+}"""
+
+
+def get_deploy_config(path: str) -> dict:
+    try:
+        with open(path, mode='rb') as config_file:
+            config_dict = json.load(config_file)
+        deploy_config = config_dict['deploy']
+    except:
+        raise TbearsConfigFileException
+    else:
+        return deploy_config
+
+
+def create_address(data: bytes):
+    hash_value = hashlib.sha3_256(data).digest()
+    return hash_value[-20:].hex()

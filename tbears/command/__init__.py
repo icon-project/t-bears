@@ -22,12 +22,15 @@ import logging
 import socket
 from enum import IntEnum
 
-from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException
+from tbears.util import PROJECT_ROOT_PATH, create_address, get_tbears_config_json
+from tbears.util.icon_client import IconClient, get_deploy_payload
+from tbears.util.icx_signer import key_from_key_store, IcxSigner
+from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
+    KeyStoreException, FillDeployPaylodException
 from ..util import post, make_install_json_payload, make_exit_json_payload, \
-    delete_score_info, get_init_template, get_sample_crowd_sale_contents
+    delete_score_info, get_init_template, get_sample_crowd_sale_contents, get_deploy_config
 from ..util import write_file, get_package_json_dict, get_score_main_template
 
-DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 JSON_RPC_SERVER_URL = "http://localhost:9000/api/v3"
 
 
@@ -40,7 +43,9 @@ class ExitCode(IntEnum):
     DELETE_TREE_ERROR = 5
     SCORE_AlREADY_EXISTS = 6
     PROJECT_AND_CLASS_NAME_EQUAL = 7
-    CONFIG_FILE_PATH_IS_WRONG = 8
+    CONFIG_FILE_ERROR = 8
+    KEY_STORE_ERROR = 9
+    DEPLOY_ERROR = 10
 
 
 def init_SCORE(project: str, score_class: str) -> int:
@@ -66,6 +71,9 @@ def init_SCORE(project: str, score_class: str) -> int:
         write_file(project, f"{project}.py", project_py_contents)
         write_file(project, "package.json", package_json_contents)
         write_file(project, '__init__.py', init_contents)
+        write_file(f'{project}/tests', f'test_{project}.py', '')
+        write_file(f'{project}/tests', f'__init__.py', '')
+        write_file('./', "tbears.json", get_tbears_config_json())
     except TBearsWriteFileException:
         logging.debug("Except raised while writing files.")
         return ExitCode.WRITE_FILE_ERROR.value
@@ -80,16 +88,24 @@ def run_SCORE(project: str, *options) -> tuple:
     :param options: install config path or update config path will be given.
     :return: ExitCode, Succeeded
     """
-    params = {}
+    if os.path.isdir(project) is False:
+        print(f'check score path.')
+        return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value, None
 
-    if options[1]:
-        params = __get_param_info(options[0])
+    params = {}
+    try:
+        if options[0]:
+            deploy_info = __get_deploy_optional_info(options[1])
+            params = deploy_info['params']
+    except KeyError:
+        print('check your deploy config file')
+        return ExitCode.CONFIG_FILE_ERROR.value, None
 
     if not __is_server_running():
         __start_server()
         time.sleep(2)
 
-    respond = __embed_SCORE_on_server(project, params, options[0], options[1])
+    respond = __embed_SCORE_on_server(project, params, options[0])
 
     return ExitCode.SUCCEEDED.value, respond
 
@@ -123,7 +139,6 @@ def clear_SCORE() -> int:
 
 
 def make_SCORE_samples():
-
     tokentest_package_json_dict = get_package_json_dict("sample_token", "SampleToken")
     tokentest_package_json_contents = json.dumps(tokentest_package_json_dict, indent=4)
     tokentest_py_contents = get_score_main_template("SampleToken")
@@ -141,6 +156,7 @@ def make_SCORE_samples():
         write_file('./sample_crowd_sale', "package.json", crowdsale_package_json_contents)
         write_file('./sample_crowd_sale', '__init__.py', crowdsale_init_contents)
         write_file('./sample_crowd_sale', "sample_crowd_sale.py", crowdsale_py_contents)
+        write_file('./', "tbears.json", get_tbears_config_json())
 
     except TBearsWriteFileException:
         logging.debug("Except raised while writing files.")
@@ -149,32 +165,81 @@ def make_SCORE_samples():
     return ExitCode.SUCCEEDED
 
 
+def deploy_SCORE(project: str, *config_options, key_store_path: str = None, password: str = "",
+                 params: dict = {}) -> object:
+    try:
+        deploy_config = __get_deploy_info()
+
+        private_key = key_from_key_store(key_store_path, password)
+
+        uri = deploy_config['uri']
+        step_limit = hex(12345) if not deploy_config.get('stepLimit', 0) else deploy_config['stepLimit']
+
+        score_address = f'cx{"0"*40}'
+
+        if config_options[0] == 'update':
+            update_info = __get_deploy_optional_info(config_options[1])
+            score_address = update_info['scoreAddress']
+            params = update_info['params']
+        elif config_options[0] == 'install':
+            install_info = __get_deploy_optional_info(config_options[1])
+            score_address = f'cx{"0"*40}'
+            params = install_info['params']
+
+        icon_client = IconClient(uri, 3, private_key)
+
+        deploy_payload = get_deploy_payload(path=project, signer=IcxSigner(private_key), params=params,
+                                            step_limit=step_limit, score_address=score_address)
+
+        response = icon_client.send('icx_sendTransaction', deploy_payload)
+
+    except TbearsConfigFileException:
+        return ExitCode.CONFIG_FILE_ERROR.value, None
+    except KeyError:
+        return ExitCode.CONFIG_FILE_ERROR.value, None
+    except KeyStoreException:
+        return ExitCode.KEY_STORE_ERROR.value, None
+    except FillDeployPaylodException:
+        return ExitCode.DEPLOY_ERROR.value, None
+    else:
+        print('result : ', response.json())
+        return ExitCode.SUCCEEDED, response
+
+
+def test_SCORE(project: str) -> int:
+    if os.path.isdir(project) is False:
+        print(f'check score path.')
+        return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY.value
+    os.chdir(project)
+    subprocess.Popen([sys.executable, '-m', 'unittest'])
+    time.sleep(1)
+
+    return ExitCode.SUCCEEDED.value
+
+
 def __start_server():
     logging.debug('start_server() start')
 
     root_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '../'))
 
-    path = os.path.join(root_path, 'server', 'jsonrpc_server.py')
-
-    logging.info(f'path: {path}')
+    root_path_directory_name = root_path[root_path.rfind('/') + 1:]
+    python_module_string = f'{root_path_directory_name}.server.jsonrpc_server'
 
     # Run jsonrpc_server on background mode
-    subprocess.Popen([sys.executable, path], close_fds=True)
+    subprocess.Popen([sys.executable, '-m', python_module_string], close_fds=True)
 
     logging.debug('start_server() end')
 
 
-def __embed_SCORE_on_server(project: str, params: dict, *options) -> dict:
+def __embed_SCORE_on_server(project: str, params: dict, deploy_option: str) -> dict:
     """ Request for embedding SCORE on server.
     :param project: Project directory name.
     :param option: install config path or update config path will be given.
     """
-    contract_address = None
-
     project_dict = make_install_json_payload(project)
 
-    if options[1] == 'update':
+    if deploy_option == 'update':
         contract_address = f'cx{create_address(project.encode())}'
         project_dict['params']['to'] = str(contract_address)
 
@@ -208,7 +273,7 @@ def __is_server_running():
     return result is 0
 
 
-def __get_param_info(path: str):
+def __get_deploy_optional_info(path: str):
     try:
         with open(path, mode='rb') as param_json:
             contents = param_json.read()
@@ -225,6 +290,6 @@ def __get_param_info(path: str):
         return json.loads(contents)
 
 
-def create_address(data: bytes):
-    hash_value = hashlib.sha3_256(data).digest()
-    return hash_value[-20:].hex()
+def __get_deploy_info() -> dict:
+    deploy_config = get_deploy_config('./tbears.json')
+    return deploy_config

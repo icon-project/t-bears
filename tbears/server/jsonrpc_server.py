@@ -13,24 +13,25 @@
 # limitations under the License.
 
 import json
+import os
 import sys
 import time
 import hashlib
-from collections import Iterable
 from json import JSONDecodeError
 
 from jsonrpcserver import status
 from jsonrpcserver.aio import methods
-from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams, ServerError
+from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams
 from sanic import Sanic, response as sanic_response
-from iconservice.base.jsonrpc_message_validator import JsonRpcMessageValidator
-from iconservice.base.exception import IconServiceBaseException
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
-from iconservice.utils.type_converter import TypeConverter
 from iconservice.logger import Logger
 from iconservice.icon_config import *
+from iconservice.utils import check_error_response
 
 from typing import Optional
+
+from tbears.server.tbears_db import TbearsDB
+from tbears.util import PROJECT_ROOT_PATH
 
 MQ_TEST = False
 if not MQ_TEST:
@@ -39,43 +40,38 @@ if not MQ_TEST:
 TBEARS_LOG_TAG = 'tbears'
 SEPARATE_PROCESS_DEBUG = False
 
-__block_height = 0
+__block_height = -1
+__prev_block_hash = None
 __icon_score_service = None
 __icon_score_stub = None
 __icon_inner_task = None
-__type_converter = None
 __tx_result_mapper = None
-
-PARSE_ERROR_RESPONSE = '{"jsonrpc":"2.0", "error":{"code":-32700, "message": "Parse error"}, "id": "null"}'
 
 sys.path.append('..')
 sys.path.append('.')
 
+TBEARS_DB = None
+
 
 def create_hash(data: bytes) -> str:
-    return f'0x{hashlib.sha3_256(data).hexdigest()}'
+    return f'{hashlib.sha3_256(data).hexdigest()}'
 
 
 def get_icon_inner_task() -> Optional['IconScoreInnerTask']:
+    global __icon_inner_task
     return __icon_inner_task
 
 
-def get_icon_score_stub() -> IconScoreInnerStub:
+def get_icon_score_stub() -> 'IconScoreInnerStub':
     global __icon_score_stub
     return __icon_score_stub
 
 
-def get_type_converter() -> TypeConverter:
-    global __type_converter
-    return __type_converter
-
-
-def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
+def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str,
                               icon_score_root_path: str, icon_score_state_db_root_path: str,
-                              **kwargs) -> IconScoreInnerService:
+                              **kwargs) -> 'IconScoreInnerService':
     icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
-                                                                amqp_key=amqp_key,
-                                                                rpc_port=rpc_port)
+                                                                amqp_key=amqp_key)
 
     Logger.debug(f'==========create_icon_score_service==========', TBEARS_LOG_TAG)
     Logger.debug(f'icon_score_root_path : {icon_score_root_path}', TBEARS_LOG_TAG)
@@ -90,11 +86,10 @@ def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str, rpc
                                  icon_score_state_db_root_path=icon_score_state_db_root_path)
 
 
-def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str, rpc_port: str,
-                           **kwargs) -> IconScoreInnerStub:
+def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str,
+                           **kwargs) -> 'IconScoreInnerStub':
     icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
-                                                                amqp_key=amqp_key,
-                                                                rpc_port=rpc_port)
+                                                                amqp_key=amqp_key)
 
     Logger.debug(f'==========create_icon_score_stub==========', TBEARS_LOG_TAG)
     Logger.debug(f'icon_score_queue_name  : {icon_score_queue_name}', TBEARS_LOG_TAG)
@@ -107,27 +102,25 @@ def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str, rpc_po
 def get_block_height():
     global __block_height
     __block_height += 1
+    TBEARS_DB.put(b'blockHeight', str(__block_height).encode())
     return __block_height
 
 
-def integers_to_hex(res: Iterable) -> Iterable:
-    if isinstance(res, dict):
-        for k, v in res.items():
-            if isinstance(v, dict):
-                res[k] = integers_to_hex(v)
-            elif isinstance(v, list):
-                res[k] = integers_to_hex(v)
-            elif isinstance(v, int):
-                res[k] = hex(v)
-    elif isinstance(res, list):
-        for k, v in enumerate(res):
-            if isinstance(v, dict):
-                res[k] = integers_to_hex(v)
-            elif isinstance(v, list):
-                res[k] = integers_to_hex(v)
-            elif isinstance(v, int):
-                res[k] = hex(v)
-    return res
+def get_prev_block_hash():
+    global __prev_block_hash
+    return __prev_block_hash
+
+
+def set_prev_block_hash(block_hash: str):
+    global __prev_block_hash
+    __prev_block_hash = block_hash
+    TBEARS_DB.put(b'prevBlockHash', bytes.fromhex(__prev_block_hash))
+
+
+def rollback_block():
+    global __block_height
+    __block_height -= 1
+    TBEARS_DB.put(b'blockHeight', str(__block_height).encode())
 
 
 def get_tx_result_mapper():
@@ -135,45 +128,39 @@ def get_tx_result_mapper():
     return __tx_result_mapper
 
 
-def response_to_json(response):
+def response_to_json_invoke(response):
     # if response is tx_result list
-    if isinstance(response, list):
-        tx_result = response[0]
+    if check_error_response(response):
+        response = response['error']
+        raise GenericJsonRpcServerError(
+            code=-int(response['code']),
+            message=response['message'],
+            http_status=status.HTTP_BAD_REQUEST
+        )
+    elif isinstance(response, dict):
+        tx_result = list(response.values())
+        tx_result = tx_result[0]
         tx_hash = tx_result['txHash']
+
         get_tx_result_mapper().put(tx_hash, tx_result)
         return tx_hash
     else:
-        # response is dict including code(int)( and message(str)
         raise GenericJsonRpcServerError(
-            code=-response['code'],
-            message=response['message'],
+            code=-32603,
+            message="can't response_to_json_invoke_convert",
             http_status=status.HTTP_BAD_REQUEST
         )
 
 
-def validate_jsonrpc_message(method: str, params: dict) -> None:
-    """Check params of message
-    (icx_call, icx_getBalance, icx_getTotalSupply, icx_sendTransaction)
-
-    if params is not valid, raise a sort of IconServiceBaseException
-
-    :param method:
-    :param params:
-    """
-    try:
-        JsonRpcMessageValidator.validate(method, params)
-        return
-    except IconServiceBaseException as e:
-        code = -e.code
-        message = e.message
-    except Exception as e:
-        code = ServerError.code
-        message = repr(e)
-
-    raise GenericJsonRpcServerError(
-        code=code,
-        message=message,
-        http_status=status.HTTP_BAD_REQUEST)
+def response_to_json_query(response):
+    if check_error_response(response):
+        response: dict = response['error']
+        raise GenericJsonRpcServerError(
+            code=-int(response['code']),
+            message=response['message'],
+            http_status=status.HTTP_BAD_REQUEST
+        )
+    return response
 
 
 class GenericJsonRpcServerError(JsonRpcServerError):
@@ -182,6 +169,7 @@ class GenericJsonRpcServerError(JsonRpcServerError):
 
     :param data: Extra information about the error that occurred (optional).
     """
+
     def __init__(self, code: int, message: str, http_status: int, data=None):
         """
 
@@ -198,7 +186,7 @@ class GenericJsonRpcServerError(JsonRpcServerError):
 
 
 class TxResultMapper(object):
-    def __init__(self, limit_capacity = 1000):
+    def __init__(self, limit_capacity=1000):
         self.__limit_capacity = limit_capacity
         self.__mapper = dict()
         self.__key_list = []
@@ -232,22 +220,15 @@ class MockDispatcher:
         try:
             req = json.loads(request.body.decode())
             req["params"] = req.get("params", {})
-            req["params"]["method"] = request.json["method"]
         except JSONDecodeError:
-            return sanic_response.json(PARSE_ERROR_RESPONSE, 400)
+            raise GenericJsonRpcServerError(
+                code=-32700,
+                message="Parse error",
+                http_status=status.HTTP_BAD_REQUEST
+            )
         else:
             res = await methods.dispatch(req)
-
-            if 'result' in res:
-                if isinstance(res['result'], (dict, list, int)):
-                    res['result'] = integers_to_hex(res['result'])
             return sanic_response.json(res, status=res.http_status)
-
-    @staticmethod
-    @methods.add
-    async def hello(**request_params):
-        raise Exception()
-        # Logger.debug(f'json_rpc_server hello!', TBEARS_LOG_TAG)
 
     @staticmethod
     @methods.add
@@ -260,43 +241,80 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server icx_sendTransaction!', TBEARS_LOG_TAG)
 
         method = 'icx_sendTransaction'
-        validate_jsonrpc_message(method, request_params)
-
         # Insert txHash into request params
         tx_hash = create_hash(json.dumps(request_params).encode())
         request_params['txHash'] = tx_hash
         tx = {
-            'method': 'icx_sendTransaction',
+            'method': method,
             'params': request_params
-        }
-        make_request = {'transactions': [tx]}
-
-        block_height: int = get_block_height()
-        block_timestamp_us = int(time.time() * 10 ** 6)
-        make_request['block'] = {
-            'blockHeight': block_height,
-            'blockHash': create_hash(block_timestamp_us.to_bytes(8, 'big')),
-            'timestamp': block_timestamp_us
         }
 
         if MQ_TEST:
-            response = await get_icon_score_stub().task().icx_send_transaction(make_request)
-            if not isinstance(response, list):
-                await get_icon_score_stub().task().remove_precommit_state({})
-            elif response[0]['status'] == 1:
-                await get_icon_score_stub().task().write_precommit_state({})
-            else:
-                await get_icon_score_stub().task().remove_precommit_state({})
-            return response_to_json(response)
+            response = await get_icon_score_stub().async_task().validate_transaction(tx)
+            response_to_json_query(response)
         else:
-            response = await get_icon_inner_task().icx_send_transaction(make_request)
-            if not isinstance(response, list):
-                await get_icon_inner_task().remove_precommit_state({})
-            elif response[0]['status'] == 1:
-                await get_icon_inner_task().write_precommit_state({})
+            response = await get_icon_inner_task().validate_transaction(tx)
+            response_to_json_query(response)
+
+        make_request = {'transactions': [tx]}
+        block_height: int = get_block_height()
+        block_timestamp_us = int(time.time() * 10 ** 6)
+        block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+
+        make_request['block'] = {
+            'blockHeight': hex(block_height),
+            'blockHash': block_hash,
+            'timestamp': hex(block_timestamp_us),
+            'prevBlockHash': get_prev_block_hash()
+        }
+
+        precommit_request = {'blockHeight': hex(block_height),
+                             'blockHash': block_hash}
+
+        if MQ_TEST:
+            response = await get_icon_score_stub().async_task().invoke(make_request)
+            response = response['txResults']
+            if not isinstance(response, dict):
+                rollback_block()
+                await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
+            elif check_error_response(response):
+                rollback_block()
+                await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
+            elif response[tx_hash]['status'] == hex(1):
+                set_prev_block_hash(block_hash)
+                await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
             else:
-                await get_icon_inner_task().remove_precommit_state({})
-            return response_to_json(response)
+                rollback_block()
+                await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
+
+            tx_result = response[tx_hash]
+            tx_hash = f'0x{tx_result["txHash"]}'
+            tx_result['from'] = request_params.get('from', '')
+            tx_result['txHash'] = tx_hash
+            TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
+            return response_to_json_invoke(response)
+        else:
+            response = await get_icon_inner_task().invoke(make_request)
+            response = response['txResults']
+            if not isinstance(response, dict):
+                rollback_block()
+                await get_icon_inner_task().remove_precommit_state(precommit_request)
+            elif check_error_response(response):
+                rollback_block()
+                await get_icon_inner_task().remove_precommit_state(precommit_request)
+            elif response[tx_hash]['status'] == hex(1):
+                set_prev_block_hash(block_hash)
+                await get_icon_inner_task().write_precommit_state(precommit_request)
+            else:
+                rollback_block()
+                await get_icon_inner_task().remove_precommit_state(precommit_request)
+
+            tx_result = response[tx_hash]
+            tx_hash = f'0x{tx_result["txHash"]}'
+            tx_result['from'] = request_params.get('from', '')
+            tx_result['txHash'] = tx_hash
+            TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
+            return response_to_json_invoke(response)
 
     @staticmethod
     @methods.add
@@ -304,14 +322,14 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server icx_call!', TBEARS_LOG_TAG)
 
         method = 'icx_call'
-        validate_jsonrpc_message(method, request_params)
-
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            return await get_icon_score_stub().task().icx_call(make_request)
+            response = await get_icon_score_stub().async_task().query(make_request)
+            return response_to_json_query(response)
         else:
-            return await get_icon_inner_task().icx_call(make_request)
+            response = await get_icon_inner_task().query(make_request)
+            return response_to_json_query(response)
 
     @staticmethod
     @methods.add
@@ -321,12 +339,12 @@ class MockDispatcher:
         method = 'icx_getBalance'
         make_request = {'method': method, 'params': request_params}
 
-        validate_jsonrpc_message(method, request_params)
-
         if MQ_TEST:
-            return await get_icon_score_stub().task().icx_call(make_request)
+            response = await get_icon_score_stub().async_task().query(make_request)
+            return response_to_json_query(response)
         else:
-            return await get_icon_inner_task().icx_call(make_request)
+            response = await get_icon_inner_task().query(make_request)
+            return response_to_json_query(response)
 
     @staticmethod
     @methods.add
@@ -337,9 +355,11 @@ class MockDispatcher:
         make_request = {'method': method, 'params': request_params}
 
         if MQ_TEST:
-            return await get_icon_score_stub().task().icx_call(make_request)
+            response = await get_icon_score_stub().async_task().query(make_request)
+            return response_to_json_query(response)
         else:
-            return await get_icon_inner_task().icx_call(make_request)
+            response = await get_icon_inner_task().query(make_request)
+            return response_to_json_query(response)
 
     @staticmethod
     @methods.add
@@ -348,7 +368,10 @@ class MockDispatcher:
 
         try:
             tx_hash = request_params['txHash']
-            return get_tx_result_mapper()[tx_hash]
+            tx_hash_result = TBEARS_DB.get(f'{tx_hash}-result'.encode())
+            tx_hash_result_str = tx_hash_result.decode()
+            tx_result_json = json.loads(tx_hash_result_str)
+            return tx_result_json
         except Exception:
             raise GenericJsonRpcServerError(
                 code=InvalidParams.code,
@@ -357,13 +380,30 @@ class MockDispatcher:
 
     @staticmethod
     @methods.add
+    async def icx_getScoreApi(**request_params):
+        Logger.debug(f'json_rpc_server icx_getScoreApi!', TBEARS_LOG_TAG)
+
+        method = 'icx_getScoreApi'
+        make_request = {'method': method, 'params': request_params}
+
+        if MQ_TEST:
+            response = await get_icon_score_stub().async_task().query(make_request)
+            return response_to_json_query(response)
+        else:
+            response = await get_icon_inner_task().query(make_request)
+            return response_to_json_query(response)
+
+    @staticmethod
+    @methods.add
     async def server_exit(**request_params):
         Logger.debug(f'json_rpc_server server_exit!', TBEARS_LOG_TAG)
 
         if MQ_TEST:
-            await get_icon_score_stub().task().close()
+            await get_icon_score_stub().async_task().close()
 
         if MockDispatcher.flask_server is not None:
+            global TBEARS_DB
+            TBEARS_DB.close()
             MockDispatcher.flask_server.app.stop()
 
         return '0x0'
@@ -395,7 +435,8 @@ class SimpleRestServer:
         return self.__server.app
 
     def run(self):
-        Logger.info(f"SimpleRestServer run... {self.__port}", TBEARS_LOG_TAG)
+        port = self.__port
+        Logger.info(f"SimpleRestServer run... {port}", TBEARS_LOG_TAG)
 
         self.__server.app.run(port=self.__port,
                               host=self.__ip_address,
@@ -404,8 +445,7 @@ class SimpleRestServer:
 
 def serve():
     async def __serve():
-        init_tbears()
-        init_type_converter()
+        init_tbears(conf)
         if MQ_TEST:
             if not SEPARATE_PROCESS_DEBUG:
                 await init_icon_score_service()
@@ -413,42 +453,49 @@ def serve():
         else:
             await init_icon_inner_task(conf)
 
-    if len(sys.argv) == 2:
-        path = sys.argv[1]
-    else:
-        path = './tbears.json'
+    path = './tbears.json'
 
-    conf = load_config(path)
+    conf = load_config(path)['global']
     Logger(path)
     Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
 
     server = SimpleRestServer(conf['port'], "0.0.0.0")
     server.get_app().add_task(__serve)
+
     server.run()
 
 
 def load_config(path: str) -> dict:
     default_conf = {
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "port": 9000,
-        "scoreRoot": "./.score",
-        "dbRoot": "./.db",
-        "accounts": [
-            {
-                "name": "genesis",
-                "address": "hx0000000000000000000000000000000000000000",
-                "balance": "0x2961fff8ca4a62327800000"
-            },
-            {
-                "name": "treasury",
-                "address": "hx1000000000000000000000000000000000000000",
-                "balance": "0x0"
-            }
-        ],
         "log": {
+            "colorLog": True,
             "level": "debug",
             "filePath": "./tbears.log",
             "outputType": "console|file"
+        },
+        "global": {
+            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "port": 9000,
+            "scoreRoot": "./.score",
+            "dbRoot": "./.db",
+            "genesisData": {
+                "accounts": [
+                    {
+                        "name": "genesis",
+                        "address": "hx0000000000000000000000000000000000000000",
+                        "balance": "0x2961fff8ca4a62327800000"
+                    },
+                    {
+                        "name": "fee_treasury",
+                        "address": "hx1000000000000000000000000000000000000000",
+                        "balance": "0x0"
+                    }
+                ]
+            }
+        },
+        "deploy": {
+            "uri": "http://localhost:9000/api/v3",
+            "stepLimit": "0x12345"
         }
     }
 
@@ -474,44 +521,137 @@ async def init_icon_score_service():
 async def init_icon_score_stub(conf: dict):
     global __icon_score_stub
     __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
-    await __icon_score_stub.connect()
-    if not SEPARATE_PROCESS_DEBUG:
-        await __icon_score_stub.task().open()
 
-    accounts = get_type_converter().convert(conf['accounts'], recursive=False)
-    make_request = dict()
-    make_request['accounts'] = accounts
-    await __icon_score_stub.task().genesis_invoke(make_request)
+    if is_done_genesis_invoke():
+        return None
+
+    tx_hash = create_hash('genesis'.encode())
+    tx_timestamp_us = int(time.time() * 10 ** 6)
+    request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
+    genesis_data = conf['genesisData']
+    tx = {
+        'method': '',
+        'params': request_params,
+        'genesisData': {'accounts': genesis_data['accounts']}
+    }
+
+    make_request = {'transactions': [tx]}
+    block_height: int = get_block_height()
+    block_timestamp_us = tx_timestamp_us
+    block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+
+    make_request['block'] = {
+        'blockHeight': hex(block_height),
+        'blockHash': block_hash,
+        'timestamp': hex(block_timestamp_us)
+    }
+
+    precommit_request = {'blockHeight': hex(block_height),
+                         'blockHash': block_hash}
+
+    response = await get_icon_score_stub().async_task().invoke(make_request)
+    if not isinstance(response, dict):
+        rollback_block()
+        await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
+    elif check_error_response(response):
+        rollback_block()
+        await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
+    elif response[tx_hash]['status'] == hex(1):
+        set_prev_block_hash(block_hash)
+        await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
+    else:
+        rollback_block()
+        await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
+
+    tx_result = response[tx_hash]
+    tx_hash = tx_result['txHash']
+    tx_hash = f'0x{tx_hash}'
+    tx_result['from'] = request_params.get('from', '')
+    tx_result['tx_hash'] = tx_hash
+    TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
+    return response_to_json_invoke(response)
 
 
 async def init_icon_inner_task(conf: dict):
     global __icon_inner_task
     __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
-    await __icon_inner_task.open()
 
-    accounts = get_type_converter().convert(conf['accounts'], recursive=False)
-    make_request = dict()
-    make_request['accounts'] = accounts
-    await __icon_inner_task.genesis_invoke(make_request)
+    if is_done_genesis_invoke():
+        return None
 
+    tx_hash = create_hash(b'genesis')
+    tx_timestamp_us = int(time.time() * 10 ** 6)
+    request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
 
-def init_type_converter():
-    global __type_converter
-
-    type_table = {
-        'from': 'address',
-        'to': 'address',
-        'address': 'address',
-        'fee': 'int',
-        'value': 'int',
-        'balance': 'int'
+    genesis_data = conf['genesisData']
+    tx = {
+        'method': '',
+        'params': request_params,
+        'genesisData': {'accounts': genesis_data['accounts']}
     }
-    __type_converter = TypeConverter(type_table)
+
+    make_request = {'transactions': [tx]}
+    block_height: int = get_block_height()
+    block_timestamp_us = tx_timestamp_us
+    block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+
+    make_request['block'] = {
+        'blockHeight': hex(block_height),
+        'blockHash': block_hash,
+        'timestamp': hex(block_timestamp_us)
+    }
+
+    precommit_request = {'blockHeight': hex(block_height),
+                         'blockHash': block_hash}
+
+    response = await get_icon_inner_task().invoke(make_request)
+    response = response['txResults']
+    if not isinstance(response, dict):
+        rollback_block()
+        await get_icon_inner_task().remove_precommit_state(precommit_request)
+    elif check_error_response(response):
+        rollback_block()
+        await get_icon_inner_task().remove_precommit_state(precommit_request)
+    elif response[tx_hash]['status'] == hex(1):
+        set_prev_block_hash(block_hash)
+        await get_icon_inner_task().write_precommit_state(precommit_request)
+    else:
+        rollback_block()
+        await get_icon_inner_task().remove_precommit_state(precommit_request)
+
+    tx_result = response[tx_hash]
+    tx_hash = tx_result['txHash']
+    tx_hash = f'0x{tx_hash}'
+    tx_result['from'] = request_params.get('from', '')
+    tx_result['tx_hash'] = tx_hash
+    TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
+    return response_to_json_invoke(response)
 
 
-def init_tbears():
+def init_tbears(conf: dict):
     global __tx_result_mapper
     __tx_result_mapper = TxResultMapper()
+    global TBEARS_DB
+    TBEARS_DB = TbearsDB(TbearsDB.make_db(f'{conf["dbRoot"]}/tbears'))
+    load_tbears_global_variable()
+
+
+def load_tbears_global_variable():
+    global __block_height
+    global __prev_block_hash
+
+    byte_block_height = TBEARS_DB.get(b'blockHeight')
+    byte_prev_block_hash = TBEARS_DB.get(b'prevBlockHash')
+
+    if byte_block_height is not None:
+        block_height = byte_block_height.decode()
+        __block_height = int(block_height)
+    if byte_prev_block_hash is not None:
+        __prev_block_hash = bytes.hex(byte_prev_block_hash)
+
+
+def is_done_genesis_invoke() -> bool:
+    return get_prev_block_hash()
 
 
 if __name__ == '__main__':

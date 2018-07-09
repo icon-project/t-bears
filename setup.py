@@ -5,9 +5,12 @@ from tbears import __version__
 
 
 requires = [
-    'requests==2.18.4',
-    'jsonrpcserver==3.5.4',
-    'sanic == 0.7.0',
+    'requests==2.19.1',
+    'jsonrpcserver==3.5.3',
+    'sanic==0.7.0',
+    'plyvel==1.0.4',
+    'secp256k1==0.13.2',
+    'eth-keyfile==0.5.1',
 ]
 
 
@@ -18,6 +21,7 @@ setup_options = {
     'author': 'ICON foundation',
     'author_email': 'foo@icon.foundation',
     'packages': find_packages(exclude=['tests*','docs']),
+    'package_data': {'tbears': ['tbears.json']},
     'py_modules': ['tbears'],
     'license': "Apache License 2.0",
     'install_requires': requires,

@@ -27,3 +27,22 @@ class TBearsWriteFileException(TbearsBaseException):
 class TBearsDeleteTreeException(TbearsBaseException):
     """Error while write file."""
     pass
+
+
+class TbearsConfigFileException(TbearsBaseException):
+    """Error while load deploy config file"""
+    pass
+
+
+class KeyStoreException(TbearsBaseException):
+    pass
+
+
+class ZipException(TbearsBaseException):
+    """"Error while write zip in memory"""
+    pass
+
+
+class FillDeployPaylodException(TbearsBaseException):
+    """Error while fill deploy payload"""
+    pass

@@ -17,7 +17,7 @@ import argparse
 import sys
 
 import tbears
-from .command import ExitCode, make_SCORE_samples
+from .command import ExitCode, make_SCORE_samples, test_SCORE, deploy_SCORE
 from .command import init_SCORE
 from .command import run_SCORE
 from .command import stop_SCORE
@@ -31,10 +31,11 @@ tbears version : v{tbears.__version__}
 ==========================
 tbears commands:
     init <project> <score_class> : Generate files, both <project>.py and package.json in <project> directory. The name of the score class is <score_class>.
-    run <project> : Run the score. | --install <config param path> | --update <config param path>
+    run <project> : Run the score. | [ --install | -i] <on_install param info path> | [ --update | -u] <on_update param info path>
     stop : Stop the score.
     clear : Delete the score, both .score and .db directory.
-    samples : Create two score samples (sampleCrowdSale, tokentest)
+    deploy <project> <--keystore | -k> <keystore path> [ --install | -i] <on_install param info path> | [ --update | -u] <on_update param info path>
+    samples : Create two score samples (sample_crowdSale, sample_token)
         """)
 
     parser.add_argument(
@@ -42,10 +43,13 @@ tbears commands:
         nargs='*',
         help='init, run, stop, clear')
     parser.add_argument(
-        '--install', dest='install', help='install config json file path'
+        '--install', '-i', dest='install'
     )
     parser.add_argument(
-        '--update', dest='update', help='update config json file path'
+        '--update', '-u', dest='update'
+    )
+    parser.add_argument(
+        '--keystore', '-k', dest='keystore_path', help='keystore file path'
     )
 
     args = parser.parse_args()
@@ -56,15 +60,20 @@ tbears commands:
 
     command = args.command[0]
 
-    config_options = None, None
+    config_options = [None, None]
 
-    if args.install:
-        config_options = args.install, 'install'
+    if args.install and args.update:
+        print('You CAN NOT use both install and update options.')
+        sys.exit(ExitCode.COMMAND_IS_WRONG.value)
+    elif args.install:
+        config_options = ['install', args.install]
     elif args.update:
-        config_options = args.update, 'update'
+        config_options = ['update', args.update]
 
     if command == 'init' and len(args.command) == 3:
         result = init_SCORE(args.command[1], args.command[2])
+        if result is 1:  # success
+            print('init the score successfully.')
     elif command == 'run' and len(args.command) == 2:
         result, _ = run_SCORE(args.command[1], *config_options)
     elif command == 'stop':
@@ -75,6 +84,13 @@ tbears commands:
             print('Cleared the score successfully.')
     elif command == 'samples':
         result = make_SCORE_samples()
+        if result is 1:  # success
+            print('Made samples successfully.')
+    elif command == 'deploy' and len(args.command) == 2:
+        password = input("input your key store password: ")
+        result, _ = deploy_SCORE(args.command[1], *config_options, key_store_path=args.keystore_path, password=password)
+    elif command == 'test' and len(args.command) == 2:
+        result = test_SCORE(args.command[1])
     else:
         parser.print_help()
         result = ExitCode.COMMAND_IS_WRONG.value
