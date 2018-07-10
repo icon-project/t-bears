@@ -189,7 +189,7 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
         private_key = key_from_key_store(key_store_path, password)
 
         uri = deploy_config['uri']
-        step_limit = hex(12345) if not deploy_config.get('stepLimit', 0) else deploy_config['stepLimit']
+        step_limit = 5000 if not deploy_config.get('stepLimit', 0) else int(str(deploy_config['stepLimit']), 0)
 
         score_address = f'cx{"0"*40}'
 
