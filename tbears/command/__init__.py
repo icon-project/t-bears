@@ -211,14 +211,18 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
         response = icon_client.send(deploy_payload)
 
     except TbearsConfigFileException:
+        print('Except raised while load your tbears config file.')
         return ExitCode.CONFIG_FILE_ERROR.value, None
     except KeyError:
+        print('Except raised while load your tbears config file.')
         return ExitCode.CONFIG_FILE_ERROR.value, None
     except KeyStoreException:
         return ExitCode.KEY_STORE_ERROR.value, None
     except FillDeployPaylodException:
+        print('Except raised while zip your score. check your SCORE.')
         return ExitCode.DEPLOY_ERROR.value, None
     except IconClientException:
+        print('Timeout happened. Check your internet connection status.')
         return ExitCode.ICON_CLIENT_ERROR.value, None
     else:
         print('result : ', response.json())
