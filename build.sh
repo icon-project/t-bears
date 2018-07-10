@@ -41,6 +41,7 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
       wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/CHANGELOG.md" -P $VER
       wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/dapp_guide.md" -P $VER
       wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/tbears_jsonrpc_api_v3.md" -P $VER
+      wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/tbears_tutorial.md" -P $VER
       tar -cvzf tbears-$VER.tar.gz $VER/*.whl $VER/*.md
       mv tbears-$VER.tar.gz $VER
 
