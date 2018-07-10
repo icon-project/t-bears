@@ -27,7 +27,8 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
   fi
 
   if [[ "$2" != "--ignore-test" ]]; then
-    python setup.py test
+    # python setup.py test
+    python -m unittest
   fi
 
   if [ "$1" = "build" ] || [ "$1" = "deploy" ]; then
@@ -51,7 +52,6 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
       pip install awscli
       aws s3 cp $VER/tbears-$VER.tar.gz s3://tbears.icon.foundation --acl public-read
       aws s3 cp $VER/CHANGELOG.md s3://tbears.icon.foundation --acl public-read
-      aws s3 cp earlgrey-0.0.0-py3-none-any.whl s3://tbears.icon.foundation --acl public-read
     fi
   fi
 

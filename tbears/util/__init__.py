@@ -22,6 +22,7 @@ import requests
 from tbears.util.in_memory_zip import InMemoryZip
 
 from tbears.util.icx_signer import IcxSigner
+from tbears.util.libs.icon_json import JsonContents
 
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException
 
@@ -38,8 +39,10 @@ def write_file(parent_directory: str, file_name: str, contents: str) -> None:
         with open(f'{parent_directory}/{file_name}', mode='w') as file:
             file.write(contents)
     except PermissionError:
+        print(f'permission error. while writng {file_name}')
         raise TBearsWriteFileException
     except IsADirectoryError:
+        print(f'{file_name} is a directory.')
         raise TBearsWriteFileException
 
 
@@ -119,28 +122,16 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
     return package_json_dict
 
 
-def make_install_json_payload(project: str) -> dict:
+def make_install_json_payload(project: str, owner: str=f"hx{'a' * 40}") -> dict:
     path = os.path.abspath(project)
-    payload = {
-        "jsonrpc": "2.0",
-        "method": "icx_sendTransaction",
-        "id": 111,
-        "params": {
-            "version": "0x3",
-            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "to": f'cx{"0"*40}',
-            "stepLimit": "0x12345",
-            "fee": "0x2386f26fc10000",
-            "timestamp": str(int(time.time() * 10 ** 6)),
-            "nonce": "0x7362",
-            "txHash": "0x4bf74e6aeeb43bde5dc8d5b62537a33ac8eb7605ebbdb51b015c1881b45b3aed",
-            "dataType": "deploy",
-            "data": {
-                "contentType": "application/tbears",
-                "content": path
-            }
-        }
+    zero_address = f"cx{'0' * 40}"
+    data = {
+        "contentType": "application/tbears",
+        "content": path
     }
+    json_contents = JsonContents()
+    payload = json_contents.json_dummy_send_transaction(owner, zero_address, hex(0), data, data_type='deploy',
+                                                        signature='1234')
     return payload
 
 
@@ -347,7 +338,17 @@ def get_deploy_config(path: str) -> dict:
         with open(path, mode='rb') as config_file:
             config_dict = json.load(config_file)
         deploy_config = config_dict['deploy']
+    except FileNotFoundError:
+        print(f'Can not find {path} file.')
+        raise TbearsConfigFileException
+    except IsADirectoryError:
+        print(f'{path} is a Directory.')
+        raise TbearsConfigFileException
+    except PermissionError:
+        print(f'Permission Error')
+        raise TbearsConfigFileException
     except:
+        print(f'check your {path} file.')
         raise TbearsConfigFileException
     else:
         return deploy_config
