@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import hashlib
 import json
 import os
 import sys
@@ -211,10 +210,9 @@ def deploy_SCORE(project: str, *config_options, key_store_path: str = None, pass
         response = icon_client.send(deploy_payload)
 
     except TbearsConfigFileException:
-        print('Except raised while load your tbears config file.')
         return ExitCode.CONFIG_FILE_ERROR.value, None
-    except KeyError:
-        print('Except raised while load your tbears config file.')
+    except KeyError as e:
+        print(f'{e.args[0]} key not exists in your config file. check your config file.')
         return ExitCode.CONFIG_FILE_ERROR.value, None
     except KeyStoreException:
         return ExitCode.KEY_STORE_ERROR.value, None
