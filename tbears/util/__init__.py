@@ -29,6 +29,12 @@ PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, '..', '..'))
 
 
 def write_file(parent_directory: str, file_name: str, contents: str, overwrite: bool = False) -> None:
+    """Create file with the contents in the parents directory.
+
+    :param parent_directory: Location to create the file.
+    :param file_name: File name
+    :param contents: Contents of file.
+    """
     try:
         if not os.path.exists(parent_directory):
             os.makedirs(parent_directory)
@@ -47,9 +53,11 @@ def get_init_template(project: str, score_class: str) -> str:
 
 
 def get_score_main_template(score_class: str) -> str:
-    """
+    """Returns sample SCORE(token)'s template.
+
     :param score_class: Your score class name.
-    :return:
+
+    :return: sample token's template.
     """
     template = """from iconservice import *
 
@@ -110,6 +118,13 @@ class SampleToken(IconScoreBase):
 
 
 def get_package_json_dict(project: str, score_class: str) -> dict:
+    """Returns packs.json's template.
+
+    :param project: SCORE's name.
+    :param score_class: SCORE's main class name.
+
+    :return: package.json's contents.(dict)
+    """
     package_json_dict = {
         "version": "0.0.1",
         "main_file": f"{project}",
@@ -120,6 +135,14 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
 
 def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}",
                               deploy_params: dict = {}) -> dict:
+    """Returns payload of install request.
+
+    :param project: SCORE's name
+    :param owner: address of <project>'s owner(str)
+
+
+    :return: payload of install request json.
+    """
     path = os.path.abspath(project)
     data = {
         "contentType": "application/tbears",
@@ -287,6 +310,11 @@ def get_deploy_config_json() -> str:
     return json.dumps(tbears_conf.deploy_config, indent=4)
 
 
-def create_address(data: bytes):
+def create_address(data: bytes) -> str:
+    """Create address using given data.
+
+    :param data: Some byte data
+    :return: Body part of Address.(deleted prefix hx or cx)
+    """
     hash_value = hashlib.sha3_256(data).digest()
     return hash_value[-20:].hex()

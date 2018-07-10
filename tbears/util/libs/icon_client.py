@@ -20,11 +20,17 @@ from tbears.tbears_exception import IconClientException
 
 
 class IconClient:
+    """Class that requests a payload as the content of a given url."""
 
     def __init__(self, url: str):
         self._url = url
 
     def send(self, payload: dict) -> requests.Response:
+        """Requests a payload as the content of a given url.
+
+        :param payload: payload for request.
+        :return: response.
+        """
         try:
             json_content = json.dumps(payload)
             resp = requests.post(self._url, json_content)
