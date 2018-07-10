@@ -39,8 +39,10 @@ def write_file(parent_directory: str, file_name: str, contents: str) -> None:
         with open(f'{parent_directory}/{file_name}', mode='w') as file:
             file.write(contents)
     except PermissionError:
+        print(f'permission error. while writng {file_name}')
         raise TBearsWriteFileException
     except IsADirectoryError:
+        print(f'{file_name} is a directory.')
         raise TBearsWriteFileException
 
 
@@ -336,7 +338,17 @@ def get_deploy_config(path: str) -> dict:
         with open(path, mode='rb') as config_file:
             config_dict = json.load(config_file)
         deploy_config = config_dict['deploy']
+    except FileNotFoundError:
+        print(f'Can not find {path} file.')
+        raise TbearsConfigFileException
+    except IsADirectoryError:
+        print(f'{path} is a Directory.')
+        raise TbearsConfigFileException
+    except PermissionError:
+        print(f'Permission Error')
+        raise TbearsConfigFileException
     except:
+        print(f'check your {path} file.')
         raise TbearsConfigFileException
     else:
         return deploy_config
