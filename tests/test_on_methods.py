@@ -16,7 +16,8 @@ import unittest
 
 from secp256k1 import PrivateKey
 
-from tbears.command import run_SCORE, clear_SCORE
+from tbears.command.CommandScore import CommandScore
+from tbears.command.CommandServer import CommandServer
 from tbears.util import create_address
 from tbears.util.libs.icon_json import get_icx_call_payload
 from tbears.util.libs.icon_client import IconClient
@@ -28,7 +29,7 @@ ON_INIT_PARAM_JSON_PATH = os.path.join(DIRECTORY_PATH, 'on_init_test.json')
 
 class TestOnMethods(unittest.TestCase):
     def tearDown(self):
-        clear_SCORE()
+        CommandScore.clear()
         if os.path.exists('./logger.log'):
             os.remove('./logger.log')
         if os.path.exists('./tbears.json'):
@@ -37,13 +38,16 @@ class TestOnMethods(unittest.TestCase):
     def setUp(self):
         self.url = TBEARS_LOCAL_URL
         self.private_key = PrivateKey().private_key
-        self.icon_client = IconClient(self.url)
+        self.conf = CommandScore.get_conf(ON_INIT_PARAM_JSON_PATH)
+        self.icon_client = IconClient(self.conf['uri'])
 
     def test_on_init(self):
-        run_SCORE(TEST_ON_INT_SCORE_PATH, 'install', ON_INIT_PARAM_JSON_PATH)
+        CommandServer.start()
+        CommandScore.deploy(TEST_ON_INT_SCORE_PATH, self.conf)
         test_on_init_address = f'cx{create_address(b"test_on_init")}'
         payload = get_icx_call_payload(god_address, test_on_init_address, 'total_supply')
         response = self.icon_client.send(payload)
         response_json = response.json()
         result = response_json['result']
+        CommandServer.stop()
         self.assertEqual(result, hex(2000*10**18))

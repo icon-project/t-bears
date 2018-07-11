@@ -16,7 +16,7 @@ import asyncio
 import shutil
 import unittest
 
-from tbears.command import init_SCORE
+from tbears.command.CommandServer import CommandServer
 from tbears.util import make_install_json_payload
 from tbears.util.libs.icon_json import *
 from tbears.util.libs.jsonrpc_error_code import INVALID_PARAMS, SERVER_ERROR, SCORE_ERROR, INVALID_REQUEST
@@ -51,7 +51,7 @@ class TestTransactionResult(unittest.TestCase):
         self.app = init_mock_server()
 
     def test_transaction_result(self):
-        init_SCORE('sample_token', 'SampleToken')
+        CommandServer.init('sample_token', 'SampleToken')
         run_payload = make_install_json_payload('sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
 
