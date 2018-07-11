@@ -14,35 +14,31 @@
 # limitations under the License.
 import json
 import os
-import shutil
-import time
 import hashlib
 
 import requests
-from tbears.util.in_memory_zip import InMemoryZip
 
+from tbears.util.in_memory_zip import InMemoryZip
 from tbears.util.icx_signer import IcxSigner
 from tbears.util.libs.icon_json import JsonContents
-
 from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException
+from tbears.default_conf import tbears_conf
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, '..', '..'))
 
 
-def write_file(parent_directory: str, file_name: str, contents: str) -> None:
+def write_file(parent_directory: str, file_name: str, contents: str, overwrite: bool = False) -> None:
     try:
         if not os.path.exists(parent_directory):
             os.makedirs(parent_directory)
-        if os.path.exists(f'{parent_directory}/{file_name}'):
+        if os.path.exists(f'{parent_directory}/{file_name}') and not overwrite:
             return
         with open(f'{parent_directory}/{file_name}', mode='w') as file:
             file.write(contents)
     except PermissionError:
-        print(f'permission error. while writng {file_name}')
         raise TBearsWriteFileException
     except IsADirectoryError:
-        print(f'{file_name} is a directory.')
         raise TBearsWriteFileException
 
 
@@ -122,15 +118,16 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
     return package_json_dict
 
 
-def make_install_json_payload(project: str, owner: str=f"hx{'a' * 40}") -> dict:
+def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}",
+                              deploy_params: dict = {}) -> dict:
     path = os.path.abspath(project)
-    zero_address = f"cx{'0' * 40}"
     data = {
         "contentType": "application/tbears",
-        "content": path
+        "content": path,
+        "params": deploy_params
     }
     json_contents = JsonContents()
-    payload = json_contents.json_dummy_send_transaction(owner, zero_address, hex(0), data, data_type='deploy',
+    payload = json_contents.json_dummy_send_transaction(fr=fr, to=to, value=hex(0), data=data, data_type='deploy',
                                                         signature='1234')
     return payload
 
@@ -149,28 +146,12 @@ def post(url: str, payload: dict):
         return r
 
 
-def delete_score_info():
-    """ Delete .score directory and db directory.
-
+def get_sample_crowd_sale_contents(score_class: str):
+    """
+    :param score_class: Your score class name.
     :return:
     """
-    try:
-        if os.path.exists('./.score'):
-            shutil.rmtree('./.score')
-        if os.path.exists('./.db'):
-            shutil.rmtree('./.db')
-    except PermissionError:
-        raise TBearsDeleteTreeException
-    except NotADirectoryError:
-        raise TBearsDeleteTreeException
-
-
-def get_sample_crowd_sale_contents():
-    """
-
-    :return:
-    """
-    contents = """from iconservice import *
+    template = """from iconservice import *
 
 
 class SampleTokenInterface(InterfaceScore):
@@ -295,63 +276,15 @@ class SampleCrowdSale(IconScoreBase):
                 self.__funding_goal_reached.set(False)
 
 """
-    return contents
+    return template.replace('SampleCrowdSale', score_class)
 
 
 def get_tbears_config_json() -> str:
-    return """{
-        "log": {
-            "colorLog": true,
-            "level": "debug",
-            "filePath": "./tbears.log",
-            "outputType": "console|file"
-        },
-        "global": {
-            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "port": 9000,
-            "scoreRoot": "./.score",
-            "dbRoot": "./.db",
-            "genesisData": {
-                "accounts": [
-                    {
-                        "name": "genesis",
-                        "address": "hx0000000000000000000000000000000000000000",
-                        "balance": "0x2961fff8ca4a62327800000"
-                    },
-                    {
-                        "name": "fee_treasury",
-                        "address": "hx1000000000000000000000000000000000000000",
-                        "balance": "0x0"
-                    }
-                ]
-            }
-        },
-        "deploy": {
-            "uri": "http://localhost:9000/api/v3",
-            "stepLimit": "0x12345"
-        }
-}"""
+    return json.dumps(tbears_conf.tbears_config, indent=4)
 
 
-def get_deploy_config(path: str) -> dict:
-    try:
-        with open(path, mode='rb') as config_file:
-            config_dict = json.load(config_file)
-        deploy_config = config_dict['deploy']
-    except FileNotFoundError:
-        print(f'Can not find {path} file.')
-        raise TbearsConfigFileException
-    except IsADirectoryError:
-        print(f'{path} is a Directory.')
-        raise TbearsConfigFileException
-    except PermissionError:
-        print(f'Permission Error')
-        raise TbearsConfigFileException
-    except:
-        print(f'check your {path} file.')
-        raise TbearsConfigFileException
-    else:
-        return deploy_config
+def get_deploy_config_json() -> str:
+    return json.dumps(tbears_conf.deploy_config, indent=4)
 
 
 def create_address(data: bytes):

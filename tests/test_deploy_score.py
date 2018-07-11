@@ -20,8 +20,7 @@ from secp256k1 import PrivateKey
 
 from tbears.util.libs.icon_json import *
 from tbears.util.tbears_mock_server import API_PATH, init_mock_server
-
-from tbears.command import init_SCORE, make_SCORE_samples
+from tbears.command.CommandServer import CommandServer
 from tests.test_tbears_samples import test_addr
 from tests.json_contents_for_tests import *
 
@@ -65,7 +64,7 @@ class TestDeployScore(unittest.TestCase):
         self.user_address = f'hx{self.signer_user.address.hex()}'
 
     def test_call_token_score(self):
-        init_SCORE(token_score_name, token_score_class)
+        CommandServer.init(token_score_name, token_score_class)
 
         deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, token_score_name)
         _, response = self.app.test_client.post(self.path, json=deploy_payload)
@@ -104,7 +103,7 @@ class TestDeployScore(unittest.TestCase):
         self.assertEqual(hex(10 * 10 ** 18), result)
 
     def test_call_score_methods(self):
-        make_SCORE_samples()
+        CommandServer.make_samples()
 
         deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, token_score_name)
         _, response = self.app.test_client.post(self.path, json=deploy_payload)

@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import asyncio
-import os
 import shutil
 import unittest
 
-from tbears.command import make_SCORE_samples, init_SCORE
+from tbears.command.CommandServer import CommandServer
 from tbears.util import make_install_json_payload
 from tbears.util.libs.icon_json import *
 from tbears.util.tbears_mock_server import API_PATH, init_mock_server
@@ -57,7 +56,7 @@ class TestTBears(unittest.TestCase):
         self.app = init_mock_server()
 
     def test_token(self):
-        init_SCORE('sample_token', 'SampleToken')
+        CommandServer.init('sample_token', 'SampleToken')
         run_payload = make_install_json_payload('sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
 
@@ -138,7 +137,7 @@ class TestTBears(unittest.TestCase):
         self.assertTrue(isinstance(response_json['error']['message'], str))
 
     def test_score_methods(self):
-        make_SCORE_samples()
+        CommandServer.make_samples()
         run_payload = make_install_json_payload('sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
         run_payload = make_install_json_payload('sample_crowd_sale')

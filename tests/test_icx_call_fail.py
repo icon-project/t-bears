@@ -16,7 +16,7 @@ import asyncio
 import shutil
 import unittest
 
-from tbears.command import init_SCORE
+from tbears.command.CommandServer import CommandServer
 from tbears.util import make_install_json_payload
 from tbears.util.libs.icon_json import get_icx_call_payload, get_icx_getScoreApi_payload, get_icx_getBalance_payload
 from tbears.util.libs.jsonrpc_error_code import METHOD_NOT_FOUND, INVALID_PARAMS
@@ -133,7 +133,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_score_queries_filed(self):
         # unknown score method test
-        init_SCORE('sample_token', 'SampleToken')
+        CommandServer.init('sample_token', 'SampleToken')
         run_payload = make_install_json_payload('sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
 
@@ -171,7 +171,7 @@ class TestTransactionResult(unittest.TestCase):
         self.assertEqual(pre_define_api, api_result)
 
     # def test_nonexistent_score_address_query(self):
-    #     init_SCORE('sample_token', 'SampleToken')
+    #     CommandServer.init('sample_token', 'SampleToken')
     #     run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
     #     payload = get_request_json_of_get_token_balance(to=f'cx{"0"*40}', addr_from=god_address)
     #     res = post(url, payload).json()
