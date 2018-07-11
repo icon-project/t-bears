@@ -54,10 +54,6 @@ class CommandServer(Command):
         :param port: listen port
         :param conf_file: configuration file path
         """
-        if CommandServer.is_server_running():
-            print(f"Tbears service was started aleady")
-            return
-
         # start jsonrpc_server for tbears
         CommandServer.__start_server(host=host, port=port, tbears_config_path=conf_file)
 

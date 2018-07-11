@@ -74,6 +74,10 @@ def add_start_parser(subparsers) -> None:
 
 
 def command_start(args):
+    if CommandServer.is_server_running():
+        print(f"Tbears service was started already")
+        return
+
     CommandServer.start(host=str(args.address), port=args.port, conf_file=args.config)
 
     return ExitCode.SUCCEEDED.value
