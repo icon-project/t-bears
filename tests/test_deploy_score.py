@@ -18,9 +18,13 @@ import unittest
 
 from secp256k1 import PrivateKey
 
-from tbears.util.libs.icon_json import *
-from tbears.util.tbears_mock_server import API_PATH, init_mock_server
 from tbears.command.CommandServer import CommandServer
+from tbears.libs.icon_json import get_icx_sendTransaction_deploy_payload, get_icx_sendTransaction_score_payload, \
+    get_icx_getBalance_payload, get_icx_getTransactionResult_payload, get_icx_call_payload, \
+    get_dummy_icx_sendTransaction_payload
+from tbears.util import get_deploy_contents_by_path
+from tests.tbears_mock_server import API_PATH, init_mock_server
+
 from tests.test_tbears_samples import test_addr
 from tests.json_contents_for_tests import *
 
@@ -66,7 +70,9 @@ class TestDeployScore(unittest.TestCase):
     def test_call_token_score(self):
         CommandServer.init(token_score_name, token_score_class)
 
-        deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, token_score_name)
+        deploy_contents = get_deploy_contents_by_path(token_score_name)
+
+        deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, deploy_contents)
         _, response = self.app.test_client.post(self.path, json=deploy_payload)
         res_json = response.json
         tx_hash = res_json['result']
@@ -105,7 +111,9 @@ class TestDeployScore(unittest.TestCase):
     def test_call_score_methods(self):
         CommandServer.make_samples()
 
-        deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, token_score_name)
+        deploy_contents = get_deploy_contents_by_path(token_score_name)
+
+        deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, deploy_contents)
         _, response = self.app.test_client.post(self.path, json=deploy_payload)
         response_json = response.json
         tx_hash = response_json['result']
@@ -115,7 +123,9 @@ class TestDeployScore(unittest.TestCase):
         response_json = response.json
         token_score_address = response_json['result']['scoreAddress']
 
-        crowd_deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, crowd_score_name,
+        deploy_contents = get_deploy_contents_by_path(crowd_score_name)
+
+        crowd_deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, deploy_contents,
                                                                       deploy_params={'token_address':
                                                                                          token_score_address})
         _, response = self.app.test_client.post(self.path, json=crowd_deploy_payload)
@@ -277,7 +287,7 @@ class TestDeployScore(unittest.TestCase):
         status = result['status']
         self.assertEqual(status, hex(1))
 
-        # # seq14
+        # seq14
         # safe withrawal
         payload = get_dummy_icx_sendTransaction_payload(self.token_owner_address, crowd_sale_score_address, hex(0),
                                                         data_type='call', data={'method': 'safe_withdrawal',

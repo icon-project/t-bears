@@ -63,7 +63,7 @@ class IcxSigner:
         recoverable_signature = private_key_object.ecdsa_sign_recoverable(msg_hash, raw=True)
         return private_key_object.ecdsa_recoverable_serialize(recoverable_signature)
 
-    def sign(self, msg_hash) -> str:
+    def sign(self, msg_hash) -> bytes:
         """Make base64-encoded string of recoverable signature data.
         :param msg_hash:
 

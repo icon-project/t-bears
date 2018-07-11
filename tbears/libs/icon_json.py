@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import hashlib
-import os
 import time
 
-from tbears.tbears_exception import ZipException, FillDeployPaylodException, JsonContentsException
-from tbears.util import InMemoryZip, IcxSigner
+from tbears.tbears_exception import JsonContentsException
+from tbears.util.icx_signer import IcxSigner
 
 
 class JsonContents:
@@ -63,27 +62,6 @@ class JsonContents:
         put_signature_to_payload(payload, signer)
         return self.json_rpc_format('icx_sendTransaction', params=payload)
 
-    def json_send_transaction_deploy(self, path: str, signer: 'IcxSigner',
-                                     score_address: str = None, deploy_params: dict = {}) -> dict:
-        """Fill contents of the deploy payload with the given parameters and returns the payload.
-
-        :param path: Your SCORE's root directory path.
-        :param signer: It needed to make signature.
-        :param score_address: Needed when update SCORE.
-        :param deploy_params: Passed on to the on_init or on_update method calls.
-
-        :return: Full payload of deploy request.
-        """
-        if not score_address:
-            score_address = f'cx{"0"*40}'
-        payload = self.params_send_transaction(f'hx{signer.address.hex()}', score_address, hex(0))
-        payload['dataType'] = 'deploy'
-        payload['data'] = {}
-        payload['data']['params'] = deploy_params
-        fill_deploy_content(payload, path)
-        put_signature_to_payload(payload, signer)
-        return self.json_rpc_format('icx_sendTransaction', params=payload)
-
     def json_send_transaction_score(self, signer: 'IcxSigner', to, value, score_method: str,
                                     score_params: dict = {}) -> dict:
         """Fill contents of the icx_sendTransaction(to SCORE) payload with the given parameters and returns the payload.
@@ -104,12 +82,38 @@ class JsonContents:
         put_signature_to_payload(payload, signer)
         return self.json_rpc_format('icx_sendTransaction', params=payload)
 
-    def params_send_transaction(self, fr: str, to: str, value: str) -> dict:
+    def json_send_transaction_deploy(self, contents: str, signer: 'IcxSigner',
+                                     score_address: str = None, deploy_params: dict = {}) -> dict:
+        """Fill contents of the deploy payload with the given parameters and returns the payload.
+
+        :param contents: Your SCORE's zipped data(bytes).
+        :param signer: It needed to make signature.
+        :param score_address: Needed when update SCORE.
+        :param deploy_params: Passed on to the on_init or on_update method calls.
+
+        :return: Full payload of deploy request.
+        """
+        if not score_address:
+            score_address = f'cx{"0"*40}'
+
+        data = {
+            'contentType': 'application/zip',
+            'content': contents,
+            'params': deploy_params
+        }
+        payload = self.params_send_transaction(f'hx{signer.address.hex()}', score_address, hex(0),
+                                               data_type='deploy', data=data)
+        put_signature_to_payload(payload, signer)
+        return self.json_rpc_format('icx_sendTransaction', params=payload)
+
+    def params_send_transaction(self, fr: str, to: str, value: str, data_type=None, data: dict = None) -> dict:
         """Fill contents of the params field of icx_sendTransaction payload with given parameters and returns the params.
 
         :param fr: Transaction sender.
         :param to: Address to send icx.
         :param value: Amount of icx.
+        :param data_type: data_type field. it can be 'call', 'deploy' or None
+        :param data: It is needed when 'data_type' is deploy or call.
 
         :return: Params of icx_sendTransaction payload.
         """
@@ -123,6 +127,9 @@ class JsonContents:
         }
         if self.version >= 3:
             payload['version'] = hex(self.version)
+        if data_type == 'deploy' or data_type == 'call':
+            payload['dataType'] = data_type
+            payload['data'] = data
 
         return payload
 
@@ -197,36 +204,6 @@ class JsonContents:
             }
         }
 
-    def json_dummy_send_transaction(self, fr: str, to: str, value: str,
-                                    data: dict, signature: str, data_type: str = None) -> dict:
-        """This function might be used for test.
-
-        :param fr: Address of transaction sender.
-        :param to: Address to send icx.
-        :param signature: signature
-        :param data_type: data_type. it can be 'call', 'deploy' or None
-        :param data: It is needed when 'data_type' is deploy or call.
-
-        :return: Full payload of icx_sendTransaction.
-        """
-
-        payload = {
-            "from": fr,
-            "to": to,
-            "value": value,
-            "stepLimit": hex(self.step_limit),
-            "nonce": hex(self.nonce),
-            "timestamp": hex(int(time.time() * 10 ** 6)),
-            "signature": signature
-        }
-        if self.version >= 3:
-            payload['version'] = hex(self.version)
-        if data_type == 'deploy' or data_type == 'call':
-            payload['dataType'] = data_type
-            payload['data'] = data
-
-        return self.json_rpc_format('icx_sendTransaction', params=payload)
-
 
 def convert_dict(dict_value) -> dict:
     """Convert values in dict to str type.
@@ -249,11 +226,10 @@ def convert_dict(dict_value) -> dict:
 
 
 def convert_list(list_value) -> list:
-    """Convert values in list to str type.
+    """Convert list's values to str type.
 
     :param list_value: list to convert
-
-    :return: converted list
+    :return:
     """
     output = []
 
@@ -323,41 +299,24 @@ def get_tx_phrase(params: dict) -> str:
     return phrase
 
 
-def fill_deploy_content(payload: dict = None, project_root_path: str = None):
-    """Put zip data(hex string) to deploy payload.
+def get_icx_sendTransaction_deploy_payload(signer: 'IcxSigner', contents,
+                                           nonce=1, step_limit=12345, version=3, _id=1, deploy_params={}, to=None):
+    """Returns payload of deploy request.
 
-    :param payload: Payload of deploy request.
-    :param project_root_path: The path of the directory to be zipped.
-    """
-    if not payload:
-        raise Exception
-    if os.path.isdir(project_root_path) is False:
-        raise Exception
-    try:
-        memory_zip = InMemoryZip()
-        memory_zip.zip_in_memory(project_root_path)
-    except ZipException:
-        raise FillDeployPaylodException
-    else:
-        payload['data']['contentType'] = 'application/zip'
-        payload['data']['content'] = f'0x{memory_zip.data.hex()}'
-
-
-def fill_optional_deploy_field(payload: dict, step_limit: str = None, score_address: str = None,
-                               params: dict = None):
-    """Fill step_lmit, score_address, params of deploy payload.
-
-    :param payload: deploy payload.
+    :param signer: IcxSigner instanace. it is needed to make signature.
+    :param to: Address to send icx.
+    :param nonce: optional value.
     :param step_limit: step limit.
-    :param score_address: It is needed when you want to update your SCORE.
-    :param params: Parameters passed to the on_init or on_update methods.
+    :param version: icon api version.
+    :param _id: optional value.
+    :param nonce: optional value.
+    :param deploy_params: Passed on to the on_init or on_update method calls.
+    :param contents: SCORE's zipped data(bytes).
+
+    :return: Requests.Response object.
     """
-    if step_limit:
-        payload["stepLimit"] = step_limit
-    if score_address:
-        payload["to"] = score_address
-    if params:
-        payload["data"]["params"] = params
+    json_contents = JsonContents(step_limit, nonce, version, _id)
+    return json_contents.json_send_transaction_deploy(contents, signer, to, deploy_params)
 
 
 def get_icx_sendTransaction_payload(signer: 'IcxSigner', to, value, nonce=1, step_limit=12345, version=3, _id=1):
@@ -390,51 +349,10 @@ def get_icx_sendTransaction_score_payload(signer: 'IcxSigner', to, value, score_
     :param _id: optional value.
     :param score_method: The score method to call.
     :param score_params: Parameters to pass to SCORE's method.
-
     :return: Requests.Response object.
     """
     json_contents = JsonContents(step_limit, nonce, version, _id)
     return json_contents.json_send_transaction_score(signer, to, value, score_method, score_params)
-
-
-def get_icx_sendTransaction_deploy_payload(signer: 'IcxSigner', path,
-                                           nonce=1, step_limit=12345, version=3, _id=1, deploy_params={}, to=None):
-    """Returns payload of deploy request.
-
-    :param signer: IcxSigner instanace. it is needed to make signature.
-    :param to: Address to send icx.
-    :param nonce: optional value.
-    :param step_limit: step limit.
-    :param version: icon api version.
-    :param _id: optional value.
-    :param nonce: optional value.
-    :param deploy_params: Passed on to the on_init or on_update method calls.
-    :param path: SCORE's root directory path.
-
-    :return: Requests.Response object.
-    """
-    json_contents = JsonContents(step_limit, nonce, version, _id)
-    return json_contents.json_send_transaction_deploy(path, signer, to, deploy_params)
-
-
-def get_dummy_icx_sendTransaction_payload(fr, to, value, nonce=1, step_limit=12345, version=3, _id=1,
-                                          signature='dummysign', data_type=None, data=None) -> dict:
-    """This function might be used for test.
-
-    :param fr: Address of transaction sender.
-    :param to: Address to send icx.
-    :param nonce: optional value.
-    :param step_limit: step limit.
-    :param version: icon api version.
-    :param _id: optional value.
-    :param signature: signature
-    :param data_type: data_type. it can be 'call', 'deploy' or None
-    :param data: It is needed when 'data_type' is deploy or call.
-
-    :return: Full payload of dummy icx_sendTransaction.
-    """
-    json_contents = JsonContents(step_limit, nonce, version, _id)
-    return json_contents.json_dummy_send_transaction(fr, to, value, data, signature, data_type)
 
 
 def get_icx_getBalance_payload(address):
@@ -486,3 +404,27 @@ def get_icx_call_payload(fr, to, score_method, score_params={}) -> dict:
     :return: payload for icx_call
     """
     return JsonContents().json_icx_call(fr, to, score_method, score_params)
+
+
+def get_dummy_icx_sendTransaction_payload(fr, to, value, nonce=1, step_limit=12345, version=3, _id=1,
+                                          signature='dummysign', data_type=None, data=None) -> dict:
+    """This function might be used for test.
+
+    :param fr: Address of transaction sender.
+    :param to: Address to send icx.
+    :param value: Amount of coin to transfer.
+    :param nonce: optional value.
+    :param step_limit: step limit.
+    :param version: icon api version.
+    :param _id: optional value.
+    :param signature: signature
+    :param data_type: data_type. it can be 'call', 'deploy' or None
+    :param data: It is needed when 'data_type' is deploy or call.
+
+    :return: Full payload of dummy icx_sendTransaction.
+    """
+    json_contents = JsonContents(step_limit, nonce, version, _id)
+    params = json_contents.params_send_transaction(fr, to, value, data_type, data)
+    params['signature'] = signature
+    payload = json_contents.json_rpc_format('icx_sendTransaction', params)
+    return payload

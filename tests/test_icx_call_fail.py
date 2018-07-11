@@ -18,9 +18,9 @@ import unittest
 
 from tbears.command.CommandServer import CommandServer
 from tbears.util import make_install_json_payload
-from tbears.util.libs.icon_json import get_icx_call_payload, get_icx_getScoreApi_payload, get_icx_getBalance_payload
-from tbears.util.libs.jsonrpc_error_code import METHOD_NOT_FOUND, INVALID_PARAMS
-from tbears.util.tbears_mock_server import API_PATH, init_mock_server
+from tbears.libs.icon_json import get_icx_getBalance_payload, get_icx_getScoreApi_payload, get_icx_call_payload
+from tbears.libs.jsonrpc_error_code import METHOD_NOT_FOUND, INVALID_PARAMS
+from tests.tbears_mock_server import API_PATH, init_mock_server
 from tests.json_contents_for_tests import *
 
 pre_define_api = \

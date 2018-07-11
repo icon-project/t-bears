@@ -20,8 +20,9 @@ import requests
 
 from tbears.util.in_memory_zip import InMemoryZip
 from tbears.util.icx_signer import IcxSigner
-from tbears.util.libs.icon_json import JsonContents
-from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException
+from tbears.libs.icon_json import JsonContents
+from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
+    ZipException, FillDeployPaylodException
 from tbears.default_conf import tbears_conf
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -53,11 +54,9 @@ def get_init_template(project: str, score_class: str) -> str:
 
 
 def get_score_main_template(score_class: str) -> str:
-    """Returns sample SCORE(token)'s template.
-
+    """
     :param score_class: Your score class name.
-
-    :return: sample token's template.
+    :return:
     """
     template = """from iconservice import *
 
@@ -150,8 +149,9 @@ def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"c
         "params": deploy_params
     }
     json_contents = JsonContents()
-    payload = json_contents.json_dummy_send_transaction(fr=fr, to=to, value=hex(0), data=data, data_type='deploy',
-                                                        signature='1234')
+    params = json_contents.params_send_transaction(fr=fr, to=to, value=hex(0), data=data, data_type='deploy')
+    params['signature'] = 'sig'
+    payload = json_contents.json_rpc_format('icx_sendTransaction', params)
     return payload
 
 
@@ -318,3 +318,19 @@ def create_address(data: bytes) -> str:
     """
     hash_value = hashlib.sha3_256(data).digest()
     return hash_value[-20:].hex()
+
+
+def get_deploy_contents_by_path(project_root_path: str = None):
+    """Get zip data(hex string) of SCORE.
+
+    :param project_root_path: The path of the directory to be zipped.
+    """
+    if os.path.isdir(project_root_path) is False:
+        raise Exception
+    try:
+        memory_zip = InMemoryZip()
+        memory_zip.zip_in_memory(project_root_path)
+    except ZipException:
+        raise FillDeployPaylodException
+    else:
+        return f'0x{memory_zip.data.hex()}'
