@@ -22,9 +22,10 @@ from ipaddress import ip_address
 from iconservice.logger import Logger
 from iconservice.logger.logger import LogLevel
 import tbears
-from tbears.command import ExitCode, make_keystore
-from tbears.command.CommandServer import CommandServer
-from tbears.command.CommandScore import CommandScore
+from tbears.command import ExitCode
+from tbears.command.command_server import CommandServer
+from tbears.command.command_score import CommandScore
+from tbears.command.command_util import CommandUtil
 from tbears.util.keystore_manager import validate_password
 
 
@@ -201,7 +202,7 @@ def add_keystore_parser(subparsers):
     parser_keystore = subparsers.add_parser('keystore',
                                             help='Create keystore file in passed path',
                                             description='Create keystore file passed path.')
-    parser_keystore.add_argument('-p', '--path', help='keystore path', dest='path')
+    parser_keystore.add_argument('path', help='determine where to store your keystore file.')
     parser_keystore.set_defaults(func=command_keystore)
 
 
@@ -215,7 +216,7 @@ def command_keystore(_args):
         print("Passwords must be at least 8 characters long including alphabet, number, and special character.")
         return ExitCode.COMMAND_IS_WRONG.value
 
-    result = make_keystore(_args.path, password)
+    result = CommandUtil.make_keystore(_args.path, password)
     if result is ExitCode.SUCCEEDED:
         print("Made keystore file successfully.")
     return result

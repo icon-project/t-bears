@@ -4,10 +4,8 @@ import re
 from eth_keyfile import create_keyfile_json
 from secp256k1 import PrivateKey
 
-from tbears.util import IcxSigner
 
-
-def __make_key_store_content(password):
+def make_key_store_content(password):
     """ Make a content of key_store.
     :param password: Password including alphabet character, number, and special character.
     If the user doesn't give password with -p, then CLI will show the prompt and user need to type the password.

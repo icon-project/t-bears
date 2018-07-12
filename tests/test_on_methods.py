@@ -16,8 +16,8 @@ import unittest
 
 from secp256k1 import PrivateKey
 
-from tbears.command.CommandScore import CommandScore
-from tbears.command.CommandServer import CommandServer
+from tbears.command.command_score import CommandScore
+from tbears.command.command_server import CommandServer
 from tbears.util import create_address
 from tbears.libs.icon_json import get_icx_call_payload
 from tbears.libs.icon_client import IconClient

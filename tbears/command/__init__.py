@@ -12,13 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 from enum import IntEnum
 from typing import Optional
 import json
 
 from tbears.util import write_file
-from tbears.util.keystore_manager import __make_key_store_content
 
 
 class ExitCode(IntEnum):
@@ -74,14 +72,3 @@ class Command(object):
         for k, v in new_conf.items():
             if v:
                 conf[k] = v
-
-
-def make_keystore(path: str, password: str) -> int:
-    key_store_content = __make_key_store_content(password)
-
-    if os.path.exists(path):
-        print(f'{path} is not empty.')
-        return ExitCode.NOT_EMPTY_PATH
-    with open(path, mode='w') as ks:
-        ks.write(json.dumps(key_store_content))
-    return ExitCode.SUCCEEDED

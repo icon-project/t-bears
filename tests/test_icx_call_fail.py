@@ -16,7 +16,7 @@ import asyncio
 import shutil
 import unittest
 
-from tbears.command.CommandServer import CommandServer
+from tbears.command.command_server import CommandServer
 from tbears.util import make_install_json_payload
 from tbears.libs.icon_json import get_icx_getBalance_payload, get_icx_getScoreApi_payload, get_icx_call_payload
 from tbears.libs.jsonrpc_error_code import METHOD_NOT_FOUND, INVALID_PARAMS

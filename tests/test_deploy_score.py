@@ -18,13 +18,12 @@ import unittest
 
 from secp256k1 import PrivateKey
 
-from tbears.command.CommandServer import CommandServer
+from tbears.command.command_server import CommandServer
 from tbears.libs.icon_json import get_icx_sendTransaction_deploy_payload, get_icx_sendTransaction_score_payload, \
     get_icx_getBalance_payload, get_icx_getTransactionResult_payload, get_icx_call_payload, \
     get_dummy_icx_sendTransaction_payload
 from tbears.util import get_deploy_contents_by_path
 from tests.tbears_mock_server import API_PATH, init_mock_server
-
 from tests.test_tbears_samples import test_addr
 from tests.json_contents_for_tests import *
 
