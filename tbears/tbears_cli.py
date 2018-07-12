@@ -109,7 +109,7 @@ def add_deploy_parser(subparsers):
                                dest='uri')
     parser_deploy.add_argument('-t', '--type', help='Deploy SCORE type ("tbears" or "icon". default: tbears',
                                choices=['tbears', 'icon'], dest='scoreType')
-    parser_deploy.add_argument('-m', '--mode', help='Deploy mode ("install" or "update". default: update',
+    parser_deploy.add_argument('-m', '--mode', help='Deploy mode ("install" or "update". default: install',
                                choices=['install', 'update'], dest='mode')
     parser_deploy.add_argument('-f', '--from', help='From address. i.e. SCORE owner address', dest='from')
     parser_deploy.add_argument('-o', '--to', help='To address. i.e. SCORE address', dest='to')
@@ -209,6 +209,10 @@ def add_keystore_parser(subparsers):
 def command_keystore(_args):
     if _args.path is None:
         print('You have to input where to store keystore file.')
+        return ExitCode.COMMAND_IS_WRONG.value
+
+    if os.path.exists(_args.path):
+        print(f'{_args.path} is not empty')
         return ExitCode.COMMAND_IS_WRONG.value
 
     password = getpass.getpass("input your key store password: ")

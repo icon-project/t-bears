@@ -34,6 +34,6 @@ class CommandUtil(Command):
         if os.path.exists(path):
             print(f'{path} is not empty.')
             return ExitCode.NOT_EMPTY_PATH
-        with open(path, mode='w') as ks:
-            ks.write(json.dumps(key_store_content))
+        with open(path, mode='wb') as ks:
+            ks.write(json.dumps(key_store_content).encode())
         return ExitCode.SUCCEEDED
