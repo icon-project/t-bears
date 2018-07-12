@@ -6,11 +6,15 @@ if [[ PYVER -ne 3 ]];then
   exit 1
 fi
 
-if [ -z "$(pip3 list | grep sphinx)" ]; then
+pip3 show sphinx 1>/dev/null
+
+if [ $? != 0 ];then
     pip3 install sphinx==1.7.5
 fi
-if [ -z "$(pip3 list | grep sphinx-rtd-theme)" ]; then
-    pip3 install sphinx-rtd-theme==0.4.0
+pip3 show sphinx_rtd_theme 1>/dev/null
+
+if [ $? != 0 ];then
+    pip3 install sphinx_rtd_theme==0.4.0
 fi
 
 sphinx-apidoc -o ./ ../ ../setup.py ../tests/
