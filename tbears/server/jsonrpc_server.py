@@ -34,7 +34,7 @@ from typing import Optional
 from tbears.server.tbears_db import TbearsDB
 from tbears.util import get_tbears_config_json
 from tbears.util import PROJECT_ROOT_PATH
-from tbears.command.CommandServer import CommandServer
+from tbears.command.command_server import CommandServer
 
 MQ_TEST = False
 if not MQ_TEST:

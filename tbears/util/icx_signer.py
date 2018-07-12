@@ -21,7 +21,7 @@ from secp256k1 import PrivateKey
 from tbears.tbears_exception import KeyStoreException
 
 
-def key_from_key_store(file_path, password) -> bytes:
+def key_from_key_store(file_path: str, password: (bytes, str)) -> bytes:
     """Get private key from keystore file.
 
     :param file_path: keystore file path.
@@ -35,7 +35,7 @@ def key_from_key_store(file_path, password) -> bytes:
     except ValueError:
         print('check your password.')
         raise KeyStoreException
-    except:
+    except Exception as e:
         print('check your keystore file.')
         raise KeyStoreException
     else:

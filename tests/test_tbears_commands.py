@@ -18,8 +18,9 @@ import json
 import shutil
 import socket
 from tbears.command import ExitCode
-from tbears.command.CommandServer import CommandServer
-from tbears.command.CommandScore import CommandScore
+from tbears.command.command_server import CommandServer
+from tbears.command.command_score import CommandScore
+from tbears.command.command_util import CommandUtil
 
 
 class TestTBearsCommands(unittest.TestCase):
@@ -109,3 +110,11 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertFalse(os.path.exists('./.db'))
         self.assertFalse(os.path.exists('./.score'))
         shutil.rmtree(f'./{project}')
+
+    def test_keystore(self):
+        path = './kkeystore'
+        password = '1234qwer%'
+        result = CommandUtil.make_keystore(path, password)
+        self.assertEqual(ExitCode.SUCCEEDED, result)
+        self.assertTrue(os.path.exists(path))
+        os.remove(path)

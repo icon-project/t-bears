@@ -18,14 +18,12 @@ import unittest
 
 from secp256k1 import PrivateKey
 
-from tbears.command.CommandServer import CommandServer
+from tbears.command.command_server import CommandServer
 from tbears.libs.icon_json import get_icx_sendTransaction_deploy_payload, get_icx_sendTransaction_score_payload, \
     get_icx_getBalance_payload, get_icx_getTransactionResult_payload, get_icx_call_payload, \
     get_dummy_icx_sendTransaction_payload
 from tbears.util import get_deploy_contents_by_path
 from tests.tbears_mock_server import API_PATH, init_mock_server
-
-from tests.test_tbears_samples import test_addr
 from tests.json_contents_for_tests import *
 
 token_score_name = 'sample_token'
@@ -246,7 +244,7 @@ class TestDeployScore(unittest.TestCase):
 
         # seq11
         # genesis -> test_address. value 90*10**18
-        payload = get_dummy_icx_sendTransaction_payload(fr=god_address, to=test_addr, value=hex(90 * 10 ** 18))
+        payload = get_dummy_icx_sendTransaction_payload(fr=god_address, to=test_address, value=hex(90 * 10 ** 18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         tx_hash = response_json['result']
@@ -259,7 +257,7 @@ class TestDeployScore(unittest.TestCase):
 
         # seq12
         # transfer icx to CrowdSale. value : 90*10**18
-        payload = get_dummy_icx_sendTransaction_payload(fr=test_addr,
+        payload = get_dummy_icx_sendTransaction_payload(fr=test_address,
                                                        to=crowd_sale_score_address, value=hex(90 * 10 ** 18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json

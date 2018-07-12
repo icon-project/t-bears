@@ -33,6 +33,7 @@ class ExitCode(IntEnum):
     DEPLOY_ERROR = 10
     ICON_CLIENT_ERROR = 11
     SERVER_INFO_ERROR = 12
+    NOT_EMPTY_PATH = 13
 
 
 class Command(object):
