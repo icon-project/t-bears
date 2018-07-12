@@ -20,8 +20,9 @@ import requests
 
 from tbears.util.in_memory_zip import InMemoryZip
 from tbears.util.icx_signer import IcxSigner
-from tbears.util.libs.icon_json import JsonContents
-from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException
+from tbears.libs.icon_json import JsonContents
+from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
+    ZipException, FillDeployPaylodException
 from tbears.default_conf import tbears_conf
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -29,6 +30,12 @@ PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, '..', '..'))
 
 
 def write_file(parent_directory: str, file_name: str, contents: str, overwrite: bool = False) -> None:
+    """Create file with the contents in the parents directory.
+
+    :param parent_directory: Location to create the file.
+    :param file_name: File name
+    :param contents: Contents of file.
+    """
     try:
         if not os.path.exists(parent_directory):
             os.makedirs(parent_directory)
@@ -110,6 +117,13 @@ class SampleToken(IconScoreBase):
 
 
 def get_package_json_dict(project: str, score_class: str) -> dict:
+    """Returns packs.json's template.
+
+    :param project: SCORE's name.
+    :param score_class: SCORE's main class name.
+
+    :return: package.json's contents.(dict)
+    """
     package_json_dict = {
         "version": "0.0.1",
         "main_file": f"{project}",
@@ -120,6 +134,14 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
 
 def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}",
                               deploy_params: dict = {}) -> dict:
+    """Returns payload of install request.
+
+    :param project: SCORE's name
+    :param owner: address of <project>'s owner(str)
+
+
+    :return: payload of install request json.
+    """
     path = os.path.abspath(project)
     data = {
         "contentType": "application/tbears",
@@ -127,8 +149,9 @@ def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"c
         "params": deploy_params
     }
     json_contents = JsonContents()
-    payload = json_contents.json_dummy_send_transaction(fr=fr, to=to, value=hex(0), data=data, data_type='deploy',
-                                                        signature='1234')
+    params = json_contents.params_send_transaction(fr=fr, to=to, value=hex(0), data=data, data_type='deploy')
+    params['signature'] = 'sig'
+    payload = json_contents.json_rpc_format('icx_sendTransaction', params)
     return payload
 
 
@@ -287,6 +310,27 @@ def get_deploy_config_json() -> str:
     return json.dumps(tbears_conf.deploy_config, indent=4)
 
 
-def create_address(data: bytes):
+def create_address(data: bytes) -> str:
+    """Create address using given data.
+
+    :param data: Some byte data
+    :return: Body part of Address.(deleted prefix hx or cx)
+    """
     hash_value = hashlib.sha3_256(data).digest()
     return hash_value[-20:].hex()
+
+
+def get_deploy_contents_by_path(project_root_path: str = None):
+    """Get zip data(hex string) of SCORE.
+
+    :param project_root_path: The path of the directory to be zipped.
+    """
+    if os.path.isdir(project_root_path) is False:
+        raise Exception
+    try:
+        memory_zip = InMemoryZip()
+        memory_zip.zip_in_memory(project_root_path)
+    except ZipException:
+        raise FillDeployPaylodException
+    else:
+        return f'0x{memory_zip.data.hex()}'

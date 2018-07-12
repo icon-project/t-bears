@@ -19,8 +19,8 @@ from secp256k1 import PrivateKey
 from tbears.command.CommandScore import CommandScore
 from tbears.command.CommandServer import CommandServer
 from tbears.util import create_address
-from tbears.util.libs.icon_json import get_icx_call_payload
-from tbears.util.libs.icon_client import IconClient
+from tbears.libs.icon_json import get_icx_call_payload
+from tbears.libs.icon_client import IconClient
 from tests.json_contents_for_tests import *
 
 TEST_ON_INT_SCORE_PATH = os.path.abspath(os.path.join(DIRECTORY_PATH, 'test_on_init'))

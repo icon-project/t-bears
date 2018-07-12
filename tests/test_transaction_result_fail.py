@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import asyncio
+import os
 import shutil
 import unittest
 
 from tbears.command.CommandServer import CommandServer
+from tbears.libs.icon_json import get_icx_getTransactionResult_payload, get_dummy_icx_sendTransaction_payload
 from tbears.util import make_install_json_payload
-from tbears.util.libs.icon_json import *
-from tbears.util.libs.jsonrpc_error_code import INVALID_PARAMS, SERVER_ERROR, SCORE_ERROR, INVALID_REQUEST
-from tbears.util.tbears_mock_server import API_PATH, init_mock_server
+from tbears.libs.jsonrpc_error_code import INVALID_PARAMS, SERVER_ERROR, SCORE_ERROR, INVALID_REQUEST
+from tests.tbears_mock_server import API_PATH, init_mock_server
 from tests.json_contents_for_tests import god_address, test_address, get_data_for_transfer_token, token_owner_address, \
     token_score_address
 

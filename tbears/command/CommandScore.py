@@ -20,9 +20,9 @@ from typing import Optional
 from tbears.command import Command, ExitCode
 from tbears.default_conf import tbears_conf
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
-from tbears.util.libs.icon_client import IconClient
-from tbears.util.libs.icon_json import get_icx_sendTransaction_deploy_payload
-from tbears.util import make_install_json_payload
+from tbears.libs.icon_client import IconClient
+from tbears.libs.icon_json import get_icx_sendTransaction_deploy_payload
+from tbears.util import make_install_json_payload, get_deploy_contents_by_path
 from tbears.tbears_exception import (
     TBearsDeleteTreeException, KeyStoreException, FillDeployPaylodException, IconClientException,
 )
@@ -49,8 +49,9 @@ class CommandScore(Command):
                 if password is None:
                     raise FillDeployPaylodException
                 signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
+                deploy_contents = get_deploy_contents_by_path(project)
                 payload = get_icx_sendTransaction_deploy_payload(signer=signer,
-                                                                 path=project,
+                                                                 contents=deploy_contents,
                                                                  to=score_address,
                                                                  deploy_params=conf.get('scoreParams', {}),
                                                                  step_limit=step_limit)
@@ -91,7 +92,7 @@ class CommandScore(Command):
 
     @staticmethod
     def __delete_score_info():
-        """ Delete .score directory and db directory.
+        """Delete .score directory and db directory.
 
         :return:
         """
