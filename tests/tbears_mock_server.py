@@ -14,8 +14,7 @@
 # limitations under the License.
 
 
-from tbears.server.jsonrpc_server import init_tbears, init_icon_inner_task, load_config, SimpleRestServer, \
-    destruct_engine
+from tbears.server.jsonrpc_server import init_tbears, init_icon_inner_task, load_config, SimpleRestServer
 
 
 def init_mock_server(path: str='./tbears.json'):
