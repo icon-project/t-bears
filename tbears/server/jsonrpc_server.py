@@ -662,5 +662,13 @@ def is_done_genesis_invoke() -> bool:
     return get_prev_block_hash()
 
 
+def destruct_engine():
+    global TBEARS_DB
+    global __icon_inner_task
+    if __icon_inner_task is not None:
+        __icon_inner_task._icon_service_engine.close()
+    TBEARS_DB = None
+
+
 if __name__ == '__main__':
     serve()

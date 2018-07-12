@@ -41,7 +41,7 @@ def get_request_json_of_nonexist_method() -> tuple:
 
 
 god_address = f'hx{"0"*40}'
-test_address = f'hx1{"0"*39}'
+treasury_address = f'hx1{"0"*39}'
 token_owner_address = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 token_score_address = "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf"
 TBEARS_LOCAL_URL = "http://localhost:9000/api/v3"
@@ -50,3 +50,5 @@ deploy_token_owner_private_key = key_from_key_store(os.path.join(DIRECTORY_PATH,
 token_owner_signer = IcxSigner(deploy_token_owner_private_key)
 deploy_token_owner_address = f'hx{token_owner_signer.address.hex()}'
 TBEARS_JSON_PATH = os.path.join(DIRECTORY_PATH, 'test_tbears.json')
+crowd_sale_score_address = "cx8c814aa96fefbbb85131f87f6e0cb7878a95c1d3"
+test_address = "hxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
