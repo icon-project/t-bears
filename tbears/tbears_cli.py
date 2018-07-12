@@ -22,9 +22,10 @@ from ipaddress import ip_address
 from iconservice.logger import Logger
 from iconservice.logger.logger import LogLevel
 import tbears
-from tbears.command import ExitCode
+from tbears.command import ExitCode, make_keystore
 from tbears.command.CommandServer import CommandServer
 from tbears.command.CommandScore import CommandScore
+from tbears.util.keystore_manager import validate_password
 
 
 def create_parser():
@@ -40,6 +41,7 @@ def create_parser():
     add_deploy_parser(subparsers)
     add_clear_parser(subparsers)
     add_sample_parser(subparsers)
+    add_keystore_parser(subparsers)
 
     return parser
 
@@ -192,6 +194,30 @@ def command_samples(_args):
     if result is ExitCode.SUCCEEDED:  # success
         print('Made samples successfully. (sample_crowd_sale, sample_token)')
 
+    return result
+
+
+def add_keystore_parser(subparsers):
+    parser_keystore = subparsers.add_parser('keystore',
+                                            help='Create keystore file in passed path',
+                                            description='Create keystore file passed path.')
+    parser_keystore.add_argument('-p', '--path', help='keystore path', dest='path')
+    parser_keystore.set_defaults(func=command_keystore)
+
+
+def command_keystore(_args):
+    if _args.path is None:
+        print('You have to input where to store keystore file.')
+        return ExitCode.COMMAND_IS_WRONG.value
+
+    password = getpass.getpass("input your key store password: ")
+    if not validate_password(password):
+        print("Passwords must be at least 8 characters long including alphabet, number, and special character.")
+        return ExitCode.COMMAND_IS_WRONG.value
+
+    result = make_keystore(_args.path, password)
+    if result is ExitCode.SUCCEEDED:
+        print("Made keystore file successfully.")
     return result
 
 
