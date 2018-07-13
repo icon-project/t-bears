@@ -192,7 +192,7 @@ def add_sample_parser(subparsers):
 def command_samples(_args):
     result = CommandServer.make_samples()
     if result is ExitCode.SUCCEEDED:  # success
-        print('Made samples successfully. (sample_crowd_sale, sample_token)')
+        print('Made samples successfully. (standard_crowd_sale, standard_token)')
 
     return result
 
