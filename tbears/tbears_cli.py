@@ -119,8 +119,7 @@ def add_deploy_parser(subparsers):
 
 
 def command_deploy(args):
-    server = CommandServer.is_server_running()
-    if not server:
+    if not CommandServer.is_server_running():
         print(f'Start tbears server first')
         return ExitCode.COMMAND_IS_WRONG.value
 
@@ -166,8 +165,7 @@ def add_clear_parser(subparsers):
 
 
 def command_clear(_args):
-    server = CommandServer.is_server_running()
-    if server:
+    if CommandServer.is_server_running():
         answer = input(f'You must stop tbears service to clear SCORE. Do you want to stop tbears service? (Y/n)')
         if answer == 'n':
             return ExitCode.COMMAND_IS_WRONG.value

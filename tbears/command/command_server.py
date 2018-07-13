@@ -18,7 +18,6 @@ import sys
 import subprocess
 import time
 import logging
-import socket
 from typing import Optional
 
 from iconservice.logger import Logger as logging
@@ -32,6 +31,7 @@ from tbears.util import (
 
 TBEARS_CLI_TAG = 'tbears_cli'
 TBEARS_CLI_ENV = '/tmp/.tbears.env'
+SERVER_MODULE_NAME = 'tbears.server.jsonrpc_server'
 
 
 class CommandServer(Command):
@@ -67,14 +67,10 @@ class CommandServer(Command):
         :return: ExitCode, Succeeded
         """
 
-        server = CommandServer.is_server_running()
-        if server:
-            CommandServer.__exit_request(server=server)
+        if CommandServer.is_server_running():
+            CommandServer.__exit_request()
             # Wait until server socket is released
             time.sleep(2)
-        else:
-            print(f"Can't get tbear service Info.")
-            return ExitCode.SERVER_INFO_ERROR
 
         # delete env file
         CommandServer.delete_server_conf()
@@ -142,12 +138,6 @@ class CommandServer(Command):
     def __start_server(host: str, port: int, tbears_config_path: str = './tbears.json'):
         logging.debug('start_server() start', TBEARS_CLI_TAG)
 
-        root_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '../'))
-
-        root_path_directory_name = root_path[root_path.rfind('/') + 1:]
-        python_module_string = f'{root_path_directory_name}.server.jsonrpc_server'
-
         # make params
         params = {'-a': host if port else None,
                   '-p': str(port) if port else None,
@@ -160,41 +150,34 @@ class CommandServer(Command):
                 custom_argv.append(v)
 
         # Run jsonrpc_server on background mode
-        subprocess.Popen([sys.executable, '-m', python_module_string, *custom_argv], close_fds=True)
+        subprocess.Popen([sys.executable, '-m', SERVER_MODULE_NAME, *custom_argv], close_fds=True)
 
         logging.debug('start_server() end', TBEARS_CLI_TAG)
 
     @staticmethod
-    def __exit_request(server: dict):
+    def __exit_request():
         """ Request for exiting SCORE on server.
-        """
-        project_dict = make_exit_json_payload()
-        uri = f"http://127.0.0.1:{server['port']}/api/v3"
-        post(uri, project_dict)
-
-    @staticmethod
-    def is_server_running() -> Optional[dict]:
-        """ Check if server is running.
-        tbears use 9000 port.
-        :return: if server is running, return server Info. dict
         """
         server = CommandServer.get_server_conf()
         if server is None:
             logging.debug(f"Can't get server Info. from {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
             server = CommandServer.get_server_conf('./tbears.json')
-            if server is None:
-                server = {"port": 9000}
+            if not server:
+                server = {'port': 9000}
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex(('127.0.0.1', server.get('port', 9000)))
-        sock.close()
+        post(f"http://127.0.0.1:{server['port']}/api/v3", make_exit_json_payload())
 
-        if result:
-            logging.debug("socket is closed!", TBEARS_CLI_TAG)
-            return None
-        else:
-            logging.debug("socket is opened!", TBEARS_CLI_TAG)
-            return server
+    @staticmethod
+    def is_server_running(name: str = SERVER_MODULE_NAME) -> bool:
+        """ Check if server is running.
+        :return: True or False
+        """
+        # Return a list of processes matching 'name'.
+        command = f"ps -ef | grep {name} | grep -v grep"
+        result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
+        if result.returncode == 1:
+            return False
+        return True
 
     @staticmethod
     def write_server_conf(host: str, port: int) -> None:
