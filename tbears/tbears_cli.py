@@ -32,9 +32,11 @@ from tbears.util.keystore_manager import validate_password
 def create_parser():
     parser = argparse.ArgumentParser(prog='tbears', description=f'tbears v{tbears.__version__} arguments');
     parser.add_argument('-d', '--debug', help='Debug mode', action='store_true')
-    subparsers = parser.add_subparsers(title='subcommands',
-                                       description=f'If you want to see help message of subcommands, '
-                                                   f'use "tbears subcommand -h"')
+    subparsers = parser.add_subparsers(title='Available commands', metavar='command',
+                                       description=f'If you want to see help message of commands, '
+                                                   f'use "tbears command -h"')
+    subparsers.required = True
+    subparsers.dest = 'command'
 
     add_init_parser(subparsers)
     add_start_parser(subparsers)
@@ -107,14 +109,14 @@ def add_deploy_parser(subparsers):
     parser_deploy.add_argument('project', help='Project name')
     parser_deploy.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
                                dest='uri')
-    parser_deploy.add_argument('-t', '--type', help='Deploy SCORE type ("tbears" or "icon". default: tbears',
+    parser_deploy.add_argument('-t', '--type', help='Deploy SCORE type (default: tbears)',
                                choices=['tbears', 'icon'], dest='scoreType')
-    parser_deploy.add_argument('-m', '--mode', help='Deploy mode ("install" or "update". default: install',
+    parser_deploy.add_argument('-m', '--mode', help='Deploy mode (default: install)',
                                choices=['install', 'update'], dest='mode')
     parser_deploy.add_argument('-f', '--from', help='From address. i.e. SCORE owner address', dest='from')
     parser_deploy.add_argument('-o', '--to', help='To address. i.e. SCORE address', dest='to')
     parser_deploy.add_argument('-k', '--key-store', help='Key store file for SCORE owner', dest='keyStore')
-    parser_deploy.add_argument('-c', '--config', help='deploy config path (default: ./deploy.json')
+    parser_deploy.add_argument('-c', '--config', help='deploy config path (default: ./deploy.json)')
     parser_deploy.set_defaults(func=command_deploy)
 
 
@@ -206,13 +208,13 @@ def add_keystore_parser(subparsers):
     parser_keystore.set_defaults(func=command_keystore)
 
 
-def command_keystore(_args):
-    if _args.path is None:
+def command_keystore(args):
+    if args.path is None:
         print('You have to input where to store keystore file.')
         return ExitCode.COMMAND_IS_WRONG.value
 
-    if os.path.exists(_args.path):
-        print(f'{_args.path} is not empty')
+    if os.path.exists(args.path):
+        print(f'{args.path} is not empty')
         return ExitCode.COMMAND_IS_WRONG.value
 
     password = getpass.getpass("input your key store password: ")
@@ -220,7 +222,7 @@ def command_keystore(_args):
         print("Passwords must be at least 8 characters long including alphabet, number, and special character.")
         return ExitCode.COMMAND_IS_WRONG.value
 
-    result = CommandUtil.make_keystore(_args.path, password)
+    result = CommandUtil.make_keystore(args.path, password)
     if result is ExitCode.SUCCEEDED:
         print("Made keystore file successfully.")
     return result
@@ -232,6 +234,10 @@ def main():
 
     # parse argument
     args = parser.parse_args(sys.argv[1:])
+    print(args)
+    if not args.func:
+        parser.print_help()
+        sys.exit(0)
 
     tbears_logger = Logger()
     if args.debug:
