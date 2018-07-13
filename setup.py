@@ -15,6 +15,7 @@ requires = [
     'plyvel>=1.0.4',
     'secp256k1>=0.13.2',
     'eth-keyfile>=0.5.1',
+    'ipython>=6.4.0',
 ]
 
 
