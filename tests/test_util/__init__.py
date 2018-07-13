@@ -12,10 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .tbears_cli import main
+import os
 
-# Version of tbears.
-__version__ = "0.9.3"
+from tbears.util import PROJECT_ROOT_PATH
 
-if __name__ == "__main__":
-    main()
+TEST_DIRECTORY = os.path.abspath(os.path.join(PROJECT_ROOT_PATH, 'tests'))
+TEST_UTIL_DIRECTORY = os.path.join(TEST_DIRECTORY, 'test_util')
+DEPLOY_TEST_DIRECTORY = os.path.join(TEST_UTIL_DIRECTORY, 'test_deploy')

@@ -12,12 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
 import os
 import unittest
 
 from eth_keyfile import create_keyfile_json
-from secp256k1 import PrivateKey
 
 from tbears.command import ExitCode
 from tbears.command.command_util import CommandUtil

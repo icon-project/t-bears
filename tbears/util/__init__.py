@@ -21,8 +21,7 @@ import requests
 from tbears.util.in_memory_zip import InMemoryZip
 from tbears.util.icx_signer import IcxSigner
 from tbears.libs.icon_json import JsonContents
-from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
-    ZipException, FillDeployPaylodException
+from ..tbears_exception import TBearsWriteFileException, ZipException, FillDeployPaylodException
 from tbears.default_conf import tbears_conf
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -63,53 +62,14 @@ def get_score_main_template(score_class: str) -> str:
 
 class SampleToken(IconScoreBase):
 
-    __BALANCES = 'balances'
-    __TOTAL_SUPPLY = 'total_supply'
-
-    @eventlog(indexed=3)
-    def Transfer(self, addr_from: Address, addr_to: Address, value: int): pass
-
     def __init__(self, db: IconScoreDatabase, addr_owner: Address) -> None:
         super().__init__(db, addr_owner)
-        self.__total_supply = VarDB(self.__TOTAL_SUPPLY, db, value_type=int)
-        self.__balances = DictDB(self.__BALANCES, db, value_type=int)
 
-    def on_install(self, init_supply: int = 1000, decimal: int = 18) -> None:
+    def on_install(self) -> None:
         super().on_install()
-
-        total_supply = init_supply * 10 ** decimal
-
-        self.__total_supply.set(total_supply)
-        self.__balances[self.msg.sender] = total_supply
 
     def on_update(self) -> None:
         super().on_update()
-
-    @external(readonly=True)
-    def total_supply(self) -> int:
-        return self.__total_supply.get()
-
-    @external(readonly=True)
-    def balance_of(self, addr_from: Address) -> int:
-        return self.__balances[addr_from]
-
-    def __transfer(self, _addr_from: Address, _addr_to: Address, _value: int) -> bool:
-
-        if self.balance_of(_addr_from) < _value:
-            self.revert(f"{_addr_from}'s balance < {_value}")
-
-        self.__balances[_addr_from] = self.__balances[_addr_from] - _value
-        self.__balances[_addr_to] = self.__balances[_addr_to] + _value
-
-        self.Transfer(_addr_from, _addr_to, _value)
-        return True
-
-    @external
-    def transfer(self, addr_to: Address, value: int) -> bool:
-        return self.__transfer(self.msg.sender, addr_to, value)
-
-    def fallback(self) -> None:
-        pass
 
 
 """
@@ -176,23 +136,27 @@ def get_sample_crowd_sale_contents(score_class: str):
     """
     template = """from iconservice import *
 
+TAG = 'MyCrowdSale'
 
-class SampleTokenInterface(InterfaceScore):
+
+class TokenInterface(InterfaceScore):
     @interface
-    def transfer(self, addr_to: Address, value: int) -> bool: pass
+    def transfer(self, _to: Address, _value: int, _data: bytes=None):
+        pass
 
 
-class SampleCrowdSale(IconScoreBase):
-    __ADDR_BENEFICIARY = 'addr_beneficiary'
-    __FUNDING_GOAL = 'funding_goal'
-    __AMOUNT_RAISE = 'amount_raise'
-    __DEAD_LINE = 'dead_line'
-    __PRICE = 'price'
-    __BALANCES = 'balances'
-    __ADDR_TOKEN_SCORE = 'addr_token_score'
-    __FUNDING_GOAL_REACHED = 'funding_goal_reached'
-    __CROWD_SALE_CLOSED = 'crowd_sale_closed'
-    __JOINER_LIST = 'joiner_list'
+class MyCrowdSale(IconScoreBase):
+
+    _ADDR_BENEFICIARY = 'addr_beneficiary'
+    _ADDR_TOKEN_SCORE = 'addr_token_score'
+    _FUNDING_GOAL = 'funding_goal'
+    _AMOUNT_RAISED = 'amount_raised'
+    _DEAD_LINE = 'dead_line'
+    _PRICE = 'price'
+    _BALANCES = 'balances'
+    _JOINER_LIST = 'joiner_list'
+    _FUNDING_GOAL_REACHED = 'funding_goal_reached'
+    _CROWDSALE_CLOSED = 'crowdsale_closed'
 
     @eventlog(indexed=3)
     def FundTransfer(self, backer: Address, amount: int, is_contribution: bool):
@@ -202,104 +166,229 @@ class SampleCrowdSale(IconScoreBase):
     def GoalReached(self, recipient: Address, total_amount_raised: int):
         pass
 
-    def __init__(self, db: IconScoreDatabase, owner: Address) -> None:
-        super().__init__(db, owner)
+    def __init__(self, db: IconScoreDatabase, _owner: Address) -> None:
+        super().__init__(db, _owner)
 
-        self.__addr_beneficiary = VarDB(self.__ADDR_BENEFICIARY, db, value_type=Address)
-        self.__addr_token_score = VarDB(self.__ADDR_TOKEN_SCORE, db, value_type=Address)
-        self.__funding_goal = VarDB(self.__FUNDING_GOAL, db, value_type=int)
-        self.__amount_raise = VarDB(self.__AMOUNT_RAISE, db, value_type=int)
-        self.__dead_line = VarDB(self.__DEAD_LINE, db, value_type=int)
-        self.__price = VarDB(self.__PRICE, db, value_type=int)
-        self.__balances = DictDB(self.__BALANCES, db, value_type=int)
-        self.__joiner_list = ArrayDB(self.__JOINER_LIST, db, value_type=Address)
-        self.__funding_goal_reached = VarDB(self.__FUNDING_GOAL_REACHED, db, value_type=bool)
-        self.__crowd_sale_closed = VarDB(self.__CROWD_SALE_CLOSED, db, value_type=bool)
+        self._addr_beneficiary = VarDB(self._ADDR_BENEFICIARY, db, value_type=Address)
+        self._addr_token_score = VarDB(self._ADDR_TOKEN_SCORE, db, value_type=Address)
+        self._funding_goal = VarDB(self._FUNDING_GOAL, db, value_type=int)
+        self._amount_raised = VarDB(self._AMOUNT_RAISED, db, value_type=int)
+        self._dead_line = VarDB(self._DEAD_LINE, db, value_type=int)
+        self._price = VarDB(self._PRICE, db, value_type=int)
+        self._balances = DictDB(self._BALANCES, db, value_type=int)
+        self._joiner_list = ArrayDB(self._JOINER_LIST, db, value_type=Address)
+        self._funding_goal_reached = VarDB(self._FUNDING_GOAL_REACHED, db, value_type=bool)
+        self._crowdsale_closed = VarDB(self._CROWDSALE_CLOSED, db, value_type=bool)
 
-        self.__sample_token_score = self.create_interface_score(self.__addr_token_score.get(), SampleTokenInterface)
-
-    def on_install(self, funding_goal_in_icx: int = 100, duration_in_minutes: int = 1,
-                   icx_cost_of_each_token: int = 1, token_address: str='cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf') -> None:
+    def on_install(self, fundingGoalInIcx: int, tokenScore: Address, durationInSeconds: int) -> None:
         super().on_install()
 
-        one_icx = 1 * 10 ** 18
-        one_minute_to_sec = 1 * 60
-        one_second_to_microsec = 1 * 10 ** 6
+        Logger.debug(f'on_install: fundingGoalInIcx={fundingGoalInIcx}', TAG)
+        Logger.debug(f'on_install: tokenScore={tokenScore}', TAG)
+        Logger.debug(f'on_install: durationInSeconds={durationInSeconds}', TAG)
+
+        one_second_in_microseconds = 1 * 10 ** 6
         now_seconds = self.now()
+        icx_cost_of_each_token = 1
 
-        # genesis params
-        if_successful_send_to = self.msg.sender
-        addr_token_score = Address.from_string(token_address)
+        self._addr_beneficiary.set(self.msg.sender)
+        self._addr_token_score.set(tokenScore)
+        self._funding_goal.set(fundingGoalInIcx)
+        self._dead_line.set(now_seconds + durationInSeconds * one_second_in_microseconds)
+        price = int(icx_cost_of_each_token)
+        self._price.set(price)
 
-        self.__addr_beneficiary.set(if_successful_send_to)
-        self.__addr_token_score.set(addr_token_score)
-        self.__funding_goal.set(funding_goal_in_icx * one_icx)
-        self.__dead_line.set(now_seconds + duration_in_minutes * one_minute_to_sec * one_second_to_microsec)
-        price = int(icx_cost_of_each_token * one_icx)
-        self.__price.set(price)
+        self._funding_goal_reached.set(False)
+        self._crowdsale_closed.set(True)  # CrowdSale closed by default
 
-        self.__sample_token_score = self.create_interface_score(self.__addr_token_score.get(), SampleTokenInterface)
+    def on_update(self) -> None:
+        super().on_update()
+
+    @external
+    def tokenFallback(self, _from: Address, _value: int, _data: bytes):
+        if self.msg.sender == self._addr_token_score.get() \
+                and _from == self.owner:
+            # token supply to CrowdSale
+            Logger.debug(f'tokenFallback: token supply = "{_value}"', TAG)
+            if _value >= 0:
+                self._crowdsale_closed.set(False)  # start CrowdSale hereafter
+        else:
+            # reject if this is an unrecognized token transfer
+            Logger.debug(f'tokenFallback: REJECT transfer', TAG)
+            self.revert('Unexpected token owner!')
+
+    @payable
+    def fallback(self):
+        if self._crowdsale_closed.get():
+            self.revert('CrowdSale is closed.')
+
+        amount = self.msg.value
+        self._balances[self.msg.sender] = self._balances[self.msg.sender] + amount
+        self._amount_raised.set(self._amount_raised.get() + amount)
+        value = int(amount / self._price.get())
+        data = b'called from CrowdSale'
+        token_score = self.create_interface_score(self._addr_token_score.get(), TokenInterface)
+        token_score.transfer(self.msg.sender, value, data)
+
+        if self.msg.sender not in self._joiner_list:
+            self._joiner_list.put(self.msg.sender)
+
+        self.FundTransfer(self.msg.sender, amount, True)
+        Logger.debug(f'FundTransfer({self.msg.sender}, {amount}, True)', TAG)
+
+    @external(readonly=True)
+    def total_joiner_count(self) -> int:
+        return len(self._joiner_list)
+
+    def _after_dead_line(self) -> bool:
+        Logger.debug(f'after_dead_line: now()       = {self.now()}', TAG)
+        Logger.debug(f'after_dead_line: dead_line() = {self._dead_line.get()}', TAG)
+        return self.now() >= self._dead_line.get()
+
+    @external
+    def check_goal_reached(self):
+        if self._after_dead_line():
+            if self._amount_raised.get() >= self._funding_goal.get():
+                self._funding_goal_reached.set(True)
+                self.GoalReached(self._addr_beneficiary.get(), self._amount_raised.get())
+                Logger.debug(f'Goal reached!', TAG)
+            self._crowdsale_closed.set(True)
+
+    @external
+    def safe_withdrawal(self):
+        if self._after_dead_line():
+            # each contributor can withdraw the amount they contributed if goal was not reached
+            if not self._funding_goal_reached.get():
+                amount = self._balances[self.msg.sender]
+                self._balances[self.msg.sender] = 0
+                if amount > 0:
+                    if self.icx.send(self.msg.sender, amount):
+                        self.FundTransfer(self.msg.sender, amount, False)
+                        Logger.debug(f'FundTransfer({self.msg.sender}, {amount}, False)', TAG)
+                    else:
+                        self._balances[self.msg.sender] = amount
+
+            if self._funding_goal_reached.get() and self._addr_beneficiary.get() == self.msg.sender:
+                if self.icx.send(self._addr_beneficiary.get(), self._amount_raised.get()):
+                    self.FundTransfer(self._addr_beneficiary.get(), self._amount_raised.get(), False)
+                    Logger.debug(f'FundTransfer({self._addr_beneficiary.get()},'
+                                 f'{self._amount_raised.get()}, False)', TAG)
+                else:
+                    # if the transfer to beneficiary fails, unlock contributors balance
+                    Logger.debug(f'Failed to send to beneficiary!', TAG)
+                    self._funding_goal_reached.set(False)
+
+
+"""
+    return template.replace("MyCrowdSale", score_class)
+
+
+def get_sample_token_contents(score_class: str):
+    template = """import abc
+
+from iconservice import *
+
+TAG = 'mySampleToken'
+
+
+class TokenStandard(abc.ABC):
+    @abc.abstractmethod
+    def name(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def symbol(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def decimals(self) -> int:
+        pass
+
+    @abc.abstractmethod
+    def totalSupply(self) -> int:
+        pass
+
+    @abc.abstractmethod
+    def balanceOf(self, _owner: Address) -> int:
+        pass
+
+    @abc.abstractmethod
+    def transfer(self, _to: Address, _value: int, _data: bytes=None):
+        pass
+
+
+class CrowdSaleInterface(InterfaceScore):
+    @interface
+    def tokenFallback(self, _from: Address, _value: int, _data: bytes):
+        pass
+
+
+class MySampleToken(IconScoreBase, TokenStandard):
+
+    _BALANCES = 'balances'
+    _TOTAL_SUPPLY = 'total_supply'
+
+    @eventlog(indexed=3)
+    def Transfer(self, _from: Address, _to: Address, _value: int, _data: bytes):
+        pass
+
+    def __init__(self, db: IconScoreDatabase, _owner: Address) -> None:
+        super().__init__(db, _owner)
+        self._total_supply = VarDB(self._TOTAL_SUPPLY, db, value_type=int)
+        self._balances = DictDB(self._BALANCES, db, value_type=int)
+
+    def on_install(self, initialSupply: int, decimals: int) -> None:
+        super().on_install()
+
+        total_supply = initialSupply * 10 ** decimals
+        Logger.debug(f'on_install: total_supply={total_supply}', TAG)
+
+        self._total_supply.set(total_supply)
+        self._balances[self.msg.sender] = total_supply
 
     def on_update(self) -> None:
         super().on_update()
 
     @external(readonly=True)
-    def total_joiner_count(self):
-        return len(self.__joiner_list)
+    def name(self) -> str:
+        return "MySampleToken"
 
-    @payable
-    def fallback(self) -> None:
-        # if self.__crowd_sale_closed.get():
-        #     self.revert('crowd sale is closed')
+    @external(readonly=True)
+    def symbol(self) -> str:
+        return "MST"
 
-        amount = self.msg.value
-        self.__balances[self.msg.sender] = self.__balances[self.msg.sender] + amount
-        self.__amount_raise.set(self.__amount_raise.get() + amount)
-        value = int(amount / self.__price.get())
+    @external(readonly=True)
+    def decimals(self) -> int:
+        return 18
 
-        self.__sample_token_score.transfer(self.msg.sender, value)
+    @external(readonly=True)
+    def totalSupply(self) -> int:
+        return self._total_supply.get()
 
-        if self.msg.sender not in self.__joiner_list:
-            self.__joiner_list.put(self.msg.sender)
-
-        self.FundTransfer(self.msg.sender, amount, True)
-
-    @external
-    def check_goal_reached(self):
-        # if not self.__after_dead_line():
-        #     self.revert('before deadline')
-
-        if self.__amount_raise.get() >= self.__funding_goal.get():
-            self.__funding_goal_reached.set(True)
-            self.GoalReached(self.__addr_beneficiary.get(), self.__amount_raise.get())
-        self.__crowd_sale_closed.set(True)
-
-    def __after_dead_line(self):
-        return self.now() >= self.__dead_line.get()
+    @external(readonly=True)
+    def balanceOf(self, _owner: Address) -> int:
+        return self._balances[_owner]
 
     @external
-    def safe_withdrawal(self):
-        # if not self.__after_dead_line():
-        #     self.revert('before deadline')
+    def transfer(self, _to: Address, _value: int, _data: bytes=None):
+        if _data is None:
+            _data = b'None'
+        self._transfer(self.msg.sender, _to, _value, _data)
 
-        if not self.__funding_goal_reached.get():
-            amount = self.__balances[self.msg.sender]
-            self.__balances[self.msg.sender] = 0
-            if amount > 0:
-                if self.icx.send(self.msg.sender, amount):
-                    self.FundTransfer(self.msg.sender, amount, False)
-                else:
-                    self.__balances[self.msg.sender] = amount
+    def _transfer(self, _from: Address, _to: Address, _value: int, _data: bytes):
+        if self._balances[_from] < _value:
+            self.revert("Out of balance")
 
-        if self.__funding_goal_reached.get() and self.__addr_beneficiary.get() == self.msg.sender:
-            if self.icx.send(self.__addr_beneficiary.get(), self.__amount_raise.get()):
-                self.FundTransfer(self.__addr_beneficiary.get(), self.__amount_raise.get(),
-                                  False)
-            else:
-                self.__funding_goal_reached.set(False)
+        self._balances[_from] = self._balances[_from] - _value
+        self._balances[_to] = self._balances[_to] + _value
+        if _to.is_contract:
+            crowdsale_score = self.create_interface_score(_to, CrowdSaleInterface)
+            crowdsale_score.tokenFallback(_from, _value, _data)
+        self.Transfer(_from, _to, _value, _data)
+        Logger.debug(f'Transfer({_from}, {_to}, {_value}, {_data})', TAG)
 
-"""
-    return template.replace('SampleCrowdSale', score_class)
+    """
+    return template.replace("MySampleToken", score_class)
 
 
 def get_tbears_config_json() -> str:

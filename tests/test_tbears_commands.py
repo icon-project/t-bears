@@ -34,11 +34,12 @@ class TestTBearsCommands(unittest.TestCase):
     def tearDown(self):
         CommandScore.clear()
         try:
-            if os.path.exists('./.test_tbears_db'):
-                shutil.rmtree('./.test_tbears_db')
+            if os.path.exists('./deploy.json'):
+                os.remove('./deploy.json')
             if os.path.exists('./tbears.json'):
                 os.remove('./tbears.json')
-            os.remove('./tbears.log')
+            if os.path.exists('./tbears.log'):
+                os.remove('./tbears.log')
         except:
             pass
 
