@@ -97,8 +97,6 @@ class TestDeployScore(unittest.TestCase):
         self.assertEqual(hex(10 * 10 ** 18), result)
 
     def test_call_score_methods(self):
-        CommandServer.make_samples()
-
         deploy_contents = get_deploy_contents_by_path(f'{TEST_UTIL_DIRECTORY}/sample_token')
 
         deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, deploy_contents)
