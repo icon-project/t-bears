@@ -62,16 +62,14 @@ def get_score_main_template(score_class: str) -> str:
 
 class SampleToken(IconScoreBase):
 
-    def __init__(self, db: IconScoreDatabase, addr_owner: Address) -> None:
-        super().__init__(db, addr_owner)
+    def __init__(self, db: IconScoreDatabase) -> None:
+        super().__init__(db)
 
     def on_install(self) -> None:
         super().on_install()
 
     def on_update(self) -> None:
         super().on_update()
-
-
 """
     return template.replace("SampleToken", score_class)
 
@@ -166,8 +164,8 @@ class MyCrowdSale(IconScoreBase):
     def GoalReached(self, recipient: Address, total_amount_raised: int):
         pass
 
-    def __init__(self, db: IconScoreDatabase, _owner: Address) -> None:
-        super().__init__(db, _owner)
+    def __init__(self, db: IconScoreDatabase) -> None:
+        super().__init__(db)
 
         self._addr_beneficiary = VarDB(self._ADDR_BENEFICIARY, db, value_type=Address)
         self._addr_token_score = VarDB(self._ADDR_TOKEN_SCORE, db, value_type=Address)

@@ -25,14 +25,14 @@ from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams
 from sanic import Sanic, response as sanic_response
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
 from iconservice.logger import Logger
-from iconservice.icon_config import *
+from iconservice.icon_config import DATA_BYTE_ORDER, ICON_SCORE_QUEUE_NAME_FORMAT,\
+    DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT
 from iconservice.utils import check_error_response
 
 from typing import Optional
 
 from tbears.server.tbears_db import TbearsDB
 from tbears.util import get_tbears_config_json
-from tbears.util import PROJECT_ROOT_PATH
 from tbears.command.command_server import CommandServer
 
 MQ_TEST = False
@@ -263,7 +263,7 @@ class MockDispatcher:
         make_request = {'transactions': [tx]}
         block_height: int = get_block_height()
         block_timestamp_us = int(time.time() * 10 ** 6)
-        block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+        block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
 
         make_request['block'] = {
             'blockHeight': hex(block_height),
@@ -546,7 +546,7 @@ async def init_icon_score_stub(conf: dict):
     make_request = {'transactions': [tx]}
     block_height: int = get_block_height()
     block_timestamp_us = tx_timestamp_us
-    block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+    block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
 
     make_request['block'] = {
         'blockHeight': hex(block_height),
@@ -600,7 +600,7 @@ async def init_icon_inner_task(conf: dict):
     make_request = {'transactions': [tx]}
     block_height: int = get_block_height()
     block_timestamp_us = tx_timestamp_us
-    block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+    block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
 
     make_request['block'] = {
         'blockHeight': hex(block_height),
