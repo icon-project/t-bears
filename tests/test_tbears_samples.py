@@ -21,8 +21,9 @@ from tbears.command.command_server import CommandServer
 from tbears.libs.icon_json import get_icx_getBalance_payload, get_icx_getTransactionResult_payload, \
     get_icx_call_payload, get_dummy_icx_sendTransaction_payload
 from tbears.util import make_install_json_payload
-from tests.tbears_mock_server import API_PATH, init_mock_server
-from tests.json_contents_for_tests import god_address, token_owner_address, token_score_address, \
+from tests.test_util import TEST_UTIL_DIRECTORY
+from tests.test_util.tbears_mock_server import API_PATH, init_mock_server
+from tests.test_util.json_contents_for_tests import god_address, token_owner_address, token_score_address, \
     get_params_for_get_token_balance, get_data_for_transfer_token, crowd_sale_score_address, treasury_address, \
     test_address
 
@@ -32,18 +33,10 @@ class TestTBears(unittest.TestCase):
     def tearDown(self):
 
         try:
-            if os.path.exists('sample_token'):
-                shutil.rmtree('sample_token')
-            if os.path.exists('sample_crowd_sale'):
-                shutil.rmtree('sample_crowd_sale')
-            if os.path.exists('./.test_tbears_db'):
-                shutil.rmtree('./.test_tbears_db')
             if os.path.exists('./.score'):
                 shutil.rmtree('./.score')
             if os.path.exists('./.db'):
                 shutil.rmtree('./.db')
-            if os.path.exists('./tbears.json'):
-                os.remove('./tbears.json')
             os.remove('./tbears.log')
         except:
             pass
@@ -55,8 +48,7 @@ class TestTBears(unittest.TestCase):
         self.app = init_mock_server()
 
     def test_token(self):
-        CommandServer.init('sample_token', 'SampleToken')
-        run_payload = make_install_json_payload('sample_token')
+        run_payload = make_install_json_payload(f'{TEST_UTIL_DIRECTORY}/sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
 
         # send transaction
@@ -136,10 +128,9 @@ class TestTBears(unittest.TestCase):
         self.assertTrue(isinstance(response_json['error']['message'], str))
 
     def test_score_methods(self):
-        CommandServer.make_samples()
-        run_payload = make_install_json_payload('sample_token')
+        run_payload = make_install_json_payload(f'{TEST_UTIL_DIRECTORY}/sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
-        run_payload = make_install_json_payload('sample_crowd_sale')
+        run_payload = make_install_json_payload(f'{TEST_UTIL_DIRECTORY}/sample_crowd_sale')
         _, response = self.app.test_client.post(self.path, json=run_payload)
         # seq1
         # genesis -> token_owner 10icx

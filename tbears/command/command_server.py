@@ -26,8 +26,8 @@ from tbears.command import Command, ExitCode
 from tbears.tbears_exception import TBearsWriteFileException
 from tbears.util import (
     post, make_exit_json_payload, get_init_template, get_tbears_config_json, get_deploy_config_json,
-    write_file, get_package_json_dict, get_score_main_template, get_sample_crowd_sale_contents
-)
+    write_file, get_package_json_dict, get_score_main_template, get_sample_crowd_sale_contents,
+    get_sample_token_contents)
 
 
 TBEARS_CLI_TAG = 'tbears_cli'
@@ -83,12 +83,12 @@ class CommandServer(Command):
 
     @staticmethod
     def make_samples() -> 'ExitCode':
-        ret = CommandServer.__initialize_project(project="sample_token", score_class="SampleToken",
-                                                 contents_func=get_score_main_template)
+        ret = CommandServer.__initialize_project(project="standard_token", score_class="StandardToken",
+                                                 contents_func=get_sample_token_contents)
         if ret is not ExitCode.SUCCEEDED:
             return ret
 
-        return CommandServer.__initialize_project(project="sample_crowd_sale", score_class="SampleCrowdSale",
+        return CommandServer.__initialize_project(project="standard_crowd_sale", score_class="StandardCrowdSale",
                                                   contents_func=get_sample_crowd_sale_contents)
 
     @staticmethod

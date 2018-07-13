@@ -23,10 +23,10 @@ from tbears.libs.icon_json import get_icx_sendTransaction_deploy_payload, get_ic
     get_icx_getBalance_payload, get_icx_getTransactionResult_payload, get_icx_call_payload, \
     get_dummy_icx_sendTransaction_payload
 from tbears.util import get_deploy_contents_by_path
-from tests.tbears_mock_server import API_PATH, init_mock_server
-from tests.json_contents_for_tests import *
+from tests.test_util import TEST_UTIL_DIRECTORY
+from tests.test_util.tbears_mock_server import API_PATH, init_mock_server
+from tests.test_util.json_contents_for_tests import *
 
-token_score_name = 'sample_token'
 token_score_class = 'SampleToken'
 crowd_score_name = 'sample_crowd_sale'
 
@@ -36,18 +36,10 @@ class TestDeployScore(unittest.TestCase):
     def tearDown(self):
 
         try:
-            if os.path.exists(token_score_name):
-                shutil.rmtree(token_score_name)
-            if os.path.exists(crowd_score_name):
-                shutil.rmtree(crowd_score_name)
-            if os.path.exists('./.test_tbears_db'):
-                shutil.rmtree('./.test_tbears_db')
             if os.path.exists('./.score'):
                 shutil.rmtree('./.score')
             if os.path.exists('./.db'):
                 shutil.rmtree('./.db')
-            if os.path.exists('./tbears.json'):
-                os.remove('./tbears.json')
             os.remove('./tbears.log')
         except:
             pass
@@ -66,9 +58,7 @@ class TestDeployScore(unittest.TestCase):
         self.user_address = f'hx{self.signer_user.address.hex()}'
 
     def test_call_token_score(self):
-        CommandServer.init(token_score_name, token_score_class)
-
-        deploy_contents = get_deploy_contents_by_path(token_score_name)
+        deploy_contents = get_deploy_contents_by_path(f'{TEST_UTIL_DIRECTORY}/sample_token')
 
         deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, deploy_contents)
         _, response = self.app.test_client.post(self.path, json=deploy_payload)
@@ -109,7 +99,7 @@ class TestDeployScore(unittest.TestCase):
     def test_call_score_methods(self):
         CommandServer.make_samples()
 
-        deploy_contents = get_deploy_contents_by_path(token_score_name)
+        deploy_contents = get_deploy_contents_by_path(f'{TEST_UTIL_DIRECTORY}/sample_token')
 
         deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, deploy_contents)
         _, response = self.app.test_client.post(self.path, json=deploy_payload)
@@ -121,7 +111,7 @@ class TestDeployScore(unittest.TestCase):
         response_json = response.json
         token_score_address = response_json['result']['scoreAddress']
 
-        deploy_contents = get_deploy_contents_by_path(crowd_score_name)
+        deploy_contents = get_deploy_contents_by_path(f'{TEST_UTIL_DIRECTORY}/sample_crowd_sale')
 
         crowd_deploy_payload = get_icx_sendTransaction_deploy_payload(self.signer_token_owner, deploy_contents,
                                                                       deploy_params={'token_address':

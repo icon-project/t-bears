@@ -160,7 +160,7 @@ class JsonContents:
 
         :return: Full payload of icx_totalSupply request.
         """
-        return self.json_rpc_format('icx_totalSupply')
+        return self.json_rpc_format('icx_getTotalSupply')
 
     def json_get_balance(self, address: str) -> dict:
         """Fill contents of the icx_getBalance payload with given address and returns the payload.
@@ -375,7 +375,7 @@ def get_icx_getScoreApi_payload(address):
     return JsonContents().json_score_api(address)
 
 
-def get_icx_totalSupply_payload() -> dict:
+def get_icx_getTotalSupply_payload() -> dict:
     """Inquire total supply of icx.
 
     :return: payload for icx_totalSupply

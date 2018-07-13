@@ -21,9 +21,10 @@ from tbears.command.command_server import CommandServer
 from tbears.util import create_address
 from tbears.libs.icon_json import get_icx_call_payload
 from tbears.libs.icon_client import IconClient
-from tests.json_contents_for_tests import *
+from tests.test_util import TEST_UTIL_DIRECTORY
+from tests.test_util.json_contents_for_tests import *
 
-TEST_ON_INT_SCORE_PATH = os.path.abspath(os.path.join(DIRECTORY_PATH, 'test_on_init'))
+TEST_ON_INT_SCORE_PATH = os.path.abspath(os.path.join(TEST_UTIL_DIRECTORY, 'test_on_init'))
 ON_INIT_PARAM_JSON_PATH = os.path.join(DIRECTORY_PATH, 'on_init_test.json')
 
 
