@@ -231,7 +231,6 @@ def main():
 
     # parse argument
     args = parser.parse_args(sys.argv[1:])
-    print(args)
     if not args.func:
         parser.print_help()
         sys.exit(0)
