@@ -21,8 +21,7 @@ import requests
 from tbears.util.in_memory_zip import InMemoryZip
 from tbears.util.icx_signer import IcxSigner
 from tbears.libs.icon_json import JsonContents
-from ..tbears_exception import TBearsWriteFileException, TBearsDeleteTreeException, TbearsConfigFileException, \
-    ZipException, FillDeployPaylodException
+from ..tbears_exception import TBearsWriteFileException, ZipException, FillDeployPaylodException
 from tbears.default_conf import tbears_conf
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))

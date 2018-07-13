@@ -18,7 +18,6 @@ import unittest
 
 from secp256k1 import PrivateKey
 
-from tbears.command.command_server import CommandServer
 from tbears.libs.icon_json import get_icx_sendTransaction_deploy_payload, get_icx_sendTransaction_score_payload, \
     get_icx_getBalance_payload, get_icx_getTransactionResult_payload, get_icx_call_payload, \
     get_dummy_icx_sendTransaction_payload
@@ -26,9 +25,6 @@ from tbears.util import get_deploy_contents_by_path
 from tests.test_util import TEST_UTIL_DIRECTORY
 from tests.test_util.tbears_mock_server import API_PATH, init_mock_server
 from tests.test_util.json_contents_for_tests import *
-
-token_score_class = 'SampleToken'
-crowd_score_name = 'sample_crowd_sale'
 
 
 class TestDeployScore(unittest.TestCase):

@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import argparse
 import sys
 import os
@@ -185,8 +184,8 @@ def command_clear(_args):
 
 def add_sample_parser(subparsers):
     parser_samples = subparsers.add_parser('samples',
-                                           help='Create two SCORE samples (sample_crowd_sale, sample_token)',
-                                           description='Create two SCORE samples (sample_crowd_sale, sample_token)')
+                                           help='Create two SCORE samples (standard_crowd_sale, standard_token)',
+                                           description='Create two SCORE samples (standard_crowd_sale, standard_token)')
     parser_samples.set_defaults(func=command_samples)
 
 

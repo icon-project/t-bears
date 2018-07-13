@@ -17,7 +17,6 @@ import os
 import shutil
 import unittest
 
-from tbears.command.command_server import CommandServer
 from tbears.libs.icon_json import get_icx_getTransactionResult_payload, get_dummy_icx_sendTransaction_payload
 from tbears.util import make_install_json_payload
 from tbears.libs.jsonrpc_error_code import INVALID_PARAMS, SERVER_ERROR, SCORE_ERROR, INVALID_REQUEST

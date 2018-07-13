@@ -15,13 +15,8 @@
 import asyncio
 import unittest
 
-from secp256k1 import PrivateKey
-
-from tbears.command.command_score import CommandScore
-from tbears.command.command_server import CommandServer
 from tbears.util import create_address, make_install_json_payload
 from tbears.libs.icon_json import get_icx_call_payload
-from tbears.libs.icon_client import IconClient
 from tests.test_util import TEST_UTIL_DIRECTORY
 from tests.test_util.json_contents_for_tests import *
 from tests.test_util.tbears_mock_server import API_PATH, init_mock_server
@@ -32,7 +27,6 @@ ON_INIT_PARAM_JSON_PATH = os.path.join(DIRECTORY_PATH, 'on_init_test.json')
 
 class TestOnMethods(unittest.TestCase):
     def tearDown(self):
-        CommandScore.clear()
         if os.path.exists('./logger.log'):
             os.remove('./logger.log')
         if os.path.exists('./tbears.json'):
@@ -52,5 +46,4 @@ class TestOnMethods(unittest.TestCase):
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         result = response_json['result']
-        CommandServer.stop()
         self.assertEqual(result, hex(2000*10**18))
