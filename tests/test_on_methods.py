@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import asyncio
+import shutil
 import unittest
 
 from tbears.util import create_address, make_install_json_payload
@@ -27,10 +28,12 @@ ON_INIT_PARAM_JSON_PATH = os.path.join(DIRECTORY_PATH, 'on_init_test.json')
 
 class TestOnMethods(unittest.TestCase):
     def tearDown(self):
+        if os.path.exists('./.score'):
+            shutil.rmtree('./.score')
+        if os.path.exists('./.db'):
+            shutil.rmtree('./.db')
         if os.path.exists('./logger.log'):
             os.remove('./logger.log')
-        if os.path.exists('./tbears.json'):
-            os.remove('./tbears.json')
 
     def setUp(self):
         self.loop = asyncio.new_event_loop()
