@@ -12,11 +12,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 import hashlib
 import time
+import re
 
 from tbears.tbears_exception import JsonContentsException
 from tbears.util.icx_signer import IcxSigner
+
+
+translator = str.maketrans({
+    "\\": "\\\\",
+    "{": "\\{",
+    "}": "\\}",
+    "[": "\\[",
+    "]": "\\]",
+    ".": "\\."
+})
 
 
 class JsonContents:
@@ -265,38 +277,83 @@ def put_signature_to_payload(payload: dict, signer: 'IcxSigner'):
     :param payload: Payload of icx_sendTransaction request.
     :param signer: IcxSigner instance.
     """
-    phrase = f'icx_sendTransaction.{get_tx_phrase(payload)}'
+    phrase = generate_origin_for_icx_send_tx_hash(payload)
     msg_hash = hashlib.sha3_256(phrase.encode()).digest()
     signature = signer.sign(msg_hash)
     payload['signature'] = signature.decode()
 
 
-def get_tx_phrase(params: dict) -> str:
-    keys = [k for k in params]
-    keys.sort()
-    key_count = len(keys)
-    if key_count == 0:
-        return ""
-    phrase = ""
+def generate_origin_for_hash(json_data: dict):
 
-    if not params[keys[0]]:
-        phrase += keys[0]
-    elif not isinstance(params[keys[0]], dict):
-        phrase += f'{keys[0]}.{params[keys[0]]}'
-    else:
-        phrase += f'{keys[0]}.{get_tx_phrase(params[keys[0]])}'
-
-    for i in range(1, key_count):
-        key = keys[i]
-
-        if not params[key]:
-            phrase += f'.{key}'
-        elif not isinstance(params[key], dict):
-            phrase += f'.{key}.{params[key]}'
+    def encode(data):
+        if isinstance(data, dict):
+            return encode_dict(data)
+        elif isinstance(data, list):
+            return encode_list(data)
         else:
-            phrase += f'.{key}.{get_tx_phrase(params[key])}'
+            return escape(data)
 
-    return phrase
+    def encode_dict(data: dict):
+        result = ".".join(_encode_dict(data))
+        return "{" + result + "}"
+
+    def _encode_dict(data: dict):
+        for key in sorted(data.keys()):
+            yield key
+            yield encode(data[key])
+
+    def encode_list(data: list):
+        result = ".".join(_encode_list(data))
+        return f"[" + result + "]"
+
+    def _encode_list(data: list):
+        for item in data:
+            yield encode(item)
+
+    def escape(data):
+        if data is None:
+            return "\\0"
+
+        data = str(data)
+        return data.translate(translator)
+
+    return ".".join(_encode_dict(json_data))
+
+
+def get_tx_hash_key(icx_origin_data):
+    if get_tx_version(icx_origin_data) == hex(3):
+        tx_hash_key = "txHash"
+    else:
+        tx_hash_key = "tx_hash"
+    return tx_hash_key
+
+
+def get_tx_version(icx_origin_data):
+    if 'version' in icx_origin_data and icx_origin_data['version'] == hex(3):
+        return hex(3)
+    return hex(2)
+
+
+def generate_origin_for_icx_send_tx_hash(icx_origin_data):
+    copy_tx = copy.deepcopy(icx_origin_data)
+
+    tx_hash_key = get_tx_hash_key(icx_origin_data)
+    if tx_hash_key in copy_tx:
+        del copy_tx[tx_hash_key]
+
+    if 'method' in copy_tx:
+        del copy_tx['method']
+
+    if 'signature' in copy_tx:
+        del copy_tx['signature']
+
+    origin = generate_origin_for_hash(copy_tx)
+    return f"icx_sendTransaction.{origin}"
+
+
+def generate_icx_hash(icx_origin_data):
+    origin = generate_origin_for_icx_send_tx_hash(icx_origin_data)
+    return hashlib.sha3_256(origin.encode()).hexdigest()
 
 
 def get_icx_sendTransaction_deploy_payload(signer: 'IcxSigner', contents,
