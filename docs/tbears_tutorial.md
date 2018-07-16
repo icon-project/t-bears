@@ -1,32 +1,52 @@
+
+
 # ICON SCORE development tool (tbears) TUTORIAL
 
-## Change history 
+## Change history
 
-| Date | Version | Author | Description |
-|:-----|:----|:-----:|:-----|
+| Date       | Version  | Author | Description                                                 |
+| :--------- | :---- | :----: | :--------------------------------------------------- |
+| 2018.07.16 | 0.9.3 | Soobok Jin | update tbears cli to enhanced version and modify entire document structure and translate into English. |
 | 2018.07.10 | 0.9.3 | Chiwon Cho | earlgrey package description added. |
-| 2018.07.06 | 0.9.3 | Inwon Kim | Configuration file updated. |
+| 2018.07.06 | 0.9.3 | Inwon Kim | Configuration file updated.       |
 | 2018.06.12 | 0.9.2 | Chiwon Cho | Tutorial moved from doc to markdown. |
-| 2018.06.11 | 0.9.1 | CHiwon Cho | Error codes added. icx_getTransactionResult description updated. |
+| 2018.06.11 | 0.9.1 | Chiwon Cho | Error codes added. icx_getTransactionResult description updated. |
 | 2018.06.01 | 0.9.0 | Chiwon Cho | JSON-RPC API v3 ChangeLog added. |
 
-## ICON SCORE development environment
+## tbears Overview
+tbears is a suite of tools for SCORE dApp developers to deploy SCORE and interact with local or lcon environment(iconservice) in order to debug transactions.
 
-### Overview
+it also provide SCORE base templete. This makes it easier to develop SCORE dApp.
 
-ICON SCORE development and execution requires following environments. 
+## Installation
 
-* OS: MacOS or Linux
+This guide will explain how to install the tbears onto your system. With the tbears, you can develop and deploy SCORE.
+
+### requirements
+
+ICON SCORE development and execution requires following environments.
+
+* OS: MacOS, Linux
     * Windows are not supported yet.
 * Python
     * Version: python 3.6+
-    * IDE: Pycharm is recommended.    
+    * IDE: Pycharm is recommended.
+
+
+
+to-do:  need additional library(on MacOS)  - check e-mail from sojin_kim 180716
+
+Pkg-config
+
+Autoconfig
+
+Automake
+
+Libtool
 
 ### LevelDB
 
-ICON SCORE uses open-source levelDB to store SCORE states.
-Hence, levelDB dev libraries must be pre-installed.<br/>
-[LevelDB GitHub](https://github.com/google/leveldb)
+ICON SCORE uses levelDB open-source to store SCORE states.<br/>Hence, levelDB dev libraries must be pre-installed. <br/>[LevelDB GitHub](https://github.com/google/leveldb)
 
 #### ex) installing on MacOS
 
@@ -34,14 +54,36 @@ Hence, levelDB dev libraries must be pre-installed.<br/>
 $ brew install leveldb
 ```
 
-## Getting started
+#### ex) installing on Ubuntu Linux
+
+```bash
+
+```
+
+### libsecp256k
+
+ICON SCORE uses secp256k open-source to store SCORE states. <br>Hence, libsecp256k1-dev libraries must be pre-installed.<br>[secp256k GitHub](https://github.com/bitcoin-core/secp256k1)
+
+#### ex) installing on MacOS
+
+```bash
+
+```
+
+#### ex) installing on Ubuntu Linux
+
+```bash
+sudo apt-get install libsecp256k1-dev
+```
+
+### setup
 
 ```bash
 # Create a working directory
 $ mkdir work
 $ cd work
 
-# Setup the python virtualenv development environment
+# setup the python virtualenv development environment
 $ virtualenv -p python3 .
 $ source bin/activate
 
@@ -49,237 +91,328 @@ $ source bin/activate
 (work) $ pip install earlgrey-x.x.x-py3-none-any.whl
 (work) $ pip install iconservice-x.x.x-py3-none-any.whl
 (work) $ pip install tbears-x.x.x-py3-none-any.whl
-
-# Create 2 sample SCORE projects (sample_crowd_sale, sample_token)
-(work) $ tbears samples
-
-# Sample SCORE projects should have following files.
-(work) $ ls sample*
-sample_crowd_sale:
-__init__.py  package.json  sample_crowd_sale.py
-
-sample_token:
-__init__.py  package.json  sample_token.py
-
-# Install sample_token SCORE and run JSON-RPC server.
-(work) $ tbears run sample_token
-
-# Install sample_crowd_sale SCORE.
-(work) $ tbears run sample_crowd_sale
-
-# Test SampleToken using test script, run.sh.
-# Test script uses curl to make a jsonrpc request.
-# The script tests ICON JSON-RPC API v3 protocol against the sample SCORE service.
-(work) $ ./run.sh
-...
-06-01 23:06:43 INFO {"jsonrpc": "2.0", "result": "0x3635c9adc5de9ffffe", "id": 50889}
-06-01 23:06:43 INFO 127.0.0.1 - - [01/Jun/2018 23:06:43] "POST /api/v3 HTTP/1.1" 200 -
-{"jsonrpc": "2.0", "result": "0x3635c9adc5de9ffffe", "id": 50889}
-
-# Create a new SCORE project.
-# Create a project for 'abc' token using init command.
-(work) $ tbears init <main python file name> <score class name>
-ex)
-(work) $ tbears init abc ABCToken
-
-# Project files for abc token are create.
-(work) $ ls abc
-abc.py  __init__.py  package.json
-
-# Run JSON-RPC server and load abc token.
-# DB is not initialized.
-(work) $ tbears run abc
-
-# Stop JSON-RPC server. 
-(work) $ tbears stop
-
-# Stop JSON-RPC server and remove dbRoot, scoreRoot folders.
-(work) $ tbears clear
-
-# tbears help shows help message.
-(work) $ tbears help
 ```
 
-## tbears tutorial
+## how to use tbears
 
-### tbears configuration file
+### configuration files
 
-Load tbears.json file in the tbears working directory. 
+#### tbears configuration file
 
-#### File content
+Load tbears.json file in the tbears working directory.
+
+**tbears.json**
 
 ```json
 {
-    "global": {
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "port": 9000,
-        "scoreRoot": "./.score",
-        "dbRoot": "./.db",
-        "genesisData": {
-            "accounts": [
-                {
-                    "name": "genesis",
-                    "address": "hx0000000000000000000000000000000000000000",
-                    "balance": "0x2961fff8ca4a62327800000"
-                },
-                {
-                    "name": "fee_treasury",
-                    "address": "hx1000000000000000000000000000000000000000",
-                    "balance": "0x0"
-                }
-            ]
-        }
-    },
+    "hostAddress": "0.0.0.0",
+    "port": 9000,
+    "scoreRoot": "./.score",
+    "dbRoot": "./.db",
+    "enableFee": false,
+    "enableAudit": false,
     "log": {
         "colorLog": true,
         "level": "debug",
         "filePath": "./tbears.log",
         "outputType": "console|file"
     },
-    "deploy": {
-        "uri": "http://localhost:9000/api/v3",
-        "stepLimit": "0x12345",
-        "nonce": "0x123"
-    }
+    "accounts": [
+        {
+            "name": "genesis",
+            "address": "hx0000000000000000000000000000000000000000",
+            "balance": "0x2961fff8ca4a62327800000"
+        },
+        {
+            "name": "fee_treasury",
+            "address": "hx1000000000000000000000000000000000000000",
+            "balance": "0x0"
+        }
+    ]
 }
 ```
 
-#### Description
+| Field          | Data type | Description                                                  |
+| :------------- | :-------- | :----------------------------------------------------------- |
+| hostAddress    | string    | JSON-RPC server IP                                           |
+| port           | int       | JSON-RPC server port number.                                 |
+| scoreRoot      | string    | Root directory that SCORE will be installed.                 |
+| dbRoot         | string    | Root directory that state DB file will be created.           |
+| enableFee      | boolean   | not implemented                                              |
+| enableAudit    | boolean   | not implemented                                              |
+| log            | dict      | tbears logging setting                                       |
+| log.colorLog   | boolean   | Log Display option(color or black)                           |
+| log.level      | string    | log level. <br/>"debug", "info", "warning", "error"          |
+| log.filePath   | string    | log file path.                                               |
+| log.outputType | string    | “console”: log outputs to the console that tbears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
+| accounts       | list      | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): accounts. |
 
-| Field | Data type | Description |
-|:------|:-----------|:-----|
-| global | dict | tbears global configuration. |
-| global.from | string | from address that tbears uses when it sends messages to JSON-RPC server. |
-| global.port | int | JSON-RPC server port number. |
-| global.scoreRoot | string | Root directory that SCORE will be installed. |
-| global.dbRoot | string | Root directory that state DB file will be created. |
-| global.accounts | list | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): random accounts. |
-| log | dict | tbears logging setting |
-| log.level | string | log level. <br/>"debug", "info", "warning", "error" |
-| log.filePath | string | log file path. |
-| log.outputType | string | “console”: log outputs to the console that tbears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
-| deploy | dict | Configurations for SCORE deployment. |
-| deploy.uri | string | uri that the deploy request is sent to |
-| deploy.stepLimit | string | -(optional) |
-| deploy.nonce | string | -(optional) |
+#### score deploy configuration file
 
-### SCORE deploy configuration file format (a separate file from tbears config)
+**deploy.json(a separate file from tbears config)**
+
 ```json
 {
-    "socreAddress": "cx0123456789abcdef0123456789abcdef01234567",
-    "params": {
-        "user_param1": "0x123",
-        "user_param2": "hello"
+    "deploy": {
+        "uri": "http://127.0.0.1:9000/api/v3",
+        "scoreType": "tbears",
+        "mode": "install",
+        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "to": "cx0000000000000000000000000000000000000000",
+        "stepLimit": "0x12345",
+        "scoreParams": {
+        	"init_supply": "0x3e8",
+        	"decimal": "0x12"
+        }
     }
 }
-
 ```
 
-| Field | Data type | Description |
-|:------|:-----------|:-----|
-| scoreAddress | string | (optional) Used when update SCORE (The address of the SCORE being updated).<br/>Not used when initial deploy. |
-| params | dict | Parameters to be passed to on_install() or on_update() |
+| Field              | Data  type | Description              |
+| ----------------------- | :---------- | :--------------------------- |
+| deploy                  | dict        | configuration when deploying SCORE |
+| deploy.uri              | string      | uri to send request of deployment |
+|  deploy.scoreType                             | string |SCORE type to deploy (tbears or icon)|
+| deploy.mode             | string      | deploy mode setting<br>install: new SCORE deployment<br>update: updates SCORE which is Previously deployed |
+| deploy.from             | string      | address of SCORE deployer |
+| deploy.to               | string      | (optional) Used when update SCORE (The address of the SCORE being updated).<br/>(in the case of install mode, set 'cx0000~') |
+| delploy.stepLimit       | string      | -(optional) |
+| scoreParams             | dict        | Parameters to be passed to on_install() or on_update() |
 
-### tbears samples
+### Command-line interfaces(CLIs)
 
-tbears comes with 2 sample SCOREs as a reference. "tbears sample" command will create the sample projects. 
+#### tbears init
 
-#### Usage 
+**description**
+
+Initialize SCORE development environment. Generate \<project\>.py and package.json in <project\> directory. The name of the score class is \<score_class\>
+
+**usage**
 
 ```bash
-(work) $ tbears samples
-(work) $ ls sample*
-sample_crowd_sale:
-__init__.py  package.json  sample_crowd_sale.py
+usage: tbears init [-h] project score_class
+Initialize SCORE development environment. Generate <project>.py and
+package.json in <project> directory. The name of the score class is
+<score_class>.
 
-sample_token:
-__init__.py  package.json  sample_token.py
+positional arguments:
+  project      Project name
+  score_class  SCORE class name
+
+optional arguments:
+  -h, --help   show this help message and exit
 ```
 
-### tbears init \<project> \<class>
+**options**
 
-init command creates a new SCORE project. It creates project folder and required files.
+| shorthand, Name | default | Description                     |
+| --------------- | :------ | ------------------------------- |
+| -h, --help      |         | show this help message and exit |
 
-#### Usage
+**examples**
+
 ```bash
 (work) $ tbears init abc ABCToken
 (work) $ ls abc
 abc.py  __init__.py  package.json
 ```
 
-#### File description
+**File description**
 
-| Item | Description |
-|:------|:-----|
-| \<project> | SCORE project name. Project folder is create with the same name. |
-| tbears.json | tbears default configuration file will be created on the working directory. |
+| **Item**                   | **Description**                                              |
+| :------------------------- | :----------------------------------------------------------- |
+| \<project>                 | SCORE project name. Project folder is create with the same name. |
+| tbears.json                | tbears default configuration file will be created on the working directory. |
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project folder recognized as a python package. |
-| \<project>/package.json | SCORE metadata. |
-| \<project>/\<project>.py | SCORE main file. ABCToken class is defined. |
+| \<project>/package.json    | SCORE metadata.                                              |
+| \<project>/\<project>.py   | SCORE main file. ABCToken class is defined.                  |
+| tests                      | not implemented                                              |
 
-### tbears run \<project\> \[--install or --update] \[config param path]
+#### tbears start
 
-Starts  JSON-RPC server, and installs the SCORE in the project folder. SCORE is ready to execute.  
+**description**
 
-#### Usage
+start tbears service
+
+**usage**
 
 ```bash
-(work) $ tbears run abc
-...
-06-20 18:12:36 INFO {"jsonrpc": "2.0", "result": "0xab7cfcd238d0a871ffe1c8d2e0114b014a0eb71182d9ee4f0b19d46bf6f7c44a", "id": 111}
-...
+usage: tbears start [-h] [-a ADDRESS] [-p PORT] [-c CONFIG]
 
-# issue icx_getTransactionResult with the result (txHash)
-# need to modify value of txHash in issue_rpc.sh
-(work) $ ./issue_rpc.sh gettxres
-...
-06-22 18:15:15 INFO {"jsonrpc": "2.0", "result": {"txHash": "0xab7cfcd238d0a871ffe1c8d2e0114b014a0eb71182d9ee4f0b19d46bf6f7c44a", "blockHeight": "0x9", "to": null, "scoreAddress": "cx6bd390bd855f086e3e9d525b46bfe24511431532", "stepUsed": "0x1770", "status": "0x1", "failure": null, "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, "id": 112}
-...
+Start tbears service
+
+optional arguments:
+  -h, --help                       show this help message and exit
+  -a ADDRESS, --address ADDRESS    Address to host on (default: 0.0.0.0)
+  -p PORT, --port PORT             Listen port (default: 9000)
+  -c CONFIG, --config CONFIG       tbears configuration file path(default:./tbears.json)
 ```
 
+**options**
+
+| shorthand, Name | default       | Description                     |
+| --------------- | :------------ | ------------------------------- |
+| -h, --help      |               | show this help message and exit |
+| -a, --address   | 0.0.0.0       | Address to host on              |
+| -p, --port      | 9000          | Listen port                     |
+| -c, --config    | ./tbears.json | tbears configuration file path  |
+
+#### tbears stop
+
+**description**
+
+Stop all running SCORE and tbears service
+
+**usage**
+
 ```bash
-(work) $ cat ./params.json
+usage: tbears stop [-h]
+
+Stop all running SCORE and tbears service
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+**options**
+
+| shorthand, Name | default | Description                     |
+| --------------- | :------ | ------------------------------- |
+| -h, --help      |         | show this help message and exit |
+
+#### tbears deploy
+
+**description**
+
+Deploy the SCORE in project
+
+**usage**
+
+```bash
+usage: tbears deploy [-h] [-u URI] [-t {tbears,icon}] [-m {install,update}]
+                     [-f FROM] [-o TO] [-k KEYSTORE] [-c CONFIG]
+                     project
+
+Deploy the SCORE in project
+
+positional arguments:
+  project               Project name
+
+optional arguments:
+  -h, --help                                   show this help message and exit
+  -u URI, --node-uri URI                       URI of node
+                                               (default: http://127.0.0.1:9000/api/v3)
+  -t {tbears,icon}, --type {tbears,icon}       Deploy SCORE type
+                                               ("tbears" or "icon". default: tbears)
+  -m {install,update}, --mode {install,update} Deploy mode
+                                               ("install" or "update". default: update)
+  -f FROM, --from FROM                         From address. i.e. SCORE owner address
+  -o TO, --to TO                               To address. i.e. SCORE address
+  -k KEYSTORE, --key-store KEYSTORE            Key store file for SCORE owner
+  -c CONFIG, --config CONFIG                   deploy config path (default: ./deploy.json
+```
+
+**options**
+
+| shorthand, Name                                 | default                      | Description                                                  |
+| ----------------------------------------------- | :--------------------------- | ------------------------------------------------------------ |
+| -h, --help                                      |                              | show this help message and exit                              |
+| -u, --node-uri                                  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
+| -t {tbears,icon},<br> --type {tbears,icon}      | tbears                       | Deploy SCORE type ("tbears" or "icon" ).                     |
+| -m {install,update},<br>--mode {install,update} | install                      | Deploy mode ("install" or "update").                         |
+| -f, --from                                      |                              | From address. i.e. SCORE owner address                       |
+| -o, --to                                        |                              | To address. i.e. SCORE address <br>**(only when update score)** |
+| -k, --key-store                                 |                              | Key store file for SCORE owner                               |
+| -c, --config                                    | ./deploy.json                | deploy config path                                           |
+
+**examples**
+
+```bash
+(Work)$ tbears deploy -t tbears abc
+
+(work) $ cat ./deploy.json
 {
-    "params": {
-        "init_supply": "0x3e8",
-        "decimal": "0x12"
+    "deploy": {
+        "uri": "http://127.0.0.1:9000/api/v3",
+        "scoreType": "tbears",
+        "mode": "install",
+        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "to": "cx0000000000000000000000000000000000000000",
+        "stepLimit": "0x12345",
+        "scoreParams": {
+        	"init_supply": "0x3e8",
+        	"decimal": "0x12"
+        }
     }
-} 
+}
+(work) $ tbears deploy abc -c ./deploy.json
 
-(work) $ tbears run abc --install ./params.json
-...
+#when you deploy SCORE to icon, input keystore password
+(Work)$ tbears deploy -t icon -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -k keystore abc
+input your key store password:
+
+#update abc SCORE
+#append prefix 'cx' in front of score address
+(Work)$ tbears deploy abc -m update -o cx6bd390bd855f086e3e9d525b46bfe24511431532
 ```
 
-#### Description
+#### tbears clear
 
-If --install or --update is omitted, SCORE is reloaded. 
+**description**
 
-| Option | Required | Description |
-|:------|:-----|:-----|
-| project | required | Directory path that contains the SCORE code. |
-| --install | optional | If this option is given, SCORE is installed. SCORE's on_install() function is called, and parameters can be passed to the function. |
-| --update | optional | SCORE is updated. on_update() is called.<br/>(--update is not implemented yet. Will be supported in next version.) |
-| config param path | optional | Path to a file containing the data that will be passed to on_install() or on_update() as parameters. Data should conform to json format. |
-| if --install or --update omitted | - | If the SCORE is already installed, SCORE will be reloaded.<br/>If SCORE needs to be newly installed, on_install() is called without parameters. |
+Clear all SCORE deployed on local tbears service
 
-### tbears stop
+**usage**
 
-Stops JSON-RPC server. DB remains the state.
+```bas
+usage: tbears clear [-h]
 
-#### Usage 
+Clear all SCORE deployed on local tbears service
 
-```bash
-(work) $ tbears stop
+optional arguments:
+  -h, --help  show this help message and exit json
 ```
 
-### tbears clear
+**options**
 
-Stops JSON-RPC server and removes current DB.
+| shorthand, Name | default | Description                     |
+| --------------- | :------ | ------------------------------- |
+| -h, --help      |         | show this help message and exit |
 
-#### Usage
+#### tbears samples
+
+**description**
+
+Create two SCORE samples (sample_crowd_sale, sample_token)
+
+**usage**
 
 ```bash
-(work) $ tbears clear
+usage: tbears samples [-h]
+
+Create two SCORE samples (sample_crowd_sale, sample_token)
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+**options**
+
+| shorthand, Name | default | Description                     |
+| --------------- | :------ | ------------------------------- |
+| -h, --help      |         | show this help message and exit |
+
+**examples**
+
+```bash
+(work) $ tbears samples
+
+(work) $ ls sample*
+sample_crowd_sale:
+__init__.py  package.json  sample_crowd_sale.py
+
+sample_token:
+__init__.py  package.json  __pycache__  sample_token.py
 ```
 
 ## Utilities
@@ -312,8 +445,9 @@ Logger.error('error log', TAG)
 
 ## Notes
 
-* tbears currently does not have loopchain engine, so some JSON-RPC APIs which are not related to SCORE developement may not function. 
+* tbears currently does not have loopchain engine, so some JSON-RPC APIs which are not related to SCORE developement may not function.
     * Below JSON-RPC APIs are supported in tbears:
         * icx_getBalance, icx_getTotalSupply, icx_getBalance, icx_call, icx_sendTransaction, icx_getTransactionResult
-* In next versions, tbears commands or SCORE development methods may change in part. 
+* In next versions, tbears commands or SCORE development methods may change in part.
 * For the development convinience, JSON-RPC server in tbears does not verify the transaction signature.
+
