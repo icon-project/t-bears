@@ -17,13 +17,15 @@ import hashlib
 import json
 import unittest
 
+import tbears.libs.icon_serializer
 from tbears import libs
-from tbears.libs.icon_json import generate_origin_for_icx_send_tx_hash
+from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
 
 
 class TestTXPhrase(unittest.TestCase):
 
-    def test_hash_origin_case_v2(self):
+    def test_serialize_v2(self):
+        # test to see if a hash is properly generated with v2 params.
         request = r'''{
             "jsonrpc": "2.0",
             "method": "icx_sendTransaction",
@@ -48,7 +50,8 @@ class TestTXPhrase(unittest.TestCase):
         result = generate_origin_for_icx_send_tx_hash(question)
         self.assertEqual(result, answer)
 
-    def test_hash_origin_case_v3(self):
+    def test_serialize_case_v3(self):
+        # test to see if a hash is properly generated with v3 params.
         request = '''{
             "jsonrpc": "2.0",
             "method": "icx_sendTransaction",
@@ -97,7 +100,8 @@ class TestTXPhrase(unittest.TestCase):
         result = generate_origin_for_icx_send_tx_hash(question)
         self.assertEqual(result, answer)
 
-    def test_hash_case_v3_escape(self):
+    def test_serialize_v3_escape(self):
+        # test whether the hash is properly generated When there are escape characters in v3 params.
         request = r'''{
             "jsonrpc": "2.0",
             "method": "icx_sendTransaction",
@@ -147,7 +151,8 @@ class TestTXPhrase(unittest.TestCase):
         result = generate_origin_for_icx_send_tx_hash(question)
         self.assertEqual(result, answer)
 
-    def test_hash_case_v3_null(self):
+    def test_serialize_v3_null(self):
+        # test whether the hash is properly generated When there are null characters in v3 params.
         request = r'''{
             "jsonrpc": "2.0",
             "method": "icx_sendTransaction",
@@ -197,8 +202,9 @@ class TestTXPhrase(unittest.TestCase):
         result = generate_origin_for_icx_send_tx_hash(question)
         self.assertEqual(result, answer)
 
-    def test_hash_case_v2_v3_compatibility(self):
-
+    def test_serialize_v2_v3_compatibility(self):
+        # For v2 params, verify that the results for the old hash creation logic
+        # and the newly implemented hash generation logic are the same.
         # These methods are obsolete.
         # But this one and new one must have same results for v2 request.
         def create_origin_for_hash(json_data: dict):
@@ -251,6 +257,6 @@ class TestTXPhrase(unittest.TestCase):
 
         question = request["params"]
 
-        result_new_hash = libs.icon_json.generate_icx_hash(question)
+        result_new_hash = tbears.libs.icon_serializer.generate_icx_hash(question)
         result_old_hash = generate_icx_hash(question, "tx_hash")
         self.assertEqual(result_new_hash, result_old_hash)
