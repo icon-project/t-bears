@@ -585,7 +585,7 @@ async def init_icon_inner_task(conf: dict):
     global __icon_inner_task
     config = Configure('')
     config._config_table[ConfigKey.ADMIN_ADDRESS] = conf['accounts'][0]['address']
-    # TODO genesis address를 admin_address로 한다.
+    # TODO genesis address를 admin_address로 한다
     __icon_inner_task = IconScoreInnerTask(config, conf['scoreRoot'], conf['dbRoot'])
 
     if is_done_genesis_invoke():
