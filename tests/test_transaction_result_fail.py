@@ -35,8 +35,6 @@ class TestTransactionResult(unittest.TestCase):
                 shutil.rmtree('./.score')
             if os.path.exists('./.db'):
                 shutil.rmtree('./.db')
-            if os.path.exists('./tbears.json'):
-                os.remove('./tbears.json')
             os.remove('./tbears.log')
         except:
             pass

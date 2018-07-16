@@ -19,14 +19,15 @@ from json import JSONDecodeError
 import argparse
 from ipaddress import ip_address
 
+from iconservice import DATA_BYTE_ORDER
+from iconservice.icon_constant import DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT, ICON_SCORE_QUEUE_NAME_FORMAT, ConfigKey
 from jsonrpcserver import status
 from jsonrpcserver.aio import methods
 from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams
 from sanic import Sanic, response as sanic_response
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
 from iconservice.logger import Logger
-from iconservice.icon_config import DATA_BYTE_ORDER, ICON_SCORE_QUEUE_NAME_FORMAT,\
-    DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT
+from iconservice.icon_config import Configure
 from iconservice.utils import check_error_response
 
 from typing import Optional
@@ -582,7 +583,10 @@ async def init_icon_score_stub(conf: dict):
 
 async def init_icon_inner_task(conf: dict):
     global __icon_inner_task
-    __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
+    config = Configure('')
+    config._config_table[ConfigKey.ADMIN_ADDRESS] = conf['accounts'][0]['address']
+    # TODO genesis address를 admin_address로 한다.
+    __icon_inner_task = IconScoreInnerTask(config, conf['scoreRoot'], conf['dbRoot'])
 
     if is_done_genesis_invoke():
         return None

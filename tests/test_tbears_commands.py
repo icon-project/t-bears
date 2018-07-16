@@ -36,8 +36,6 @@ class TestTBearsCommands(unittest.TestCase):
         try:
             if os.path.exists('./deploy.json'):
                 os.remove('./deploy.json')
-            if os.path.exists('./tbears.json'):
-                os.remove('./tbears.json')
             if os.path.exists('./tbears.log'):
                 os.remove('./tbears.log')
         except:
