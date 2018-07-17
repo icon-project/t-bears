@@ -16,7 +16,7 @@
 ## tbears Overview
 tbears is a suite of tools for SCORE dApp developers to develop and deploy SCORE.
 
-it also provide SCORE base templete. This makes it easier to develop SCORE dApp.
+It also provide SCORE base template. This makes it easier to develop SCORE dApp.
 
 ## Installation
 
@@ -37,7 +37,7 @@ ICON SCORE development and execution requires following environments.
 | name        | description                                                  | github                                                       |
 | ----------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | LevelDB     | ICON SCORE uses levelDB open-source to store SCORE states.   | [LevelDB GitHub](https://github.com/google/leveldb)          |
-| libSecp256k | ICON SCORE uses secp256k open-source to sign and validate signature. | [secp256k GitHub](https://github.com/bitcoin-core/secp256k1) |
+| libsecp256k | ICON SCORE uses secp256k open-source to sign and validate signature. | [secp256k GitHub](https://github.com/bitcoin-core/secp256k1) |
 
 ### Setup on MacOS
 
@@ -87,12 +87,12 @@ $ source bin/activate
 
 #### overview
 
-tbears has 6 commands, init, start, stop, deploy, clear, samples.
+tbears has 7 commands, init, start, stop, deploy, clear, samples, keystore
 
 **usage**
 
 ```bash
-usage: tbears [-h] [-d] {init,start,stop,deploy,clear,samples} ...
+usage: tbears [-h] [-d] command ...
 
 tbears v0.9.3 arguments
 
@@ -104,11 +104,11 @@ Available commands:
   If you want to see help message of commands, use "tbears command -h"
 
   command
-    init       Initialize tbears project
     start      Start tbears serivce
     stop       Stop tbears service
     deploy     Deploy the SCORE
     clear      Clear all SCORE deployed on tbears service
+    init       Initialize tbears project
     samples    Create two SCORE samples (standard_crowd_sale, standard_token)
     keystore   Create keystore file in passed path
 ```
@@ -146,6 +146,8 @@ optional arguments:
 
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
+| project         |         | Project name                    |
+| score_class     |         | SCORE class name                |
 | -h, --help      |         | show this help message and exit |
 
 **examples**
@@ -160,18 +162,19 @@ abc.py  __init__.py package.json tests
 
 | **Item**                   | **Description**                                              |
 | :------------------------- | :----------------------------------------------------------- |
-| \<project>                 | SCORE project name. Project folder is create with the same name. |
+| \<project>                 | SCORE project name. Project directory is create with the same name. |
 | tbears.json                | tbears default configuration file will be created on the working directory. |
+| deploy.json                | configuration file for deploy command will be created on the working directory. |
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project folder recognized as a python package. |
 | \<project>/package.json    | SCORE metadata.                                              |
 | \<project>/\<project>.py   | SCORE main file. ABCToken class is defined.                  |
-| tests                      | not implemented                                              |
+| tests                      | Directory for SCORE unittest                                 |
 
 #### tbears start
 
 **description**
 
-Start tbears service. When start tbears, tbears references tbears.json file. If you want to change the location of tbears.json, you have to specify the path in '-c' option.
+Start tbears service. When start tbears, tbears references tbears.json file. If you want to use other configuration file, you have to specify the path in '-c' option.
 
 **usage**
 
@@ -200,7 +203,7 @@ optional arguments:
 
 **description**
 
-Stop all running SCORE and tbears service.
+Stop all running SCORE and local tbears service.
 
 **usage**
 
@@ -223,7 +226,7 @@ optional arguments:
 
 **description**
 
-Deploy the SCORE in project. you can deploy it on local or icon service.
+Deploy the SCORE in project. You can deploy it on local or icon service.
 
 You can set deploy configuration in deploy.json(See below 'configuration files').
 
@@ -256,6 +259,7 @@ optional arguments:
 
 | shorthand, Name                                 | default                      | Description                                                  |
 | ----------------------------------------------- | :--------------------------- | ------------------------------------------------------------ |
+| project                                         |                              | Project directory name contains SCORE package
 | -h, --help                                      |                              | show this help message and exit                              |
 | -u, --node-uri                                  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
 | -t {tbears,icon},<br> --type {tbears,icon}      | tbears                       | Deploy SCORE type ("tbears" or "icon" ).                     |
@@ -272,18 +276,13 @@ optional arguments:
 
 (work) $ cat ./deploy.json
 {
-    "deploy": {
-        "uri": "http://127.0.0.1:9000/api/v3",
-        "scoreType": "tbears",
-        "mode": "install",
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "to": "cx0000000000000000000000000000000000000000",
-        "stepLimit": "0x12345",
-        "scoreParams": {
-        	"init_supply": "0x3e8",
-        	"decimal": "0x12"
-        }
-    }
+    "uri": "http://127.0.0.1:9000/api/v3",
+    "scoreType": "tbears",
+    "mode": "install",
+    "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "to": "cx0000000000000000000000000000000000000000",
+    "stepLimit": "0x12345",
+    "scoreParams": {}
 }
 (work) $ tbears deploy abc -c ./deploy.json
 
@@ -409,32 +408,29 @@ When starting tbears(tbears start), tbears.json is used as a configuration da
 
 When deploying tbears(tbears deploy), this file is used as a configuration data.
 
-In SCORE, you can implement on_install(), on_update(), and that methods are called when deploy SCORE.  For example, if you deploy new SCORE(mode: install), on_install() method in the SCORE is called and initialize SCORE. In this config file, you can set deploy mode(install or update) and parameters of on_install (or on_update) method(scoreParams).
+In SCORE, you can implement on_install(), on_update(), and that methods are called when deploy SCORE.  For example, if you deploy new SCORE(mode: install), on_install() method in the SCORE is called and initialize SCORE. In this config file, you can set deploy mode and parameters of on_install() on_update() method with ```scoreParams```.
 
 ```json
 {
-    "deploy": {
-        "uri": "http://127.0.0.1:9000/api/v3",
-        "scoreType": "tbears",
-        "mode": "install",
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "to": "cx0000000000000000000000000000000000000000",
-        "stepLimit": "0x12345",
-        "scoreParams": {}
-    }
+    "uri": "http://127.0.0.1:9000/api/v3",
+    "scoreType": "tbears",
+    "mode": "install",
+    "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "to": "cx0000000000000000000000000000000000000000",
+    "stepLimit": "0x12345",
+    "scoreParams": {}
 }
 ```
 
-| Field             | Data  type | Description                                                  |
-| ----------------- | :--------- | :----------------------------------------------------------- |
-| deploy            | dict       | configuration when deploying SCORE                           |
-| deploy.uri        | string     | uri to send request of deployment                            |
-| deploy.scoreType  | string     | SCORE type to deploy (tbears or icon)                        |
-| deploy.mode       | string     | deploy mode setting<br>install: new SCORE deployment<br>update: updates SCORE which is Previously deployed |
-| deploy.from       | string     | address of SCORE deployer                                    |
-| deploy.to         | string     | (optional) Used when update SCORE (The address of the SCORE being updated).<br/>(in the case of install mode, set 'cx0000~') |
-| delploy.stepLimit | string     | -(optional)                                                  |
-| scoreParams       | dict       | Parameters to be passed to on_install() or on_update()       |
+| Field        | Data  type | Description                                                  |
+| ------------ | :--------- | :----------------------------------------------------------- |
+| uri          | string     | uri to send request of deployment                            |
+| scoreType    | string     | SCORE type to deploy (tbears or icon)                        |
+| mode         | string     | deploy mode setting<br>install: new SCORE deployment<br>update: updates SCORE which is Previously deployed |
+| from         | string     | address of SCORE deployer                                    |
+| to           | string     | (optional) Used when update SCORE (The address of the SCORE being updated).<br/>(in the case of install mode, set 'cx0000~') |
+| stepLimit    | string     | (optional)                                                  |
+| scoreParams  | dict       | Parameters to be passed to on_install() or on_update()       |
 
 ## Utilities
 
@@ -472,3 +468,5 @@ Logger.error('error log', TAG)
 * In next versions, tbears commands or SCORE development methods may change in part.
 * For the development convinience, JSON-RPC server in tbears does not verify the transaction signature.
 
+## Reference
+[tbears JSON-RPC API v3](https://repo.theloop.co.kr/icon/tbears/blob/47-tbears_tutorial/docs/tbears_jsonrpc_api_v3.md)
