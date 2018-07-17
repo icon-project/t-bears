@@ -114,4 +114,4 @@ class CommandScore(Command):
         except:
             conf = tbears_conf.deploy_config
 
-        return conf.get('deploy', None)
+        return conf

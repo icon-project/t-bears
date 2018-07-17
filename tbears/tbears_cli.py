@@ -120,7 +120,7 @@ def add_deploy_parser(subparsers):
 
 
 def command_deploy(args):
-    if not CommandServer.is_server_running():
+    if args.scoreType == 'tbears' and not CommandServer.is_server_running():
         print(f'Start tbears server first')
         return ExitCode.COMMAND_IS_WRONG.value
 
