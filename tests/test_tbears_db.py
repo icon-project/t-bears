@@ -17,7 +17,7 @@ import shutil
 import unittest
 
 from tbears.server.tbears_db import TbearsDB
-from tests.json_contents_for_tests import DIRECTORY_PATH
+from tests.test_util.json_contents_for_tests import DIRECTORY_PATH
 
 DB_PATH = os.path.join(DIRECTORY_PATH, './.tbears_db')
 

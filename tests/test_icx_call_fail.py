@@ -16,12 +16,12 @@ import asyncio
 import shutil
 import unittest
 
-from tbears.command import init_SCORE
 from tbears.util import make_install_json_payload
-from tbears.util.libs.icon_json import get_icx_call_payload, get_icx_getScoreApi_payload, get_icx_getBalance_payload
-from tbears.util.libs.jsonrpc_error_code import METHOD_NOT_FOUND, INVALID_PARAMS
-from tbears.util.tbears_mock_server import API_PATH, init_mock_server
-from tests.json_contents_for_tests import *
+from tbears.libs.icon_json import get_icx_getBalance_payload, get_icx_getScoreApi_payload, get_icx_call_payload
+from tbears.libs.jsonrpc_error_code import METHOD_NOT_FOUND, INVALID_PARAMS
+from tests.test_util import TEST_UTIL_DIRECTORY
+from tests.test_util.tbears_mock_server import API_PATH, init_mock_server
+from tests.test_util.json_contents_for_tests import *
 
 pre_define_api = \
         [
@@ -111,16 +111,10 @@ class TestTransactionResult(unittest.TestCase):
     def tearDown(self):
 
         try:
-            if os.path.exists('sample_token'):
-                shutil.rmtree('sample_token')
-            if os.path.exists('./.test_tbears_db'):
-                shutil.rmtree('./.test_tbears_db')
             if os.path.exists('./.score'):
                 shutil.rmtree('./.score')
             if os.path.exists('./.db'):
                 shutil.rmtree('./.db')
-            if os.path.exists('./tbears.json'):
-                os.remove('./tbears.json')
             os.remove('./tbears.log')
         except:
             pass
@@ -133,8 +127,7 @@ class TestTransactionResult(unittest.TestCase):
 
     def test_score_queries_filed(self):
         # unknown score method test
-        init_SCORE('sample_token', 'SampleToken')
-        run_payload = make_install_json_payload('sample_token')
+        run_payload = make_install_json_payload(f'{TEST_UTIL_DIRECTORY}/sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
 
         method_n_params = get_request_json_of_nonexist_method()
@@ -171,7 +164,7 @@ class TestTransactionResult(unittest.TestCase):
         self.assertEqual(pre_define_api, api_result)
 
     # def test_nonexistent_score_address_query(self):
-    #     init_SCORE('sample_token', 'SampleToken')
+    #     CommandServer.init('sample_token', 'SampleToken')
     #     run_SCORE('sample_token', None, None, TBEARS_JSON_PATH)
     #     payload = get_request_json_of_get_token_balance(to=f'cx{"0"*40}', addr_from=god_address)
     #     res = post(url, payload).json()

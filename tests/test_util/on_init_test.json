@@ -1,0 +1,13 @@
+{
+  "deploy": {
+    "uri": "http://127.0.0.1:9000/api/v3",
+    "scoreType": "tbears",
+    "mode": "install",
+    "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "to": "cx0000000000000000000000000000000000000000",
+    "stepLimit": "0x12345",
+    "scoreParams": {
+      "init_supply": "0x7d0"
+    }
+  }
+}

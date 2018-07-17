@@ -13,8 +13,8 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
   VER=$(cat tbears/__init__.py | sed -nE 's/__version__ += +"([0-9\.]+)"/\1/p')
   mkdir -p $VER
 
-  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey-0.0.0-py3-none-any.whl" -P $VER
-  pip install --force-reinstall $VER/earlgrey-0.0.0-py3-none-any.whl
+  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey-0.0.2-py3-none-any.whl" -P $VER
+  pip install --force-reinstall $VER/earlgrey-0.0.2-py3-none-any.whl
 
   if [[ -z "${ICONSERVICEPATH}" || ("$1" = "deploy") ]]; then
     wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/iconservice-$VER-py3-none-any.whl" -P $VER
@@ -41,6 +41,7 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
       wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/CHANGELOG.md" -P $VER
       wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/dapp_guide.md" -P $VER
       wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/tbears_jsonrpc_api_v3.md" -P $VER
+      wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/$VER/tbears_tutorial.md" -P $VER
       tar -cvzf tbears-$VER.tar.gz $VER/*.whl $VER/*.md
       mv tbears-$VER.tar.gz $VER
 

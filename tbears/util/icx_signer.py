@@ -21,14 +21,21 @@ from secp256k1 import PrivateKey
 from tbears.tbears_exception import KeyStoreException
 
 
-def key_from_key_store(file_path, password):
+def key_from_key_store(file_path: str, password: (bytes, str)) -> bytes:
+    """Get private key from keystore file.
+
+    :param file_path: keystore file path.
+    :param password: password of keystore file.
+
+    :return: private key
+    """
     try:
         with open(file_path, 'rb') as file:
             private_key = extract_key_from_keyfile(file, password)
     except ValueError:
         print('check your password.')
         raise KeyStoreException
-    except:
+    except Exception as e:
         print('check your keystore file.')
         raise KeyStoreException
     else:
@@ -36,24 +43,40 @@ def key_from_key_store(file_path, password):
 
 
 class IcxSigner:
+    """Class for make signature using private key."""
+
     def __init__(self, private_key: bytes):
         self._private_key = private_key
         self._private_key_object = PrivateKey(self._private_key)
 
     def sign_recoverable(self, msg_hash):
+        """Make a recoverable signature using message hash data.
+        We can extract public key from recoverable signature.
+
+        :param msg_hash: Hash data of message. type(bytes)
+
+        :return:
+        type(tuple)
+        type(bytes): 65 bytes data , type(int): recovery id
+        """
         private_key_object = self._private_key_object
         recoverable_signature = private_key_object.ecdsa_sign_recoverable(msg_hash, raw=True)
         return private_key_object.ecdsa_recoverable_serialize(recoverable_signature)
 
-    def sign(self, msg_hash):
+    def sign(self, msg_hash) -> bytes:
+        """Make base64-encoded string of recoverable signature data.
+        :param msg_hash:
+
+        :return: base64-encoded string of recoverable signature data
+        """
         signature, recovery_id = self.sign_recoverable(msg_hash)
         recoverable_sig = bytes(bytearray(signature) + recovery_id.to_bytes(1, 'big'))
         return base64.b64encode(recoverable_sig)
 
     @property
-    def public_key(self):
+    def public_key(self) -> bytes:
         return self._private_key_object.pubkey.serialize(compressed=False)
 
     @property
-    def address(self):
+    def address(self) -> bytes:
         return hashlib.sha3_256(self.public_key[1:]).digest()[-20:]

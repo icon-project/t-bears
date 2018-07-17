@@ -1,7 +1,7 @@
 from iconservice import *
 
 
-class TestOnInit(IconScoreBase):
+class SampleToken(IconScoreBase):
 
     __BALANCES = 'balances'
     __TOTAL_SUPPLY = 'total_supply'
@@ -9,8 +9,8 @@ class TestOnInit(IconScoreBase):
     @eventlog(indexed=3)
     def Transfer(self, addr_from: Address, addr_to: Address, value: int): pass
 
-    def __init__(self, db: IconScoreDatabase, addr_owner: Address) -> None:
-        super().__init__(db, addr_owner)
+    def __init__(self, db: IconScoreDatabase) -> None:
+        super().__init__(db)
         self.__total_supply = VarDB(self.__TOTAL_SUPPLY, db, value_type=int)
         self.__balances = DictDB(self.__BALANCES, db, value_type=int)
 

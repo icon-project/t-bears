@@ -17,16 +17,14 @@ import os
 import shutil
 import unittest
 
-from tbears.command import make_SCORE_samples, init_SCORE
+from tbears.libs.icon_json import get_icx_getBalance_payload, get_icx_getTransactionResult_payload, \
+    get_icx_call_payload, get_dummy_icx_sendTransaction_payload
 from tbears.util import make_install_json_payload
-from tbears.util.libs.icon_json import *
-from tbears.util.tbears_mock_server import API_PATH, init_mock_server
-from tests.json_contents_for_tests import god_address, token_owner_address, token_score_address, \
-    get_params_for_get_token_balance, get_data_for_transfer_token
-
-crowd_sale_score_address = "cx8c814aa96fefbbb85131f87f6e0cb7878a95c1d3"
-test_addr = "hxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-treasury_address = "hx1000000000000000000000000000000000000000"
+from tests.test_util import TEST_UTIL_DIRECTORY
+from tests.test_util.tbears_mock_server import API_PATH, init_mock_server
+from tests.test_util.json_contents_for_tests import god_address, token_owner_address, token_score_address, \
+    get_params_for_get_token_balance, get_data_for_transfer_token, crowd_sale_score_address, treasury_address, \
+    test_address
 
 
 class TestTBears(unittest.TestCase):
@@ -34,18 +32,10 @@ class TestTBears(unittest.TestCase):
     def tearDown(self):
 
         try:
-            if os.path.exists('sample_token'):
-                shutil.rmtree('sample_token')
-            if os.path.exists('sample_crowd_sale'):
-                shutil.rmtree('sample_crowd_sale')
-            if os.path.exists('./.test_tbears_db'):
-                shutil.rmtree('./.test_tbears_db')
             if os.path.exists('./.score'):
                 shutil.rmtree('./.score')
             if os.path.exists('./.db'):
                 shutil.rmtree('./.db')
-            if os.path.exists('./tbears.json'):
-                os.remove('./tbears.json')
             os.remove('./tbears.log')
         except:
             pass
@@ -57,8 +47,7 @@ class TestTBears(unittest.TestCase):
         self.app = init_mock_server()
 
     def test_token(self):
-        init_SCORE('sample_token', 'SampleToken')
-        run_payload = make_install_json_payload('sample_token')
+        run_payload = make_install_json_payload(f'{TEST_UTIL_DIRECTORY}/sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
 
         # send transaction
@@ -107,7 +96,7 @@ class TestTBears(unittest.TestCase):
         self.assertEqual(result, hex(1000 * 10 ** 18))
 
         # send token to test_addr
-        data = get_data_for_transfer_token(test_addr, hex(10*10**18))
+        data = get_data_for_transfer_token(test_address, hex(10 * 10 ** 18))
         payload = get_dummy_icx_sendTransaction_payload(token_owner_address, token_score_address, hex(0),
                                                         data_type='call', data=data)
         _, response = self.app.test_client.post(self.path, json=payload)
@@ -121,7 +110,7 @@ class TestTBears(unittest.TestCase):
         self.assertEqual(result['status'], hex(1))
 
         # check token balance
-        method_n_params = get_params_for_get_token_balance(test_addr)
+        method_n_params = get_params_for_get_token_balance(test_address)
         payload = get_icx_call_payload(god_address, token_score_address, *method_n_params)
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
@@ -138,10 +127,9 @@ class TestTBears(unittest.TestCase):
         self.assertTrue(isinstance(response_json['error']['message'], str))
 
     def test_score_methods(self):
-        make_SCORE_samples()
-        run_payload = make_install_json_payload('sample_token')
+        run_payload = make_install_json_payload(f'{TEST_UTIL_DIRECTORY}/sample_token')
         _, response = self.app.test_client.post(self.path, json=run_payload)
-        run_payload = make_install_json_payload('sample_crowd_sale')
+        run_payload = make_install_json_payload(f'{TEST_UTIL_DIRECTORY}/sample_crowd_sale')
         _, response = self.app.test_client.post(self.path, json=run_payload)
         # seq1
         # genesis -> token_owner 10icx
@@ -175,7 +163,7 @@ class TestTBears(unittest.TestCase):
 
         # seq4
         # transfer token to CrowdSale_address. value: 1000*10**18
-        data = get_data_for_transfer_token(crowd_sale_score_address, hex(1000*10**18))
+        data = get_data_for_transfer_token(crowd_sale_score_address, hex(1000 * 10 ** 18))
         payload = get_dummy_icx_sendTransaction_payload(token_owner_address, token_score_address, hex(0),
                                                         data_type='call', data=data)
         _, response = self.app.test_client.post(self.path, json=payload)
@@ -207,7 +195,7 @@ class TestTBears(unittest.TestCase):
         # seq7
         # transfer icx to CrowdSale. value : 2*10**18
         payload = get_dummy_icx_sendTransaction_payload(fr=token_owner_address, to=crowd_sale_score_address,
-                                                       value=hex(2*10**18))
+                                                        value=hex(2*10**18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         result = response_json['result']
@@ -239,7 +227,7 @@ class TestTBears(unittest.TestCase):
         # seq10
         # transfer icx to CrowdSale. value : 8*10**18
         payload = get_dummy_icx_sendTransaction_payload(fr=token_owner_address, to=crowd_sale_score_address,
-                                                       value=hex(8*10**18))
+                                                        value=hex(8*10**18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         result = response_json['result']
@@ -252,7 +240,7 @@ class TestTBears(unittest.TestCase):
 
         # seq11
         # genesis -> test_address. value 90*10**18
-        payload = get_dummy_icx_sendTransaction_payload(fr=god_address, to=test_addr, value=hex(90*10**18))
+        payload = get_dummy_icx_sendTransaction_payload(fr=god_address, to=test_address, value=hex(90 * 10 ** 18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         result = response_json['result']
@@ -265,7 +253,8 @@ class TestTBears(unittest.TestCase):
 
         # seq12
         # transfer icx to CrowdSale. value : 90*10**18
-        payload = get_dummy_icx_sendTransaction_payload(fr=test_addr, to=crowd_sale_score_address, value=hex(90*10**18))
+        payload = get_dummy_icx_sendTransaction_payload(fr=test_address, to=crowd_sale_score_address,
+                                                        value=hex(90 * 10 ** 18))
         _, response = self.app.test_client.post(self.path, json=payload)
         response_json = response.json
         tx_hash = response_json['result']

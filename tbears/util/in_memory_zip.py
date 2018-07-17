@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import io
 import os
 import zipfile
@@ -21,16 +20,25 @@ from tbears.tbears_exception import ZipException
 
 
 class InMemoryZip:
+    """Class for Make zip data in memory using BytesIO."""
 
     def __init__(self):
         self._in_memory = io.BytesIO()
 
     @property
-    def data(self):
+    def data(self) -> bytes:
+        """Returns zip data
+
+        :return: zip data
+        """
         self._in_memory.seek(0)
         return self._in_memory.read()
 
     def zip_in_memory(self, path):
+        """Make zip data(bytes) in memory.
+
+        :param path: The path of the directory to be zipped.
+        """
         try:
             with zipfile.ZipFile(self._in_memory, 'a', zipfile.ZIP_DEFLATED, False) as zf:
                 if os.path.isfile(path):

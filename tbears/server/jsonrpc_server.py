@@ -11,27 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import json
-import os
 import sys
 import time
 import hashlib
 from json import JSONDecodeError
+import argparse
+from ipaddress import ip_address
 
+from iconservice import DATA_BYTE_ORDER
+from iconservice.icon_constant import DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT, ICON_SCORE_QUEUE_NAME_FORMAT, ConfigKey
 from jsonrpcserver import status
 from jsonrpcserver.aio import methods
 from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams
 from sanic import Sanic, response as sanic_response
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
 from iconservice.logger import Logger
-from iconservice.icon_config import *
+from iconservice.icon_config import Configure
 from iconservice.utils import check_error_response
 
 from typing import Optional
 
 from tbears.server.tbears_db import TbearsDB
-from tbears.util import PROJECT_ROOT_PATH
+from tbears.util import get_tbears_config_json
+from tbears.command.command_server import CommandServer
 
 MQ_TEST = False
 if not MQ_TEST:
@@ -249,6 +252,7 @@ class MockDispatcher:
             'params': request_params
         }
 
+        # pre validate
         if MQ_TEST:
             response = await get_icon_score_stub().async_task().validate_transaction(tx)
             response_to_json_query(response)
@@ -256,10 +260,11 @@ class MockDispatcher:
             response = await get_icon_inner_task().validate_transaction(tx)
             response_to_json_query(response)
 
+        # prepare request data to invoke
         make_request = {'transactions': [tx]}
         block_height: int = get_block_height()
         block_timestamp_us = int(time.time() * 10 ** 6)
-        block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+        block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
 
         make_request['block'] = {
             'blockHeight': hex(block_height),
@@ -270,7 +275,7 @@ class MockDispatcher:
 
         precommit_request = {'blockHeight': hex(block_height),
                              'blockHash': block_hash}
-
+        # invoke
         if MQ_TEST:
             response = await get_icon_score_stub().async_task().invoke(make_request)
             response = response['txResults']
@@ -443,6 +448,15 @@ class SimpleRestServer:
                               debug=False)
 
 
+def create_parser():
+    parser = argparse.ArgumentParser(description='jsonrpc_server for tbears')
+    parser.add_argument('-a', '--address', help='Address to host on (default: 0.0.0.0)', type=ip_address)
+    parser.add_argument('-p', '--port', help='Listen port (default: 9000)', type=int)
+    parser.add_argument('-c', '--config', help='tbears configuration file path (default: ./tbears.json)')
+
+    return parser
+
+
 def serve():
     async def __serve():
         init_tbears(conf)
@@ -453,61 +467,57 @@ def serve():
         else:
             await init_icon_inner_task(conf)
 
-    path = './tbears.json'
+    # create parser
+    parser = create_parser()
 
-    conf = load_config(path)['global']
+    # parse argument
+    args = parser.parse_args(sys.argv[1:])
+
+    if args.config:
+        path = args.config
+    else:
+        path = './tbears.json'
+
+    conf = load_config(path, args)
+
+    # init logger
     Logger(path)
     Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
 
-    server = SimpleRestServer(conf['port'], "0.0.0.0")
+    # write conf for tbears_cli
+    CommandServer.write_server_conf(host=conf.get('hostAddress'), port=conf.get('port'))
+
+    # start server
+    server = SimpleRestServer(port=conf.get('port'), ip_address=conf.get('hostAddress'))
     server.get_app().add_task(__serve)
 
     server.run()
 
 
-def load_config(path: str) -> dict:
-    default_conf = {
-        "log": {
-            "colorLog": True,
-            "level": "debug",
-            "filePath": "./tbears.log",
-            "outputType": "console|file"
-        },
-        "global": {
-            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "port": 9000,
-            "scoreRoot": "./.score",
-            "dbRoot": "./.db",
-            "genesisData": {
-                "accounts": [
-                    {
-                        "name": "genesis",
-                        "address": "hx0000000000000000000000000000000000000000",
-                        "balance": "0x2961fff8ca4a62327800000"
-                    },
-                    {
-                        "name": "fee_treasury",
-                        "address": "hx1000000000000000000000000000000000000000",
-                        "balance": "0x0"
-                    }
-                ]
-            }
-        },
-        "deploy": {
-            "uri": "http://localhost:9000/api/v3",
-            "stepLimit": "0x12345"
-        }
-    }
+def load_default_value(conf: dict, default: dict):
+    for key in default.keys():
+        if key not in conf:
+            conf[key] = default[key]
+        elif isinstance(conf[key], dict):
+            load_default_value(conf[key], default[key])
+
+
+def load_config(path: str, args) -> dict:
+    default_conf = json.loads(get_tbears_config_json())
 
     try:
         with open(path) as f:
             conf = json.load(f)
+        load_default_value(conf, default_conf)
     except (OSError, IOError):
-        return default_conf
+        conf = default_conf
 
-    for key in default_conf:
-        if key not in conf:
-            conf[key] = default_conf[key]
+    if args:
+        if args.address:
+            Logger.debug(f'args.address: {args.address}', TBEARS_LOG_TAG)
+            conf['hostAddress'] = str(args.address)
+        if args.port:
+            conf['port'] = args.port
 
     return conf
 
@@ -528,17 +538,16 @@ async def init_icon_score_stub(conf: dict):
     tx_hash = create_hash('genesis'.encode())
     tx_timestamp_us = int(time.time() * 10 ** 6)
     request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
-    genesis_data = conf['genesisData']
     tx = {
         'method': '',
         'params': request_params,
-        'genesisData': {'accounts': genesis_data['accounts']}
+        'genesisData': {'accounts': conf['accounts']}
     }
 
     make_request = {'transactions': [tx]}
     block_height: int = get_block_height()
     block_timestamp_us = tx_timestamp_us
-    block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+    block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
 
     make_request['block'] = {
         'blockHeight': hex(block_height),
@@ -574,7 +583,10 @@ async def init_icon_score_stub(conf: dict):
 
 async def init_icon_inner_task(conf: dict):
     global __icon_inner_task
-    __icon_inner_task = IconScoreInnerTask(conf['scoreRoot'], conf['dbRoot'])
+    config = Configure('')
+    config._config_table[ConfigKey.ADMIN_ADDRESS] = conf['accounts'][0]['address']
+    # TODO genesis address를 admin_address로 한다
+    __icon_inner_task = IconScoreInnerTask(config, conf['scoreRoot'], conf['dbRoot'])
 
     if is_done_genesis_invoke():
         return None
@@ -583,17 +595,16 @@ async def init_icon_inner_task(conf: dict):
     tx_timestamp_us = int(time.time() * 10 ** 6)
     request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
 
-    genesis_data = conf['genesisData']
     tx = {
         'method': '',
         'params': request_params,
-        'genesisData': {'accounts': genesis_data['accounts']}
+        'genesisData': {'accounts': conf['accounts']}
     }
 
     make_request = {'transactions': [tx]}
     block_height: int = get_block_height()
     block_timestamp_us = tx_timestamp_us
-    block_hash = create_hash(block_timestamp_us.to_bytes(8, 'big'))
+    block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
 
     make_request['block'] = {
         'blockHeight': hex(block_height),

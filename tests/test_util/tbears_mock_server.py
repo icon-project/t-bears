@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 from tbears.server.jsonrpc_server import init_tbears, init_icon_inner_task, load_config, SimpleRestServer
 
 
@@ -27,7 +25,7 @@ def init_mock_server(path: str='./tbears.json'):
     async def __serve():
         init_tbears(conf)
         await init_icon_inner_task(conf)
-    conf = load_config(path)['global']
+    conf = load_config(path, None)
     server = SimpleRestServer(conf['port'], "0.0.0.0")
     server.get_app().add_task(__serve)
 

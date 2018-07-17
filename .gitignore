@@ -230,6 +230,12 @@ score/score/
 build/
 dist/
 
+#tbears
 .db
 .score
+tbears.json
+deploy.json
 
+# patch
+*.rej
+*.orig

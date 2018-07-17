@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from typing import Optional
 
 import plyvel
 
@@ -62,3 +63,31 @@ class TbearsDB:
 
     def iterator(self) -> iter:
         return self._db.iterator()
+
+    def get_text(self, name: str) -> Optional[str]:
+        """Return text format value from db
+
+        :return: (str or None)
+            text value mapped by name
+            default encoding: utf8
+        """
+        key = name.encode()
+        value = self._db.get(key)
+        if value:
+            return value.decode()
+        else:
+            return None
+
+    def put_text(self,
+                 name: str,
+                 text: str) -> None:
+        """save text to db with name as a key
+        All text are utf8 encoded.
+
+        :param name: db key
+        :param text: db value
+        """
+        key = name.encode()
+        value = text.encode()
+        self._db.put(key, value)
+
