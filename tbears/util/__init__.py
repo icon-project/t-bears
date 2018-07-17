@@ -330,8 +330,8 @@ class MySampleToken(IconScoreBase, TokenStandard):
     def Transfer(self, _from: Address, _to: Address, _value: int, _data: bytes):
         pass
 
-    def __init__(self, db: IconScoreDatabase, _owner: Address) -> None:
-        super().__init__(db, _owner)
+    def __init__(self, db: IconScoreDatabase) -> None:
+        super().__init__(db)
         self._total_supply = VarDB(self._TOTAL_SUPPLY, db, value_type=int)
         self._balances = DictDB(self._BALANCES, db, value_type=int)
 
