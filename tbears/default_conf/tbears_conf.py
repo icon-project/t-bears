@@ -40,15 +40,13 @@ tbears_config = {
 }
 
 deploy_config = {
-    "deploy": {
-        "uri": "http://127.0.0.1:9000/api/v3",
-        "scoreType": "tbears",
-        "mode": "install",
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "to": "cx0000000000000000000000000000000000000000",
-        "stepLimit": "0x12345",
-        "scoreParams": {
-        }
+    "uri": "http://127.0.0.1:9000/api/v3",
+    "scoreType": "tbears",
+    "mode": "install",
+    "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "to": "cx0000000000000000000000000000000000000000",
+    "stepLimit": "0x12345",
+    "scoreParams": {
     }
 }
 
