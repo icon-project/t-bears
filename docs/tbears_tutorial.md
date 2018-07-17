@@ -87,7 +87,7 @@ $ source bin/activate
 
 #### overview
 
-tbears has 6 command, init, start, stop, deploy, clear, samples.
+tbears has 6 commands, init, start, stop, deploy, clear, samples.
 
 **usage**
 
@@ -100,16 +100,17 @@ optional arguments:
   -h, --help            show this help message and exit
   -d, --debug           Debug mode
 
-subcommands:
-  If you want to see help message of subcommands, use "tbears subcommand -h"
-  {init,start,stop,deploy,clear,samples}
-    init                Initialize tbears project
-    start               Start tbears serivce
-    stop                Stop tbears service
-    deploy              Deploy the SCORE
-    clear               Clear all SCORE deployed on tbears service
-    samples             Create two SCORE samples (sample_crowd_sale,
-                        sample_token)
+Available commands:
+  If you want to see help message of commands, use "tbears command -h"
+
+  command
+    init       Initialize tbears project
+    start      Start tbears serivce
+    stop       Stop tbears service
+    deploy     Deploy the SCORE
+    clear      Clear all SCORE deployed on tbears service
+    samples    Create two SCORE samples (standard_crowd_sale, standard_token)
+    keystore   Create keystore file in passed path
 ```
 
 **options**
@@ -123,7 +124,7 @@ subcommands:
 
 **description**
 
-Initialize SCORE development environment. Generate \<project\>.py and package.json in <project\> directory. The name of the score class is \<score_class\>
+Initialize SCORE development environment. Generate \<project\>.py and package.json in <project\> directory. The name of the score class is \<score_class\>.  tbears.json which is used for starting tbears and deploy.json  which is used for deploying SCORE are also generated.
 
 **usage**
 
@@ -152,7 +153,7 @@ optional arguments:
 ```bash
 (work) $ tbears init abc ABCToken
 (work) $ ls abc
-abc.py  __init__.py  package.json
+abc.py  __init__.py package.json tests
 ```
 
 **File description**
@@ -170,7 +171,7 @@ abc.py  __init__.py  package.json
 
 **description**
 
-start tbears service
+Start tbears service. When start tbears, tbears references tbears.json file. If you want to change the location of tbears.json, you have to specify the path in '-c' option.
 
 **usage**
 
@@ -199,7 +200,7 @@ optional arguments:
 
 **description**
 
-Stop all running SCORE and tbears service
+Stop all running SCORE and tbears service.
 
 **usage**
 
@@ -222,7 +223,9 @@ optional arguments:
 
 **description**
 
-Deploy the SCORE in project
+Deploy the SCORE in project. you can deploy it on local or icon service.
+
+You can set deploy configuration in deploy.json(See below 'configuration files').
 
 **usage**
 
@@ -241,13 +244,12 @@ optional arguments:
   -u URI, --node-uri URI                       URI of node
                                                (default: http://127.0.0.1:9000/api/v3)
   -t {tbears,icon}, --type {tbears,icon}       Deploy SCORE type
-                                               ("tbears" or "icon". default: tbears)
-  -m {install,update}, --mode {install,update} Deploy mode
-                                               ("install" or "update". default: update)
+                                               (default: tbears)
+  -m {install,update}, --mode {install,update} Deploy mode (default: install)
   -f FROM, --from FROM                         From address. i.e. SCORE owner address
   -o TO, --to TO                               To address. i.e. SCORE address
   -k KEYSTORE, --key-store KEYSTORE            Key store file for SCORE owner
-  -c CONFIG, --config CONFIG                   deploy config path (default: ./deploy.json
+  -c CONFIG, --config CONFIG                   deploy config path (default: ./deploy.json)
 ```
 
 **options**
@@ -298,7 +300,7 @@ input your key store password:
 
 **description**
 
-Clear all SCORE deployed on local tbears service
+Clear all SCORE deployed on local tbears service.
 
 **usage**
 
@@ -308,7 +310,7 @@ usage: tbears clear [-h]
 Clear all SCORE deployed on local tbears service
 
 optional arguments:
-  -h, --help  show this help message and exit json
+  -h, --help  show this help message and exit
 ```
 
 **options**
@@ -321,14 +323,14 @@ optional arguments:
 
 **description**
 
-Create two SCORE samples (sample_crowd_sale, sample_token)
+Create two SCORE samples (standard_crowd_sale, standard_token)
 
 **usage**
 
 ```bash
 usage: tbears samples [-h]
 
-Create two SCORE samples (sample_crowd_sale, sample_token)
+Create two SCORE samples (standard_crowd_sale, standard_token)
 
 optional arguments:
   -h, --help  show this help message and exit
@@ -346,20 +348,18 @@ optional arguments:
 (work) $ tbears samples
 
 (work) $ ls sample*
-sample_crowd_sale:
-__init__.py  package.json  sample_crowd_sale.py
+standard_crowd_sale:
+__init__.py  package.json  standard_crowd_sale.py
 
-sample_token:
-__init__.py  package.json  __pycache__  sample_token.py
+standard_token:
+__init__.py  package.json  __pycache__  standard_token.py
 ```
 
 ### configuration files
 
-#### tbears configuration file
+#### tbears.json
 
-Load tbears.json file in the tbears working directory.
-
-**tbears.json**
+When starting tbears(tbears start), tbears.json is used as a configuration data.
 
 ```json
 {
@@ -392,7 +392,7 @@ Load tbears.json file in the tbears working directory.
 
 | Field          | Data type | Description                                                  |
 | :------------- | :-------- | :----------------------------------------------------------- |
-| hostAddress    | string    | JSON-RPC server IP                                           |
+| hostAddress    | string    | Address to host on                                           |
 | port           | int       | JSON-RPC server port number.                                 |
 | scoreRoot      | string    | Root directory that SCORE will be installed.                 |
 | dbRoot         | string    | Root directory that state DB file will be created.           |
@@ -405,9 +405,11 @@ Load tbears.json file in the tbears working directory.
 | log.outputType | string    | “console”: log outputs to the console that tbears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
 | accounts       | list      | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): accounts. |
 
-#### score deploy configuration file
+#### deploy.json(a separate file from tbears config)
 
-**deploy.json(a separate file from tbears config)**
+When deploying tbears(tbears deploy), this file is used as a configuration data.
+
+In SCORE, you can implement on_install(), on_update(), and that methods are called when deploy SCORE.  For example, if you deploy new SCORE(mode: install), on_install() method in the SCORE is called and initialize SCORE. In this config file, you can set deploy mode(install or update) and parameters of on_install (or on_update) method(scoreParams).
 
 ```json
 {
@@ -418,10 +420,7 @@ Load tbears.json file in the tbears working directory.
         "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "to": "cx0000000000000000000000000000000000000000",
         "stepLimit": "0x12345",
-        "scoreParams": {
-        	"init_supply": "0x3e8",
-        	"decimal": "0x12"
-        }
+        "scoreParams": {}
     }
 }
 ```
