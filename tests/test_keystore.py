@@ -14,43 +14,30 @@
 # limitations under the License.
 import os
 import unittest
+import json
 
-from eth_keyfile import create_keyfile_json
-
-from tbears.command import ExitCode
-from tbears.command.command_util import CommandUtil
+from tbears.util.keystore_manager import make_key_store_content
 from tbears.tbears_exception import KeyStoreException
 from tbears.util.icx_signer import key_from_key_store
 
 
-def make_key_store_content_for_test(private_key_obj, password):
-    private_key = private_key_obj.private_key
-    key_store_contents = create_keyfile_json(private_key, password.encode(), iterations=262144, kdf="scrypt")
-    return key_store_contents
-
-
 class TestKeyStore(unittest.TestCase):
-
-    def test_keystore(self):
-        path = './kkeystore'
-        password = '1234qwer%'
-        result = CommandUtil.make_keystore(path, password)
-        self.assertEqual(ExitCode.SUCCEEDED, result)
-        self.assertTrue(os.path.exists(path))
-        os.remove(path)
-
     def test_private_key(self):
-        CommandUtil.make_keystore('keystoretest', 'qwer1234%')
-        written_key = key_from_key_store('keystoretest', 'qwer1234%')
+        path = 'keystoretest'
+        password = 'qwer1234%'
+
+        # make keystore file
+        content = make_key_store_content(password)
+        with open(path, mode='wb') as ks:
+            ks.write(json.dumps(content).encode())
+
+        # get private key from keystore file
+        written_key = key_from_key_store(file_path=path, password=password)
         self.assertTrue(isinstance(written_key, bytes))
-        os.remove('keystoretest')
 
-    def test_private_key_wrong_password(self):
-        CommandUtil.make_keystore('keystoretest2', 'qwer1234%')
-        self.assertRaises(KeyStoreException, key_from_key_store, 'keystoretest2', 'qwer1234')
-        os.remove('keystoretest2')
+        # wrong password
+        self.assertRaises(KeyStoreException, key_from_key_store, path, 'wrongpasswd')
 
-    def test_private_key_wrong_path(self):
-        CommandUtil.make_keystore('keystoretest2', 'qwer1234%')
-        self.assertRaises(KeyStoreException, key_from_key_store, 'wrongpath', 'qwer1234')
-        os.remove('keystoretest2')
+        # wrong path
+        self.assertRaises(KeyStoreException, key_from_key_store, 'wrongpath', password)
+        os.remove(path)

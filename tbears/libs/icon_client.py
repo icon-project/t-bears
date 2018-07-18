@@ -35,8 +35,8 @@ class IconClient:
             json_content = json.dumps(payload)
             resp = requests.post(self._url, json_content)
         except requests.exceptions.Timeout:
-             raise RuntimeError("time out")
-        except:
-            raise IconClientException
+            raise RuntimeError("time out")
+        except Exception as e:
+            raise IconClientException(f'{e}')
         else:
             return resp
