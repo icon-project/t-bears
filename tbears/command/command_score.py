@@ -16,8 +16,9 @@ import os
 import shutil
 import getpass
 
+from icon_common.icon_config import IconConfig
 from tbears.command.command_server import CommandServer
-from tbears.config.tbears_config import TBearsConfig, deploy_config
+from tbears.config.tbears_config import deploy_config
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
 from tbears.libs.icon_client import IconClient
 from tbears.libs.icon_json import get_icx_sendTransaction_deploy_payload
@@ -56,7 +57,7 @@ class CommandScore(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = TBearsConfig('./deploy.json', deploy_config)
+        conf = IconConfig('./deploy.json', deploy_config)
         conf.load(user_input=vars(args))
 
         # run command
@@ -157,6 +158,6 @@ class CommandScore(object):
 
     @staticmethod
     def get_deploy_conf(project: str):
-        conf = TBearsConfig('./deploy.json', deploy_config)
+        conf = IconConfig('./deploy.json', deploy_config)
         conf['project'] = project
         return conf

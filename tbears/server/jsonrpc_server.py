@@ -19,21 +19,22 @@ from json import JSONDecodeError
 import argparse
 from ipaddress import ip_address
 
-from iconservice import DATA_BYTE_ORDER
-from iconservice.icon_constant import DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT, ICON_SCORE_QUEUE_NAME_FORMAT, ConfigKey
+from iconservice.icon_constant import DATA_BYTE_ORDER, ICON_SCORE_QUEUE_NAME_FORMAT, ConfigKey
 from jsonrpcserver import status
 from jsonrpcserver.aio import methods
 from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams
 from sanic import Sanic, response as sanic_response
+
 from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
-from iconservice.logger import Logger
-from iconservice.icon_config import Configure
 from iconservice.utils import check_error_response
+from iconservice.icon_config import default_icon_config
+from tbears.config.tbears_config import tbears_config
+from icon_common.icon_config import IconConfig
+from icon_common.logger import Logger
 
 from typing import Optional
 
 from tbears.server.tbears_db import TbearsDB
-from tbears.util import get_tbears_config_json
 from tbears.command.command_server import CommandServer
 
 MQ_TEST = False
@@ -70,36 +71,41 @@ def get_icon_score_stub() -> 'IconScoreInnerStub':
     return __icon_score_stub
 
 
-def create_icon_score_service(channel: str, amqp_key: str, amqp_target: str,
-                              icon_score_root_path: str, icon_score_state_db_root_path: str,
-                              **kwargs) -> 'IconScoreInnerService':
-    icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
-                                                                amqp_key=amqp_key)
+def create_icon_score_service() -> 'IconScoreInnerService':
+    conf = IconConfig("", default_icon_config)
+    conf.load()
+
+    icon_score_root_path = conf[ConfigKey.ICON_SCORE_ROOT]
+    icon_score_state_db_root_path = conf[ConfigKey.ICON_SCORE_STATE_DB_ROOT_PATH]
+    amqp_target = conf[ConfigKey.AMQP_TARGET]
+
+    icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(**
+                                                                {ConfigKey.CHANNEL: conf[ConfigKey.CHANNEL],
+                                                                 ConfigKey.AMQP_KEY: conf[ConfigKey.AMQP_KEY]})
 
     Logger.debug(f'==========create_icon_score_service==========', TBEARS_LOG_TAG)
     Logger.debug(f'icon_score_root_path : {icon_score_root_path}', TBEARS_LOG_TAG)
     Logger.debug(f'icon_score_state_db_root_path  : {icon_score_state_db_root_path}', TBEARS_LOG_TAG)
     Logger.debug(f'amqp_target  : {amqp_target}', TBEARS_LOG_TAG)
     Logger.debug(f'icon_score_queue_name  : {icon_score_queue_name}', TBEARS_LOG_TAG)
-    Logger.debug(f'kwargs : {kwargs}', TBEARS_LOG_TAG)
     Logger.debug(f'==========create_icon_score_service==========', TBEARS_LOG_TAG)
 
-    return IconScoreInnerService(amqp_target, icon_score_queue_name,
-                                 icon_score_root_path=icon_score_root_path,
-                                 icon_score_state_db_root_path=icon_score_state_db_root_path)
+    return IconScoreInnerService(amqp_target, icon_score_queue_name, conf=conf)
 
 
-def create_icon_score_stub(channel: str, amqp_key: str, amqp_target: str,
-                           **kwargs) -> 'IconScoreInnerStub':
-    icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel,
-                                                                amqp_key=amqp_key)
+def create_icon_score_stub() -> 'IconScoreInnerStub':
+    conf = IconConfig("", default_icon_config)
+    conf.load()
+
+    icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(**
+                                                                {ConfigKey.CHANNEL: conf[ConfigKey.CHANNEL],
+                                                                 ConfigKey.AMQP_KEY: conf[ConfigKey.AMQP_KEY]})
 
     Logger.debug(f'==========create_icon_score_stub==========', TBEARS_LOG_TAG)
     Logger.debug(f'icon_score_queue_name  : {icon_score_queue_name}', TBEARS_LOG_TAG)
-    Logger.debug(f'kwargs : {kwargs}', TBEARS_LOG_TAG)
     Logger.debug(f'==========create_icon_score_stub==========', TBEARS_LOG_TAG)
 
-    return IconScoreInnerStub(amqp_target, icon_score_queue_name)
+    return IconScoreInnerStub(conf[ConfigKey.AMQP_TARGET], icon_score_queue_name)
 
 
 def get_block_height():
@@ -478,10 +484,10 @@ def serve():
     else:
         path = './tbears.json'
 
-    conf = load_config(path, args)
+    conf = _load_config(path, args)
 
     # init logger
-    Logger(path)
+    Logger.load_config(conf)
     Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
 
     # write conf for tbears_cli
@@ -494,26 +500,8 @@ def serve():
     server.run()
 
 
-def load_default_value(conf: dict, default: dict):
-    for key in default.keys():
-        if key not in conf:
-            conf[key] = default[key]
-        elif isinstance(conf[key], dict):
-            load_default_value(conf[key], default[key])
-        else:
-            conf[key] = default[key]
-
-
-def load_config(path: str, args) -> dict:
-    default_conf = json.loads(get_tbears_config_json())
-
-    try:
-        with open(path) as f:
-            conf = json.load(f)
-        load_default_value(conf, default_conf)
-    except (OSError, IOError):
-        conf = default_conf
-
+def _load_config(path: str, args) -> 'IconConfig':
+    conf = IconConfig(path, tbears_config)
     if args:
         if args.address:
             Logger.debug(f'args.address: {args.address}', TBEARS_LOG_TAG)
@@ -526,13 +514,13 @@ def load_config(path: str, args) -> dict:
 
 async def init_icon_score_service():
     global __icon_score_service
-    __icon_score_service = create_icon_score_service(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
+    __icon_score_service = create_icon_score_service()
     await __icon_score_service.connect(exclusive=True)
 
 
-async def init_icon_score_stub(conf: dict):
+async def init_icon_score_stub(conf: 'IconConfig'):
     global __icon_score_stub
-    __icon_score_stub = create_icon_score_stub(**DEFAULT_ICON_SERVICE_FOR_TBEARS_ARGUMENT)
+    __icon_score_stub = create_icon_score_stub()
 
     if is_done_genesis_invoke():
         return None
@@ -583,12 +571,14 @@ async def init_icon_score_stub(conf: dict):
     return response_to_json_invoke(response)
 
 
-async def init_icon_inner_task(conf: dict):
+async def init_icon_inner_task(conf: 'IconConfig'):
     global __icon_inner_task
-    config = Configure('')
-    config._config_table[ConfigKey.ADMIN_ADDRESS] = conf['accounts'][0]['address']
+    config = IconConfig("", default_icon_config)
+    config.load({ConfigKey.ADMIN_ADDRESS: conf['accounts'][0]['address'],
+                 ConfigKey.ICON_SCORE_ROOT: conf['scoreRoot'],
+                 ConfigKey.ICON_SCORE_STATE_DB_ROOT_PATH: conf['dbRoot']})
     # TODO genesis address를 admin_address로 한다
-    __icon_inner_task = IconScoreInnerTask(config, conf['scoreRoot'], conf['dbRoot'])
+    __icon_inner_task = IconScoreInnerTask(config)
 
     if is_done_genesis_invoke():
         return None
@@ -641,7 +631,7 @@ async def init_icon_inner_task(conf: dict):
     return response_to_json_invoke(response)
 
 
-def init_tbears(conf: dict):
+def init_tbears(conf: 'IconConfig'):
     global __tx_result_mapper
     __tx_result_mapper = TxResultMapper()
     global TBEARS_DB

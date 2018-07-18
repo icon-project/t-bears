@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import json
 
 tbears_config = {
     "hostAddress": "0.0.0.0",
@@ -52,25 +50,3 @@ deploy_config = {
     "scoreParams": {
     }
 }
-
-
-class TBearsConfig(dict):
-    def __init__(self, default_conf_path: str = './tbears.json', default_config: dict = tbears_config):
-        self.default_conf_path = default_conf_path
-        self.update(default_config)
-
-    def load(self, user_input: dict = {}):
-        for path in [user_input.get('config', ""), self.default_conf_path]:
-            if path and self._load(path):
-                break
-
-        if user_input:
-            self.update({k: v for k, v in user_input.items() if v})
-
-    def _load(self, conf_path: str):
-        if not os.path.exists(conf_path):
-            return False
-        with open(conf_path) as f:
-            conf: dict = json.load(f)
-            self.update(conf)
-            return True

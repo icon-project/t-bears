@@ -387,14 +387,6 @@ class MySampleToken(IconScoreBase, TokenStandard):
     return template.replace("MySampleToken", score_class)
 
 
-def get_tbears_config_json() -> str:
-    return json.dumps(tbears_config.tbears_config, indent=4)
-
-
-def get_deploy_config_json() -> str:
-    return json.dumps(tbears_config.deploy_config, indent=4)
-
-
 def create_address(data: bytes) -> str:
     """Create address using given data.
 

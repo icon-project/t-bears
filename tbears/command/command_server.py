@@ -20,9 +20,9 @@ import time
 from typing import Optional
 from ipaddress import ip_address
 
-from iconservice.logger import Logger
+from icon_common.icon_config import IconConfig
+from icon_common.logger import Logger
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
-from tbears.config.tbears_config import TBearsConfig
 from tbears.util import post, make_exit_json_payload, write_file
 
 
@@ -54,7 +54,7 @@ class CommandServer(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = TBearsConfig()
+        conf = IconConfig()
         conf.load(user_input=vars(args))
 
         # run command
