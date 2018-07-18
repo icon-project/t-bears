@@ -25,7 +25,7 @@ class JsonContents:
 
     def __init__(self, step_limit=123, nonce=1, version=3, _id=1):
         if not all(isinstance(arg, int) for arg in (step_limit, nonce, version, _id)):
-            raise JsonContentsException
+            raise JsonContentsException(f"stepLimit, nonce, version, id must be int type")
 
         self.step_limit = step_limit
         self.nonce = nonce
