@@ -68,7 +68,7 @@ class CommandScore(object):
         :param conf: deploy command configuration
         :param password: password for keystore file
         """
-        if not CommandServer.is_server_running():
+        if conf['scoreType'] == 'tbears' and not CommandServer.is_server_running():
             raise TBearsCommandException(f'Start tbears service first')
 
         password = self._check_deploy(conf, password)
