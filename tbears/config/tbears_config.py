@@ -46,9 +46,11 @@ deploy_config = {
     "uri": "http://127.0.0.1:9000/api/v3",
     "scoreType": "tbears",
     "mode": "install",
+    "keyStore": None,
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
-    "stepLimit": "0x12345",
+    "nid": "0x1234",
+    "stepLimit": "0x1234",
     "scoreParams": {
     }
 }

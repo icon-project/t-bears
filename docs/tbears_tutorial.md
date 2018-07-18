@@ -252,6 +252,7 @@ optional arguments:
   -f FROM, --from FROM                         From address. i.e. SCORE owner address
   -o TO, --to TO                               To address. i.e. SCORE address
   -k KEYSTORE, --key-store KEYSTORE            Key store file for SCORE owner
+  -n NID, --nid NID                            Network ID of node
   -c CONFIG, --config CONFIG                   deploy config path (default: ./deploy.json)
 ```
 
@@ -267,6 +268,7 @@ optional arguments:
 | -f, --from                                      |                              | From address. i.e. SCORE owner address                       |
 | -o, --to                                        |                              | To address. i.e. SCORE address <br>**(only when update score)** |
 | -k, --key-store                                 |                              | Key store file for SCORE owner                               |
+| -n, --nid                                       |                              | Network ID of node                                           |
 | -c, --config                                    | ./deploy.json                | deploy config path                                           |
 
 **examples**
@@ -279,9 +281,11 @@ optional arguments:
     "uri": "http://127.0.0.1:9000/api/v3",
     "scoreType": "tbears",
     "mode": "install",
+    "keyStore": null,
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
-    "stepLimit": "0x12345",
+    "nid": "0x1234",
+    "stepLimit": "0x1234",
     "scoreParams": {}
 }
 (work) $ tbears deploy abc -c ./deploy.json
@@ -415,9 +419,11 @@ In SCORE, you can implement on_install(), on_update(), and that methods are c
     "uri": "http://127.0.0.1:9000/api/v3",
     "scoreType": "tbears",
     "mode": "install",
+    "keyStore": null,
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
-    "stepLimit": "0x12345",
+    "nid": "0x1234",
+    "stepLimit": "0x1234",
     "scoreParams": {}
 }
 ```
@@ -429,7 +435,9 @@ In SCORE, you can implement on_install(), on_update(), and that methods are c
 | mode         | string     | deploy mode setting<br>install: new SCORE deployment<br>update: updates SCORE which is Previously deployed |
 | from         | string     | address of SCORE deployer                                    |
 | to           | string     | (optional) Used when update SCORE (The address of the SCORE being updated).<br/>(in the case of install mode, set 'cx0000~') |
-| stepLimit    | string     | (optional)                                                  |
+| nid          | string     | Network ID                                                   |
+| stepLimit    | string     | (optional) stepLimit value                                   |
+| keyStore     | string     | (optional) keystore file path                                |
 | scoreParams  | dict       | Parameters to be passed to on_install() or on_update()       |
 
 ## Utilities

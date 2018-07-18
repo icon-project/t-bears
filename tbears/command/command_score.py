@@ -44,6 +44,7 @@ class CommandScore(object):
         parser.add_argument('-f', '--from', help='From address. i.e. SCORE owner address', dest='from')
         parser.add_argument('-o', '--to', help='To address. i.e. SCORE address', dest='to')
         parser.add_argument('-k', '--key-store', help='Key store file for SCORE owner', dest='keyStore')
+        parser.add_argument('-n', '--nid', help='Network ID', dest='nid')
         parser.add_argument('-c', '--config', help='deploy config path (default: ./deploy.json)')
 
     @staticmethod
@@ -73,7 +74,7 @@ class CommandScore(object):
 
         password = self._check_deploy(conf, password)
 
-        step_limit = int(conf.get('stepLimit', "0x12345"), 16)
+        step_limit = int(conf.get('stepLimit', "0x1234"), 16)
         if conf['mode'] == 'install':
             score_address = f'cx{"0"*40}'
         else:
@@ -84,6 +85,7 @@ class CommandScore(object):
             deploy_contents = get_deploy_contents_by_path(conf['project'])
             payload = get_icx_sendTransaction_deploy_payload(signer=signer,
                                                              contents=deploy_contents,
+                                                             nid=conf['nid'],
                                                              to=score_address,
                                                              deploy_params=conf.get('scoreParams', {}),
                                                              step_limit=step_limit)
@@ -91,7 +93,8 @@ class CommandScore(object):
             payload = make_install_json_payload(project=conf['project'],
                                                 fr=conf['from'],
                                                 to=score_address,
-                                                deploy_params=conf.get('scoreParams', {}))
+                                                nid=conf['nid'],
+                                                data_params=conf.get('scoreParams', {}))
 
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(payload)
@@ -135,7 +138,8 @@ class CommandScore(object):
 
         if conf['scoreType'] == 'icon':
             if conf.get('keyStore', None) is None:
-                raise TBearsCommandException(f'If you want to deploy SCORE to ICON node, set --key-store option')
+                raise TBearsCommandException(f'If you want to deploy SCORE to ICON node, set --key-store option or '
+                                             f'write "keyStore" value in configuration file.')
             else:
                 if not os.path.exists(conf['keyStore']):
                     raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
