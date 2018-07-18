@@ -29,8 +29,8 @@ from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInner
 from iconservice.utils import check_error_response
 from iconservice.icon_config import default_icon_config
 from tbears.config.tbears_config import tbears_config
-from icon_common.icon_config import IconConfig
-from icon_common.logger import Logger
+from iconcommons.icon_config import IconConfig
+from iconcommons.logger import Logger
 
 from typing import Optional
 

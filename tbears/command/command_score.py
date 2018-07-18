@@ -16,7 +16,7 @@ import os
 import shutil
 import getpass
 
-from icon_common.icon_config import IconConfig
+from iconcommons.icon_config import IconConfig
 from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import deploy_config
 from tbears.util.icx_signer import key_from_key_store, IcxSigner

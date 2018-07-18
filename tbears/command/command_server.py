@@ -20,8 +20,8 @@ import time
 from typing import Optional
 from ipaddress import ip_address
 
-from icon_common.icon_config import IconConfig
-from icon_common.logger import Logger
+from iconcommons.icon_config import IconConfig
+from iconcommons.logger import Logger
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
 from tbears.util import post, make_exit_json_payload, write_file
 
