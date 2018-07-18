@@ -23,7 +23,7 @@ tbears_config = {
         "colorLog": True,
         "level": "debug",
         "filePath": "./tbears.log",
-        "outputType": "console|file"
+        "outputType": "console|file|daily"
     },
     "accounts": [
         {
