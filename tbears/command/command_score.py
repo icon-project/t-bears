@@ -95,10 +95,17 @@ class CommandScore(object):
 
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(payload)
-        tx_hash = response.json()['result']
+        response_json = response.json()
 
-        print(f"transaction hash: {tx_hash}")
-        print(f"Deployed SCORE successfully")
+        if 'result' in response_json:
+            print('Send request successfully.')
+            tx_hash = response_json['result']
+            print(f"transaction hash: {tx_hash}")
+        else:
+            print('Send request failed')
+            print(response_json)
+
+        # print(f"Deployed SCORE successfully")
 
         return response.json()
 
