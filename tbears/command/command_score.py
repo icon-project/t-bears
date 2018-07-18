@@ -56,7 +56,7 @@ class CommandScore(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = TBearsConfig('./deploy', deploy_config)
+        conf = TBearsConfig('./deploy.json', deploy_config)
         conf.load(user_input=vars(args))
 
         # run command
@@ -95,8 +95,17 @@ class CommandScore(object):
 
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(payload)
+        response_json = response.json()
 
-        print(f"Deployed SCORE successfully")
+        if 'result' in response_json:
+            print('Send request successfully.')
+            tx_hash = response_json['result']
+            print(f"transaction hash: {tx_hash}")
+        else:
+            print('Send request failed')
+            print(response_json)
+
+        # print(f"Deployed SCORE successfully")
 
         return response.json()
 
@@ -107,7 +116,7 @@ class CommandScore(object):
         :param _conf: deploy command configuration
         """
         if CommandServer.is_server_running():
-            TBearsCommandException(f'You must stop tbears service to clear SCORE')
+            raise TBearsCommandException(f'You must stop tbears service to clear SCORE')
 
         try:
             if os.path.exists('./.score'):
@@ -148,6 +157,6 @@ class CommandScore(object):
 
     @staticmethod
     def get_deploy_conf(project: str):
-        conf = TBearsConfig('./deploy', deploy_config)
+        conf = TBearsConfig('./deploy.json', deploy_config)
         conf['project'] = project
         return conf
