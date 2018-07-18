@@ -33,11 +33,9 @@ def key_from_key_store(file_path: str, password: (bytes, str)) -> bytes:
         with open(file_path, 'rb') as file:
             private_key = extract_key_from_keyfile(file, password)
     except ValueError:
-        print('check your password.')
-        raise KeyStoreException
+        raise KeyStoreException('Invalid password.')
     except Exception as e:
-        print('check your keystore file.')
-        raise KeyStoreException
+        raise KeyStoreException(f'keystore file error.{e}')
     else:
         return private_key
 

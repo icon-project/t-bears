@@ -500,6 +500,8 @@ def load_default_value(conf: dict, default: dict):
             conf[key] = default[key]
         elif isinstance(conf[key], dict):
             load_default_value(conf[key], default[key])
+        else:
+            conf[key] = default[key]
 
 
 def load_config(path: str, args) -> dict:

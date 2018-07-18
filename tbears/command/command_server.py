@@ -17,131 +17,94 @@ import os
 import sys
 import subprocess
 import time
-import logging
 from typing import Optional
+from ipaddress import ip_address
 
-from iconservice.logger import Logger as logging
-from tbears.command import Command, ExitCode
-from tbears.tbears_exception import TBearsWriteFileException
-from tbears.util import (
-    post, make_exit_json_payload, get_init_template, get_tbears_config_json, get_deploy_config_json,
-    write_file, get_package_json_dict, get_score_main_template, get_sample_crowd_sale_contents,
-    get_sample_token_contents)
+from iconservice.logger import Logger
+from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
+from tbears.config.tbears_config import TBearsConfig
+from tbears.util import post, make_exit_json_payload, write_file
 
 
-TBEARS_CLI_TAG = 'tbears_cli'
 TBEARS_CLI_ENV = '/tmp/.tbears.env'
 SERVER_MODULE_NAME = 'tbears.server.jsonrpc_server'
+TBEARS_CLI_TAG = 'tbears_cli'
 
 
-class CommandServer(Command):
-    @staticmethod
-    def init(project: str, score_class: str) -> 'ExitCode':
-        """Initialize the tbears service.
-
-        :param project: name of tbears project.
-        :param score_class: class name of SCORE.
-        :return: ExitCode, Succeeded
-        """
-        return CommandServer.__initialize_project(project=project, score_class=score_class,
-                                                  contents_func=get_score_main_template)
+class CommandServer(object):
+    def __init__(self, subparsers):
+        self._add_start_parser(subparsers)
+        self._add_stop_parser(subparsers)
 
     @staticmethod
-    def start(host: str = None, port: int = None, conf_file: str = None) -> None:
+    def _add_start_parser(subparsers) -> None:
+        parser = subparsers.add_parser('start', help='Start tbears serivce',
+                                       description='Start tbears service')
+        parser.add_argument('-a', '--address', help='Address to host on (default: 0.0.0.0)', type=ip_address)
+        parser.add_argument('-p', '--port', help='Listen port (default: 9000)', type=int)
+        parser.add_argument('-c', '--config', help='tbears configuration file path (default: ./tbears.json)')
+
+    @staticmethod
+    def _add_stop_parser(subparsers) -> None:
+        subparsers.add_parser('stop', help='Stop tbears service',
+                              description='Stop all running SCORE and tbears service')
+
+    def run(self, args):
+        if not hasattr(self, args.command):
+            raise TBearsCommandException(f"Invalid command {args.command}")
+
+        # load configurations
+        conf = TBearsConfig()
+        conf.load(user_input=vars(args))
+
+        # run command
+        getattr(self, args.command)(conf)
+
+    @staticmethod
+    def start(conf: dict):
         """ Start tbears service
 
-        :param host: address to host on
-        :param port: listen port
-        :param conf_file: configuration file path
+        :param conf: start command configuration
         """
+        if CommandServer.is_server_running():
+            raise TBearsCommandException(f"Tbears service was started already")
+
         # start jsonrpc_server for tbears
-        CommandServer.__start_server(host=host, port=port, tbears_config_path=conf_file)
+        CommandServer.__start_server(conf)
 
         # wait 2 sec
         time.sleep(2)
 
-    @staticmethod
-    def stop() -> 'ExitCode':
-        """
-        Stop tbears service
-        :return: ExitCode, Succeeded
-        """
+        print(f'Started tbear service successfully')
 
+    @staticmethod
+    def stop(_conf: dict):
+        """ Stop tbears service
+        :param _conf: stop command configuration
+        """
         if CommandServer.is_server_running():
             CommandServer.__exit_request()
             # Wait until server socket is released
             time.sleep(2)
 
-        # delete env file
-        CommandServer.delete_server_conf()
+            # delete env file
+            CommandServer.__delete_server_conf()
 
-        return ExitCode.SUCCEEDED
+            print(f'Stopped tbear service successfully')
+        else:
+            print(f'tbear service is not running')
 
-    @staticmethod
-    def make_samples() -> 'ExitCode':
-        ret = CommandServer.__initialize_project(project="standard_token", score_class="StandardToken",
-                                                 contents_func=get_sample_token_contents)
-        if ret is not ExitCode.SUCCEEDED:
-            return ret
-
-        return CommandServer.__initialize_project(project="standard_crowd_sale", score_class="StandardCrowdSale",
-                                                  contents_func=get_sample_crowd_sale_contents)
+    def check_command(self, command):
+        return hasattr(self, command)
 
     @staticmethod
-    def test(project: str) -> int:
-        if os.path.isdir(project) is False:
-            print(f'check score path.')
-            return ExitCode.SCORE_PATH_IS_NOT_A_DIRECTORY
-        os.chdir(project)
-        subprocess.Popen([sys.executable, '-m', 'unittest'])
-        time.sleep(1)
-
-        return ExitCode.SUCCEEDED
-
-    @staticmethod
-    def __initialize_project(project: str, score_class: str, contents_func) -> 'ExitCode':
-        """Initialize the tbears project
-
-        :param project: name of tbears project.
-        :param score_class: class name of SCORE.
-        :param source code contents
-        :return: ExitCode, Succeeded
-        """
-        if project == score_class:
-            print(f'<project> and <score_class> must be different.')
-            return ExitCode.PROJECT_AND_CLASS_NAME_EQUAL
-        if os.path.exists(f"./{project}"):
-            logging.debug(f'{project} directory is not empty.', TBEARS_CLI_TAG)
-            print(f'{project} directory is not empty.')
-            return ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY
-
-        package_json_dict = get_package_json_dict(project, score_class)
-        package_json_contents = json.dumps(package_json_dict, indent=4)
-        py_contents = contents_func(score_class)
-        init_contents = get_init_template(project, score_class)
-
-        try:
-            write_file(project, f"{project}.py", py_contents)
-            write_file(project, "package.json", package_json_contents)
-            write_file(project, '__init__.py', init_contents)
-            write_file(f'{project}/tests', f'test_{project}.py', '')
-            write_file(f'{project}/tests', f'__init__.py', '')
-            write_file('./', "tbears.json", get_tbears_config_json())
-            write_file('./', "deploy.json", get_deploy_config_json())
-        except TBearsWriteFileException:
-            logging.debug("Except raised while writing files.", TBEARS_CLI_TAG)
-            return ExitCode.WRITE_FILE_ERROR
-
-        return ExitCode.SUCCEEDED
-
-    @staticmethod
-    def __start_server(host: str, port: int, tbears_config_path: str = './tbears.json'):
-        logging.debug('start_server() start', TBEARS_CLI_TAG)
+    def __start_server(conf: dict):
+        Logger.debug('start_server() start', TBEARS_CLI_TAG)
 
         # make params
-        params = {'-a': host if port else None,
-                  '-p': str(port) if port else None,
-                  '-c': tbears_config_path}
+        params = {'-a': str(conf.get('hostAddress', None)),
+                  '-p': str(conf.get('port', None)),
+                  '-c': conf.get('config', None)}
 
         custom_argv = []
         for k, v in params.items():
@@ -152,16 +115,16 @@ class CommandServer(Command):
         # Run jsonrpc_server on background mode
         subprocess.Popen([sys.executable, '-m', SERVER_MODULE_NAME, *custom_argv], close_fds=True)
 
-        logging.debug('start_server() end', TBEARS_CLI_TAG)
+        Logger.debug('start_server() end', TBEARS_CLI_TAG)
 
     @staticmethod
     def __exit_request():
         """ Request for exiting SCORE on server.
         """
-        server = CommandServer.get_server_conf()
+        server = CommandServer.__get_server_conf()
         if server is None:
-            logging.debug(f"Can't get server Info. from {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
-            server = CommandServer.get_server_conf('./tbears.json')
+            Logger.debug(f"Can't get server Info. from {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
+            server = CommandServer.__get_server_conf('./tbears.json')
             if not server:
                 server = {'port': 9000}
 
@@ -185,20 +148,31 @@ class CommandServer(Command):
             "hostAddress": host,
             "port": port
         }
-        logging.debug(f"Write server Info.({conf}) to {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
-        CommandServer.write_conf(file_path=TBEARS_CLI_ENV, conf=conf)
+        Logger.debug(f"Write server Info.({conf}) to {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
+        file_path = TBEARS_CLI_ENV
+        file_name = file_path[file_path.rfind('/') + 1:]
+        parent_directory = file_path[:file_path.rfind('/')]
+        try:
+            write_file(parent_directory=parent_directory, file_name=file_name, contents=json.dumps(conf),
+                       overwrite=True)
+        except Exception as e:
+            print(f"Can't write conf to file. {e}")
+        except TBearsWriteFileException as e:
+            print(f"{e}")
 
     @staticmethod
-    def get_server_conf(file_path: str= TBEARS_CLI_ENV) -> Optional[dict]:
-        conf = Command.get_conf(file_path=file_path)
-        if conf is None:
-            logging.debug(f"Can't get server info", TBEARS_CLI_TAG)
+    def __get_server_conf(file_path: str= TBEARS_CLI_ENV) -> Optional[dict]:
+        try:
+            with open(f'{file_path}') as f:
+                conf = json.load(f)
+        except Exception as e:
+            Logger.debug(f"Can't read server configuration({file_path}. {e}")
             return None
 
-        logging.debug(f"Get server info {conf}", TBEARS_CLI_TAG)
+        Logger.debug(f"Get server info {conf}", TBEARS_CLI_TAG)
         return conf
 
     @staticmethod
-    def delete_server_conf() -> None:
+    def __delete_server_conf() -> None:
         if os.path.exists(TBEARS_CLI_ENV):
             os.remove(TBEARS_CLI_ENV)

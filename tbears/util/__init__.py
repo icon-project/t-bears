@@ -21,8 +21,8 @@ import requests
 from tbears.util.in_memory_zip import InMemoryZip
 from tbears.util.icx_signer import IcxSigner
 from tbears.libs.icon_json import JsonContents
-from ..tbears_exception import TBearsWriteFileException, ZipException, FillDeployPaylodException
-from tbears.default_conf import tbears_conf
+from ..tbears_exception import TBearsWriteFileException, ZipException, DeployPayloadException
+from tbears.config import tbears_config
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, '..', '..'))
@@ -42,10 +42,8 @@ def write_file(parent_directory: str, file_name: str, contents: str, overwrite: 
             return
         with open(f'{parent_directory}/{file_name}', mode='w') as file:
             file.write(contents)
-    except PermissionError:
-        raise TBearsWriteFileException
-    except IsADirectoryError:
-        raise TBearsWriteFileException
+    except (PermissionError, IsADirectoryError) as e:
+        raise TBearsWriteFileException(f"Can't write file {parent_directory}/{file_name}. {e}")
 
 
 def get_init_template(project: str, score_class: str) -> str:
@@ -390,11 +388,11 @@ class MySampleToken(IconScoreBase, TokenStandard):
 
 
 def get_tbears_config_json() -> str:
-    return json.dumps(tbears_conf.tbears_config, indent=4)
+    return json.dumps(tbears_config.tbears_config, indent=4)
 
 
 def get_deploy_config_json() -> str:
-    return json.dumps(tbears_conf.deploy_config, indent=4)
+    return json.dumps(tbears_config.deploy_config, indent=4)
 
 
 def create_address(data: bytes) -> str:
@@ -418,6 +416,6 @@ def get_deploy_contents_by_path(project_root_path: str = None):
         memory_zip = InMemoryZip()
         memory_zip.zip_in_memory(project_root_path)
     except ZipException:
-        raise FillDeployPaylodException
+        raise DeployPayloadException(f"Can't zip SCORE contents")
     else:
         return f'0x{memory_zip.data.hex()}'
