@@ -20,6 +20,7 @@ import socket
 from tbears.command.command import Command
 from tbears.tbears_exception import TBearsCommandException
 from tbears.config.tbears_config import TBearsConfig
+from tbears.util.icx_signer import key_from_key_store
 
 
 class TestTBearsCommands(unittest.TestCase):
@@ -112,7 +113,20 @@ class TestTBearsCommands(unittest.TestCase):
     def test_keystore(self):
         path = './kkeystore'
         password = '1234qwer%'
+
+        # make keystore file
         conf = self.cmd.cmdUtil.get_keystore_args(path=path)
         self.cmd.cmdUtil.keystore(conf, password)
         self.assertTrue(os.path.exists(path))
+
+        # get private key from file
+        try:
+            key_from_key_store(file_path=path, password=password)
+        except:
+            exception_raised = True
+        else:
+            exception_raised = False
+        self.assertFalse(exception_raised)
+
+
         os.remove(path)

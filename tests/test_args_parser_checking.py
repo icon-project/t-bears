@@ -18,7 +18,6 @@ import shutil
 
 from tbears.command.command import Command
 from tbears.command.command_util import CommandUtil
-from tbears.command.command_server import CommandServer
 from tbears.command.command_score import CommandScore
 from tbears.tbears_exception import TBearsCommandException
 
