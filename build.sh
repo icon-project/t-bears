@@ -17,8 +17,8 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
   wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/earlgrey-$EARL_VER-py3-none-any.whl" -P $VER
   pip install --force-reinstall $VER/earlgrey-$EARL_VER-py3-none-any.whl
   rm -rf earlgrey*
-  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconcommons-0.9.4-4-py3-none-any.whl" -P $VER
-  pip install --force-reinstall $VER/iconcommons-0.9.4-4-py3-none-any.whl
+  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconcommons-0.9.4.5-py3-none-any.whl" -P $VER
+  pip install --force-reinstall $VER/iconcommons-0.9.4.5-py3-none-any.whl
   rm -rf iconsommons*
 
   if [[ -z "${ICONSERVICEPATH}" || ("$1" = "deploy") ]]; then

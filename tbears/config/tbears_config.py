@@ -24,7 +24,9 @@ tbears_config = {
         "colorLog": True,
         "level": "debug",
         "filePath": "./tbears.log",
-        "outputType": "console|file|daily"
+        "outputType": "console|file",
+        "rotateType": "D",
+        "rotateInterval": 1
     },
     "accounts": [
         {
