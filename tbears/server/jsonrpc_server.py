@@ -384,7 +384,7 @@ def serve():
         path = './tbears.json'
 
     conf = _load_config(path, args)
-
+    conf.load()
     # init logger
     Logger.load_config(conf)
     Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)

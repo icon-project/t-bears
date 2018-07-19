@@ -19,6 +19,7 @@ import shutil
 from tbears.command.command import Command
 from tbears.command.command_util import CommandUtil
 from tbears.command.command_score import CommandScore
+from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsCommandException
 
 
@@ -100,13 +101,13 @@ class ArgsParserTest(unittest.TestCase):
         cmd = f'keystore {path}'
         self.touch(path)
         parsed = self.parser.parse_args(cmd.split())
-        self.assertRaises(TBearsCommandException, CommandUtil._check_keystore, vars(parsed), password)
+        self.assertRaises(TBearsCommandException, CommandWallet._check_keystore, vars(parsed), password)
         os.remove(path)
 
         # invalid password
         cmd = f'keystore {path}'
         parsed = self.parser.parse_args(cmd.split())
-        self.assertRaises(TBearsCommandException, CommandUtil._check_keystore, vars(parsed), 'qwe')
+        self.assertRaises(TBearsCommandException, CommandWallet._check_keystore, vars(parsed), 'qwe')
 
     def test_start(self):
         address = '0.0.0.0'
@@ -147,7 +148,7 @@ class ArgsParserTest(unittest.TestCase):
         arg_type = 'tbears'
         mode = "install"
         arg_from = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        to =  "cx0000000000000000000000000000000000000000"
+        to = "cx0000000000000000000000000000000000000000"
         keystore = './keystore_unittest'
         config_path = './deploy'
 

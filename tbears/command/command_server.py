@@ -42,7 +42,7 @@ class CommandServer(object):
         parser = subparsers.add_parser('start', help='Start tbears serivce',
                                        description='Start tbears service')
         parser.add_argument('-a', '--address', help='Address to host on (default: 0.0.0.0)', type=ip_address)
-        parser.add_argument('-p', '--port', help='Listen port (default: 9000)', type=int)
+        parser.add_argument('-p', '--port', help='Listen port (default: 9000)', type=int, dest='port')
         parser.add_argument('-c', '--config', help='tbears configuration file path (default: ./tbears.json)')
 
     @staticmethod

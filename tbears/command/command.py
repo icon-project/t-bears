@@ -15,6 +15,7 @@
 import argparse
 
 import tbears
+from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsBaseException, TBearsExceptionCode
 from tbears.command.command_server import CommandServer
 from tbears.command.command_score import CommandScore
@@ -27,6 +28,7 @@ class Command(object):
         self.cmdServer = CommandServer(self.subparsers)
         self.cmdScore = CommandScore(self.subparsers)
         self.cmdUtil = CommandUtil(self.subparsers)
+        self.cmdWallet = CommandWallet(self.subparsers)
 
     def _create_parser(self):
         parser = argparse.ArgumentParser(prog='tbears', description=f'tbears v{tbears.__version__} arguments')
@@ -51,6 +53,8 @@ class Command(object):
                 self.cmdScore.run(args)
             elif self.cmdUtil.check_command(args.command):
                 self.cmdUtil.run(args)
+            elif self.cmdWallet.check_command(args.command):
+                self.cmdWallet.run(args)
         except TBearsBaseException as e:
             print(f"{e}")
             return e.code.value
