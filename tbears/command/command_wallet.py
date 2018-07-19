@@ -50,6 +50,8 @@ class CommandWallet:
         parser.add_argument('-f', '--from', help='From address. can be used in tbears mode.', dest='from')
         parser.add_argument('to', help='Recipient')
         parser.add_argument("value", type=float, help='Amount to transfer')
+        parser.add_argument('-t', '--type', choices=['dummy', 'real'],
+                            help='dummy type can be used only in tbears mode.(default: dummy)', dest='txType')
         parser.add_argument('-k', '--key-store', help='Sender\'s key store file', dest='keyStore')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
                             dest='uri')
@@ -72,6 +74,10 @@ class CommandWallet:
         if not is_icon_address_valid(conf['to']):
             raise TBearsCommandException(f'You entered invalid address')
 
+        if conf['txType'] == 'dummy':
+            return None
+
+        # txType is 'real'
         if conf.get('keyStore', None):
             if not os.path.exists(conf['keyStore']):
                 raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
@@ -113,6 +119,7 @@ class CommandWallet:
             sender_signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
             send_tx_payload = get_icx_sendTransaction_payload(sender_signer, conf['to'], loop_value)
         else:
+            is_icon_address_valid(conf['from'])
             sender = conf['from']
             send_tx_payload = get_dummy_icx_sendTransaction_payload(sender, conf['to'], loop_value)
 

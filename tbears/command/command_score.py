@@ -17,6 +17,8 @@ import shutil
 import getpass
 
 from iconcommons.icon_config import IconConfig
+from iconservice.base.address import is_icon_address_valid
+
 from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import deploy_config
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
@@ -80,6 +82,7 @@ class CommandScore(object):
             score_address = f'cx{"0"*40}'
         else:
             score_address = conf['to']
+            is_icon_address_valid(score_address)
 
         if conf['scoreType'] == 'icon':
             signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
@@ -91,6 +94,7 @@ class CommandScore(object):
                                                              deploy_params=conf.get('scoreParams', {}),
                                                              step_limit=step_limit)
         else:
+            is_icon_address_valid(conf['from'])
             payload = make_install_json_payload(project=conf['project'],
                                                 fr=conf['from'],
                                                 to=score_address,

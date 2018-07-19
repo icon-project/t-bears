@@ -111,6 +111,7 @@ class TestTBearsCommands(unittest.TestCase):
         # send
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf = self.cmd.cmdWallet.get_send_config(key_path, f'hx123{"0"*37}', 10)
+        conf['txType'] = 'real'
         send_response_json = self.cmd.cmdWallet.send(conf, 'qwer1234%')
         self.assertFalse(send_response_json.get('error', False))
 
