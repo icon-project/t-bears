@@ -19,9 +19,9 @@ import os
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import (
     get_score_main_template, get_sample_token_contents, get_sample_crowd_sale_contents,
-    get_package_json_dict, write_file,
-    get_init_template, get_tbears_config_json, get_deploy_config_json,
+    get_package_json_dict, write_file, get_init_template
 )
+from tbears.config.tbears_config import tbears_config, deploy_config
 from tbears.util.keystore_manager import make_key_store_content, validate_password
 
 
@@ -139,8 +139,8 @@ class CommandUtil(object):
         write_file(project, '__init__.py', init_contents)
         write_file(f'{project}/tests', f'test_{project}.py', '')
         write_file(f'{project}/tests', f'__init__.py', '')
-        write_file('./', "tbears.json", get_tbears_config_json())
-        write_file('./', "deploy.json", get_deploy_config_json())
+        write_file('./', "tbears.json", json.dumps(tbears_config, indent=4))
+        write_file('./', "deploy.json", json.dumps(deploy_config, indent=4))
 
     @staticmethod
     def get_init_args(project: str, score_class: str):

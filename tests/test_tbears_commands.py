@@ -19,8 +19,9 @@ import shutil
 import socket
 from tbears.command.command import Command
 from tbears.tbears_exception import TBearsCommandException
-from tbears.config.tbears_config import TBearsConfig
 from tbears.util.icx_signer import key_from_key_store
+from tbears.config.tbears_config import tbears_config
+from iconcommons.icon_config import IconConfig
 
 
 class TestTBearsCommands(unittest.TestCase):
@@ -92,7 +93,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         # start
 
-        self.cmd.cmdServer.start(conf=TBearsConfig())
+        self.cmd.cmdServer.start(conf=IconConfig('./tbears.json', tbears_config))
         self.assertTrue(self.check_server())
 
         # deploy
