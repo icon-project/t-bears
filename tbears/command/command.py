@@ -55,7 +55,7 @@ class Command(object):
             print(f"{e}")
             return e.code.value
         except Exception as e:
-            print(f"Error handling: {e}")
+            print(f"Exception: {e}")
             return TBearsExceptionCode.COMMAND_ERROR.value
         else:
             return TBearsExceptionCode.OK.value

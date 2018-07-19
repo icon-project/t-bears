@@ -148,7 +148,7 @@ class ArgsParserTest(unittest.TestCase):
         mode = "install"
         arg_from = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         to =  "cx0000000000000000000000000000000000000000"
-        keystore = './keystore'
+        keystore = './keystore_unittest'
         config_path = './deploy'
 
         # parsing
@@ -191,7 +191,7 @@ class ArgsParserTest(unittest.TestCase):
         # keystore file does not exist
         cmd = f'deploy {project} -t icon -k {keystore}'
         parsed = self.parser.parse_args(cmd.split())
-        self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
+        self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed), "password")
 
         # update mode need to option
         cmd = f'deploy {project} -m update'

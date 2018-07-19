@@ -91,7 +91,7 @@ class CommandUtil(object):
         :param conf: keystore command configuration
         :param password: password for keystore file
         """
-        self._check_keystore(conf, password)
+        password = self._check_keystore(conf, password)
 
         key_store_content = make_key_store_content(password)
 
@@ -120,6 +120,7 @@ class CommandUtil(object):
         if not validate_password(password):
             raise TBearsCommandException("Passwords must be at least 8 characters long including alphabet, number, "
                                          "and special character.")
+        return password
 
     @staticmethod
     def __initialize_project(project: str, score_class: str, contents_func):
