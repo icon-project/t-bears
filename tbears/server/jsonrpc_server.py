@@ -217,12 +217,12 @@ class MockDispatcher:
         response_to_json_query(response)
 
         # prepare request data to invoke
-        make_request = {'transactions': [tx]}
+        request = {'transactions': [tx]}
         block_height: int = get_block_height()
         block_timestamp_us = int(time.time() * 10 ** 6)
         block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
 
-        make_request['block'] = {
+        request['block'] = {
             'blockHeight': hex(block_height),
             'blockHash': block_hash,
             'timestamp': hex(block_timestamp_us),
@@ -232,7 +232,7 @@ class MockDispatcher:
         precommit_request = {'blockHeight': hex(block_height),
                              'blockHash': block_hash}
         # invoke
-        response = await get_icon_inner_task().invoke(make_request)
+        response = await get_icon_inner_task().invoke(request)
         response = response['txResults']
         if not isinstance(response, dict):
             rollback_block()
@@ -260,8 +260,8 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server icx_call!', TBEARS_LOG_TAG)
 
         method = 'icx_call'
-        make_request = {'method': method, 'params': request_params}
-        response = await get_icon_inner_task().query(make_request)
+        request = {'method': method, 'params': request_params}
+        response = await get_icon_inner_task().query(request)
         return response_to_json_query(response)
 
     @staticmethod
@@ -270,8 +270,8 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server icx_getBalance!', TBEARS_LOG_TAG)
 
         method = 'icx_getBalance'
-        make_request = {'method': method, 'params': request_params}
-        response = await get_icon_inner_task().query(make_request)
+        request = {'method': method, 'params': request_params}
+        response = await get_icon_inner_task().query(request)
         return response_to_json_query(response)
 
     @staticmethod
@@ -280,8 +280,8 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server icx_getTotalSupply!', TBEARS_LOG_TAG)
 
         method = 'icx_getTotalSupply'
-        make_request = {'method': method, 'params': request_params}
-        response = await get_icon_inner_task().query(make_request)
+        request = {'method': method, 'params': request_params}
+        response = await get_icon_inner_task().query(request)
         return response_to_json_query(response)
 
     @staticmethod
@@ -307,8 +307,8 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server icx_getScoreApi!', TBEARS_LOG_TAG)
 
         method = 'icx_getScoreApi'
-        make_request = {'method': method, 'params': request_params}
-        response = await get_icon_inner_task().query(make_request)
+        request = {'method': method, 'params': request_params}
+        response = await get_icon_inner_task().query(request)
         return response_to_json_query(response)
 
     @staticmethod
@@ -433,12 +433,12 @@ async def init_icon_inner_task(conf: 'IconConfig'):
         'genesisData': {'accounts': conf['accounts']}
     }
 
-    make_request = {'transactions': [tx]}
+    request = {'transactions': [tx]}
     block_height: int = get_block_height()
     block_timestamp_us = tx_timestamp_us
     block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
 
-    make_request['block'] = {
+    request['block'] = {
         'blockHeight': hex(block_height),
         'blockHash': block_hash,
         'timestamp': hex(block_timestamp_us)
@@ -447,7 +447,7 @@ async def init_icon_inner_task(conf: 'IconConfig'):
     precommit_request = {'blockHeight': hex(block_height),
                          'blockHash': block_hash}
 
-    response = await get_icon_inner_task().invoke(make_request)
+    response = await get_icon_inner_task().invoke(request)
     response = response['txResults']
     if not isinstance(response, dict):
         rollback_block()
