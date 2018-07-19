@@ -136,7 +136,8 @@ class CommandScore(object):
 
         if conf['scoreType'] == 'icon':
             if conf.get('keyStore', None) is None:
-                raise TBearsCommandException(f'If you want to deploy SCORE to ICON node, set --key-store option')
+                raise TBearsCommandException(f'If you want to deploy SCORE to ICON node, set --key-store option or '
+                                             f'write "keyStore" value in configuration file.')
             else:
                 if not os.path.exists(conf['keyStore']):
                     raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
