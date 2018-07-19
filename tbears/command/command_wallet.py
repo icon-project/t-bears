@@ -19,9 +19,11 @@ import os
 from iconcommons import IconConfig
 from iconservice.base.address import is_icon_address_valid
 
+from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import deploy_config
 from tbears.libs.icon_client import IconClient
-from tbears.libs.icon_json import get_icx_getTransactionResult_payload, get_icx_sendTransaction_payload
+from tbears.libs.icon_json import get_icx_getTransactionResult_payload, get_icx_sendTransaction_payload, \
+    get_dummy_icx_sendTransaction_payload
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import is_tx_hash, IcxSigner
 from tbears.util.icx_signer import key_from_key_store
@@ -45,6 +47,9 @@ class CommandWallet:
     @staticmethod
     def _add_send_parser(subparsers):
         parser = subparsers.add_parser('send', help='Send <value>icx to <to>.')
+        parser.add_argument('-t', '--type', help='Deploy SCORE type (default: tbears)',
+                            choices=['dummy', 'real'], dest='txType', default='real')
+        parser.add_argument('-f', '--from', help='From address. used only in tbears mode.', dest='from')
         parser.add_argument('to', help='Recipient')
         parser.add_argument("value", type=float, help='Amount to transfer')
         parser.add_argument('-k', '--key-store', help='sender\'s key store file', dest='keyStore')
@@ -68,8 +73,18 @@ class CommandWallet:
     def _check_send(conf: dict, password: str=None):
         if not is_icon_address_valid(conf['to']):
             raise TBearsCommandException(f'You entered invalid address')
-        if not password:
-            password = getpass.getpass("input your key store password: ")
+
+        if conf['txType'] == 'real':
+            if conf.get('keyStore', None) is None:
+                raise TBearsCommandException('If you want to send coin to <to> on ICON node,'
+                                             'set --key-store option or '
+                                             'write "keyStore" value in configuration file.')
+
+        if conf.get('keyStore', None):
+            if not os.path.exists(conf['keyStore']):
+                raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
+            if not password:
+                password = getpass.getpass("input your key store password: ")
 
         return password
 
@@ -97,13 +112,21 @@ class CommandWallet:
         return response_json
 
     def send(self, conf: dict, password: str=None):
+        if conf['txType'] == 'dummy' and not CommandServer.is_server_running():
+            raise TBearsCommandException('Dummy transaction available on only tbears mode. start tbears service first.')
+
         icon_client = IconClient(conf['uri'])
         password = self._check_send(conf, password)
-        sender_signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
-        # address_from_private_key
         origin_value = conf['value']
-        loop_value = hex(int(origin_value*10**18))
-        send_tx_payload = get_icx_sendTransaction_payload(sender_signer, conf['to'], loop_value)
+        loop_value = hex(int(origin_value * 10 ** 18))
+
+        if password:
+            sender_signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
+            send_tx_payload = get_icx_sendTransaction_payload(sender_signer, conf['to'], loop_value)
+        else:
+            sender = conf['from']
+            send_tx_payload = get_dummy_icx_sendTransaction_payload(sender, conf['to'], loop_value)
+
         response = icon_client.send(send_tx_payload)
         response_json = response.json()
 
