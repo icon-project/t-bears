@@ -18,7 +18,6 @@ import json
 import unittest
 
 import tbears.libs.icon_serializer
-from tbears import libs
 from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
 
 

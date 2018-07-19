@@ -19,7 +19,6 @@ import os
 from iconcommons import IconConfig
 from iconservice.base.address import is_icon_address_valid
 
-from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import deploy_config
 from tbears.libs.icon_client import IconClient
 from tbears.libs.icon_json import get_icx_getTransactionResult_payload, get_icx_sendTransaction_payload, \
