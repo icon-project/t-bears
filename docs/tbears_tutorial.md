@@ -373,6 +373,8 @@ When starting tbears(tbears start), tbears.json is used as a configuration da
         "level": "debug",
         "filePath": "./tbears.log",
         "outputType": "console|file"
+        "rotateType": "D",
+        "rotateInterval": 1
     },
     "accounts": [
         {
@@ -402,6 +404,8 @@ When starting tbears(tbears start), tbears.json is used as a configuration da
 | log.level      | string    | log level. <br/>"debug", "info", "warning", "error"          |
 | log.filePath   | string    | log file path.                                               |
 | log.outputType | string    | “console”: log outputs to the console that tbears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
+| log.rotateType | string    | log file rotate type. 'S' second, 'M' minute, 'H' hour, 'D' day, 'W' week |
+| log.rotateInterval | int      | log file rotate interval.                                |
 | accounts       | list      | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): accounts. |
 
 #### deploy.json(a separate file from tbears config)
