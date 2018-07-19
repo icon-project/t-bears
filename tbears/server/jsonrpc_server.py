@@ -36,13 +36,9 @@ from typing import Optional
 
 from tbears.server.tbears_db import TbearsDB
 from tbears.command.command_server import CommandServer
-
-MQ_TEST = False
-if not MQ_TEST:
-    from iconservice.icon_inner_service import IconScoreInnerTask
+from iconservice.icon_inner_service import IconScoreInnerTask
 
 TBEARS_LOG_TAG = 'tbears'
-SEPARATE_PROCESS_DEBUG = False
 
 __block_height = -1
 __prev_block_hash = None
@@ -64,48 +60,6 @@ def create_hash(data: bytes) -> str:
 def get_icon_inner_task() -> Optional['IconScoreInnerTask']:
     global __icon_inner_task
     return __icon_inner_task
-
-
-def get_icon_score_stub() -> 'IconScoreInnerStub':
-    global __icon_score_stub
-    return __icon_score_stub
-
-
-def create_icon_score_service() -> 'IconScoreInnerService':
-    conf = IconConfig("", default_icon_config)
-    conf.load()
-
-    icon_score_root_path = conf[ConfigKey.ICON_SCORE_ROOT]
-    icon_score_state_db_root_path = conf[ConfigKey.ICON_SCORE_STATE_DB_ROOT_PATH]
-    amqp_target = conf[ConfigKey.AMQP_TARGET]
-
-    icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(**
-                                                                {ConfigKey.CHANNEL: conf[ConfigKey.CHANNEL],
-                                                                 ConfigKey.AMQP_KEY: conf[ConfigKey.AMQP_KEY]})
-
-    Logger.debug(f'==========create_icon_score_service==========', TBEARS_LOG_TAG)
-    Logger.debug(f'icon_score_root_path : {icon_score_root_path}', TBEARS_LOG_TAG)
-    Logger.debug(f'icon_score_state_db_root_path  : {icon_score_state_db_root_path}', TBEARS_LOG_TAG)
-    Logger.debug(f'amqp_target  : {amqp_target}', TBEARS_LOG_TAG)
-    Logger.debug(f'icon_score_queue_name  : {icon_score_queue_name}', TBEARS_LOG_TAG)
-    Logger.debug(f'==========create_icon_score_service==========', TBEARS_LOG_TAG)
-
-    return IconScoreInnerService(amqp_target, icon_score_queue_name, conf=conf)
-
-
-def create_icon_score_stub() -> 'IconScoreInnerStub':
-    conf = IconConfig("", default_icon_config)
-    conf.load()
-
-    icon_score_queue_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(**
-                                                                {ConfigKey.CHANNEL: conf[ConfigKey.CHANNEL],
-                                                                 ConfigKey.AMQP_KEY: conf[ConfigKey.AMQP_KEY]})
-
-    Logger.debug(f'==========create_icon_score_stub==========', TBEARS_LOG_TAG)
-    Logger.debug(f'icon_score_queue_name  : {icon_score_queue_name}', TBEARS_LOG_TAG)
-    Logger.debug(f'==========create_icon_score_stub==========', TBEARS_LOG_TAG)
-
-    return IconScoreInnerStub(conf[ConfigKey.AMQP_TARGET], icon_score_queue_name)
 
 
 def get_block_height():
@@ -259,12 +213,8 @@ class MockDispatcher:
         }
 
         # pre validate
-        if MQ_TEST:
-            response = await get_icon_score_stub().async_task().validate_transaction(tx)
-            response_to_json_query(response)
-        else:
-            response = await get_icon_inner_task().validate_transaction(tx)
-            response_to_json_query(response)
+        response = await get_icon_inner_task().validate_transaction(tx)
+        response_to_json_query(response)
 
         # prepare request data to invoke
         make_request = {'transactions': [tx]}
@@ -282,50 +232,27 @@ class MockDispatcher:
         precommit_request = {'blockHeight': hex(block_height),
                              'blockHash': block_hash}
         # invoke
-        if MQ_TEST:
-            response = await get_icon_score_stub().async_task().invoke(make_request)
-            response = response['txResults']
-            if not isinstance(response, dict):
-                rollback_block()
-                await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
-            elif check_error_response(response):
-                rollback_block()
-                await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
-            elif response[tx_hash]['status'] == hex(1):
-                set_prev_block_hash(block_hash)
-                await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
-            else:
-                rollback_block()
-                await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
-
-            tx_result = response[tx_hash]
-            tx_hash = f'0x{tx_result["txHash"]}'
-            tx_result['from'] = request_params.get('from', '')
-            tx_result['txHash'] = tx_hash
-            TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
-            return response_to_json_invoke(response)
+        response = await get_icon_inner_task().invoke(make_request)
+        response = response['txResults']
+        if not isinstance(response, dict):
+            rollback_block()
+            await get_icon_inner_task().remove_precommit_state(precommit_request)
+        elif check_error_response(response):
+            rollback_block()
+            await get_icon_inner_task().remove_precommit_state(precommit_request)
+        elif response[tx_hash]['status'] == hex(1):
+            set_prev_block_hash(block_hash)
+            await get_icon_inner_task().write_precommit_state(precommit_request)
         else:
-            response = await get_icon_inner_task().invoke(make_request)
-            response = response['txResults']
-            if not isinstance(response, dict):
-                rollback_block()
-                await get_icon_inner_task().remove_precommit_state(precommit_request)
-            elif check_error_response(response):
-                rollback_block()
-                await get_icon_inner_task().remove_precommit_state(precommit_request)
-            elif response[tx_hash]['status'] == hex(1):
-                set_prev_block_hash(block_hash)
-                await get_icon_inner_task().write_precommit_state(precommit_request)
-            else:
-                rollback_block()
-                await get_icon_inner_task().remove_precommit_state(precommit_request)
+            rollback_block()
+            await get_icon_inner_task().remove_precommit_state(precommit_request)
 
-            tx_result = response[tx_hash]
-            tx_hash = f'0x{tx_result["txHash"]}'
-            tx_result['from'] = request_params.get('from', '')
-            tx_result['txHash'] = tx_hash
-            TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
-            return response_to_json_invoke(response)
+        tx_result = response[tx_hash]
+        tx_hash = f'0x{tx_result["txHash"]}'
+        tx_result['from'] = request_params.get('from', '')
+        tx_result['txHash'] = tx_hash
+        TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
+        return response_to_json_invoke(response)
 
     @staticmethod
     @methods.add
@@ -334,13 +261,8 @@ class MockDispatcher:
 
         method = 'icx_call'
         make_request = {'method': method, 'params': request_params}
-
-        if MQ_TEST:
-            response = await get_icon_score_stub().async_task().query(make_request)
-            return response_to_json_query(response)
-        else:
-            response = await get_icon_inner_task().query(make_request)
-            return response_to_json_query(response)
+        response = await get_icon_inner_task().query(make_request)
+        return response_to_json_query(response)
 
     @staticmethod
     @methods.add
@@ -349,13 +271,8 @@ class MockDispatcher:
 
         method = 'icx_getBalance'
         make_request = {'method': method, 'params': request_params}
-
-        if MQ_TEST:
-            response = await get_icon_score_stub().async_task().query(make_request)
-            return response_to_json_query(response)
-        else:
-            response = await get_icon_inner_task().query(make_request)
-            return response_to_json_query(response)
+        response = await get_icon_inner_task().query(make_request)
+        return response_to_json_query(response)
 
     @staticmethod
     @methods.add
@@ -364,13 +281,8 @@ class MockDispatcher:
 
         method = 'icx_getTotalSupply'
         make_request = {'method': method, 'params': request_params}
-
-        if MQ_TEST:
-            response = await get_icon_score_stub().async_task().query(make_request)
-            return response_to_json_query(response)
-        else:
-            response = await get_icon_inner_task().query(make_request)
-            return response_to_json_query(response)
+        response = await get_icon_inner_task().query(make_request)
+        return response_to_json_query(response)
 
     @staticmethod
     @methods.add
@@ -396,21 +308,13 @@ class MockDispatcher:
 
         method = 'icx_getScoreApi'
         make_request = {'method': method, 'params': request_params}
-
-        if MQ_TEST:
-            response = await get_icon_score_stub().async_task().query(make_request)
-            return response_to_json_query(response)
-        else:
-            response = await get_icon_inner_task().query(make_request)
-            return response_to_json_query(response)
+        response = await get_icon_inner_task().query(make_request)
+        return response_to_json_query(response)
 
     @staticmethod
     @methods.add
     async def server_exit(**request_params):
         Logger.debug(f'json_rpc_server server_exit!', TBEARS_LOG_TAG)
-
-        if MQ_TEST:
-            await get_icon_score_stub().async_task().close()
 
         if MockDispatcher.flask_server is not None:
             global TBEARS_DB
@@ -466,12 +370,7 @@ def create_parser():
 def serve():
     async def __serve():
         init_tbears(conf)
-        if MQ_TEST:
-            if not SEPARATE_PROCESS_DEBUG:
-                await init_icon_score_service()
-            await init_icon_score_stub(conf)
-        else:
-            await init_icon_inner_task(conf)
+        await init_icon_inner_task(conf)
 
     # create parser
     parser = create_parser()
@@ -510,65 +409,6 @@ def _load_config(path: str, args) -> 'IconConfig':
             conf['port'] = args.port
 
     return conf
-
-
-async def init_icon_score_service():
-    global __icon_score_service
-    __icon_score_service = create_icon_score_service()
-    await __icon_score_service.connect(exclusive=True)
-
-
-async def init_icon_score_stub(conf: 'IconConfig'):
-    global __icon_score_stub
-    __icon_score_stub = create_icon_score_stub()
-
-    if is_done_genesis_invoke():
-        return None
-
-    tx_hash = create_hash('genesis'.encode())
-    tx_timestamp_us = int(time.time() * 10 ** 6)
-    request_params = {'txHash': tx_hash, 'timestamp': hex(tx_timestamp_us)}
-    tx = {
-        'method': '',
-        'params': request_params,
-        'genesisData': {'accounts': conf['accounts']}
-    }
-
-    make_request = {'transactions': [tx]}
-    block_height: int = get_block_height()
-    block_timestamp_us = tx_timestamp_us
-    block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
-
-    make_request['block'] = {
-        'blockHeight': hex(block_height),
-        'blockHash': block_hash,
-        'timestamp': hex(block_timestamp_us)
-    }
-
-    precommit_request = {'blockHeight': hex(block_height),
-                         'blockHash': block_hash}
-
-    response = await get_icon_score_stub().async_task().invoke(make_request)
-    if not isinstance(response, dict):
-        rollback_block()
-        await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
-    elif check_error_response(response):
-        rollback_block()
-        await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
-    elif response[tx_hash]['status'] == hex(1):
-        set_prev_block_hash(block_hash)
-        await get_icon_score_stub().async_task().write_precommit_state(precommit_request)
-    else:
-        rollback_block()
-        await get_icon_score_stub().async_task().remove_precommit_state(precommit_request)
-
-    tx_result = response[tx_hash]
-    tx_hash = tx_result['txHash']
-    tx_hash = f'0x{tx_hash}'
-    tx_result['from'] = request_params.get('from', '')
-    tx_result['tx_hash'] = tx_hash
-    TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
-    return response_to_json_invoke(response)
 
 
 async def init_icon_inner_task(conf: 'IconConfig'):
