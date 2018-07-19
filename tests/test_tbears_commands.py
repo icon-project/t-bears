@@ -93,7 +93,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         # start
 
-        self.cmd.cmdServer.start(conf=IconConfig("", tbears_config))
+        self.cmd.cmdServer.start(conf=IconConfig('./tbears.json', tbears_config))
         self.assertTrue(self.check_server())
 
         # deploy
