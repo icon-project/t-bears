@@ -47,12 +47,10 @@ class CommandWallet:
     @staticmethod
     def _add_send_parser(subparsers):
         parser = subparsers.add_parser('send', help='Send <value>icx to <to>.')
-        parser.add_argument('-t', '--type', help='Deploy SCORE type (default: tbears)',
-                            choices=['dummy', 'real'], dest='txType', default='real')
-        parser.add_argument('-f', '--from', help='From address. used only in tbears mode.', dest='from')
+        parser.add_argument('-f', '--from', help='From address. can be used in tbears mode.', dest='from')
         parser.add_argument('to', help='Recipient')
         parser.add_argument("value", type=float, help='Amount to transfer')
-        parser.add_argument('-k', '--key-store', help='sender\'s key store file', dest='keyStore')
+        parser.add_argument('-k', '--key-store', help='Sender\'s key store file', dest='keyStore')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
                             dest='uri')
         parser.add_argument('-c', '--config', help='deploy config path (default: ./deploy.json)')
@@ -73,12 +71,6 @@ class CommandWallet:
     def _check_send(conf: dict, password: str=None):
         if not is_icon_address_valid(conf['to']):
             raise TBearsCommandException(f'You entered invalid address')
-
-        if conf['txType'] == 'real':
-            if conf.get('keyStore', None) is None:
-                raise TBearsCommandException('If you want to send coin to <to> on ICON node,'
-                                             'set --key-store option or '
-                                             'write "keyStore" value in configuration file.')
 
         if conf.get('keyStore', None):
             if not os.path.exists(conf['keyStore']):
@@ -106,15 +98,12 @@ class CommandWallet:
         get_tx_result_payload = get_icx_getTransactionResult_payload(conf['hash'])
 
         response = icon_client.send(get_tx_result_payload)
-        print(f"Transaction result: {response.json()}")
         response_json = response.json()
+        print(f"Transaction result: {response_json}")
 
         return response_json
 
     def send(self, conf: dict, password: str=None):
-        if conf['txType'] == 'dummy' and not CommandServer.is_server_running():
-            raise TBearsCommandException('Dummy transaction available on only tbears mode. start tbears service first.')
-
         icon_client = IconClient(conf['uri'])
         password = self._check_send(conf, password)
         origin_value = conf['value']
