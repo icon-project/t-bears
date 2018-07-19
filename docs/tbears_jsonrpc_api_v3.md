@@ -432,6 +432,7 @@ Total number of coins issued.
 | value | [T_INT](#T_INT) | optional | Amount of ICX coin to transfer to 'to address'. When ommitted, assumes 0. |
 | stepLimit |[T_INT](#T_INT) | required | Maximum step allowance that can be used by the transaction. |
 | timestamp | [T_INT](#T_INT) | required | Transaction send time. timestamp is in microsecond. |
+| nid | [T_INT](#T_INT) | required | Network ID |
 | nonce | [T_INT](#T_INT) | optional | An arbitrary number used to prevent transaction hash collision. |
 | signature | [T_SIG](#T_SIG) | required | Transaction signature. |
 | dataType | [T_DATA_TYPE](#T_DATA_TYPE) | optional | Type of data. (call, or deploy) |
