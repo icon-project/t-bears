@@ -55,7 +55,7 @@ class CommandServer(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = IconConfig("", tbears_config)
+        conf = IconConfig('./tbears.json', tbears_config)
         conf.load(user_input=vars(args))
 
         # run command
