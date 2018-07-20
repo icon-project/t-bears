@@ -20,7 +20,7 @@ from iconcommons.icon_config import IconConfig
 from iconservice.base.address import is_icon_address_valid
 
 from tbears.command.command_server import CommandServer
-from tbears.config.tbears_config import deploy_config
+from tbears.config.tbears_config import deploy_config, tbears_config
 from tbears.util.icx_signer import key_from_key_store, IcxSigner
 from tbears.libs.icon_client import IconClient
 from tbears.libs.icon_json import get_icx_sendTransaction_deploy_payload
@@ -60,7 +60,14 @@ class CommandScore(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = IconConfig('./deploy.json', deploy_config)
+        config_path = './deploy.json'
+        config_dict = deploy_config
+        if args.command == "clear":
+            config_path = './tbears.json'
+            config_dict = tbears_config
+
+        conf = IconConfig(config_path, config_dict)
+
         conf.load(user_input=vars(args))
 
         # run command
@@ -119,19 +126,19 @@ class CommandScore(object):
         return response.json()
 
     @staticmethod
-    def clear(_conf: dict):
+    def clear(conf: dict):
         """Clear all SCORE deployed on tbears service
 
-        :param _conf: deploy command configuration
+        :param conf: deploy command configuration
         """
         if CommandServer.is_server_running():
             raise TBearsCommandException(f'You must stop tbears service to clear SCORE')
 
         try:
-            if os.path.exists('./.score'):
-                shutil.rmtree('./.score')
-            if os.path.exists('./.statedb'):
-                shutil.rmtree('./.statedb')
+            if os.path.exists(conf['scoreRoot']):
+                shutil.rmtree(conf['scoreRoot'])
+            if os.path.exists(conf['dbRoot']):
+                shutil.rmtree(conf['dbRoot'])
         except (PermissionError, NotADirectoryError) as e:
             raise TBearsDeleteTreeException(f"Can't delete SCORE fils. {e}")
 
