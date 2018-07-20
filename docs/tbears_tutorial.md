@@ -286,6 +286,7 @@ optional arguments:
     "to": "cx0000000000000000000000000000000000000000",
     "nid": "0x1234",
     "stepLimit": "0x1234",
+    "txType": "dummy",
     "scoreParams": {}
 }
 (work) $ tbears deploy abc -c ./deploy.json
@@ -294,9 +295,14 @@ optional arguments:
 (Work)$ tbears deploy -t icon -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -k keystore abc
 input your key store password:
 
+Send deploy request successfully.
+transaction hash: 0x9c294b9608d9575f735ec2e2bf52dc891d7cca6a2fa7e97aee4818325c8a9d41
+
 #update abc SCORE
 #append prefix 'cx' in front of score address
 (Work)$ tbears deploy abc -m update -o cx6bd390bd855f086e3e9d525b46bfe24511431532
+Send deploy request successfully.
+transaction hash: 0xad292b9608d9575f735ec2ebbf52dc891d7cca6a2fa7e97aee4818325c80934d
 ```
 
 #### tbears clear
@@ -356,6 +362,123 @@ __init__.py  package.json  standard_crowd_sale.py
 
 standard_token:
 __init__.py  package.json  __pycache__  standard_token.py
+```
+
+#### tbears transfer
+
+**description**
+
+Transfers designated amount of ICX coins.
+
+**usage**
+
+```bash
+sage: tbears transfer [-h] [-f FROM] [-t {dummy,real}] [-k KEYSTORE] [-u URI]
+                       [-c CONFIG]
+                       to value
+
+Transfer ICX coin.
+
+positional arguments:
+  to                    Recipient
+  value                 Amount of ICX coin to transfer in loop(1 icx = 1e18
+                        loop)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f FROM, --from FROM  From address. Must use with dummy type.
+  -t {dummy,real}, --type {dummy,real}
+                        Type of transfer request. Dummy type is valid in
+                        tbears node only(default: dummy)  
+  -k KEYSTORE, --key-store KEYSTORE
+                        Sender's key store file
+  -u URI, --node-uri URI
+                        URI of node (default: http://127.0.0.1:9000/api/v3)
+  -c CONFIG, --config CONFIG
+                        deploy config path (default: ./deploy.json)
+```
+
+**options**
+
+| shorthand, Name | default | Description                     |
+| --------------- | :------ | ------------------------------- |
+| to              |         | Recipient. To address           | 
+| value           |         | Amount of ICX coin in loop to transfer to 'to address'. (1 icx = 1e18 loop) |
+| -h, --help      |         | show this help message and exit |
+| -f, --from      |         | From address. Must use with dummy type |
+| -t, --type      | dummy   | Type of transfer request. ("dummy" or "real") |
+| -k, --key-store |         | Key store file to generate from address and transaction signature |
+| -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
+| -c, --config    | ./deploy.json | Configuration file path. Use "keyStore", "uri", "txType" and "from" values |
+
+**examples**
+
+```bash
+(work) $ transfer -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 100
+Got an error response
+{'jsonrpc': '2.0', 'error': {'code': -32600, 'message': 'Out of balance'}, 'id': 1}
+
+(work) $ tbears transfer -k tests/test_util/test_keystore -t real hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 1e18
+Send transfer request successfully.
+transaction hash: 0xc1b92b9a08d8575f735ec2ebbf52dc831d7c2a6a2fa7e97aee4818325cad919e
+```
+
+#### tbears txresult
+
+**description**
+
+Get transaction result.
+
+**usage**
+
+```bash
+usage: tbears txresult [-h] [-u URI] [-c CONFIG] hash
+
+Get transaction result by transaction hash
+
+positional arguments:
+  hash                  Transaction hash of the transaction to be queried.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -u URI, --node-uri URI
+                        URI of node (default: http://127.0.0.1:9000/api/v3)
+  -c CONFIG, --config CONFIG
+                        config path. Use "uri" value (default: ./deploy.json)
+```
+
+**options**
+
+| shorthand, Name | default | Description                     |
+| --------------- | :------ | ------------------------------- |
+| hash  |         | Transaction hash of the transaction to be queried |
+| -h, --help      |         | show this help message and exit |
+| -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node   |
+| -c, --config    | ./deploy.json | Configuration file path. Use "uri" value |
+
+**examples**
+
+```bash
+(work) $ tbears txresult 0x2adc1c73da604c7c4247336d98bf5902eee9977ed017ffa3b2b5fd266ab3cd8d
+Transaction result: {
+    "jsonrpc": "2.0",
+    "result": {
+        "txHash": "0x2adc1c73da604c7c4247336d98bf5902eee9977ed017ffa3b2b5fd266ab3cd8d",
+        "blockHeight": "0x1",
+        "blockHash": "86fb191dada862c0996d883d8112baea212c4b2705676bf15f5eadb60a29de72",
+        "txIndex": "0x0",
+        "to": "cx0000000000000000000000000000000000000000",
+        "scoreAddress": "cxeee6a1a4e8ab4d4e3d39c520ceb722217f9a9ef1",
+        "stepUsed": "0x11670",
+        "stepPrice": "0x0",
+        "cumulativeStepUsed": "0x11670",
+        "eventLogs": [],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1",
+        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "id": 1
+}
 ```
 
 ### configuration files
@@ -428,6 +551,7 @@ In SCORE, you can implement on_install(), on_update(), and that methods are c
     "to": "cx0000000000000000000000000000000000000000",
     "nid": "0x1234",
     "stepLimit": "0x1234",
+    "txType": "dummy",
     "scoreParams": {}
 }
 ```
@@ -442,6 +566,7 @@ In SCORE, you can implement on_install(), on_update(), and that methods are c
 | nid          | string     | Network ID                                                   |
 | stepLimit    | string     | (optional) stepLimit value                                   |
 | keyStore     | string     | (optional) keystore file path                                |
+| txType       | string     | Transaction type for send command.<br/> dummy : send transaction with invalid signature<br/>real: send transaction with valid transaction|
 | scoreParams  | dict       | Parameters to be passed to on_install() or on_update()       |
 
 ## Utilities

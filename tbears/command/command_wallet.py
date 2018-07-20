@@ -32,29 +32,32 @@ from tbears.util.keystore_manager import validate_password, make_key_store_conte
 class CommandWallet:
     def __init__(self, subparsers):
         self._add_result_parser(subparsers)
-        self._add_send_parser(subparsers)
+        self._add_transfer_parser(subparsers)
         self._add_keystore_parser(subparsers)
 
     @staticmethod
     def _add_result_parser(subparsers):
-        parser = subparsers.add_parser('result', help='Query transaction result')
-        parser.add_argument('hash', help='Hash of the transaction to be queried.')
+        parser = subparsers.add_parser('txresult', help='Get transaction result by transaction hash',
+                                       description='Get transaction result by transaction hash')
+        parser.add_argument('hash', help='Transaction hash of the transaction to be queried.')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
                             dest='uri')
-        parser.add_argument('-c', '--config', help='config path. used to designate uri(default: ./deploy.json)')
+        parser.add_argument('-c', '--config', help='config path. Use "uri" value (default: ./deploy.json)')
 
     @staticmethod
-    def _add_send_parser(subparsers):
-        parser = subparsers.add_parser('send', help='Send <value>icx to <to>.')
-        parser.add_argument('-f', '--from', help='From address. can be used in tbears mode.', dest='from')
+    def _add_transfer_parser(subparsers):
+        parser = subparsers.add_parser('transfer', help='Transfer ICX coin.', description='Transfer ICX coin.')
+        parser.add_argument('-f', '--from', help='From address. Must use with dummy type.', dest='from')
         parser.add_argument('to', help='Recipient')
-        parser.add_argument("value", type=float, help='Amount to transfer')
+        parser.add_argument("value", type=float, help='Amount of ICX coin to transfer in loop(1 icx = 1e18 loop)')
         parser.add_argument('-t', '--type', choices=['dummy', 'real'],
-                            help='dummy type can be used only in tbears mode.(default: dummy)', dest='txType')
+                            help='Type of transfer request. Dummy type is valid in tbears node only(default: dummy)',
+                            dest='txType')
         parser.add_argument('-k', '--key-store', help='Sender\'s key store file', dest='keyStore')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
                             dest='uri')
-        parser.add_argument('-c', '--config', help='deploy config path (default: ./deploy.json)')
+        parser.add_argument('-c', '--config',
+                            help='config path. Use "keyStore", "uri", "txType" and "from" values (default: ./deploy.json)')
 
     @staticmethod
     def _add_keystore_parser(subparsers):
@@ -64,14 +67,17 @@ class CommandWallet:
         parser.add_argument('path', help='path of keystore file.')
 
     @staticmethod
-    def _check_result(conf: dict):
+    def _check_txresult(conf: dict):
         if not is_tx_hash(conf['hash']):
             raise TBearsCommandException(f'invalid transaction hash')
 
     @staticmethod
-    def _check_send(conf: dict, password: str=None):
+    def _check_transfer(conf: dict, password: str=None):
         if not is_icon_address_valid(conf['to']):
             raise TBearsCommandException(f'You entered invalid address')
+        # value must be a integer value
+        if conf['value'] != float(int(conf['value'])):
+            raise TBearsCommandException(f'You entered invalid value {conf["value"]}')
 
         if conf['txType'] == 'dummy':
             return None
@@ -93,44 +99,43 @@ class CommandWallet:
         if not password:
             password = getpass.getpass("input your key store password: ")
         if not validate_password(password):
-            raise TBearsCommandException("Passwords must be at least 8 characters long including alphabet, number, "
+            raise TBearsCommandException("Password must be at least 8 characters long including alphabet, number, "
                                          "and special character.")
         return password
 
     @staticmethod
-    def result(conf):
+    def txresult(conf):
         icon_client = IconClient(conf['uri'])
         get_tx_result_payload = get_icx_getTransactionResult_payload(conf['hash'])
 
         response = icon_client.send(get_tx_result_payload)
         response_json = response.json()
-        print(f"Transaction result: {response_json}")
+        print(f"Transaction result: {json.dumps(response_json, indent=4)}")
 
         return response_json
 
-    def send(self, conf: dict, password: str=None):
+    def transfer(self, conf: dict, password: str=None):
         icon_client = IconClient(conf['uri'])
-        password = self._check_send(conf, password)
-        origin_value = conf['value']
-        loop_value = hex(int(origin_value * 10 ** 18))
+        password = self._check_transfer(conf, password)
+        nid = "0x1234"
 
         if password:
             sender_signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
-            send_tx_payload = get_icx_sendTransaction_payload(sender_signer, conf['to'], loop_value)
+            transfer_tx_payload = get_icx_sendTransaction_payload(sender_signer, conf['to'], hex(int(conf['value'])), nid)
         else:
             is_icon_address_valid(conf['from'])
             sender = conf['from']
-            send_tx_payload = get_dummy_icx_sendTransaction_payload(sender, conf['to'], loop_value)
+            transfer_tx_payload = get_dummy_icx_sendTransaction_payload(sender, conf['to'], hex(int(conf['value'])), nid)
 
-        response = icon_client.send(send_tx_payload)
+        response = icon_client.send(transfer_tx_payload)
         response_json = response.json()
 
         if 'result' in response_json:
-            print('Send request successfully.')
+            print('Send transfer request successfully.')
             tx_hash = response_json['result']
             print(f"transaction hash: {tx_hash}")
         else:
-            print('Send request failed')
+            print('Got an error response')
             print(response_json)
 
         return response_json
@@ -177,7 +182,7 @@ class CommandWallet:
         return conf
 
     @staticmethod
-    def get_send_config(key_path: str, to: str, value: int) -> dict:
+    def get_transfer_config(key_path: str, to: str, value: float) -> dict:
         conf = IconConfig('./deploy.json', deploy_config)
         conf['keyStore'] = key_path
         conf['to'] = to

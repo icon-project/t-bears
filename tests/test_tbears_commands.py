@@ -40,6 +40,7 @@ class TestTBearsCommands(unittest.TestCase):
                 os.remove('./tbears.log')
             if os.path.exists('./a_test'):
                 shutil.rmtree(self.project_name)
+            self.cmd.cmdServer.stop(None)
         except:
             pass
 
@@ -82,7 +83,7 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(self.project_name, main)
         shutil.rmtree(self.project_name)
 
-    def test_start_deploy_send_result_stop_clean(self):
+    def test_start_deploy_transfer_result_stop_clean(self):
         # test start, deploy, stop, clean command
         conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
 
@@ -105,15 +106,15 @@ class TestTBearsCommands(unittest.TestCase):
         # result (query transaction result)
         tx_hash = deploy_response['result']
         conf = self.cmd.cmdWallet.get_result_config(tx_hash)
-        transaction_result_response = self.cmd.cmdWallet.result(conf)
+        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
         self.assertFalse(transaction_result_response.get('error', False))
 
-        # send
+        # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        conf = self.cmd.cmdWallet.get_send_config(key_path, f'hx123{"0"*37}', 10)
+        conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 1.3e2)
         conf['txType'] = 'real'
-        send_response_json = self.cmd.cmdWallet.send(conf, 'qwer1234%')
-        self.assertFalse(send_response_json.get('error', False))
+        transfer_response_json = self.cmd.cmdWallet.transfer(conf, 'qwer1234%')
+        self.assertFalse(transfer_response_json.get('error', False))
 
         # stop
         self.cmd.cmdServer.stop(None)

@@ -106,11 +106,11 @@ class CommandScore(object):
         response_json = response.json()
 
         if 'result' in response_json:
-            print('Send request successfully.')
+            print('Send deploy request successfully.')
             tx_hash = response_json['result']
             print(f"transaction hash: {tx_hash}")
         else:
-            print('Send request failed')
+            print('Got an error response')
             print(response_json)
 
         # print(f"Deployed SCORE successfully")

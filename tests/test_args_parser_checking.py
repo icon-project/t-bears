@@ -216,3 +216,5 @@ class ArgsParserTest(unittest.TestCase):
         # too much argument
         cmd = f'clear arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+    # TODO add test for transfer, result command

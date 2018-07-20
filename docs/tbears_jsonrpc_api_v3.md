@@ -429,7 +429,7 @@ Total number of coins issued.
 | version | [T_INT](#T_INT) | required | Protocol version. ("0x3" for V3) |
 | from | [T_ADDR_EOA](#T_ADDR_EOA) | required | Transaction creator's address. |
 | to | [T_ADDR_EOA](#T_ADDR_EOA) or<br/>[T_ADDR_SCORE](#T_ADDR_SCORE) | optional | EOA address to receive coin, or SCORE address to execute the transaction. |
-| value | [T_INT](#T_INT) | optional | Amount of ICX coin to transfer to 'to address'. When ommitted, assumes 0. |
+| value | [T_INT](#T_INT) | optional | Amount of ICX coin in loop to transfer to 'to address'. When ommitted, assumes 0. (1 icx = 1e18 loop)|
 | stepLimit |[T_INT](#T_INT) | required | Maximum step allowance that can be used by the transaction. |
 | timestamp | [T_INT](#T_INT) | required | Transaction send time. timestamp is in microsecond. |
 | nid | [T_INT](#T_INT) | required | Network ID |
