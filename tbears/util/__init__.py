@@ -71,8 +71,9 @@ class SampleToken(IconScoreBase):
         super().on_update()
     
     @external(readonly=True)
-    def hello(self) -> None:
+    def hello(self) -> str:
         print(f'Hello, world!')
+        return "Hello"
 """
     return template.replace("SampleToken", score_class)
 
