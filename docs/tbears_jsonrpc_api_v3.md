@@ -75,7 +75,7 @@ Below table shows the most common "VALUE types".
 
 This chapter explains the error codes used in ICON JSON-RPC API response.<br/>
 
-Belows table shows the default error messages for the error code. Actual message may vary depending on the implementation.
+Below table shows the default error messages for the error code. Actual message may vary depending on the implementation.
 
 ## Error Codes
 
