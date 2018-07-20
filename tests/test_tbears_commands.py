@@ -122,7 +122,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         # clear
         self.cmd.cmdScore.clear(None)
-        self.assertFalse(os.path.exists('./.db'))
+        self.assertFalse(os.path.exists('./.statedb'))
         self.assertFalse(os.path.exists('./.score'))
         shutil.rmtree(f'./{self.project_name}')
 

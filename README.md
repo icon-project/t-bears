@@ -57,7 +57,7 @@ $ tbears stop
 
 ### Clear SCORE project
 
- Clear the SCORE project by the ```tbears ```. It will remove both .score and .db directory.
+ Clear the SCORE project by the ```tbears ```. It will remove both .score and .statedb directory.
 ```
 $ tbears clear
 ```
