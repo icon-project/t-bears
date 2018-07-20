@@ -13,12 +13,11 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
   VER=$(cat VERSION)
   mkdir -p $VER
 
-  EARL_VER=$(curl http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/VERSION)
-  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/earlgrey-$EARL_VER-py3-none-any.whl" -P $VER
-  pip install --force-reinstall $VER/earlgrey-$EARL_VER-py3-none-any.whl
+  WGET_VER=$(curl http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/VERSION)
+  pip install --force-reinstall "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/earlgrey-${WGET_VER}-py3-none-any.whl" -P $VER
   rm -rf earlgrey*
-  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconcommons-0.9.5-py3-none-any.whl" -P $VER
-  pip install --force-reinstall $VER/iconcommons-0.9.5-py3-none-any.whl
+  WGET_VER=$(curl http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconcommons/VERSION)
+  pip install --force-reinstall "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconcommons/iconcommons-${WGET_VER}-py3-none-any.whl" -P $VER
   rm -rf iconsommons*
 
   if [[ -z "${ICONSERVICEPATH}" || ("$1" = "deploy") ]]; then
