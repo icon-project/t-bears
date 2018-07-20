@@ -217,4 +217,70 @@ class ArgsParserTest(unittest.TestCase):
         cmd = f'clear arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-    # TODO add test for transfer, result command
+    def test_transfer(self):
+        arg_from = f"hx{'0'*40}"
+        to = f"hx1{'0'*39}"
+        value = 1e18
+        arg_type = 'dummy'
+        keystore = 'keystore_path'
+        node_uri = 'http://localhost:9000/api/v3'
+        invalid_address = f'hx123'
+        config = 'deploy.json'
+        invalid_coin_value = 1.1
+
+        cmd = f'transfer {to} {value} -t {arg_type} -k {keystore} -u {node_uri} -c {config} -f {arg_from}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertEqual(parsed.command, 'transfer')
+        self.assertEqual(parsed.to, to)
+        self.assertEqual(parsed.value, value)
+        self.assertEqual(parsed.txType, arg_type)
+        self.assertEqual(parsed.keyStore, keystore)
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+        dict_parsed = vars(parsed) # from is keyword in python, can't use parsed.from
+        self.assertEqual(dict_parsed['from'], arg_from)
+
+        # invalid argument tests
+        # given more arguments.
+        cmd = f'transfer arg1 arg2 arg3'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+        # invalid argument
+        cmd = f'transfer {to} {value} -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+        # given unsupported value to argument
+        cmd = f'transfer {to} {value} -t not_supported_type'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid value to arguments.
+        cmd = f'transfer {invalid_address} {value}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertRaises(TBearsCommandException, CommandWallet._check_transfer, vars(parsed))
+        cmd = f'transfer {to} {invalid_coin_value}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertRaises(TBearsCommandException, CommandWallet._check_transfer, vars(parsed))
+        # given nonexistent keystore file path.
+        cmd = f'transfer {to} {value} -k {keystore}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertRaises(TBearsCommandException, CommandWallet._check_transfer, vars(parsed))
+
+    def test_result(self):
+        tx_hash = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
+        node_uri = 'http://localhost:9000/api/v3'
+        config = 'deploy.json'
+        cmd = f'txresult {tx_hash} -u {node_uri} -c {config}'
+        invalid_hash = '0x1'
+        parsed = self.parser.parse_args(cmd.split())
+
+        self.assertEqual(parsed.command, 'txresult')
+        self.assertEqual(parsed.hash, tx_hash)
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'txresult {tx_hash} arg1'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid tx hash
+        cmd = f'txresult {invalid_hash}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertRaises(TBearsCommandException, CommandWallet._check_txresult, vars(parsed))

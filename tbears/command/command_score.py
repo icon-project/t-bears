@@ -94,7 +94,8 @@ class CommandScore(object):
                                                              deploy_params=conf.get('scoreParams', {}),
                                                              step_limit=step_limit)
         else:
-            is_icon_address_valid(conf['from'])
+            if not is_icon_address_valid(conf['from']):
+                raise TBearsCommandException(f'You entered invalid address')
             payload = make_install_json_payload(project=conf['project'],
                                                 fr=conf['from'],
                                                 to=score_address,

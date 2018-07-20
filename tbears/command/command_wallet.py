@@ -123,7 +123,8 @@ class CommandWallet:
             sender_signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
             transfer_tx_payload = get_icx_sendTransaction_payload(sender_signer, conf['to'], hex(int(conf['value'])), nid)
         else:
-            is_icon_address_valid(conf['from'])
+            if not is_icon_address_valid(conf['from']):
+                raise TBearsCommandException(f'You entered invalid address')
             sender = conf['from']
             transfer_tx_payload = get_dummy_icx_sendTransaction_payload(sender, conf['to'], hex(int(conf['value'])), nid)
 
