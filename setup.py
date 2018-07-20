@@ -17,7 +17,7 @@ requires = [
 
 setup_options = {
     'name': 'tbears',
-    'version': __version__,
+    'version': version,
     'description': '`tbears` for ICON SCORE development',
     'author': 'ICON foundation',
     'author_email': 'foo@icon.foundation',
