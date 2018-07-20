@@ -416,7 +416,7 @@ async def init_icon_inner_task(conf: 'IconConfig'):
     config = IconConfig("", default_icon_config)
     config.load({ConfigKey.BUILTIN_SCORE_OWNER: conf['accounts'][0]['address'],
                  ConfigKey.SCORE_ROOT_PATH: conf['scoreRoot'],
-                 ConfigKey.SCORE_STATE_DB_ROOT_PATH: conf['dbRoot']})
+                 ConfigKey.STATE_DB_ROOT_PATH: conf['dbRoot']})
     # TODO genesis address를 admin_address로 한다
     __icon_inner_task = IconScoreInnerTask(config)
 
