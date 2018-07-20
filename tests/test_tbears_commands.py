@@ -92,10 +92,10 @@ class TestTBearsCommands(unittest.TestCase):
 
         # start
         tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears.json')
-        conf = IconConfig(tbears_config_path, tbears_config)
-        conf.load()
-        conf['config'] = tbears_config_path
-        self.cmd.cmdServer.start(conf)
+        start_conf = IconConfig(tbears_config_path, tbears_config)
+        start_conf.load()
+        start_conf['config'] = tbears_config_path
+        self.cmd.cmdServer.start(start_conf)
         self.assertTrue(self.check_server())
 
         # deploy
@@ -121,9 +121,9 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertFalse(self.check_server())
 
         # clear
-        self.cmd.cmdScore.clear(None)
-        self.assertFalse(os.path.exists('./.statedb'))
-        self.assertFalse(os.path.exists('./.score'))
+        self.cmd.cmdScore.clear(start_conf)
+        self.assertFalse(os.path.exists(start_conf['scoreRoot']))
+        self.assertFalse(os.path.exists(start_conf['dbRoot']))
         shutil.rmtree(f'./{self.project_name}')
 
     def test_keystore(self):

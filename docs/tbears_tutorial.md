@@ -309,7 +309,7 @@ transaction hash: 0xad292b9608d9575f735ec2ebbf52dc891d7cca6a2fa7e97aee4818325c80
 
 **description**
 
-Clear all SCORE deployed on local tbears service.
+Clear tbears service.
 
 **usage**
 
