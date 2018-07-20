@@ -231,7 +231,7 @@ build/
 dist/
 
 #tbears
-.db
+.statedb
 .score
 tbears.json
 deploy.json

@@ -130,8 +130,8 @@ class CommandScore(object):
         try:
             if os.path.exists('./.score'):
                 shutil.rmtree('./.score')
-            if os.path.exists('./.db'):
-                shutil.rmtree('./.db')
+            if os.path.exists('./.statedb'):
+                shutil.rmtree('./.statedb')
         except (PermissionError, NotADirectoryError) as e:
             raise TBearsDeleteTreeException(f"Can't delete SCORE fils. {e}")
 
