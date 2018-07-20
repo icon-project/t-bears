@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-import getpass
 import os
 
 from tbears.tbears_exception import TBearsCommandException
@@ -22,14 +21,12 @@ from tbears.util import (
     get_package_json_dict, write_file, get_init_template
 )
 from tbears.config.tbears_config import tbears_config, deploy_config
-from tbears.util.keystore_manager import make_key_store_content, validate_password
 
 
 class CommandUtil(object):
     def __init__(self, subparsers):
         self._add_init_parser(subparsers)
         self._add_samples_parser(subparsers)
-        self._add_keystore_parser(subparsers)
 
     @staticmethod
     def _add_init_parser(subparsers) -> None:
@@ -45,13 +42,6 @@ class CommandUtil(object):
         subparsers.add_parser('samples',
                               help='Create two SCORE samples (standard_crowd_sale, standard_token)',
                               description='Create two SCORE samples (standard_crowd_sale, standard_token)')
-
-    @staticmethod
-    def _add_keystore_parser(subparsers):
-        parser = subparsers.add_parser('keystore',
-                                       help='Create keystore file',
-                                       description='Create keystore file in passed path.')
-        parser.add_argument('path', help='path of keystore file.')
 
     def run(self, args):
         if not hasattr(self, args.command):
@@ -85,21 +75,6 @@ class CommandUtil(object):
 
         print(f"Made samples successfully")
 
-    def keystore(self, conf: dict, password: str = None):
-        """Make keystore file with passed path and password.
-
-        :param conf: keystore command configuration
-        :param password: password for keystore file
-        """
-        password = self._check_keystore(conf, password)
-
-        key_store_content = make_key_store_content(password)
-
-        with open(conf['path'], mode='wb') as ks:
-            ks.write(json.dumps(key_store_content).encode())
-
-        print(f"Made keystore file successfully")
-
     def check_command(self, command):
         return hasattr(self, command)
 
@@ -109,18 +84,6 @@ class CommandUtil(object):
             raise TBearsCommandException(f'<project> and <score_class> must be different.')
         if os.path.exists(f"./{conf['project']}"):
             raise TBearsCommandException(f'{conf["project"]} directory must be empty.')
-
-    @staticmethod
-    def _check_keystore(conf: dict, password: str):
-        if os.path.exists(conf['path']):
-            raise TBearsCommandException(f'{conf["path"]} must be empty')
-
-        if not password:
-            password = getpass.getpass("input your key store password: ")
-        if not validate_password(password):
-            raise TBearsCommandException("Passwords must be at least 8 characters long including alphabet, number, "
-                                         "and special character.")
-        return password
 
     @staticmethod
     def __initialize_project(project: str, score_class: str, contents_func):
@@ -148,10 +111,4 @@ class CommandUtil(object):
         return {
             'project': project,
             'score_class': score_class
-        }
-
-    @staticmethod
-    def get_keystore_args(path: str):
-        return {
-            'path': path
         }

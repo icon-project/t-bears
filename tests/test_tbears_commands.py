@@ -23,10 +23,14 @@ from tbears.util.icx_signer import key_from_key_store
 from tbears.config.tbears_config import tbears_config
 from iconcommons.icon_config import IconConfig
 
+from tests.test_util import TEST_UTIL_DIRECTORY
+
 
 class TestTBearsCommands(unittest.TestCase):
     def setUp(self):
         self.cmd = Command()
+        self.project_name = 'a_test'
+        self.project_class = 'ATest'
 
     def tearDown(self):
         try:
@@ -34,6 +38,9 @@ class TestTBearsCommands(unittest.TestCase):
                 os.remove('./deploy.json')
             if os.path.exists('./tbears.log'):
                 os.remove('./tbears.log')
+            if os.path.exists('./a_test'):
+                shutil.rmtree(self.project_name)
+            self.cmd.cmdServer.stop(None)
         except:
             pass
 
@@ -51,55 +58,63 @@ class TestTBearsCommands(unittest.TestCase):
 
     def test_init_1(self):
         # Case when entering the existing SCORE directory for initializing the SCORE.
-        project = 'a_test_init1'
-        score_class = 'ATestInit1'
-        conf = self.cmd.cmdUtil.get_init_args(project=project, score_class=score_class)
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
 
-        os.mkdir(project)
+        os.mkdir(self.project_name)
         self.assertRaises(TBearsCommandException, self.cmd.cmdUtil.init, conf)
-        os.rmdir(project)
+        os.rmdir(self.project_name)
 
     def test_init_2(self):
         # Case when entering the existing SCORE path for initializing the SCORE.
-        project = 'a_test_init2'
-        score_class = 'ATestInit2'
-        conf = self.cmd.cmdUtil.get_init_args(project=project, score_class=score_class)
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
 
-        self.touch(project)
+        self.touch(self.project_name)
         self.assertRaises(TBearsCommandException, self.cmd.cmdUtil.init, conf)
-        os.remove(project)
+        os.remove(self.project_name)
 
     def test_init_3(self):
         # Case when entering the right path for initializing the SCORE.
-        project = 'a_test_init3'
-        score_class = 'ATestInit3'
-        conf = self.cmd.cmdUtil.get_init_args(project=project, score_class=score_class)
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
         self.cmd.cmdUtil.init(conf)
 
-        with open(f'{project}/package.json', mode='r') as package_contents:
+        with open(f'{self.project_name}/package.json', mode='r') as package_contents:
             package_json = json.loads(package_contents.read())
         main = package_json['main_file']
-        self.assertEqual(project, main)
-        shutil.rmtree(project)
+        self.assertEqual(self.project_name, main)
+        shutil.rmtree(self.project_name)
 
-    def test_start_deploy_stop_clean(self):
+    def test_start_deploy_transfer_result_stop_clean(self):
         # test start, deploy, stop, clean command
-        project = 'a_test'
-        score_class = 'ATest'
-        conf = self.cmd.cmdUtil.get_init_args(project=project, score_class=score_class)
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
 
         # init
         self.cmd.cmdUtil.init(conf)
 
         # start
-
-        self.cmd.cmdServer.start(conf=IconConfig('./tbears.json', tbears_config))
+        tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears.json')
+        conf = IconConfig(tbears_config_path, tbears_config)
+        conf.load()
+        conf['config'] = tbears_config_path
+        self.cmd.cmdServer.start(conf)
         self.assertTrue(self.check_server())
 
         # deploy
-        conf = self.cmd.cmdScore.get_deploy_conf(project=project)
-        response = self.cmd.cmdScore.deploy(conf=conf)
-        self.assertEqual(response.get('error', False), False)
+        conf = self.cmd.cmdScore.get_deploy_conf(project=self.project_name)
+        deploy_response = self.cmd.cmdScore.deploy(conf=conf)
+        self.assertEqual(deploy_response.get('error', False), False)
+
+        # result (query transaction result)
+        tx_hash = deploy_response['result']
+        conf = self.cmd.cmdWallet.get_result_config(tx_hash)
+        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        self.assertFalse(transaction_result_response.get('error', False))
+
+        # transfer
+        key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
+        conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 1.3e2)
+        conf['txType'] = 'real'
+        transfer_response_json = self.cmd.cmdWallet.transfer(conf, 'qwer1234%')
+        self.assertFalse(transfer_response_json.get('error', False))
 
         # stop
         self.cmd.cmdServer.stop(None)
@@ -109,15 +124,15 @@ class TestTBearsCommands(unittest.TestCase):
         self.cmd.cmdScore.clear(None)
         self.assertFalse(os.path.exists('./.db'))
         self.assertFalse(os.path.exists('./.score'))
-        shutil.rmtree(f'./{project}')
+        shutil.rmtree(f'./{self.project_name}')
 
     def test_keystore(self):
         path = './kkeystore'
         password = '1234qwer%'
 
         # make keystore file
-        conf = self.cmd.cmdUtil.get_keystore_args(path=path)
-        self.cmd.cmdUtil.keystore(conf, password)
+        conf = self.cmd.cmdWallet.get_keystore_args(path=path)
+        self.cmd.cmdWallet.keystore(conf, password)
         self.assertTrue(os.path.exists(path))
 
         # get private key from file
@@ -128,6 +143,5 @@ class TestTBearsCommands(unittest.TestCase):
         else:
             exception_raised = False
         self.assertFalse(exception_raised)
-
 
         os.remove(path)

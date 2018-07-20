@@ -12,17 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
 import os
 import hashlib
+import re
 
 import requests
+from secp256k1 import PrivateKey
 
 from tbears.util.in_memory_zip import InMemoryZip
-from tbears.util.icx_signer import IcxSigner
+from .icx_signer import IcxSigner
 from tbears.libs.icon_json import JsonContents
 from ..tbears_exception import TBearsWriteFileException, ZipException, DeployPayloadException
-from tbears.config import tbears_config
+
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, '..', '..'))
@@ -70,8 +71,9 @@ class SampleToken(IconScoreBase):
         super().on_update()
     
     @external(readonly=True)
-    def hello(self) -> None:
+    def hello(self) -> str:
         print(f'Hello, world!')
+        return "Hello"
 """
     return template.replace("SampleToken", score_class)
 
@@ -418,3 +420,38 @@ def get_deploy_contents_by_path(project_root_path: str = None):
         raise DeployPayloadException(f"Can't zip SCORE contents")
     else:
         return f'0x{memory_zip.data.hex()}'
+
+
+def is_lowercase_hex_string(value: str) -> bool:
+    """Check whether value is hexadecimal format or not
+
+    :param value: text
+    :return: True(lowercase hexadecimal) otherwise False
+    """
+    try:
+        result = re.match('[0-9a-f]+', value)
+        return len(result.group(0)) == len(value)
+    except:
+        pass
+
+    return False
+
+
+def is_tx_hash(tx_hash: str) -> bool:
+    """Check hash is valid.
+
+    :param tx_hash:
+    :return:
+    """
+    if isinstance(hash, str) and len(tx_hash) == 66:
+        prefix, body = tx_hash[:2], tx_hash[2:]
+        return prefix == '0x' and is_lowercase_hex_string(body)
+
+    return False
+
+
+def address_from_private_key(private_key: bytes) ->str:
+    private_key_obj = PrivateKey(private_key)
+    public_key = private_key_obj.pubkey.serialize(compressed=False)
+    address = hashlib.sha3_256(public_key[1:]).digest()[-20:]
+    return f'hx{address.hex()}'

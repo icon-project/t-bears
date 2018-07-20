@@ -14,10 +14,13 @@
 # limitations under the License.
 import hashlib
 import time
+from typing import TYPE_CHECKING
 
 from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
 from tbears.tbears_exception import JsonContentsException
-from tbears.util.icx_signer import IcxSigner
+
+if TYPE_CHECKING:
+    from tbears.util.icx_signer import IcxSigner
 
 
 class JsonContents:
