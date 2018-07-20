@@ -50,7 +50,7 @@ deploy_config = {
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
     "nid": "0x1234",
-    "stepLimit": "0x1234",
+    "stepLimit": "0x1234000",
     "scoreParams": {
     }
 }

@@ -75,7 +75,7 @@ class CommandScore(object):
 
         password = self._check_deploy(conf, password)
 
-        step_limit = int(conf.get('stepLimit', "0x1234"), 16)
+        step_limit = int(conf.get('stepLimit', "0x1234000"), 16)
         if conf['mode'] == 'install':
             score_address = f'cx{"0"*40}'
         else:
