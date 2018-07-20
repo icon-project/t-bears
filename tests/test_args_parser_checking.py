@@ -227,8 +227,9 @@ class ArgsParserTest(unittest.TestCase):
         invalid_address = f'hx123'
         config = 'deploy.json'
         invalid_coin_value = 1.1
+        nid = '0x123456'
 
-        cmd = f'transfer {to} {value} -t {arg_type} -k {keystore} -u {node_uri} -c {config} -f {arg_from}'
+        cmd = f'transfer {to} {value} -t {arg_type} -k {keystore} -u {node_uri} -c {config} -f {arg_from} -n {nid}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(parsed.command, 'transfer')
         self.assertEqual(parsed.to, to)
@@ -239,6 +240,7 @@ class ArgsParserTest(unittest.TestCase):
         self.assertEqual(parsed.config, config)
         dict_parsed = vars(parsed) # from is keyword in python, can't use parsed.from
         self.assertEqual(dict_parsed['from'], arg_from)
+        self.assertEqual(parsed.nid, nid)
 
         # invalid argument tests
         # given more arguments.

@@ -58,6 +58,7 @@ class CommandWallet:
                             dest='uri')
         parser.add_argument('-c', '--config',
                             help='config path. Use "keyStore", "uri", "txType" and "from" values (default: ./deploy.json)')
+        parser.add_argument('-n', '--nid', help='Network ID(default: 0x1234)', dest='nid')
 
     @staticmethod
     def _add_keystore_parser(subparsers):
@@ -117,16 +118,18 @@ class CommandWallet:
     def transfer(self, conf: dict, password: str=None):
         icon_client = IconClient(conf['uri'])
         password = self._check_transfer(conf, password)
-        nid = "0x1234"
+        nid = conf['nid']
 
         if password:
             sender_signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
-            transfer_tx_payload = get_icx_sendTransaction_payload(sender_signer, conf['to'], hex(int(conf['value'])), nid)
+            transfer_tx_payload = get_icx_sendTransaction_payload(sender_signer, conf['to'],
+                                                                  hex(int(conf['value'])), nid)
         else:
             if not is_icon_address_valid(conf['from']):
                 raise TBearsCommandException(f'You entered invalid address')
             sender = conf['from']
-            transfer_tx_payload = get_dummy_icx_sendTransaction_payload(sender, conf['to'], hex(int(conf['value'])), nid)
+            transfer_tx_payload = get_dummy_icx_sendTransaction_payload(sender, conf['to'],
+                                                                        hex(int(conf['value'])), nid)
 
         response = icon_client.send(transfer_tx_payload)
         response_json = response.json()
