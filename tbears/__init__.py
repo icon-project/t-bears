@@ -14,8 +14,5 @@
 # limitations under the License.
 from .tbears_cli import main
 
-# Version of tbears.
-__version__ = "0.9.4"
-
 if __name__ == "__main__":
     main()

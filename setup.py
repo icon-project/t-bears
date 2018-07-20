@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-
+import os
 from setuptools import setup, find_packages
-from tbears import __version__
 
+with open(os.path.join('.', 'VERSION')) as version_file:
+    version = version_file.read().strip()
 
 requires = [
     'requests==2.19.1',
