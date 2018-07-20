@@ -23,7 +23,7 @@ from tbears.util.icx_signer import IcxSigner
 class JsonContents:
     """Utility class for make payload of requests."""
 
-    def __init__(self, step_limit=123, nonce=1, version=3, _id=1):
+    def __init__(self, step_limit=123000, nonce=1, version=3, _id=1):
         if not all(isinstance(arg, int) for arg in (step_limit, nonce, version, _id)):
             raise JsonContentsException(f"stepLimit, nonce, version, id must be int type")
 
