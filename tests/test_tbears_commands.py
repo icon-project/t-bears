@@ -122,8 +122,8 @@ class TestTBearsCommands(unittest.TestCase):
 
         # clear
         self.cmd.cmdScore.clear(start_conf)
-        self.assertFalse(os.path.exists('./.score'))
-        self.assertFalse(os.path.exists('./.db'))
+        self.assertFalse(os.path.exists(start_conf['scoreRoot']))
+        self.assertFalse(os.path.exists(start_conf['dbRoot']))
         shutil.rmtree(f'./{self.project_name}')
 
     def test_keystore(self):
