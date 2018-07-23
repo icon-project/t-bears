@@ -15,6 +15,7 @@
 import os
 import hashlib
 import re
+import sys
 
 import requests
 from secp256k1 import PrivateKey
@@ -464,12 +465,10 @@ def get_tbears_version() -> str:
     """
     version_path = os.path.join(PROJECT_ROOT_PATH, 'VERSION')
     if not os.path.exists(version_path):
-        version_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'VERSION')
+        version_path = os.path.join(sys.exec_prefix, 'VERSION')
     try:
         with open(version_path) as version_file:
             version = version_file.read().strip()
-    except FileNotFoundError:
-        version = '0.0.1'
     except:
         version = '0.0.1'
     return version

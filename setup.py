@@ -22,7 +22,7 @@ setup_options = {
     'author': 'ICON foundation',
     'author_email': 'foo@icon.foundation',
     'packages': find_packages(exclude=['tests*', 'docs']),
-    'package_data': {'tbears': ['VERSION']},
+    'data_files': [('.', ['VERSION'])],
     'include_package_data': True,
     'py_modules': ['tbears'],
     'license': "Apache License 2.0",
