@@ -16,6 +16,7 @@ import os
 import hashlib
 import re
 
+import pkg_resources
 import requests
 from secp256k1 import PrivateKey
 
@@ -463,11 +464,11 @@ def get_tbears_version() -> str:
     :return: version of tbears.
     """
     try:
-        with open(os.path.join(PROJECT_ROOT_PATH, 'VERSION')) as version_file:
-            version = version_file.read().strip()
-    except FileNotFoundError:
-        with open(os.path.join(PROJECT_ROOT_PATH, 'tbears', 'VERSION')) as version_file:
-            version = version_file.read().strip()
+        version = pkg_resources.get_distribution('tbears').version
+    except pkg_resources.DistributionNotFound:
+        version_path = os.path.join(PROJECT_ROOT_PATH, 'VERSION')
+        with open(version_path, mode='r') as version_file:
+            version = version_file.read()
     except:
-        version = '0.0.1'
+        version = 'unknown'
     return version
