@@ -17,27 +17,30 @@ import unittest
 import json
 import shutil
 import socket
-from tbears.command import ExitCode
-from tbears.command.command_server import CommandServer
-from tbears.command.command_score import CommandScore
-from tbears.command.command_util import CommandUtil
+from tbears.command.command import Command
+from tbears.tbears_exception import TBearsCommandException
+from tbears.util.icx_signer import key_from_key_store
+from tbears.config.tbears_config import tbears_config
+from iconcommons.icon_config import IconConfig
+
+from tests.test_util import TEST_UTIL_DIRECTORY
 
 
 class TestTBearsCommands(unittest.TestCase):
     def setUp(self):
-        self.path = './'
-        self.host = '127.0.0.1'
-        self.port = 9008
-        self.conf = CommandScore.get_conf()
-        self.conf['uri'] = f'http://{self.host}:{self.port}/api/v3'
+        self.cmd = Command()
+        self.project_name = 'a_test'
+        self.project_class = 'ATest'
 
     def tearDown(self):
-        CommandScore.clear()
         try:
             if os.path.exists('./deploy.json'):
                 os.remove('./deploy.json')
             if os.path.exists('./tbears.log'):
                 os.remove('./tbears.log')
+            if os.path.exists('./a_test'):
+                shutil.rmtree(self.project_name)
+            self.cmd.cmdServer.stop(None)
         except:
             pass
 
@@ -46,74 +49,99 @@ class TestTBearsCommands(unittest.TestCase):
         with open(path, 'a'):
             os.utime(path, None)
 
-    @staticmethod
-    def read_zipfile_as_byte(archive_path: 'str') -> 'bytes':
-        with open(archive_path, 'rb') as f:
-            byte_data = f.read()
-            return byte_data
-
     def check_server(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # if socket is connected, the result code is 0 (false).
-        result = sock.connect_ex((self.host, self.port))
+        result = sock.connect_ex(('127.0.0.1', 9000))
         sock.close()
         return result == 0
 
     def test_init_1(self):
         # Case when entering the existing SCORE directory for initializing the SCORE.
-        os.mkdir('./a_test_init1')
-        result_code = CommandServer.init('a_test_init1', "ATestInit1")
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, result_code)
-        os.rmdir('./a_test_init1')
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
+
+        os.mkdir(self.project_name)
+        self.assertRaises(TBearsCommandException, self.cmd.cmdUtil.init, conf)
+        os.rmdir(self.project_name)
 
     def test_init_2(self):
         # Case when entering the existing SCORE path for initializing the SCORE.
-        self.touch('./a_test_init2')
-        result_code = CommandServer.init('./a_test_init2', 'ATestInit2')
-        self.assertEqual(ExitCode.PROJECT_PATH_IS_NOT_EMPTY_DIRECTORY.value, result_code)
-        os.remove('./a_test_init2')
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
+
+        self.touch(self.project_name)
+        self.assertRaises(TBearsCommandException, self.cmd.cmdUtil.init, conf)
+        os.remove(self.project_name)
 
     def test_init_3(self):
         # Case when entering the right path for initializing the SCORE.
-        score_name = 'a_test_init3'
-        result_code = CommandServer.init(score_name, "ATestInit3")
-        self.assertEqual(ExitCode.SUCCEEDED.value, result_code)
-        with open(f'{score_name}/package.json', mode='r') as package_contents:
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
+        self.cmd.cmdUtil.init(conf)
+
+        with open(f'{self.project_name}/package.json', mode='r') as package_contents:
             package_json = json.loads(package_contents.read())
         main = package_json['main_file']
-        self.assertEqual(score_name, main)
-        shutil.rmtree(score_name)
+        self.assertEqual(self.project_name, main)
+        shutil.rmtree(self.project_name)
 
-    def test_start_deploy_stop_clean(self):
+    def test_start_deploy_transfer_result_stop_clean(self):
         # test start, deploy, stop, clean command
-        project = 'a_test'
-        score_class = 'ATest'
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
 
         # init
-        CommandServer.init(project=project, score_class=score_class)
+        self.cmd.cmdUtil.init(conf)
 
         # start
-        CommandServer.start(host=self.host, port=self.port)
+        tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears.json')
+        start_conf = IconConfig(tbears_config_path, tbears_config)
+        start_conf.load()
+        start_conf['config'] = tbears_config_path
+        self.cmd.cmdServer.start(start_conf)
         self.assertTrue(self.check_server())
 
         # deploy
-        result_code, _ = CommandScore.deploy(project=project, conf=self.conf)
-        self.assertEqual(1, result_code)
+        conf = self.cmd.cmdScore.get_deploy_conf(project=self.project_name)
+        deploy_response = self.cmd.cmdScore.deploy(conf=conf)
+        self.assertEqual(deploy_response.get('error', False), False)
+
+        # result (query transaction result)
+        tx_hash = deploy_response['result']
+        conf = self.cmd.cmdWallet.get_result_config(tx_hash)
+        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        self.assertFalse(transaction_result_response.get('error', False))
+
+        # transfer
+        key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
+        conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 1.3e2)
+        conf['txType'] = 'real'
+        transfer_response_json = self.cmd.cmdWallet.transfer(conf, 'qwer1234%')
+        self.assertFalse(transfer_response_json.get('error', False))
 
         # stop
-        CommandServer.stop()
+        self.cmd.cmdServer.stop(None)
         self.assertFalse(self.check_server())
 
         # clear
-        CommandScore.clear()
-        self.assertFalse(os.path.exists('./.db'))
-        self.assertFalse(os.path.exists('./.score'))
-        shutil.rmtree(f'./{project}')
+        self.cmd.cmdScore.clear(start_conf)
+        self.assertFalse(os.path.exists(start_conf['scoreRoot']))
+        self.assertFalse(os.path.exists(start_conf['dbRoot']))
+        shutil.rmtree(f'./{self.project_name}')
 
     def test_keystore(self):
         path = './kkeystore'
         password = '1234qwer%'
-        result = CommandUtil.make_keystore(path, password)
-        self.assertEqual(ExitCode.SUCCEEDED, result)
+
+        # make keystore file
+        conf = self.cmd.cmdWallet.get_keystore_args(path=path)
+        self.cmd.cmdWallet.keystore(conf, password)
         self.assertTrue(os.path.exists(path))
+
+        # get private key from file
+        try:
+            key_from_key_store(file_path=path, password=password)
+        except:
+            exception_raised = True
+        else:
+            exception_raised = False
+        self.assertFalse(exception_raised)
+
         os.remove(path)

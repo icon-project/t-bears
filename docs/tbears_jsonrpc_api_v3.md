@@ -75,7 +75,7 @@ Below table shows the most common "VALUE types".
 
 This chapter explains the error codes used in ICON JSON-RPC API response.<br/>
 
-Belows table shows the default error messages for the error code. Actual message may vary depending on the implementation.
+Below table shows the default error messages for the error code. Actual message may vary depending on the implementation.
 
 ## Error Codes
 
@@ -429,9 +429,10 @@ Total number of coins issued.
 | version | [T_INT](#T_INT) | required | Protocol version. ("0x3" for V3) |
 | from | [T_ADDR_EOA](#T_ADDR_EOA) | required | Transaction creator's address. |
 | to | [T_ADDR_EOA](#T_ADDR_EOA) or<br/>[T_ADDR_SCORE](#T_ADDR_SCORE) | optional | EOA address to receive coin, or SCORE address to execute the transaction. |
-| value | [T_INT](#T_INT) | optional | Amount of ICX coin to transfer to 'to address'. When ommitted, assumes 0. |
+| value | [T_INT](#T_INT) | optional | Amount of ICX coin in loop to transfer to 'to address'. When ommitted, assumes 0. (1 icx = 1e18 loop)|
 | stepLimit |[T_INT](#T_INT) | required | Maximum step allowance that can be used by the transaction. |
 | timestamp | [T_INT](#T_INT) | required | Transaction send time. timestamp is in microsecond. |
+| nid | [T_INT](#T_INT) | required | Network ID |
 | nonce | [T_INT](#T_INT) | optional | An arbitrary number used to prevent transaction hash collision. |
 | signature | [T_SIG](#T_SIG) | required | Transaction signature. |
 | dataType | [T_DATA_TYPE](#T_DATA_TYPE) | optional | Type of data. (call, or deploy) |

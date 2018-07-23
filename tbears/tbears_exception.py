@@ -12,47 +12,92 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
+from enum import IntEnum, unique
 
 
-class TbearsBaseException(Exception):
-    """Base exception for tbears."""
-    pass
+@unique
+class TBearsExceptionCode(IntEnum):
+    """Result code enumeration
+
+    Refer to http://www.simple-is-better.org/json-rpc/jsonrpc20.html#examples
+    """
+    OK = 0
+    COMMAND_ERROR = 1
+    WRITE_FILE_ERROR = 2
+    DELETE_TREE_ERROR = 3
+    KEY_STORE_ERROR = 5
+    DEPLOY_PAYLOAD_ERROR = 6
+    ICON_CLIENT_ERROR = 7
+    ZIP_MEMORY = 8
+
+    def __str__(self) -> str:
+        return str(self.name).capitalize().replace('_', ' ')
 
 
-class TBearsWriteFileException(TbearsBaseException):
+class TBearsBaseException(BaseException):
+
+    def __init__(self, message: Optional[str], code: TBearsExceptionCode = TBearsExceptionCode.OK):
+        if message is None:
+            message = str(code)
+        self.__message = message
+        self.__code = code
+
+    @property
+    def message(self):
+        return self.__message
+
+    @property
+    def code(self):
+        return self.__code
+
+    def __str__(self):
+        return f'{self.message} ({str(self.code)})'
+
+
+class TBearsWriteFileException(TBearsBaseException):
     """Error while write file."""
-    pass
+    def __init__(self, message: Optional[str]):
+        super().__init__(message, TBearsExceptionCode.WRITE_FILE_ERROR)
 
 
-class TBearsDeleteTreeException(TbearsBaseException):
-    """Error while write file."""
-    pass
+class TBearsDeleteTreeException(TBearsBaseException):
+    """Error while delete file."""
+    def __init__(self, message: Optional[str]):
+        super().__init__(message, TBearsExceptionCode.DELETE_TREE_ERROR)
 
 
-class TbearsConfigFileException(TbearsBaseException):
-    """Error while load deploy config file"""
-    pass
+class KeyStoreException(TBearsBaseException):
+    """"Error while make or load keystore file """
+    def __init__(self, message: Optional[str]):
+        super().__init__(message, TBearsExceptionCode.KEY_STORE_ERROR)
 
 
-class KeyStoreException(TbearsBaseException):
-    pass
-
-
-class ZipException(TbearsBaseException):
+class ZipException(TBearsBaseException):
     """"Error while write zip in memory"""
-    pass
+    def __init__(self, message: Optional[str]):
+        super().__init__(message, TBearsExceptionCode.ZIP_MEMORY)
 
 
-class FillDeployPaylodException(TbearsBaseException):
+class DeployPayloadException(TBearsBaseException):
     """Error while fill deploy payload"""
-    pass
+    def __init__(self, message: Optional[str]):
+        super().__init__(message, TBearsExceptionCode.DEPLOY_PAYLOAD_ERROR)
 
 
-class IconClientException(TbearsBaseException):
-    """Error while request"""
-    pass
+class IconClientException(TBearsBaseException):
+    """Error while send request"""
+    def __init__(self, message: Optional[str]):
+        super().__init__(message, TBearsExceptionCode.ICON_CLIENT_ERROR)
 
 
-class JsonContentsException(TbearsBaseException):
+class JsonContentsException(TBearsBaseException):
     """Error when initialize JsonContent object"""
-    pass
+    def __init__(self, message: Optional[str]):
+        super().__init__(message, TBearsExceptionCode.JSONRPC_CONTENT_ERROR)
+
+
+class TBearsCommandException(TBearsBaseException):
+    """Error when tbears cli options are wrong"""
+    def __init__(self, message: Optional[str]):
+        super().__init__(message, TBearsExceptionCode.COMMAND_ERROR)

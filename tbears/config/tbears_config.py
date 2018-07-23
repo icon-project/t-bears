@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 tbears_config = {
     "hostAddress": "0.0.0.0",
     "port": 9000,
@@ -23,7 +24,9 @@ tbears_config = {
         "colorLog": True,
         "level": "debug",
         "filePath": "./tbears.log",
-        "outputType": "console|file"
+        "outputType": "console|file",
+        "rotateType": "D",
+        "rotateInterval": 1
     },
     "accounts": [
         {
@@ -43,10 +46,12 @@ deploy_config = {
     "uri": "http://127.0.0.1:9000/api/v3",
     "scoreType": "tbears",
     "mode": "install",
+    "keyStore": None,
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
-    "stepLimit": "0x12345",
+    "nid": "0x1234",
+    "stepLimit": "0x1234000",
+    "txType": "dummy",
     "scoreParams": {
     }
 }
-

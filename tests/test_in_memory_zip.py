@@ -19,7 +19,7 @@ import unittest
 import zipfile
 
 from tbears.util.in_memory_zip import InMemoryZip
-from tests.test_util import DEPLOY_TEST_DIRECTORY
+from tests.test_util import IN_MEMORY_ZIP_TEST_DIRECTORY
 
 
 def zip_file_name_list(in_memory_zip: 'InMemoryZip') -> list:
@@ -27,14 +27,14 @@ def zip_file_name_list(in_memory_zip: 'InMemoryZip') -> list:
     return [f'/{file_list.filename}' for file_list in memory_zip.infolist()]
 
 
-class TestDeploy(unittest.TestCase):
+class TestInMemoryZip(unittest.TestCase):
 
     def test_in_memory_zip(self):
         mz = InMemoryZip()
-        mz.zip_in_memory(DEPLOY_TEST_DIRECTORY)
+        mz.zip_in_memory(IN_MEMORY_ZIP_TEST_DIRECTORY)
 
-        test_a_path = os.path.join(DEPLOY_TEST_DIRECTORY, 'test_a')
-        test_b_path = os.path.join(DEPLOY_TEST_DIRECTORY, 'test_b')
+        test_a_path = os.path.join(IN_MEMORY_ZIP_TEST_DIRECTORY, 'test_a')
+        test_b_path = os.path.join(IN_MEMORY_ZIP_TEST_DIRECTORY, 'test_b')
         self.assertTrue(test_a_path in zip_file_name_list(mz))
         self.assertTrue(test_b_path in zip_file_name_list(mz))
 
@@ -45,7 +45,7 @@ class TestDeploy(unittest.TestCase):
             mzf.extractall('test_in_memory_zip')
 
         with zipfile.ZipFile('testt.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
-            for root, dirs, files in os.walk(DEPLOY_TEST_DIRECTORY):
+            for root, dirs, files in os.walk(IN_MEMORY_ZIP_TEST_DIRECTORY):
                 for file in files:
                     zf.write(os.path.join(root, file))
 
@@ -59,7 +59,7 @@ class TestDeploy(unittest.TestCase):
                 with open(f'{root}/{file}', mode='rb') as f:
                     in_memory_zip_contents.append(hashlib.sha3_256(f.read()).digest())
 
-        for root, dirs, files in os.walk(DEPLOY_TEST_DIRECTORY):
+        for root, dirs, files in os.walk(IN_MEMORY_ZIP_TEST_DIRECTORY):
             for file in files:
                 with open(f'{root}/{file}', mode='rb') as f:
                     real_contents.append(hashlib.sha3_256(f.read()).digest())

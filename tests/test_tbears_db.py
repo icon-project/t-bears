@@ -31,10 +31,24 @@ class TestTBearsDB(unittest.TestCase):
         self.TBEARS_DB.close()
         shutil.rmtree(DB_PATH)
 
-    def test_put(self):
+    def test_put_and_get(self):
+        # put and get
         self.TBEARS_DB.put(b'test_key', b'test_value')
         ret = self.TBEARS_DB.get(b'test_key')
         self.assertEqual(ret, b'test_value')
+
+        # overwrite
+        self.TBEARS_DB.put(b'test_key', b'test_value_overwrite')
+        ret = self.TBEARS_DB.get(b'test_key')
+        self.assertEqual(ret, b'test_value_overwrite')
+
+        # get invalid key
+        ret = self.TBEARS_DB.get(b'invalid_key')
+        self.assertIsNone(ret)
+
+        # put invalid type
+        self.assertRaises(TypeError, self.TBEARS_DB.put, 'test_key', b'test_value')
+        self.assertRaises(TypeError, self.TBEARS_DB.put, b'test_key', 123)
 
     def test_delete(self):
         self.TBEARS_DB.put(b'test_key', b'test_value')
@@ -43,4 +57,4 @@ class TestTBearsDB(unittest.TestCase):
 
         self.TBEARS_DB.delete(b'test_key')
         ret = self.TBEARS_DB.get(b'test_key')
-        self.assertEqual(ret, None)
+        self.assertIsNone(ret)

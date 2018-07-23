@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-
+import os
 from setuptools import setup, find_packages
-from tbears import __version__
 
+with open(os.path.join('.', 'VERSION')) as version_file:
+    version = version_file.read().strip()
 
 requires = [
     'requests==2.19.1',
@@ -16,7 +17,7 @@ requires = [
 
 setup_options = {
     'name': 'tbears',
-    'version': __version__,
+    'version': version,
     'description': '`tbears` for ICON SCORE development',
     'author': 'ICON foundation',
     'author_email': 'foo@icon.foundation',

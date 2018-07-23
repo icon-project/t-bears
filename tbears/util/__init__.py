@@ -12,17 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
 import os
 import hashlib
+import re
 
 import requests
+from secp256k1 import PrivateKey
 
 from tbears.util.in_memory_zip import InMemoryZip
-from tbears.util.icx_signer import IcxSigner
+from .icx_signer import IcxSigner
 from tbears.libs.icon_json import JsonContents
-from ..tbears_exception import TBearsWriteFileException, ZipException, FillDeployPaylodException
-from tbears.default_conf import tbears_conf
+from ..tbears_exception import TBearsWriteFileException, ZipException, DeployPayloadException
+
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT_PATH = os.path.abspath(os.path.join(DIR_PATH, '..', '..'))
@@ -42,10 +43,8 @@ def write_file(parent_directory: str, file_name: str, contents: str, overwrite: 
             return
         with open(f'{parent_directory}/{file_name}', mode='w') as file:
             file.write(contents)
-    except PermissionError:
-        raise TBearsWriteFileException
-    except IsADirectoryError:
-        raise TBearsWriteFileException
+    except (PermissionError, IsADirectoryError) as e:
+        raise TBearsWriteFileException(f"Can't write file {parent_directory}/{file_name}. {e}")
 
 
 def get_init_template(project: str, score_class: str) -> str:
@@ -70,6 +69,11 @@ class SampleToken(IconScoreBase):
 
     def on_update(self) -> None:
         super().on_update()
+    
+    @external(readonly=True)
+    def hello(self) -> str:
+        print(f'Hello, world!')
+        return "Hello"
 """
     return template.replace("SampleToken", score_class)
 
@@ -90,12 +94,15 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
     return package_json_dict
 
 
-def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}",
-                              deploy_params: dict = {}) -> dict:
+def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}", nid: str="0x1234",
+                              data_params: dict = {}) -> dict:
     """Returns payload of install request.
 
     :param project: SCORE's name
-    :param owner: address of <project>'s owner(str)
+    :param fr: From address
+    :param to: To address
+    :param nid: Network ID
+    :param data_params: params of data object
 
 
     :return: payload of install request json.
@@ -104,10 +111,10 @@ def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"c
     data = {
         "contentType": "application/tbears",
         "content": path,
-        "params": deploy_params
+        "params": data_params
     }
     json_contents = JsonContents()
-    params = json_contents.params_send_transaction(fr=fr, to=to, value=hex(0), data=data, data_type='deploy')
+    params = json_contents.params_send_transaction(fr=fr, to=to, value=hex(0), nid=nid, data=data, data_type='deploy')
     params['signature'] = 'sig'
     payload = json_contents.json_rpc_format('icx_sendTransaction', params)
     return payload
@@ -389,14 +396,6 @@ class MySampleToken(IconScoreBase, TokenStandard):
     return template.replace("MySampleToken", score_class)
 
 
-def get_tbears_config_json() -> str:
-    return json.dumps(tbears_conf.tbears_config, indent=4)
-
-
-def get_deploy_config_json() -> str:
-    return json.dumps(tbears_conf.deploy_config, indent=4)
-
-
 def create_address(data: bytes) -> str:
     """Create address using given data.
 
@@ -418,6 +417,41 @@ def get_deploy_contents_by_path(project_root_path: str = None):
         memory_zip = InMemoryZip()
         memory_zip.zip_in_memory(project_root_path)
     except ZipException:
-        raise FillDeployPaylodException
+        raise DeployPayloadException(f"Can't zip SCORE contents")
     else:
         return f'0x{memory_zip.data.hex()}'
+
+
+def is_lowercase_hex_string(value: str) -> bool:
+    """Check whether value is hexadecimal format or not
+
+    :param value: text
+    :return: True(lowercase hexadecimal) otherwise False
+    """
+    try:
+        result = re.match('[0-9a-f]+', value)
+        return len(result.group(0)) == len(value)
+    except:
+        pass
+
+    return False
+
+
+def is_tx_hash(tx_hash: str) -> bool:
+    """Check hash is valid.
+
+    :param tx_hash:
+    :return:
+    """
+    if isinstance(hash, str) and len(tx_hash) == 66:
+        prefix, body = tx_hash[:2], tx_hash[2:]
+        return prefix == '0x' and is_lowercase_hex_string(body)
+
+    return False
+
+
+def address_from_private_key(private_key: bytes) ->str:
+    private_key_obj = PrivateKey(private_key)
+    public_key = private_key_obj.pubkey.serialize(compressed=False)
+    address = hashlib.sha3_256(public_key[1:]).digest()[-20:]
+    return f'hx{address.hex()}'
