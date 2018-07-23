@@ -245,7 +245,7 @@ optional arguments:
   -h, --help                                   show this help message and exit
   -u URI, --node-uri URI                       URI of node
                                                (default: http://127.0.0.1:9000/api/v3)
-  -t {tbears,icon}, --type {tbears,icon}       Deploy SCORE type
+  -t {tbears,zip}, --type {tbears,zip}         Deploy SCORE type
                                                (default: tbears)
   -m {install,update}, --mode {install,update} Deploy mode (default: install)
   -f FROM, --from FROM                         From address. i.e. SCORE owner address
@@ -555,7 +555,7 @@ SCORE's  `on_install()` or  `on_update()`  method is called on deployment.  F
 | to          | string     | To address |
 | stepLimit   | string     | (optional) stepLimit value                                   |
 | deploy      | dict       | options for deploy command |
-| deploy.contentType | string     | SCORE type of the deployment (tbears or icon)                |
+| deploy.contentType | string     | SCORE type of the deployment (tbears or zip)                |
 | deploy.mode        | string     | Deploy mode.<br>install: new SCORE deployment.<br>update: update the SCORE that was previously deployed. |
 | deploy.scoreParams | dict       | Parameters to be passed to on_install() or on_update()       |
 | deploy.from        | string     | Address of the SCORE deployer |

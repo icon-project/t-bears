@@ -40,7 +40,7 @@ class CommandScore(object):
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
                             dest='uri')
         parser.add_argument('-t', '--type', help='Deploy SCORE type (default: tbears)',
-                            choices=['tbears', 'icon'], dest='contentType')
+                            choices=['tbears', 'zip'], dest='contentType')
         parser.add_argument('-m', '--mode', help='Deploy mode (default: install)',
                             choices=['install', 'update'], dest='mode')
         parser.add_argument('-f', '--from', help='From address. i.e. SCORE owner address', dest='from')
@@ -60,7 +60,7 @@ class CommandScore(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = self.get_deploy_conf(args.command)
+        conf = self.get_score_conf(args.command)
 
         conf.load(user_input=vars(args))
 
@@ -85,7 +85,7 @@ class CommandScore(object):
             score_address = conf['to']
             is_icon_address_valid(score_address)
 
-        if conf['contentType'] == 'icon':
+        if conf['contentType'] == 'zip':
             signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
             deploy_contents = get_deploy_contents_by_path(conf['project'])
             payload = get_icx_sendTransaction_deploy_payload(signer=signer,
@@ -167,7 +167,7 @@ class CommandScore(object):
         return hasattr(self, command)
 
     @staticmethod
-    def get_deploy_conf(command: str, project: str = None):
+    def get_score_conf(command: str, project: str = None):
         config_path = FN_CLI_CONF
         config_dict = tbears_cli_config
         if command == "clear":
