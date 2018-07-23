@@ -2,7 +2,7 @@
 import os
 from setuptools import setup, find_packages
 
-with open(os.path.join('.', 'tbears', 'VERSION')) as version_file:
+with open(os.path.join('.', 'VERSION')) as version_file:
     version = version_file.read().strip()
 
 requires = [
@@ -22,7 +22,6 @@ setup_options = {
     'author': 'ICON foundation',
     'author_email': 'foo@icon.foundation',
     'packages': find_packages(exclude=['tests*', 'docs', 'tools']),
-    'package_data': {'tbears': ['VERSION']},
     'py_modules': ['tbears'],
     'license': "Apache License 2.0",
     'install_requires': requires,

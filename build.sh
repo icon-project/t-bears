@@ -10,7 +10,7 @@ fi
 if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = "deploy") ]]; then
   pip3 install -r requirements.txt
 
-  VER=$(cat tbears/VERSION)
+  VER=$(cat VERSION)
   mkdir -p $VER
 
   WGET_VER=$(curl http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/VERSION)

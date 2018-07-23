@@ -13,21 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
-import os
+import pkg_resources
 
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsBaseException, TBearsExceptionCode
 from tbears.command.command_server import CommandServer
 from tbears.command.command_score import CommandScore
 from tbears.command.command_util import CommandUtil
-from tbears.util import PROJECT_ROOT_PATH
 
 
 class Command(object):
     def __init__(self):
-        with open(os.path.join(PROJECT_ROOT_PATH, 'tbears', 'VERSION')) as version_file:
-            version = version_file.read().strip()
-        self.version = version
+        self.version = pkg_resources.require('tbears')[0].version
         self._create_parser()
         self.cmdServer = CommandServer(self.subparsers)
         self.cmdScore = CommandScore(self.subparsers)
