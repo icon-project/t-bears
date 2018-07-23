@@ -15,15 +15,12 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
 
   WGET_VER=$(curl http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/VERSION)
   pip install --force-reinstall "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/earlgrey-${WGET_VER}-py3-none-any.whl"
-  rm -rf earlgrey*
   WGET_VER=$(curl http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconcommons/VERSION)
   pip install --force-reinstall "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconcommons/iconcommons-${WGET_VER}-py3-none-any.whl"
-  rm -rf iconsommons*
 
   if [[ -z "${ICONSERVICEPATH}" || ("$1" = "deploy") ]]; then
     WGET_VER=$(curl http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconservice/VERSION)
     pip install --force-reinstall "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconservice/iconservice-${WGET_VER}-py3-none-any.whl"
-    rm -rf iconservice*
   else
     if [ "$(pip3 list | grep iconservice)" ]; then
         pip uninstall iconservice -y
@@ -46,7 +43,7 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
       cp docs/tbears_jsonrpc_api_v3.md docs/tbears_tutorial.md ${VER}
       wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/${VER}/CHANGELOG.md" -P ${VER}
       wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/${VER}/dapp_guide.md" -P ${VER}
-      tar -cvzf tbears-$VER.tar.gz ${VER}/*.whl ${VER}/*.md
+      tar -cvzf tbears-${VER}.tar.gz ${VER}/*.whl ${VER}/*.md
       mv tbears-${VER}.tar.gz ${VER}
 
       if [[ -z "${AWS_ACCESS_KEY_ID}" || -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
