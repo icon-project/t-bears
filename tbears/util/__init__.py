@@ -15,8 +15,8 @@
 import os
 import hashlib
 import re
-import sys
 
+import pkg_resources
 import requests
 from secp256k1 import PrivateKey
 
@@ -463,12 +463,12 @@ def get_tbears_version() -> str:
     The location of the file that holds the version information is different when packaging and when executing.
     :return: version of tbears.
     """
-    version_path = os.path.join(PROJECT_ROOT_PATH, 'VERSION')
-    if not os.path.exists(version_path):
-        version_path = os.path.join(sys.exec_prefix, 'VERSION')
     try:
-        with open(version_path) as version_file:
-            version = version_file.read().strip()
+        version = pkg_resources.get_distribution('tbears').version
+    except pkg_resources.DistributionNotFound:
+        version_path = os.path.join(PROJECT_ROOT_PATH, 'VERSION')
+        with open(version_path, mode='r') as version_file:
+            version = version_file.read()
     except:
-        version = '0.0.1'
+        version = 'unknown'
     return version
