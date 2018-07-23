@@ -19,16 +19,15 @@ from json import JSONDecodeError
 import argparse
 from ipaddress import ip_address
 
-from iconservice.icon_constant import DATA_BYTE_ORDER, ICON_SCORE_QUEUE_NAME_FORMAT, ConfigKey
+from iconservice.icon_constant import DATA_BYTE_ORDER, ConfigKey
 from jsonrpcserver import status
 from jsonrpcserver.aio import methods
 from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams
 from sanic import Sanic, response as sanic_response
 
-from iconservice.icon_inner_service import IconScoreInnerService, IconScoreInnerStub
 from iconservice.utils import check_error_response
 from iconservice.icon_config import default_icon_config
-from tbears.config.tbears_config import tbears_config
+from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 
@@ -362,7 +361,7 @@ def create_parser():
     parser = argparse.ArgumentParser(description='jsonrpc_server for tbears')
     parser.add_argument('-a', '--address', help='Address to host on (default: 0.0.0.0)', type=ip_address)
     parser.add_argument('-p', '--port', help='Listen port (default: 9000)', type=int)
-    parser.add_argument('-c', '--config', help='tbears configuration file path (default: ./tbears.json)')
+    parser.add_argument('-c', '--config', help=f'tbears configuration file path (default: {FN_SERVER_CONF})')
 
     return parser
 
@@ -381,10 +380,10 @@ def serve():
     if args.config:
         path = args.config
     else:
-        path = './tbears.json'
+        path = FN_SERVER_CONF
 
-    conf = _load_config(path, args)
-    conf.load()
+    conf = IconConfig(path, tbears_server_config)
+    conf.load(vars(args))
     # init logger
     Logger.load_config(conf)
     Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
@@ -399,24 +398,12 @@ def serve():
     server.run()
 
 
-def _load_config(path: str, args) -> 'IconConfig':
-    conf = IconConfig(path, tbears_config)
-    if args:
-        if args.address:
-            Logger.debug(f'args.address: {args.address}', TBEARS_LOG_TAG)
-            conf['hostAddress'] = str(args.address)
-        if args.port:
-            conf['port'] = args.port
-
-    return conf
-
-
 async def init_icon_inner_task(conf: 'IconConfig'):
     global __icon_inner_task
     config = IconConfig("", default_icon_config)
-    config.load({ConfigKey.BUILTIN_SCORE_OWNER: conf['accounts'][0]['address'],
-                 ConfigKey.SCORE_ROOT_PATH: conf['scoreRoot'],
-                 ConfigKey.STATE_DB_ROOT_PATH: conf['dbRoot']})
+    config.load({ConfigKey.BUILTIN_SCORE_OWNER: conf['genesis']['accounts'][0]['address'],
+                 ConfigKey.SCORE_ROOT_PATH: conf['scoreRootPath'],
+                 ConfigKey.STATE_DB_ROOT_PATH: conf['stateDbRootPath']})
     # TODO genesis address를 admin_address로 한다
     __icon_inner_task = IconScoreInnerTask(config)
 
@@ -430,7 +417,7 @@ async def init_icon_inner_task(conf: 'IconConfig'):
     tx = {
         'method': '',
         'params': request_params,
-        'genesisData': {'accounts': conf['accounts']}
+        'genesisData': conf['genesis']
     }
 
     request = {'transactions': [tx]}
@@ -475,7 +462,7 @@ def init_tbears(conf: 'IconConfig'):
     global __tx_result_mapper
     __tx_result_mapper = TxResultMapper()
     global TBEARS_DB
-    TBEARS_DB = TbearsDB(TbearsDB.make_db(f'{conf["dbRoot"]}/tbears'))
+    TBEARS_DB = TbearsDB(TbearsDB.make_db(f'{conf["stateDbRootPath"]}/tbears'))
     load_tbears_global_variable()
 
 

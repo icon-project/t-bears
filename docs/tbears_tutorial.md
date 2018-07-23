@@ -6,6 +6,7 @@
 
 | Date       | Version  | Author | Description                                                 |
 | :--------- | :---- | :----: | :--------------------------------------------------- |
+| 2018.07.23 | 0.9.5 | Eunsoo Park | Improve tbears configuration files |
 | 2018.07.16 | 0.9.3 | Soobok Jin | tbears cli commands updated. Document structure revised, and translated to English. |
 | 2018.07.10 | 0.9.3 | Chiwon Cho | earlgrey package description added. |
 | 2018.07.06 | 0.9.3 | Inwon Kim | Configuration file updated.       |
@@ -122,7 +123,7 @@ Available commands:
 
 **Description**
 
-Initialize SCORE development environment. Generate <project\>.py and package.json in <project\> directory. The name of the score class is \<score_class\>.  Configuration files, "tbears.json" used when starting tbears and "deploy.json" used when deploying SCORE, are also generated.
+Initialize SCORE development environment. Generate <project\>.py and package.json in <project\> directory. The name of the score class is \<score_class\>.  Configuration files, "tbears_server_config.json" used when starting tbears and "tbears_cli_config.json" used when deploying SCORE, are also generated.
 
 **Usage**
 
@@ -161,8 +162,8 @@ abc.py  __init__.py package.json tests
 | **Item**                   | **Description**                                              |
 | :------------------------- | :----------------------------------------------------------- |
 | \<project>                 | SCORE project name. Project directory is create with the same name. |
-| tbears.json                | tbears default configuration file will be created on the working directory. |
-| deploy.json                | Configuration file for deploy command will be created on the working directory. |
+| tbears_server_config.json  | tbears default configuration file will be created on the working directory. |
+| tbears_cli_config.json     | Configuration file for 'deploy', 'txresult' and 'transfer' command will be created on the working directory. |
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project folder recognized as a python package. |
 | \<project>/package.json    | SCORE metadata.                                              |
 | \<project>/\<project>.py   | SCORE main file. ABCToken class is defined.                  |
@@ -172,7 +173,7 @@ abc.py  __init__.py package.json tests
 
 **Description**
 
-Start tbears service. Whenever tbears service starts, it loads the configutaion from "tbears.json" file. If you want to use other configuration file, you can specify the file location with the '-c' option.
+Start tbears service. Whenever tbears service starts, it loads the configutaion from "tbears_server_config.json" file. If you want to use other configuration file, you can specify the file location with the '-c' option.
 
 **Usage**
 
@@ -185,7 +186,7 @@ optional arguments:
   -h, --help                       show this help message and exit
   -a ADDRESS, --address ADDRESS    Address to host on (default: 0.0.0.0)
   -p PORT, --port PORT             Listen port (default: 9000)
-  -c CONFIG, --config CONFIG       tbears configuration file path(default:./tbears.json)
+  -c CONFIG, --config CONFIG       tbears configuration file path(default:./tbears_server_config.json)
 ```
 
 **Options**
@@ -195,7 +196,7 @@ optional arguments:
 | -h, --help      |               | show this help message and exit |
 | -a, --address   | 0.0.0.0       | Address to host on              |
 | -p, --port      | 9000          | Listen port                     |
-| -c, --config    | ./tbears.json | tbears configuration file path  |
+| -c, --config    | ./tbears_server_config.json | tbears configuration file path  |
 
 #### tbears stop
 
@@ -226,7 +227,7 @@ optional arguments:
 
 Deploy the SCORE. You can deploy it on local or icon service.
 
-"deploy.json" file contains deploymenet configuration properties. (See below 'Configuration Files' chapter). If you want to use other configuration file, you can specify the file location with the '-c' option.
+"tbears_cli_config.json" file contains deploymenet configuration properties. (See below 'Configuration Files' chapter). If you want to use other configuration file, you can specify the file location with the '-c' option.
 
 **Usage**
 
@@ -251,7 +252,7 @@ optional arguments:
   -o TO, --to TO                               To address. i.e. SCORE address
   -k KEYSTORE, --key-store KEYSTORE            Key store file for SCORE owner
   -n NID, --nid NID                            Network ID of node
-  -c CONFIG, --config CONFIG                   deploy config path (default: ./deploy.json)
+  -c CONFIG, --config CONFIG                   deploy config path (default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -263,31 +264,18 @@ optional arguments:
 | -u, --node-uri                                  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
 | -t {tbears,icon},<br> --type {tbears,icon}      | tbears                       | Deploy SCORE type ("tbears" or "icon" ).                     |
 | -m {install,update},<br>--mode {install,update} | install                      | Deploy mode ("install" or "update").                         |
-| -f, --from                                      |                              | From address. i.e. SCORE owner address                       |
+| -f, --from                                      |                              | From address. i.e. SCORE owner address. It is ignored if '-k' option is set |
 | -o, --to                                        |                              | To address. i.e. SCORE address <br>**(needed only when updating score)** |
 | -k, --key-store                                 |                              | Key store file for SCORE owner                               |
 | -n, --nid                                       |                              | Network ID of node                                           |
-| -c, --config                                    | ./deploy.json                | deploy config path                                           |
+| -c, --config                                    | ./tbears_cli_config.json                | deploy config path                                           |
 
 **Examples**
 
 ```bash
 (Work)$ tbears deploy -t tbears abc
 
-(work) $ cat ./deploy.json
-{
-    "uri": "http://127.0.0.1:9000/api/v3",
-    "scoreType": "tbears",
-    "mode": "install",
-    "keyStore": null,
-    "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "to": "cx0000000000000000000000000000000000000000",
-    "nid": "0x1234",
-    "stepLimit": "0x1234",
-    "txType": "dummy",
-    "scoreParams": {}
-}
-(work) $ tbears deploy abc -c ./deploy.json
+(work)$ tbears deploy abc -c ./tbears_cli_config.json
 
 #when you deploy SCORE to icon, input keystore password
 (Work)$ tbears deploy -t icon -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -k keystore abc
@@ -311,7 +299,7 @@ Clear tbears service.
 
 **Usage**
 
-```bas
+```bash
 usage: tbears clear [-h]
 
 Clear all SCORE deployed on local tbears service
@@ -385,15 +373,12 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -f FROM, --from FROM  From address. Must use with dummy type.
-  -t {dummy,real}, --type {dummy,real}
-                        Type of transfer request. Dummy type is valid in
-                        tbears node only(default: dummy)  
   -k KEYSTORE, --key-store KEYSTORE
                         Sender's key store file
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        deploy config path (default: ./deploy.json)
+                        deploy config path (default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -403,11 +388,11 @@ optional arguments:
 | to              |         | Recipient address.          |
 | value           |         | Amount of ICX coin in loop to transfer to "to" address. (1 icx = 1e18 loop) |
 | -h, --help      |         | show this help message and exit |
-| -f, --from      |         | From address. Must be used with "-t dummy" option. |
-| -t, --type      | dummy   | Type of transfer request. ("dummy" or "real") |
+| -f, --from      |         | From address. It is ignored if '-k' option is set|
 | -k, --key-store |         | Keystore file path. Used to generate "from" address and transaction signature. |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
-| -c, --config    | ./deploy.json | Configuration file path. This file defines the default values for the properties "keyStore", "uri", "txType" and "from". |
+| -n, --nid       | 0x3     | Network ID |
+| -c, --config    | ./tbears_cli_config.json | Configuration file path. This file defines the default values for the properties "keyStore", "uri" and "from". |
 
 **Examples**
 
@@ -442,7 +427,7 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./deploy.json)
+                        config path. Use "uri" value (default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -452,7 +437,7 @@ optional arguments:
 | hash  |         | Hash of the transaction to be queried |
 | -h, --help      |         | show this help message and exit |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node   |
-| -c, --config    | ./deploy.json | Configuration file path. This file defines the default value for the "uri". |
+| -c, --config    | ./tbears_cli_config.json | Configuration file path. This file defines the default value for the "uri". |
 
 **Examples**
 
@@ -481,91 +466,112 @@ Transaction result: {
 
 ### Configuration Files
 
-#### tbears.json
+#### tbears_server_config.json
 
-When starting tbears (`tbears start`), "tbears.json" is used to configure the parameters and initial settings.
+When starting tbears (`tbears start`), "tbears_server_config.json" is used to configure the parameters and initial settings.
 
 ```json
 {
     "hostAddress": "0.0.0.0",
     "port": 9000,
-    "scoreRoot": "./.score",
-    "dbRoot": "./.db",
-    "enableFee": false,
-    "enableAudit": false,
+    "scoreRootPath": "./.score",
+    "stateDbRootPath": "./.statedb",
     "log": {
         "colorLog": true,
-        "level": "debug",
+        "level": "info",
         "filePath": "./tbears.log",
         "outputType": "console|file"
-        "rotateType": "D",
-        "rotateInterval": 1
     },
-    "accounts": [
-        {
-            "name": "genesis",
-            "address": "hx0000000000000000000000000000000000000000",
-            "balance": "0x2961fff8ca4a62327800000"
-        },
-        {
-            "name": "fee_treasury",
-            "address": "hx1000000000000000000000000000000000000000",
-            "balance": "0x0"
-        }
-    ]
+    "service": {
+        "fee": false,
+        "audit": false
+    },
+    "genesis": {
+        "nid": "0x03",
+        "accounts": [
+            {
+                "name": "genesis",
+                "address": "hx0000000000000000000000000000000000000000",
+                "balance": "0x2961fff8ca4a62327800000"
+            },
+            {
+                "name": "fee_treasury",
+                "address": "hx1000000000000000000000000000000000000000",
+                "balance": "0x0"
+            }
+        ]
+    }
 }
 ```
 
 | Field          | Data type | Description                                                  |
 | :------------- | :-------- | :----------------------------------------------------------- |
 | hostAddress    | string    | Address to host on                                           |
-| port           | int       | JSON-RPC server port number.                                 |
-| scoreRoot      | string    | Root directory that SCORE will be installed.                 |
-| dbRoot         | string    | Root directory that state DB file will be created.           |
-| enableFee      | boolean   | not implemented                                              |
-| enableAudit    | boolean   | not implemented                                              |
+| port           | int       | Port to host on                                 |
+| scoreRootPath  | string    | Root directory that SCORE will be installed.                 |
+| stateDbRootPath| string    | Root directory that state DB file will be created.           |
 | log            | dict      | tbears log setting                                       |
 | log.colorLog   | boolean   | Log display option (color or black)                         |
 | log.level      | string    | log level. <br/>"debug", "info", "warning", "error"          |
 | log.filePath   | string    | log file path.                                               |
 | log.outputType | string    | “console”: log outputs to the console that tbears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
-| log.rotateType | string    | log file rotate type. 'S' second, 'M' minute, 'H' hour, 'D' day, 'W' week |
-| log.rotateInterval | int      | log file rotate interval.                                |
-| accounts       | list      | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): accounts. |
+| service        | didct     | tbears service setting |
+| service.fee    | boolean   | not implemented                                              |
+| service.audit  | boolean   | not implemented                                              |
+| genesis        | dict      | genesis information of tbears node |
+| genesis.nid    | string    | Network ID                                                   |
+| genesis.accounts| list     | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): accounts. |
 
-#### deploy.json
+#### tbears_cli_config.json
 
-When deploying a SCORE (`tbears deploy`), this file is used to configure the parameters and initial settings .
+When run `deploy`, `txreulst` and `transfer` commands, this file is used to configure the parameters and initial settings .
 
 SCORE's  `on_install()` or  `on_update()`  method is called on deployment.  For example, if you deploy a new SCORE (mode: install), `on_install()` method is called to initialize the SCORE. In this config file, you can set the deploy "mode" and the parameters ("scoreParams") of `on_install()` or `on_update()`.
 
 ```json
 {
     "uri": "http://127.0.0.1:9000/api/v3",
-    "scoreType": "tbears",
-    "mode": "install",
+    "nid": "0x3",
     "keyStore": null,
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
-    "nid": "0x1234",
-    "stepLimit": "0x1234",
-    "txType": "dummy",
-    "scoreParams": {}
+    "stepLimit": "0x2000",
+    "deploy": {
+        "contentType": "tbears",
+        "mode": "install",
+        "scoreParams": {}
+    },
+    "txresult": {},
+    "transfer": {}
 }
 ```
 
 | Field       | Data  type | Description                                                  |
 | ----------- | :--------- | :----------------------------------------------------------- |
-| uri         | string     | uri to send the deploy request.                              |
-| scoreType   | string     | SCORE type of the deployment (tbears or icon)                |
-| mode        | string     | Deploy mode.<br>install: new SCORE deployment.<br>update: update the SCORE that was previously deployed. |
-| from        | string     | Address of the SCORE deployer                                |
-| to          | string     | (optional) Used when update SCORE (The address of the SCORE being updated).<br/>(in the case of "install" mode, the address should be 'cx0000~') |
+| uri         | string     | uri to send the request.                              |
 | nid         | string     | Network ID                                                   |
+| keyStore    | string     | keystore file path                                |
+| from        | string     | From address. It is ignored if 'keyStore' is set |
+| to          | string     | To address |
 | stepLimit   | string     | (optional) stepLimit value                                   |
-| keyStore    | string     | (optional) keystore file path                                |
-| txType      | string     | Transaction type for send command.<br/>dummy: send transaction with an arbitrary signature<br/>real: send transaction with valid transaction |
-| scoreParams | dict       | Parameters to be passed to on_install() or on_update()       |
+| deploy      | dict       | options for deploy command |
+| deploy.contentType | string     | SCORE type of the deployment (tbears or icon)                |
+| deploy.mode        | string     | Deploy mode.<br>install: new SCORE deployment.<br>update: update the SCORE that was previously deployed. |
+| deploy.scoreParams | dict       | Parameters to be passed to on_install() or on_update()       |
+| deploy.from        | string     | Address of the SCORE deployer |
+| deploy.to          | string     | Used when update SCORE (The address of the SCORE being updated).<br/>(in the case of "install" mode, the address should be 'cx0000~') |
+| txresult    | dict       | options for txresult command |
+| transfer    | dict       | options for transfer command |
+
+Each command can have a set of options and that has a higher priority than global options
+
+Following fields are working for each command
+
+| Command | Field      |
+| ------- | :--------- |
+| deploy  | uri, nid, keyStore, from, to, mode, contentType, scoreParams, stepLimit |
+| txresult| uri |
+| transfer| uri, nid, keyStore, from, to, stepLimit |
 
 ## Utilities
 
@@ -604,4 +610,4 @@ Logger.error('error log', TAG)
 * For the development convenience, JSON-RPC server in tbears does not verify the transaction signature.
 
 ## Reference
-[tbears JSON-RPC API v3](https://repo.theloop.co.kr/icon/tbears/blob/47-tbears_tutorial/docs/tbears_jsonrpc_api_v3.md)
+[tbears JSON-RPC API v3](https://repo.theloop.co.kr/icon/tbears/blob/master/docs/tbears_jsonrpc_api_v3.md)

@@ -20,7 +20,7 @@ import socket
 from tbears.command.command import Command
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util.icx_signer import key_from_key_store
-from tbears.config.tbears_config import tbears_config
+from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config
 from iconcommons.icon_config import IconConfig
 
 from tests.test_util import TEST_UTIL_DIRECTORY
@@ -31,16 +31,18 @@ class TestTBearsCommands(unittest.TestCase):
         self.cmd = Command()
         self.project_name = 'a_test'
         self.project_class = 'ATest'
+        self.start_conf = None
 
     def tearDown(self):
         try:
-            if os.path.exists('./deploy.json'):
-                os.remove('./deploy.json')
+            if os.path.exists(FN_CLI_CONF):
+                os.remove(FN_CLI_CONF)
             if os.path.exists('./tbears.log'):
                 os.remove('./tbears.log')
-            if os.path.exists('./a_test'):
+            if os.path.exists(self.project_name):
                 shutil.rmtree(self.project_name)
             self.cmd.cmdServer.stop(None)
+            self.cmd.cmdScore.clear(self.start_conf if self.start_conf else tbears_server_config)
         except:
             pass
 
@@ -91,15 +93,16 @@ class TestTBearsCommands(unittest.TestCase):
         self.cmd.cmdUtil.init(conf)
 
         # start
-        tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears.json')
-        start_conf = IconConfig(tbears_config_path, tbears_config)
+        tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, f'test_tbears_server_config.json')
+        start_conf = IconConfig(tbears_config_path, tbears_server_config)
         start_conf.load()
         start_conf['config'] = tbears_config_path
+        self.start_conf = start_conf
         self.cmd.cmdServer.start(start_conf)
         self.assertTrue(self.check_server())
 
         # deploy
-        conf = self.cmd.cmdScore.get_deploy_conf(project=self.project_name)
+        conf = self.cmd.cmdScore.get_deploy_conf(command='deploy', project=self.project_name)
         deploy_response = self.cmd.cmdScore.deploy(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 
@@ -111,8 +114,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 1.3e2)
-        conf['txType'] = 'real'
+        conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 0.3e2)
         transfer_response_json = self.cmd.cmdWallet.transfer(conf, 'qwer1234%')
         self.assertFalse(transfer_response_json.get('error', False))
 
@@ -122,8 +124,8 @@ class TestTBearsCommands(unittest.TestCase):
 
         # clear
         self.cmd.cmdScore.clear(start_conf)
-        self.assertFalse(os.path.exists(start_conf['scoreRoot']))
-        self.assertFalse(os.path.exists(start_conf['dbRoot']))
+        self.assertFalse(os.path.exists(start_conf['scoreRootPath']))
+        self.assertFalse(os.path.exists(start_conf['stateDbRootPath']))
         shutil.rmtree(f'./{self.project_name}')
 
     def test_keystore(self):

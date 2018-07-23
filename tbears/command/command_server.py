@@ -24,7 +24,7 @@ from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
 from tbears.util import post, make_exit_json_payload, write_file
-from tbears.config.tbears_config import tbears_config
+from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
 
 
 TBEARS_CLI_ENV = '/tmp/.tbears.env'
@@ -42,20 +42,20 @@ class CommandServer(object):
         parser = subparsers.add_parser('start', help='Start tbears serivce',
                                        description='Start tbears service')
         parser.add_argument('-a', '--address', help='Address to host on (default: 0.0.0.0)', type=ip_address)
-        parser.add_argument('-p', '--port', help='Listen port (default: 9000)', type=int, dest='port')
-        parser.add_argument('-c', '--config', help='tbears configuration file path (default: ./tbears.json)')
+        parser.add_argument('-p', '--port', help='Port to host on (default: 9000)', type=int, dest='port')
+        parser.add_argument('-c', '--config', help=f'tbears configuration file path (default: {FN_SERVER_CONF})')
 
     @staticmethod
     def _add_stop_parser(subparsers) -> None:
         subparsers.add_parser('stop', help='Stop tbears service',
-                              description='Stop all running SCORE and tbears service')
+                              description='Stop all running SCOREs and tbears service')
 
     def run(self, args):
         if not hasattr(self, args.command):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = IconConfig('./tbears.json', tbears_config)
+        conf = IconConfig(FN_SERVER_CONF, tbears_server_config)
         conf.load(user_input=vars(args))
 
         # run command
@@ -125,7 +125,7 @@ class CommandServer(object):
         server = CommandServer.__get_server_conf()
         if server is None:
             Logger.debug(f"Can't get server Info. from {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
-            server = CommandServer.__get_server_conf('./tbears.json')
+            server = CommandServer.__get_server_conf(FN_SERVER_CONF)
             if not server:
                 server = {'port': 9000}
 

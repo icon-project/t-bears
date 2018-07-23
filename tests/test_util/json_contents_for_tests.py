@@ -16,6 +16,7 @@ import os
 
 from tbears.util import IcxSigner
 from tbears.util.icx_signer import key_from_key_store
+from tbears.config.tbears_config import FN_SERVER_CONF
 
 
 def get_params_for_get_token_balance(addr_from: str) -> tuple:
@@ -49,6 +50,6 @@ DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 deploy_token_owner_private_key = key_from_key_store(os.path.join(DIRECTORY_PATH, 'keystore'), 'qwer1234%')
 token_owner_signer = IcxSigner(deploy_token_owner_private_key)
 deploy_token_owner_address = f'hx{token_owner_signer.address.hex()}'
-TBEARS_JSON_PATH = os.path.join(DIRECTORY_PATH, 'test_tbears.json')
+TBEARS_JSON_PATH = os.path.join(DIRECTORY_PATH, f'test_{FN_SERVER_CONF}')
 crowd_sale_score_address = "cx8c814aa96fefbbb85131f87f6e0cb7878a95c1d3"
 test_address = "hxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
