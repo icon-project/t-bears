@@ -455,3 +455,19 @@ def address_from_private_key(private_key: bytes) ->str:
     public_key = private_key_obj.pubkey.serialize(compressed=False)
     address = hashlib.sha3_256(public_key[1:]).digest()[-20:]
     return f'hx{address.hex()}'
+
+
+def get_tbears_version() -> str:
+    """Get version of tbears.
+    The location of the file that holds the version information is different when packaging and when executing.
+    :return: version of tbears.
+    """
+    try:
+        with open(os.path.join(PROJECT_ROOT_PATH, 'VERSION')) as version_file:
+            version = version_file.read().strip()
+    except FileNotFoundError:
+        with open(os.path.join(PROJECT_ROOT_PATH, 'tbears', 'VERSION')) as version_file:
+            version = version_file.read().strip()
+    except:
+        version = '0.0.1'
+    return version
