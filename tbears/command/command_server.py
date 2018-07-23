@@ -19,7 +19,6 @@ import subprocess
 import time
 from typing import Optional
 from ipaddress import ip_address
-
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
@@ -77,7 +76,7 @@ class CommandServer(object):
         # wait 2 sec
         time.sleep(2)
 
-        print(f'Started tbear service successfully')
+        print(f'Started Tbears service successfully')
 
     @staticmethod
     def stop(_conf: dict):
@@ -136,6 +135,7 @@ class CommandServer(object):
         """ Check if server is running.
         :return: True or False
         """
+        # Return a list of processes matching 'name'.
         # Return a list of processes matching 'name'.
         command = f"ps -ef | grep {name} | grep -v grep"
         result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)

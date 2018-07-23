@@ -62,6 +62,8 @@ class CommandUtil(object):
                                   score_class=conf['score_class'],
                                   contents_func=get_score_main_template)
 
+
+
         print(f"Initialized tbears successfully")
 
     def samples(self, _conf: dict):
