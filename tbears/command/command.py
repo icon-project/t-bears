@@ -13,17 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
+import os
 
-import tbears
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsBaseException, TBearsExceptionCode
 from tbears.command.command_server import CommandServer
 from tbears.command.command_score import CommandScore
 from tbears.command.command_util import CommandUtil
+from tbears.util import PROJECT_ROOT_PATH
 
 
 class Command(object):
     def __init__(self):
+        with open(os.path.join(PROJECT_ROOT_PATH, 'tbears', 'VERSION')) as version_file:
+            version = version_file.read().strip()
+        self.version = version
         self._create_parser()
         self.cmdServer = CommandServer(self.subparsers)
         self.cmdScore = CommandScore(self.subparsers)
@@ -31,7 +35,7 @@ class Command(object):
         self.cmdWallet = CommandWallet(self.subparsers)
 
     def _create_parser(self):
-        parser = argparse.ArgumentParser(prog='tbears', description=f'tbears v{tbears.__version__} arguments')
+        parser = argparse.ArgumentParser(prog='tbears', description=f'tbears v{self.version} arguments')
         parser.add_argument('-d', '--debug', help='Debug mode', action='store_true')
         subparsers = parser.add_subparsers(title='Available commands', metavar='command',
                                            description=f'If you want to see help message of commands, '
