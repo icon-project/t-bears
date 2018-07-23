@@ -462,12 +462,14 @@ def get_tbears_version() -> str:
     The location of the file that holds the version information is different when packaging and when executing.
     :return: version of tbears.
     """
+    version_path = os.path.join(PROJECT_ROOT_PATH, 'VERSION')
+    if not os.path.exists(version_path):
+        version_path = os.path.join(PROJECT_ROOT_PATH, 'tbears', 'VERSION')
     try:
-        with open(os.path.join(PROJECT_ROOT_PATH, 'VERSION')) as version_file:
+        with open(version_path) as version_file:
             version = version_file.read().strip()
     except FileNotFoundError:
-        with open(os.path.join(PROJECT_ROOT_PATH, 'tbears', 'VERSION')) as version_file:
-            version = version_file.read().strip()
+        version = '0.0.1'
     except:
         version = '0.0.1'
     return version
