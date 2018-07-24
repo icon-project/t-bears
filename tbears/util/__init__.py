@@ -15,7 +15,9 @@
 import os
 import hashlib
 import re
+import sys
 
+import pkg_resources
 import requests
 from secp256k1 import PrivateKey
 
@@ -94,14 +96,15 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
     return package_json_dict
 
 
-def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}", nid: str="0x1234",
-                              data_params: dict = {}) -> dict:
+def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}", nid: str="0x3",
+                              step_limit: int=0x1234000, data_params: dict = {}) -> dict:
     """Returns payload of install request.
 
     :param project: SCORE's name
     :param fr: From address
     :param to: To address
     :param nid: Network ID
+    :param step_limit: step Limit.
     :param data_params: params of data object
 
 
@@ -113,7 +116,7 @@ def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"c
         "content": path,
         "params": data_params
     }
-    json_contents = JsonContents()
+    json_contents = JsonContents(step_limit)
     params = json_contents.params_send_transaction(fr=fr, to=to, value=hex(0), nid=nid, data=data, data_type='deploy')
     params['signature'] = 'sig'
     payload = json_contents.json_rpc_format('icx_sendTransaction', params)
@@ -185,7 +188,8 @@ class MyCrowdSale(IconScoreBase):
         self._funding_goal_reached = VarDB(self._FUNDING_GOAL_REACHED, db, value_type=bool)
         self._crowdsale_closed = VarDB(self._CROWDSALE_CLOSED, db, value_type=bool)
 
-    def on_install(self, fundingGoalInIcx: int, tokenScore: Address, durationInSeconds: int) -> None:
+    def on_install(self, fundingGoalInIcx: int=1000, tokenScore: Address='cx02b13428a8aef265fbaeeb37394d3ae8727f7a19',
+    durationInSeconds: int=120) -> None:
         super().on_install()
 
         Logger.debug(f'on_install: fundingGoalInIcx={fundingGoalInIcx}', TAG)
@@ -211,8 +215,7 @@ class MyCrowdSale(IconScoreBase):
 
     @external
     def tokenFallback(self, _from: Address, _value: int, _data: bytes):
-        if self.msg.sender == self._addr_token_score.get() \
-                and _from == self.owner:
+        if self.msg.sender == self._addr_token_score.get() and _from == self.owner:
             # token supply to CrowdSale
             Logger.debug(f'tokenFallback: token supply = "{_value}"', TAG)
             if _value >= 0:
@@ -342,7 +345,7 @@ class MySampleToken(IconScoreBase, TokenStandard):
         self._total_supply = VarDB(self._TOTAL_SUPPLY, db, value_type=int)
         self._balances = DictDB(self._BALANCES, db, value_type=int)
 
-    def on_install(self, initialSupply: int, decimals: int) -> None:
+    def on_install(self, initialSupply: int=1000, decimals: int=18) -> None:
         super().on_install()
 
         total_supply = initialSupply * 10 ** decimals
@@ -455,3 +458,19 @@ def address_from_private_key(private_key: bytes) ->str:
     public_key = private_key_obj.pubkey.serialize(compressed=False)
     address = hashlib.sha3_256(public_key[1:]).digest()[-20:]
     return f'hx{address.hex()}'
+
+
+def get_tbears_version() -> str:
+    """Get version of tbears.
+    The location of the file that holds the version information is different when packaging and when executing.
+    :return: version of tbears.
+    """
+    try:
+        version = pkg_resources.get_distribution('tbears').version
+    except pkg_resources.DistributionNotFound:
+        version_path = os.path.join(PROJECT_ROOT_PATH, 'VERSION')
+        with open(version_path, mode='r') as version_file:
+            version = version_file.read()
+    except:
+        version = 'unknown'
+    return version

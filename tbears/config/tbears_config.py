@@ -13,45 +13,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-tbears_config = {
+FN_SERVER_CONF = './tbears_server_config.json'
+FN_CLI_CONF = './tbears_cli_config.json'
+
+tbears_server_config = {
     "hostAddress": "0.0.0.0",
     "port": 9000,
-    "scoreRoot": "./.score",
-    "dbRoot": "./.db",
-    "enableFee": False,
-    "enableAudit": False,
+    "scoreRootPath": "./.score",
+    "stateDbRootPath": "./.statedb",
     "log": {
         "colorLog": True,
-        "level": "debug",
+        "level": "info",
         "filePath": "./tbears.log",
-        "outputType": "console|file",
-        "rotateType": "D",
-        "rotateInterval": 1
+        "outputType": "console|file"
     },
-    "accounts": [
-        {
-            "name": "genesis",
-            "address": "hx0000000000000000000000000000000000000000",
-            "balance": "0x2961fff8ca4a62327800000"
-        },
-        {
-            "name": "fee_treasury",
-            "address": "hx1000000000000000000000000000000000000000",
-            "balance": "0x0"
-        }
-    ]
+    "service": {
+        "fee": False,
+        "audit": False
+    },
+    "genesis": {
+        "nid": "0x03",
+        "accounts": [
+            {
+                "name": "genesis",
+                "address": "hx0000000000000000000000000000000000000000",
+                "balance": "0x2961fff8ca4a62327800000"
+            },
+            {
+                "name": "fee_treasury",
+                "address": "hx1000000000000000000000000000000000000000",
+                "balance": "0x0"
+            }
+        ]
+    }
 }
 
-deploy_config = {
+tbears_cli_config = {
     "uri": "http://127.0.0.1:9000/api/v3",
-    "scoreType": "tbears",
-    "mode": "install",
+    "nid": "0x3",
     "keyStore": None,
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
-    "nid": "0x1234",
-    "stepLimit": "0x1234000",
-    "txType": "dummy",
-    "scoreParams": {
-    }
+    "stepLimit": "0x300000",
+    "deploy": {
+        "contentType": "tbears",
+        "mode": "install",
+        "scoreParams": {}
+    },
+    "txresult": {},
+    "transfer": {}
 }
