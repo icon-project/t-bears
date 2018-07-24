@@ -19,7 +19,7 @@ import os
 from iconcommons import IconConfig
 from iconservice.base.address import is_icon_address_valid
 
-from tbears.config.tbears_config import deploy_config
+from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
 from tbears.libs.icon_client import IconClient
 from tbears.libs.icon_json import get_icx_getTransactionResult_payload, get_icx_sendTransaction_payload, \
     get_dummy_icx_sendTransaction_payload
@@ -39,26 +39,26 @@ class CommandWallet:
     def _add_result_parser(subparsers):
         parser = subparsers.add_parser('txresult', help='Get transaction result by transaction hash',
                                        description='Get transaction result by transaction hash')
-        parser.add_argument('hash', help='Transaction hash of the transaction to be queried.')
+        parser.add_argument('hash', help='Hash of the transaction to be queried.')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
                             dest='uri')
-        parser.add_argument('-c', '--config', help='config path. Use "uri" value (default: ./deploy.json)')
+        parser.add_argument('-c', '--config', help=f'Configuration file path. This file defines the default value for '
+                                                   f'the "uri"(default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_transfer_parser(subparsers):
         parser = subparsers.add_parser('transfer', help='Transfer ICX coin.', description='Transfer ICX coin.')
         parser.add_argument('-f', '--from', help='From address. Must use with dummy type.', dest='from')
         parser.add_argument('to', help='Recipient')
-        parser.add_argument("value", type=float, help='Amount of ICX coin to transfer in loop(1 icx = 1e18 loop)')
-        parser.add_argument('-t', '--type', choices=['dummy', 'real'],
-                            help='Type of transfer request. Dummy type is valid in tbears node only(default: dummy)',
-                            dest='txType')
-        parser.add_argument('-k', '--key-store', help='Sender\'s key store file', dest='keyStore')
+        parser.add_argument("value", type=float, help='Amount of ICX coin in loop to transfer (1 icx = 1e18 loop)')
+        parser.add_argument('-k', '--key-store', help='Keystore file path. Used to generate "from" address and '
+                                                      'transaction signature', dest='keyStore')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
                             dest='uri')
         parser.add_argument('-c', '--config',
-                            help='config path. Use "keyStore", "uri", "txType" and "from" values (default: ./deploy.json)')
-        parser.add_argument('-n', '--nid', help='Network ID(default: 0x1234)', dest='nid')
+                            help=f'Configuration file path. This file defines the default values for the properties '
+                                 f'"keyStore", "uri" and "from". (default: {FN_CLI_CONF})')
+        parser.add_argument('-n', '--nid', help='Network ID (default: 0x3)', dest='nid')
 
     @staticmethod
     def _add_keystore_parser(subparsers):
@@ -76,14 +76,11 @@ class CommandWallet:
     def _check_transfer(conf: dict, password: str=None):
         if not is_icon_address_valid(conf['to']):
             raise TBearsCommandException(f'You entered invalid address')
+
         # value must be a integer value
         if conf['value'] != float(int(conf['value'])):
             raise TBearsCommandException(f'You entered invalid value {conf["value"]}')
 
-        if conf['txType'] == 'dummy':
-            return None
-
-        # txType is 'real'
         if conf.get('keyStore', None):
             if not os.path.exists(conf['keyStore']):
                 raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
@@ -167,7 +164,7 @@ class CommandWallet:
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = IconConfig('./deploy.json', deploy_config)
+        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
         conf.load(user_input=vars(args))
 
         # run command
@@ -181,13 +178,13 @@ class CommandWallet:
 
     @staticmethod
     def get_result_config(tx_hash: str):
-        conf = IconConfig('./deploy.json', deploy_config)
+        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
         conf['hash'] = tx_hash
         return conf
 
     @staticmethod
     def get_transfer_config(key_path: str, to: str, value: float) -> dict:
-        conf = IconConfig('./deploy.json', deploy_config)
+        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
         conf['keyStore'] = key_path
         conf['to'] = to
         conf['value'] = value

@@ -20,7 +20,7 @@ from tbears.util import (
     get_score_main_template, get_sample_token_contents, get_sample_crowd_sale_contents,
     get_package_json_dict, write_file, get_init_template
 )
-from tbears.config.tbears_config import tbears_config, deploy_config
+from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 
 
 class CommandUtil(object):
@@ -103,8 +103,8 @@ class CommandUtil(object):
         write_file(project, '__init__.py', init_contents)
         write_file(f'{project}/tests', f'test_{project}.py', '')
         write_file(f'{project}/tests', f'__init__.py', '')
-        write_file('./', "tbears.json", json.dumps(tbears_config, indent=4))
-        write_file('./', "deploy.json", json.dumps(deploy_config, indent=4))
+        write_file('./', f"{FN_SERVER_CONF}", json.dumps(tbears_server_config, indent=4))
+        write_file('./', f"{FN_CLI_CONF}", json.dumps(tbears_cli_config, indent=4))
 
     @staticmethod
     def get_init_args(project: str, score_class: str):

@@ -21,6 +21,7 @@ from tbears.command.command_util import CommandUtil
 from tbears.command.command_score import CommandScore
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsCommandException
+from tbears.config.tbears_config import FN_CLI_CONF
 
 
 class ArgsParserTest(unittest.TestCase):
@@ -158,7 +159,7 @@ class ArgsParserTest(unittest.TestCase):
         self.assertEqual(parsed.command, 'deploy')
         self.assertEqual(parsed.project, project)
         self.assertEqual(parsed.uri, uri)
-        self.assertEqual(parsed.scoreType, arg_type)
+        self.assertEqual(parsed.contentType, arg_type)
         self.assertEqual(parsed.mode, mode)
         self.assertEqual(parsed.to, to)
         self.assertEqual(parsed.keyStore, keystore)
@@ -185,12 +186,12 @@ class ArgsParserTest(unittest.TestCase):
         os.mkdir(project)
 
         # icon type need keystore option
-        cmd = f'deploy {project} -t icon'
+        cmd = f'deploy {project} -t zip'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         # keystore file does not exist
-        cmd = f'deploy {project} -t icon -k {keystore}'
+        cmd = f'deploy {project} -t zip -k {keystore}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed), "password")
 
@@ -225,16 +226,15 @@ class ArgsParserTest(unittest.TestCase):
         keystore = 'keystore_path'
         node_uri = 'http://localhost:9000/api/v3'
         invalid_address = f'hx123'
-        config = 'deploy.json'
+        config = FN_CLI_CONF
         invalid_coin_value = 1.1
         nid = '0x123456'
 
-        cmd = f'transfer {to} {value} -t {arg_type} -k {keystore} -u {node_uri} -c {config} -f {arg_from} -n {nid}'
+        cmd = f'transfer {to} {value} -k {keystore} -u {node_uri} -c {config} -f {arg_from} -n {nid}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(parsed.command, 'transfer')
         self.assertEqual(parsed.to, to)
         self.assertEqual(parsed.value, value)
-        self.assertEqual(parsed.txType, arg_type)
         self.assertEqual(parsed.keyStore, keystore)
         self.assertEqual(parsed.uri, node_uri)
         self.assertEqual(parsed.config, config)
@@ -248,9 +248,6 @@ class ArgsParserTest(unittest.TestCase):
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
         # invalid argument
         cmd = f'transfer {to} {value} -w wrongoption'
-        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
-        # given unsupported value to argument
-        cmd = f'transfer {to} {value} -t not_supported_type'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
         # given invalid value to arguments.
@@ -268,7 +265,7 @@ class ArgsParserTest(unittest.TestCase):
     def test_result(self):
         tx_hash = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
         node_uri = 'http://localhost:9000/api/v3'
-        config = 'deploy.json'
+        config = FN_CLI_CONF
         cmd = f'txresult {tx_hash} -u {node_uri} -c {config}'
         invalid_hash = '0x1'
         parsed = self.parser.parse_args(cmd.split())
