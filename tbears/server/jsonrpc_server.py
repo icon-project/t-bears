@@ -232,25 +232,22 @@ class MockDispatcher:
                              'blockHash': block_hash}
         # invoke
         response = await get_icon_inner_task().invoke(request)
-        response = response['txResults']
-        if not isinstance(response, dict):
+        tx_results = response['txResults']
+        if not isinstance(tx_results, dict):
             rollback_block()
             await get_icon_inner_task().remove_precommit_state(precommit_request)
-        elif check_error_response(response):
+        elif check_error_response(tx_results):
             rollback_block()
             await get_icon_inner_task().remove_precommit_state(precommit_request)
-        elif response[tx_hash]['status'] == hex(1):
+        else:
             set_prev_block_hash(block_hash)
             await get_icon_inner_task().write_precommit_state(precommit_request)
-        else:
-            rollback_block()
-            await get_icon_inner_task().remove_precommit_state(precommit_request)
 
-        tx_result = response[tx_hash]
+        tx_result = tx_results[tx_hash]
         tx_hash = f'0x{tx_result["txHash"]}'
         tx_result['txHash'] = tx_hash
         TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
-        return response_to_json_invoke(response)
+        return response_to_json_invoke(tx_results)
 
     @staticmethod
     @methods.add
