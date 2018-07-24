@@ -54,7 +54,7 @@ tbears_cli_config = {
     "keyStore": None,
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
-    "stepLimit": "0x2000",
+    "stepLimit": "0x300000",
     "deploy": {
         "contentType": "tbears",
         "mode": "install",
