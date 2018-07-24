@@ -186,12 +186,12 @@ class ArgsParserTest(unittest.TestCase):
         os.mkdir(project)
 
         # icon type need keystore option
-        cmd = f'deploy {project} -t icon'
+        cmd = f'deploy {project} -t zip'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         # keystore file does not exist
-        cmd = f'deploy {project} -t icon -k {keystore}'
+        cmd = f'deploy {project} -t zip -k {keystore}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed), "password")
 
