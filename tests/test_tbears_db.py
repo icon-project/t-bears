@@ -50,11 +50,24 @@ class TestTBearsDB(unittest.TestCase):
         self.assertRaises(TypeError, self.TBEARS_DB.put, 'test_key', b'test_value')
         self.assertRaises(TypeError, self.TBEARS_DB.put, b'test_key', 123)
 
+
     def test_delete(self):
         self.TBEARS_DB.put(b'test_key', b'test_value')
         ret = self.TBEARS_DB.get(b'test_key')
         self.assertEqual(ret, b'test_value')
-
         self.TBEARS_DB.delete(b'test_key')
         ret = self.TBEARS_DB.get(b'test_key')
         self.assertIsNone(ret)
+
+    def test_iterator(self):
+        self.TBEARS_DB.put(b'key1', b'value1')
+        self.TBEARS_DB.put(b'key2', b'value2')
+        self.TBEARS_DB.put(b'key3', b'value3')
+        self.TBEARS_DB.put(b'key4', b'value4')
+        i = 1
+
+        for k, v in self.TBEARS_DB.iterator():
+            expected = ('value' + str(i)).encode()
+            self.assertEqual(expected, v)
+            i += 1
+

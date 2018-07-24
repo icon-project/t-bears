@@ -40,28 +40,9 @@ class TestCommandScore(TestCommand):
         self.keystore = './keystore'
         self.config_path = './deploy'
 
-
-    # test valid cli argument in this test function, just check whether vaild argument or not
+    # Test cli arguments are parced correctly.
     def test_deploy_args_parcing(self):
-        """
-        * 삭제 예정(개인 정리용)
-        run
-        1. 해당 command object가 command를 가지고 있는지 체크
-        -> 알맞은 command를 전달받았는 지 check(deploy, clear)
-        success:
-        deploy, clear 받았을 떄 ok 발생하는 지
-        eception:
-        알맞지 않은 code 받았을 때 exception 발생시키는 지
-
-        2. config load
-        deploy의 경우 config 파일이 필요함, config 파일을 loading 해주는 것이 run에서 진행하는 역할
-        -> config file 따로 테스트 진행 필요
-
-        3. command에 해당하는 function 실행(deploy, clear)
-        -> command쪽에 모두 빼자
-        """
-
-        # parsing
+        # Parsing test
         cmd = f'deploy {self.project} -u {self.uri} -t {self.arg_type} -m {self.mode} -f {self.arg_from} -o {self.to} -k {self.keystore} -c {self.config_path}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(parsed.command, 'deploy')
@@ -73,10 +54,10 @@ class TestCommandScore(TestCommand):
         self.assertEqual(parsed.keyStore, self.keystore)
         self.assertEqual(parsed.config, self.config_path)
 
-        # to much argument
+        # Too much argument
         cmd = f'deploy arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
-        # leack argument
+        # Leack argument
         cmd = f'deploy'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
         cmd = f'deploy {self.project} -w wrongoption'
@@ -87,31 +68,19 @@ class TestCommandScore(TestCommand):
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
         cmd = f'deploy {self.project} -t icon tbears to_much -t option args'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
-        # check the specific case of setting deploy
+        # Check the specific case of setting deploy
 
-    # argument checking module(_check_deploy) test, before deploy score,
-    # check setisfy requirements
+    # Deploy method(deploy, _check_deploy) test. before deploy score,
+    # check if arguments satisfy requirements.
+    # bug: when test this method in terminal, no error found, but in pycharm Run Test, it raise error
     def test_check_deploy(self):
-        """
-        전반적인 deploy를 실행시키기 전에 행해지는 모든 문제 체크
-        1. project에 해당하는 파일이 존재하는 지 체크
-        2. icon인 경우
-        - 1)keyStore keystore 옵션 줬는지 확인
-          2)keystore file 줬는 지 확인
-          3)keystore가 실제 패스에 있는지 확인
-          4)password 입력 여부 체크(passward 자체 체크는 안함)
-        3. mode check: update인데 to가 None인 경우 여기서 체크
-        4. tbears인 경우
-        - tbears 상태임에도 불구하고 uri에 값이 있는 경우 에러 체크
-
-        """
         project = 'proj_unittest'
         uri = 'http://127.0.0.1:9000/api/v3'
         to = "cx0000000000000000000000000000000000000000"
         keystore = './keystore'
 
-        # # deploy essential check
-        # no project directory
+        # # Deploy essential check
+        # No project directory
         cmd = f'deploy {project}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
@@ -136,7 +105,7 @@ class TestCommandScore(TestCommand):
         cmd = f'deploy {project} -t icon -k {keystore}'
         user_input_password = "1234"
         parsed = self.parser.parse_args(cmd.split())
-        self.assertEqual(CommandScore._check_deploy(vars(parsed),user_input_password), "1234")
+        self.assertEqual(CommandScore._check_deploy(vars(parsed), user_input_password), "1234")
 
         # # deploy to tbears
         # deploy tbears SCORE to remote(doesn't check actual -uri value)
@@ -159,23 +128,13 @@ class TestCommandScore(TestCommand):
         # delete project directory
         shutil.rmtree(project)
 
-    def test_deploy(self):
-        """
-        deploy: Deploy Score on the server
-        dict 형태의 config 데이터 받음 -> 여기서 config 데이터의 유효성 검증을 할 필요는 없음
-        1. tbears 실행되고 있는지 테스트
-        2. _check_deploy를 이용하여 password check -> method 따로 빠져있으니 이것부터 테스트
-        3. 각 옵션 체크하여 옵션에 해당하는 값 전달
-        1) mode(install, deploy)에 따른 score addr(to) 세팅
-        2) scoreType에 따라 payload 세팅
-            - icon인 경우 get_icx_sendTransaction_deploy_payload
-            - tbears인 경우(else - None or tbears) make_install_json_payload
-        3) uri에 맞추어 send
-        4) response로 결과를 얻음
+        # check if update mode, to address is vaild, if invaild, raise error
+        # Q. is_icon_address_vaild is in iconservice, so should i write testcode for it?
 
-        deploy에서 테스트 할 것
-        install, update에 따라
-        """
+        # check if 'from' address is valid
+
+
+    def test_deploy(self):
         pass
 
     def test_clear_args_parcing(self):

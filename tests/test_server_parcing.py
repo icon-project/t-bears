@@ -76,17 +76,6 @@ class TestCommandServer(TestCommand):
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
     def test_stop(self):
-        """
-        this function stop server
-        first, check if serverisrunning,
-        and then call __exit_request -> __get_server_conf
-        as __exit and __get can't call from the outside, check whole function
-        through stop method
-
-        __get_server_conf: read tbears.json and deserialize into dict
-
-        move to tbears_commands
-        """
         pass
 
     def test_is_server_running(self):
@@ -95,10 +84,6 @@ class TestCommandServer(TestCommand):
         pass
 
     def test_write_server_conf(self):
-        """
-        Logger.de
-        :return: None
-        """
         #need two case, True, False
         #check raise exception error
         pass

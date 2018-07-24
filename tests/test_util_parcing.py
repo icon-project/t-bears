@@ -14,6 +14,7 @@
 
 import unittest
 import os
+import json
 import shutil
 
 from tbears.command.command import Command
@@ -27,15 +28,14 @@ from tests.test_command_parcing import TestCommand
 class TestCommandUtil(TestCommand):
     def setUp(self):
         super().setUp()
-        self.tearDownParams = {'test_keystore': 'file', 'proj_unittest': 'file'}
-
+        self.tearDownParams = {'test_keystore': 'file', 'proj_unittest': 'file', 'proj_unittest_dir': 'dir'}
 
     def test_init_args_parcing(self):
-        # set parcing data
-        project = 'proj_unittest'
+        # Set parcing data
+        project = 'proj_unittest_file'
         score_class = 'TestClass'
 
-        # parcing data check
+        # Parcing
         cmd = f'init {project} {score_class}'
         parsed = self.parser.parse_args(cmd.split())
         # check each parced data is equal to project, score_class
@@ -56,9 +56,11 @@ class TestCommandUtil(TestCommand):
         # 1) project name is equal to score_class
         # 2) if there is same project_name folder
         project = 'proj_unittest'
+        project_dir = 'proj_unittest_dir'
+
         score_class = 'TestClass'
 
-        # success case: correct project name and class name
+        # Success case: correct project name and class name
         cmd = f'init {project} {score_class}'
         parsed = self.parser.parse_args(cmd.split())
         try:
@@ -69,20 +71,37 @@ class TestCommandUtil(TestCommand):
             exception_raised = False
         self.assertFalse(exception_raised)
 
-        # failure case: project and score_class are same
+        # Failure case: project and score_class are same
         cmd = f'init {project} {project}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandUtil._check_init, vars(parsed))
 
-        # failure case: project directory exist
+        # Failure case: when entering the existing SCORE path for initializing the SCORE
         cmd = f'init {project} {score_class}'
         self.touch(project)
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandUtil._check_init, vars(parsed))
         os.remove(project)
 
+        # Failure Case: entering the existing SCORE directory for initializing the SCORE.
+        cmd = f'init {project_dir} {score_class}'
+        os.mkdir(project_dir)
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertRaises(TBearsCommandException, CommandUtil._check_init, vars(parsed))
+        shutil.rmtree(project_dir)
+
+        # Success case: entering the right path for initializing the SCORE.
+        cmd = f'init {project} {score_class}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.cmd.cmdUtil.init(conf=vars(parsed))
+        with open(f'{project}/package.json', mode='r') as package_contents:
+            package_json = json.loads(package_contents.read())
+        main = package_json['main_file']
+        self.assertEqual(project, main)
+        shutil.rmtree(project)
+
     def test_initialize_project(self):
-        # if the requirements setisfy, make project to the root directory
+        # if the requirements setisfy, make project into the root directory
         # make project using get_score_main_template method(util/__init__.py)
         # To-Do: make sure if this function initialize project exactly
         pass
@@ -98,6 +117,7 @@ class TestCommandUtil(TestCommand):
         cmd = f'samples arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
+'''
     def test_keystore_args_parcing(self):
         # 제안. keystore path라고 적게 하는 것은 불친절한 것 같습니다
         # 제안2. 비밀번호 입력양식이 잘못됬을 때 바로 비밀번호를 다시 입력할 수 있도록
@@ -145,3 +165,4 @@ class TestCommandUtil(TestCommand):
         cmd = f'keystore {path}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandUtil._check_keystore, vars(parsed), 'qwe')
+'''
