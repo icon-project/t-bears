@@ -399,10 +399,8 @@ def serve():
 
 async def init_icon_inner_task(conf: 'IconConfig'):
     global __icon_inner_task
-    config = IconConfig("", default_icon_config)
-    config.load({ConfigKey.BUILTIN_SCORE_OWNER: conf['genesis']['accounts'][0]['address'],
-                 ConfigKey.SCORE_ROOT_PATH: conf['scoreRootPath'],
-                 ConfigKey.STATE_DB_ROOT_PATH: conf['stateDbRootPath']})
+    config = IconConfig("", conf)
+    config.load({ConfigKey.BUILTIN_SCORE_OWNER: conf['genesis']['accounts'][0]['address']})
     # TODO genesis address를 admin_address로 한다
     __icon_inner_task = IconScoreInnerTask(config)
 
