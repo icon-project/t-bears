@@ -15,6 +15,7 @@
 import os
 import hashlib
 import re
+import sys
 
 import pkg_resources
 import requests
@@ -95,14 +96,15 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
     return package_json_dict
 
 
-def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}", nid: str="0x1234",
-                              data_params: dict = {}) -> dict:
+def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}", nid: str="0x3",
+                              step_limit: int=0x1234000, data_params: dict = {}) -> dict:
     """Returns payload of install request.
 
     :param project: SCORE's name
     :param fr: From address
     :param to: To address
     :param nid: Network ID
+    :param step_limit: step Limit.
     :param data_params: params of data object
 
 
@@ -114,7 +116,7 @@ def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"c
         "content": path,
         "params": data_params
     }
-    json_contents = JsonContents()
+    json_contents = JsonContents(step_limit)
     params = json_contents.params_send_transaction(fr=fr, to=to, value=hex(0), nid=nid, data=data, data_type='deploy')
     params['signature'] = 'sig'
     payload = json_contents.json_rpc_format('icx_sendTransaction', params)
