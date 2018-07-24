@@ -244,9 +244,15 @@ class MockDispatcher:
             await get_icon_inner_task().write_precommit_state(precommit_request)
 
         tx_result = tx_results[tx_hash]
-        tx_hash = f'0x{tx_result["txHash"]}'
-        tx_result['txHash'] = tx_hash
-        TBEARS_DB.put(f'{tx_hash}-result'.encode(), json.dumps(tx_result).encode())
+        # tx_result['txHash'] must start with '0x'
+        # tx_hash must not start with '0x'
+        if tx_hash[:2] != '0x':
+            tx_result['txHash'] = f'0x{tx_hash}'
+        else:
+            tx_result['txHash'] = tx_hash
+            tx_hash = tx_hash[2:]
+
+        TBEARS_DB.put(bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
         return response_to_json_invoke(tx_results)
 
     @staticmethod
@@ -286,7 +292,7 @@ class MockDispatcher:
 
         try:
             tx_hash = request_params['txHash']
-            tx_hash_result = TBEARS_DB.get(f'{tx_hash}-result'.encode())
+            tx_hash_result = TBEARS_DB.get(bytes.fromhex(tx_hash[2:]))
             tx_hash_result_str = tx_hash_result.decode()
             tx_result_json = json.loads(tx_hash_result_str)
             return tx_result_json
@@ -444,11 +450,16 @@ async def init_icon_inner_task(conf: 'IconConfig'):
         await get_icon_inner_task().remove_precommit_state(precommit_request)
 
     tx_result = response[tx_hash]
-    tx_hash = tx_result['txHash']
-    tx_hash = f'0x{tx_hash}'
     tx_result['from'] = request_params.get('from', '')
-    tx_result['tx_hash'] = tx_hash
-    TBEARS_DB.put(tx_hash.encode(), json.dumps(tx_result).encode())
+    # tx_result['txHash'] must start with '0x'
+    # tx_hash must not start with '0x'
+    if tx_hash[:2] != '0x':
+        tx_result['txHash'] = f'0x{tx_hash}'
+    else:
+        tx_result['txHash'] = tx_hash
+        tx_hash = tx_hash[2:]
+
+    TBEARS_DB.put(bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
     return response_to_json_invoke(response)
 
 
