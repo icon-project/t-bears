@@ -83,7 +83,8 @@ class CommandScore(object):
             score_address = f'cx{"0"*40}'
         else:
             score_address = conf['to']
-            is_icon_address_valid(score_address)
+            if not is_icon_address_valid(score_address):
+                raise TBearsCommandException(f"You entered invalid 'to' address '{conf['to']}")
 
         if conf['contentType'] == 'zip':
             signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
@@ -96,7 +97,7 @@ class CommandScore(object):
                                                              step_limit=step_limit)
         else:
             if not is_icon_address_valid(conf['from']):
-                raise TBearsCommandException(f'You entered invalid address')
+                raise TBearsCommandException(f"You entered invalid 'from' address '{conf['from']}")
             payload = make_install_json_payload(project=conf['project'],
                                                 fr=conf['from'],
                                                 to=score_address,
@@ -143,7 +144,7 @@ class CommandScore(object):
         if not os.path.isdir(conf['project']):
             raise TBearsCommandException(f'There is no project directory.({conf["project"]})')
 
-        if conf['contentType'] == 'icon':
+        if conf['contentType'] == 'zip':
             if conf.get('keyStore', None) is None:
                 raise TBearsCommandException(f'If you want to deploy SCORE to ICON node, set --key-store option or '
                                              f'write "keyStore" value in configuration file.')

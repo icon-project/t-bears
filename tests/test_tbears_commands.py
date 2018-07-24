@@ -129,7 +129,7 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
-        # deploy - f"-t icon -m install -k test_keystore"
+        # deploy - f"-t zip -m install -k test_keystore"
         conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf['contentType'] = 'zip'
@@ -143,7 +143,7 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertFalse(transaction_result_response.get('error', False))
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
 
-        # deploy - f"-t icon -m update -k test_keystore --to scoreAddres_from_transactionResult
+        # deploy - f"-t zip -m update -k test_keystore --to scoreAddres_from_transactionResult
         scoreAddress = transaction_result_response['result']['scoreAddress']
         conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
