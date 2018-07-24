@@ -186,7 +186,8 @@ class MyCrowdSale(IconScoreBase):
         self._funding_goal_reached = VarDB(self._FUNDING_GOAL_REACHED, db, value_type=bool)
         self._crowdsale_closed = VarDB(self._CROWDSALE_CLOSED, db, value_type=bool)
 
-    def on_install(self, fundingGoalInIcx: int, tokenScore: Address, durationInSeconds: int) -> None:
+    def on_install(self, fundingGoalInIcx: int=1000, tokenScore: Address='cx02b13428a8aef265fbaeeb37394d3ae8727f7a19',
+    durationInSeconds: int=120) -> None:
         super().on_install()
 
         Logger.debug(f'on_install: fundingGoalInIcx={fundingGoalInIcx}', TAG)
@@ -212,8 +213,7 @@ class MyCrowdSale(IconScoreBase):
 
     @external
     def tokenFallback(self, _from: Address, _value: int, _data: bytes):
-        if self.msg.sender == self._addr_token_score.get() \
-                and _from == self.owner:
+        if self.msg.sender == self._addr_token_score.get() and _from == self.owner:
             # token supply to CrowdSale
             Logger.debug(f'tokenFallback: token supply = "{_value}"', TAG)
             if _value >= 0:
@@ -343,7 +343,7 @@ class MySampleToken(IconScoreBase, TokenStandard):
         self._total_supply = VarDB(self._TOTAL_SUPPLY, db, value_type=int)
         self._balances = DictDB(self._BALANCES, db, value_type=int)
 
-    def on_install(self, initialSupply: int, decimals: int) -> None:
+    def on_install(self, initialSupply: int=1000, decimals: int=18) -> None:
         super().on_install()
 
         total_supply = initialSupply * 10 ** decimals
