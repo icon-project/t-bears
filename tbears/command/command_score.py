@@ -102,6 +102,7 @@ class CommandScore(object):
                                                 fr=conf['from'],
                                                 to=score_address,
                                                 nid=conf['nid'],
+                                                step_limit=step_limit,
                                                 data_params=conf.get('scoreParams', {}))
 
         icon_client = IconClient(conf['uri'])
