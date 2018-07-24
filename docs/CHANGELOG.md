@@ -1,5 +1,10 @@
 # ChangeLog - tbears
 
+## 0.9.5.1 - 2018-07-24
+
+* Improve configuration files
+    * check 'Configuration Files' chapter of tbears_tutorial.md
+
 ## 0.9.5 - 2018-07-20
 
 * Use ICON common package for configuration file and logging module

@@ -252,7 +252,7 @@ class MockDispatcher:
             tx_result['txHash'] = tx_hash
             tx_hash = tx_hash[2:]
 
-        TBEARS_DB.put(bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
+        TBEARS_DB.put(b'result|' + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
         return response_to_json_invoke(tx_results)
 
     @staticmethod
@@ -292,7 +292,7 @@ class MockDispatcher:
 
         try:
             tx_hash = request_params['txHash']
-            tx_hash_result = TBEARS_DB.get(bytes.fromhex(tx_hash[2:]))
+            tx_hash_result = TBEARS_DB.get(b'result|' + bytes.fromhex(tx_hash[2:]))
             tx_hash_result_str = tx_hash_result.decode()
             tx_result_json = json.loads(tx_hash_result_str)
             return tx_result_json
@@ -459,7 +459,7 @@ async def init_icon_inner_task(conf: 'IconConfig'):
         tx_result['txHash'] = tx_hash
         tx_hash = tx_hash[2:]
 
-    TBEARS_DB.put(bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
+    TBEARS_DB.put(b'result|' + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
     return response_to_json_invoke(response)
 
 
