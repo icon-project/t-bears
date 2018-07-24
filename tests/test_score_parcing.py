@@ -25,6 +25,7 @@ from tbears.tbears_exception import TBearsCommandException
 
 from tests.test_command_parcing import TestCommand
 
+#To-do: this test fail when pycharm unittest env, to be fixed(can't find keystore)
 class TestCommandScore(TestCommand):
     def setUp(self):
         super().setUp()

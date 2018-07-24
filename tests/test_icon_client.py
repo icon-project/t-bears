@@ -85,6 +85,8 @@ class TestIconClient(unittest.TestCase):
         client = IconClient('http://127.0.0.1:9000/api/v3')
         self.assertRaises(IconClientException, client.send, payload )
 
+        # to-do: check timeout error
+
 
 
 

@@ -30,7 +30,7 @@ from tests.test_command_parcing import TestCommand
 
 
 class TestCommandServer(TestCommand):
-    #overriding super().tearDown method
+    # override super().tearDown method
     def tearDown(self):
         pass
 
