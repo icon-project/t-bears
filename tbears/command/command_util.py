@@ -15,10 +15,12 @@
 import json
 import os
 
+import IPython
+
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import (
     get_score_main_template, get_sample_token_contents, get_sample_crowd_sale_contents,
-    get_package_json_dict, write_file
+    get_package_json_dict, write_file, PROJECT_ROOT_PATH
 )
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 from tbears.util.argparse_type import IconPath
@@ -29,6 +31,7 @@ class CommandUtil(object):
         self._add_init_parser(subparsers)
         self._add_samples_parser(subparsers)
         self._add_genconf_parser(subparsers)
+        self._add_console_parser(subparsers)
 
     @staticmethod
     def _add_init_parser(subparsers) -> None:
@@ -49,6 +52,12 @@ class CommandUtil(object):
     def _add_genconf_parser(subparser):
         subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]})',
                              description=f'Generate tbears config files. ({FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]})')
+
+    @staticmethod
+    def _add_console_parser(subparsers):
+        subparsers.add_parser('console',
+                              help='Get into tbears interactive mode by embedding IPython',
+                              description='Get into tbears interactive mode by embedding IPython')
 
     def run(self, args):
         if not hasattr(self, args.command):
@@ -140,3 +149,6 @@ class CommandUtil(object):
             'project': project,
             'score_class': score_class
         }
+
+    def console(self, conf):
+        IPython.start_ipython(['--profile', 'tbears', '--ipython-dir', f'{PROJECT_ROOT_PATH}/tbears'])
