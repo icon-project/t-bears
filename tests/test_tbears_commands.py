@@ -19,6 +19,7 @@ import json
 import shutil
 import socket
 from tbears.command.command import Command
+from tbears.command.command_server import TBEARS_CLI_ENV
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util.icx_signer import key_from_key_store
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
@@ -207,11 +208,13 @@ class TestTBearsCommands(unittest.TestCase):
         # stop
         self.cmd.cmdServer.stop(None)
         self.assertFalse(self.check_server())
+        self.assertTrue(os.path.exists(TBEARS_CLI_ENV))
 
         # clear
         self.cmd.cmdScore.clear(start_conf)
         self.assertFalse(os.path.exists(start_conf['scoreRootPath']))
         self.assertFalse(os.path.exists(start_conf['stateDbRootPath']))
+        self.assertFalse(os.path.exists(TBEARS_CLI_ENV))
         shutil.rmtree(f'./{self.project_name}')
 
     def test_keystore(self):

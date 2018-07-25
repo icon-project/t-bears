@@ -88,9 +88,6 @@ class CommandServer(object):
             # Wait until server socket is released
             time.sleep(2)
 
-            # delete env file
-            CommandServer.__delete_server_conf()
-
             print(f'Stopped tbear service successfully')
         else:
             print(f'tbear service is not running')
@@ -122,10 +119,10 @@ class CommandServer(object):
     def __exit_request():
         """ Request for exiting SCORE on server.
         """
-        server = CommandServer.__get_server_conf()
+        server = CommandServer._get_server_conf()
         if server is None:
             Logger.debug(f"Can't get server Info. from {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
-            server = CommandServer.__get_server_conf(FN_SERVER_CONF)
+            server = CommandServer._get_server_conf(FN_SERVER_CONF)
             if not server:
                 server = {'port': 9000}
 
@@ -144,10 +141,12 @@ class CommandServer(object):
         return True
 
     @staticmethod
-    def write_server_conf(host: str, port: int) -> None:
+    def write_server_conf(host: str, port: int, score_root, score_db_root) -> None:
         conf = {
             "hostAddress": host,
-            "port": port
+            "port": port,
+            "scoreRootPath": score_root,
+            "stateDbRootPath": score_db_root
         }
         Logger.debug(f"Write server Info.({conf}) to {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
         file_path = TBEARS_CLI_ENV
@@ -162,7 +161,7 @@ class CommandServer(object):
             print(f"{e}")
 
     @staticmethod
-    def __get_server_conf(file_path: str= TBEARS_CLI_ENV) -> Optional[dict]:
+    def _get_server_conf(file_path: str= TBEARS_CLI_ENV) -> Optional[dict]:
         try:
             with open(f'{file_path}') as f:
                 conf = json.load(f)
@@ -174,6 +173,6 @@ class CommandServer(object):
         return conf
 
     @staticmethod
-    def __delete_server_conf() -> None:
+    def _delete_server_conf() -> None:
         if os.path.exists(TBEARS_CLI_ENV):
             os.remove(TBEARS_CLI_ENV)

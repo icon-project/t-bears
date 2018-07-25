@@ -127,16 +127,20 @@ class CommandScore(object):
 
         :param conf: deploy command configuration
         """
+        score_dir_info = CommandServer._get_server_conf()
+
         if CommandServer.is_server_running():
             raise TBearsCommandException(f'You must stop tbears service to clear SCORE')
 
         try:
-            if os.path.exists(conf['scoreRootPath']):
-                shutil.rmtree(conf['scoreRootPath'])
-            if os.path.exists(conf['stateDbRootPath']):
-                shutil.rmtree(conf['stateDbRootPath'])
+            if os.path.exists(score_dir_info['scoreRootPath']):
+                shutil.rmtree(score_dir_info['scoreRootPath'])
+            if os.path.exists(score_dir_info['stateDbRootPath']):
+                shutil.rmtree(score_dir_info['stateDbRootPath'])
         except (PermissionError, NotADirectoryError) as e:
-            raise TBearsDeleteTreeException(f"Can't delete SCORE fils. {e}")
+            raise TBearsDeleteTreeException(f"Can't delete SCORE files. {e}")
+
+        CommandServer._delete_server_conf()
 
         print(f"Cleared SCORE deployed on tbears successfully")
 
@@ -170,13 +174,7 @@ class CommandScore(object):
 
     @staticmethod
     def get_score_conf(command: str, project: str = None):
-        config_path = FN_CLI_CONF
-        config_dict = tbears_cli_config
-        if command == "clear":
-            config_path = FN_SERVER_CONF
-            config_dict = tbears_server_config
-
-        conf = IconConfig(config_path, config_dict)
+        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
 
         if project is not None:
             conf['project'] = project
