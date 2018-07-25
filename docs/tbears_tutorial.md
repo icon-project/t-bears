@@ -54,6 +54,7 @@ $ source bin/activate
 
 # Install the ICON SCORE dev tools
 (work) $ pip install earlgrey-x.x.x-py3-none-any.whl
+(work) $ pip install iconcommons-x.x.x-py3-none-any.whl
 (work) $ pip install iconservice-x.x.x-py3-none-any.whl
 (work) $ pip install tbears-x.x.x-py3-none-any.whl
 ```
@@ -76,6 +77,7 @@ $ source bin/activate
 
 # Install the ICON SCORE dev tools
 (work) $ pip install earlgrey-x.x.x-py3-none-any.whl
+(work) $ pip install iconcommons-x.x.x-py3-none-any.whl
 (work) $ pip install iconservice-x.x.x-py3-none-any.whl
 (work) $ pip install tbears-x.x.x-py3-none-any.whl
 ```
@@ -93,7 +95,7 @@ tbears has 7 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, an
 ```bash
 usage: tbears [-h] [-d] command ...
 
-tbears v0.9.3 arguments
+tbears v0.9.5 arguments
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -295,14 +297,14 @@ transaction hash: 0xad292b9608d9575f735ec2ebbf52dc891d7cca6a2fa7e97aee4818325c80
 
 **Description**
 
-Clear tbears service.
+Clear all SCOREs deployed on local tbears service.
 
 **Usage**
 
 ```bash
 usage: tbears clear [-h]
 
-Clear all SCORE deployed on local tbears service
+Clear all SCOREs deployed on local tbears service
 
 optional arguments:
   -h, --help  show this help message and exit

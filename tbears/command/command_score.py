@@ -52,8 +52,8 @@ class CommandScore(object):
 
     @staticmethod
     def _add_clear_parser(subparsers):
-        subparsers.add_parser('clear', help='Clear all SCORE deployed on tbears service',
-                              description='Clear all SCORE deployed on local tbears service')
+        subparsers.add_parser('clear', help='Clear all SCOREs deployed on tbears service',
+                              description='Clear all SCOREs deployed on local tbears service')
 
     def run(self, args):
         if not hasattr(self, args.command):
