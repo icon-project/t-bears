@@ -253,6 +253,7 @@ class MockDispatcher:
             tx_hash = tx_hash[2:]
 
         TBEARS_DB.put(b'result|' + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
+        TBEARS_DB.put(b'transaction|' + bytes.fromhex(tx_hash), json.dumps(tx).encode())
         return response_to_json_invoke(tx_results)
 
     @staticmethod
@@ -295,12 +296,31 @@ class MockDispatcher:
             tx_hash_result = TBEARS_DB.get(b'result|' + bytes.fromhex(tx_hash[2:]))
             tx_hash_result_str = tx_hash_result.decode()
             tx_result_json = json.loads(tx_hash_result_str)
-            return tx_result_json
         except Exception:
             raise GenericJsonRpcServerError(
                 code=InvalidParams.code,
                 message='TransactionResult not found',
                 http_status=status.HTTP_BAD_REQUEST)
+        else:
+            return tx_result_json
+
+    @staticmethod
+    @methods.add
+    async def icx_getTransactionByHash(**request_params):
+        Logger.debug(f'json_rpc_server getTransactionByHash!', TBEARS_LOG_TAG)
+
+        try:
+            tx_hash = request_params['txHash']
+            tx_payload = TBEARS_DB.get(b'transaction|' + bytes.fromhex(tx_hash[2:]))
+            tx_payload_str = tx_payload.decode()
+            tx_payload_json = json.loads(tx_payload)
+        except Exception:
+            raise GenericJsonRpcServerError(
+                code=InvalidParams.code,
+                message='Transaction not found',
+                http_status=status.HTTP_BAD_REQUEST)
+        else:
+            return tx_payload_json
 
     @staticmethod
     @methods.add

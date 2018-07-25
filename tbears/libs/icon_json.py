@@ -165,6 +165,15 @@ class JsonContents:
         """
         return self.json_rpc_format('icx_getTransactionResult', params=JsonContents.params_tx_result(tx_hash))
 
+    def json_get_tx(self, tx_hash: str) -> dict:
+        """Fill contents of the icx_getTransactionByHash payload with given tx_hash and returns the payload.
+
+        :param tx_hash: The hash value of the transaction you want to query.
+
+        :return: Full payload of icx_getTransactionResult request.
+        """
+        return self.json_rpc_format('icx_getTransactionByHash', params=JsonContents.params_get_tx(tx_hash))
+
     def json_total_supply(self) -> dict:
         """Returns payload of icx_totalSupply request.
 
@@ -192,6 +201,10 @@ class JsonContents:
 
     @staticmethod
     def params_tx_result(tx_hash: str) -> dict:
+        return {'txHash': tx_hash}
+
+    @staticmethod
+    def params_get_tx(tx_hash: str) -> dict:
         return {'txHash': tx_hash}
 
     @staticmethod
@@ -413,3 +426,11 @@ def get_dummy_icx_sendTransaction_payload(fr, to, value, nid, nonce=1, step_limi
     params['signature'] = signature
     payload = json_contents.json_rpc_format('icx_sendTransaction', params)
     return payload
+
+
+def get_icx_getTransactionByHash(tx_hash) -> dict:
+    """Inquire Transaction Result with given transaction hash(tx_hash).
+    :param tx_hash: The hash value of the transaction you want to query.
+    :return: payload for icx_getTransactionResult.
+    """
+    return JsonContents().json_get_tx(tx_hash)

@@ -22,7 +22,8 @@ from iconservice.base.address import is_icon_address_valid
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
 from tbears.libs.icon_client import IconClient
 from tbears.libs.icon_json import get_icx_getTransactionResult_payload, get_icx_sendTransaction_payload, \
-    get_dummy_icx_sendTransaction_payload
+    get_dummy_icx_sendTransaction_payload, get_icx_getBalance_payload, get_icx_getTotalSupply_payload, \
+    get_icx_getScoreApi_payload, get_icx_getTransactionByHash
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import is_tx_hash, IcxSigner
 from tbears.util.icx_signer import key_from_key_store
@@ -31,12 +32,16 @@ from tbears.util.keystore_manager import validate_password, make_key_store_conte
 
 class CommandWallet:
     def __init__(self, subparsers):
-        self._add_result_parser(subparsers)
+        self._add_txresult_parser(subparsers)
         self._add_transfer_parser(subparsers)
         self._add_keystore_parser(subparsers)
+        self._add_balance_parser(subparsers)
+        self._add_totalsup_parser(subparsers)
+        self._add_scoreapi_parser(subparsers)
+        self._add_gettx_parser(subparsers)
 
     @staticmethod
-    def _add_result_parser(subparsers):
+    def _add_txresult_parser(subparsers):
         parser = subparsers.add_parser('txresult', help='Get transaction result by transaction hash',
                                        description='Get transaction result by transaction hash')
         parser.add_argument('hash', help='Hash of the transaction to be queried.')
@@ -68,12 +73,41 @@ class CommandWallet:
         parser.add_argument('path', help='path of keystore file.')
 
     @staticmethod
-    def _check_txresult(conf: dict):
-        if not is_tx_hash(conf['hash']):
+    def _add_balance_parser(subparsers):
+        parser = subparsers.add_parser('balance',
+                                       help='Get balance of given address',
+                                       description='Get balance of given address')
+        parser.add_argument('address', help='Address to query the icx balance')
+        parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3', dest='uri')
+
+    @staticmethod
+    def _add_totalsup_parser(subparsers):
+        parser = subparsers.add_parser('totalsup', help='Query total supply of icx')
+        parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3', dest='uri')
+
+    @staticmethod
+    def _add_scoreapi_parser(subparsers):
+        parser = subparsers.add_parser('scoreapi', help='Get score\'s api using given score address')
+        parser.add_argument('address', help='Score address to query score api')
+        parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3', dest='uri')
+
+    @staticmethod
+    def _add_gettx_parser(subparsers):
+        parser = subparsers.add_parser('gettx', help='Get transaction by transaction hash',
+                                       description='Get transaction by transaction hash')
+        parser.add_argument('hash', help='Hash of the transaction to be queried.')
+        parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
+                            dest='uri')
+        parser.add_argument('-c', '--config', help=f'Configuration file path. This file defines the default value for '
+                                                   f'the "uri"(default: {FN_CLI_CONF})')
+
+    @staticmethod
+    def _validate_tx_hash(tx_hash):
+        if not is_tx_hash(tx_hash):
             raise TBearsCommandException(f'invalid transaction hash')
 
     @staticmethod
-    def _check_transfer(conf: dict, password: str=None):
+    def _check_transfer(conf: dict, password: str = None):
         if not is_icon_address_valid(conf['to']):
             raise TBearsCommandException(f'You entered invalid address')
 
@@ -102,7 +136,38 @@ class CommandWallet:
         return password
 
     @staticmethod
-    def txresult(conf):
+    def _check_balance(conf: dict):
+        if not is_icon_address_valid(conf['address']):
+            raise TBearsCommandException(f'You entered invalid address')
+
+    @staticmethod
+    def _check_scoreapi(conf: dict):
+        if not (is_icon_address_valid(conf['address']) and conf['address'].startswith('cx')):
+            raise TBearsCommandException(f'You entered invalid score address')
+
+    def gettx(self, conf):
+        """Query transaction using given transaction hash.
+
+        :param conf: txresult command configuration.
+        :return: result of query.
+        """
+        self._validate_tx_hash(conf['hash'])
+        icon_client = IconClient(conf['uri'])
+        get_tx_result_payload = get_icx_getTransactionByHash(conf['hash'])
+
+        response = icon_client.send(get_tx_result_payload)
+        response_json = response.json()
+        print(f"Transaction: {json.dumps(response_json, indent=4)}")
+
+        return response_json
+
+    def txresult(self, conf):
+        """Query transaction result using given transaction hash.
+
+        :param conf: txresult command configuration.
+        :return: result of query.
+        """
+        self._validate_tx_hash(conf['hash'])
         icon_client = IconClient(conf['uri'])
         get_tx_result_payload = get_icx_getTransactionResult_payload(conf['hash'])
 
@@ -112,7 +177,13 @@ class CommandWallet:
 
         return response_json
 
-    def transfer(self, conf: dict, password: str=None):
+    def transfer(self, conf: dict, password: str = None):
+        """Transfer Icx Coin.
+
+        :param conf: transfer command configuration.
+        :param password: password of keystore
+        :return: response of transfer.
+        """
         icon_client = IconClient(conf['uri'])
         password = self._check_transfer(conf, password)
         nid = conf['nid']
@@ -137,7 +208,7 @@ class CommandWallet:
             print(f"transaction hash: {tx_hash}")
         else:
             print('Got an error response')
-            print(response_json)
+            print(json.dumps(response_json, indent=4))
 
         return response_json
 
@@ -155,6 +226,54 @@ class CommandWallet:
             ks.write(json.dumps(key_store_content).encode())
 
         print(f"Made keystore file successfully")
+
+    def balance(self, conf: dict):
+        """Query icx balance of given address
+
+        :param conf: balance command configuration.
+        """
+        self._check_balance(conf)
+        icon_client = IconClient(conf['uri'])
+        get_balance_payload = get_icx_getBalance_payload(conf['address'])
+
+        response = icon_client.send(get_balance_payload)
+        response_json = response.json()
+
+        print(f'balance : {response_json["result"]}')
+        return response_json
+
+    @staticmethod
+    def totalsup(conf: dict):
+        """Query total supply of icx
+
+        :param conf: totalsup command configuration
+        """
+        icon_client = IconClient(conf['uri'])
+        total_supply_payload = get_icx_getTotalSupply_payload()
+
+        response = icon_client.send(total_supply_payload)
+        response_json = response.json()
+
+        print(f'Total supply  of Icx: {response_json["result"]}')
+
+        return response_json
+
+    def scoreapi(self, conf):
+        """Query score API of given score address.
+
+        :param conf: scoreapi command configuration.
+        :return: result of query.
+        """
+        self._check_scoreapi(conf)
+        icon_client = IconClient(conf['uri'])
+        get_score_api_payload = get_icx_getScoreApi_payload(conf['address'])
+
+        response = icon_client.send(get_score_api_payload)
+        response_json = response.json()
+
+        print(f'scoreAPI: {response_json["result"]}')
+
+        return response_json
 
     def check_command(self, command):
         return hasattr(self, command)

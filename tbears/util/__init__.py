@@ -446,7 +446,7 @@ def is_tx_hash(tx_hash: str) -> bool:
     :param tx_hash:
     :return:
     """
-    if isinstance(hash, str) and len(tx_hash) == 66:
+    if isinstance(tx_hash, str) and len(tx_hash) == 66:
         prefix, body = tx_hash[:2], tx_hash[2:]
         return prefix == '0x' and is_lowercase_hex_string(body)
 
