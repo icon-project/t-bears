@@ -135,7 +135,7 @@ class CommandServer(object):
         """ Check if server is running.
         :return: True or False
         """
-        # Return a list of processes matching 'name'.
+
         # Return a list of processes matching 'name'.
         command = f"ps -ef | grep {name} | grep -v grep"
         result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)

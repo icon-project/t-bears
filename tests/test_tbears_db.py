@@ -26,37 +26,39 @@ class TestTBearsDB(unittest.TestCase):
 
     def setUp(self):
         self.TBEARS_DB = TbearsDB(TbearsDB.make_db(DB_PATH))
+        self.test_key = b'test_key'
+        self.test_value = b'test_value'
 
     def tearDown(self):
         self.TBEARS_DB.close()
         shutil.rmtree(DB_PATH)
 
     def test_put_and_get(self):
-        # put and get
-        self.TBEARS_DB.put(b'test_key', b'test_value')
-        ret = self.TBEARS_DB.get(b'test_key')
-        self.assertEqual(ret, b'test_value')
+        # Put and get
+        self.TBEARS_DB.put(self.test_key, self.test_value)
+        ret = self.TBEARS_DB.get(self.test_key)
+        self.assertEqual(ret, self.test_value)
 
         # overwrite
-        self.TBEARS_DB.put(b'test_key', b'test_value_overwrite')
-        ret = self.TBEARS_DB.get(b'test_key')
-        self.assertEqual(ret, b'test_value_overwrite')
+        overwrite_value = b'test_value_overwrite'
+        self.TBEARS_DB.put(self.test_key, overwrite_value)
+        ret = self.TBEARS_DB.get(self.test_key)
+        self.assertEqual(ret, overwrite_value)
 
         # get invalid key
         ret = self.TBEARS_DB.get(b'invalid_key')
         self.assertIsNone(ret)
 
         # put invalid type
-        self.assertRaises(TypeError, self.TBEARS_DB.put, 'test_key', b'test_value')
-        self.assertRaises(TypeError, self.TBEARS_DB.put, b'test_key', 123)
-
+        self.assertRaises(TypeError, self.TBEARS_DB.put, 'test_key', self.test_value)
+        self.assertRaises(TypeError, self.TBEARS_DB.put, self.test_key, 123)
 
     def test_delete(self):
-        self.TBEARS_DB.put(b'test_key', b'test_value')
-        ret = self.TBEARS_DB.get(b'test_key')
-        self.assertEqual(ret, b'test_value')
-        self.TBEARS_DB.delete(b'test_key')
-        ret = self.TBEARS_DB.get(b'test_key')
+        self.TBEARS_DB.put(self.test_key, self.test_value)
+        ret = self.TBEARS_DB.get(self.test_key)
+        self.assertEqual(ret, self.test_value)
+        self.TBEARS_DB.delete(self.test_key)
+        ret = self.TBEARS_DB.get(self.test_key)
         self.assertIsNone(ret)
 
     def test_iterator(self):
@@ -66,8 +68,8 @@ class TestTBearsDB(unittest.TestCase):
         self.TBEARS_DB.put(b'key4', b'value4')
         i = 1
 
-        for k, v in self.TBEARS_DB.iterator():
-            expected = ('value' + str(i)).encode()
-            self.assertEqual(expected, v)
+        for _, actual_value in self.TBEARS_DB.iterator():
+            expected_value = ('value' + str(i)).encode()
+            self.assertEqual(expected_value, actual_value)
             i += 1
 

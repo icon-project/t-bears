@@ -218,6 +218,9 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertFalse(os.path.exists(TBEARS_CLI_ENV))
         shutil.rmtree(f'./{self.project_name}')
 
+
+
+
     def test_keystore(self):
         path = './kkeystore'
         password = '1234qwer%'

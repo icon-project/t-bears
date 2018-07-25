@@ -11,20 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import unittest
 import os
 import shutil
 
 from tbears.command.command import Command
-from tbears.command.command_util import CommandUtil
-from tbears.command.command_score import CommandScore
-from tbears.tbears_exception import TBearsCommandException
+
 
 # command package do
-# 1. parcing user's input date
+# 1. parsing user's input date
 # 2. run something requested
-# so we have to check both, first things to do is check parce correctly
+# so we have to check both, first things to do is check parse correctly
 class TestCommand(unittest.TestCase):
     def setUp(self):
         self.cmd = Command()
@@ -37,7 +34,8 @@ class TestCommand(unittest.TestCase):
             os.utime(path, None)
 
     def tearDown(self):
-        for path, format in self.tearDownParams.items():
+        # tear_down_params' key value(file or directory) is always relative path
+        for path, format in self.tear_down_params.items():
             if os.path.isfile(path) or os.path.isdir(path):
                 os.remove(path) if format == 'file' else shutil.rmtree(path)
 
