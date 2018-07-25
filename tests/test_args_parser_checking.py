@@ -283,3 +283,66 @@ class ArgsParserTest(unittest.TestCase):
         cmd = f'txresult {invalid_hash}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandWallet._check_txresult, vars(parsed))
+
+    def test_balance(self):
+        arg_from = f"hx{'0'*40}"
+        node_uri = 'http://localhost:9000/api/v3'
+        invalid_address = f'hx123'
+        config = FN_CLI_CONF
+
+        cmd = f'balance {arg_from} -u {node_uri}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertEqual(parsed.command, 'balance')
+        self.assertEqual(parsed.address, arg_from)
+        self.assertEqual(parsed.uri, node_uri)
+
+        # invalid argument tests
+        # given more arguments.
+        cmd = f'balance arg1 arg2 arg3'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+        # invalid argument
+        cmd = f'balance {arg_from} -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid value to arguments.
+        cmd = f'balance {invalid_address}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertRaises(TBearsCommandException, CommandWallet._check_balance, vars(parsed))
+
+    def test_totalsup(self):
+        node_uri = 'http://localhost:9000/api/v3'
+
+        cmd = f'totalsup -u {node_uri}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertEqual(parsed.command, 'totalsup')
+        self.assertEqual(parsed.uri, node_uri)
+
+        # invalid argument tests
+        # given more arguments.
+        cmd = f'totalsup arg1 arg2 arg3'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+        # invalid argument
+        cmd = f'totalsup -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+    def test_scoreapi(self):
+        score_address = f"hx{'0'*40}"
+        node_uri = 'http://localhost:9000/api/v3'
+        cmd = f'scoreapi {score_address} -u {node_uri}'
+        invalid_score_address = f'hx{"0"*40}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertEqual(parsed.command, 'scoreapi')
+        self.assertEqual(parsed.uri, node_uri)
+
+        # invalid argument tests
+        # given more arguments.
+        cmd = f'scoreapi arg1 arg2 arg3'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+        # invalid argument
+        cmd = f'scoreapi {score_address} -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid value to arguments.
+        cmd = f'scoreapi {invalid_score_address}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertRaises(TBearsCommandException, CommandWallet._check_scoreapi, vars(parsed))

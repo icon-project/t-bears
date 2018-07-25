@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 import os
 
 from tbears.util import PROJECT_ROOT_PATH
@@ -19,3 +20,15 @@ from tbears.util import PROJECT_ROOT_PATH
 TEST_DIRECTORY = os.path.abspath(os.path.join(PROJECT_ROOT_PATH, 'tests'))
 TEST_UTIL_DIRECTORY = os.path.join(TEST_DIRECTORY, 'test_util')
 IN_MEMORY_ZIP_TEST_DIRECTORY = os.path.join(TEST_UTIL_DIRECTORY, 'test_in_memory_zip')
+
+
+def get_total_supply(path: str):
+    # get total supply using config file.
+    with open(path) as config_file:
+        conf = json.load(config_file)
+
+    account_array = conf['genesis']['accounts']
+    balance_info = [int(elem['balance'], 16) for elem in account_array]
+    total_supply = sum(balance_info)
+
+    return hex(total_supply)
