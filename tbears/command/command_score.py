@@ -60,9 +60,7 @@ class CommandScore(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = self.get_score_conf(args.command)
-
-        conf.load(user_input=vars(args))
+        conf = self.get_score_conf(args.command, args=vars(args))
 
         # run command
         getattr(self, args.command)(conf)
@@ -173,8 +171,16 @@ class CommandScore(object):
         return hasattr(self, command)
 
     @staticmethod
-    def get_score_conf(command: str, project: str = None):
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
+    def get_score_conf(command: str, project: str = None, args: dict = None):
+        config_path = FN_CLI_CONF
+        config_dict = tbears_cli_config
+        if command == "clear":
+            config_path = FN_SERVER_CONF
+            config_dict = tbears_server_config
+
+        conf = IconConfig(config_path, config_dict)
+        if args:
+            conf.load(user_input=args)
 
         if project is not None:
             conf['project'] = project
