@@ -188,6 +188,16 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
+        # gettx (query transaction)
+        gettx_response = self.cmd.cmdWallet.gettx(conf)
+        gettx_response_result = gettx_response['result']
+        gettx_params = gettx_response_result['params']
+        self.assertIn('method', gettx_response_result)
+        self.assertIn('params', gettx_response_result)
+        self.assertIn('from', gettx_params)
+        self.assertIn('to', gettx_params)
+        self.assertIn('value', gettx_params)
+
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 0.3e2)
