@@ -391,7 +391,8 @@ def serve():
     Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
 
     # write conf for tbears_cli
-    CommandServer.write_server_conf(host=conf.get('hostAddress'), port=conf.get('port'))
+    CommandServer.write_server_conf(host=conf.get('hostAddress'), port=conf.get('port'),
+                                    score_root=conf['scoreRootPath'], score_db_root=conf['stateDbRootPath'])
 
     # start server
     server = SimpleRestServer(port=conf.get('port'), ip_address=conf.get('hostAddress'))
