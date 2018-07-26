@@ -20,8 +20,8 @@ import shutil
 import socket
 from tbears.command.command import Command
 from tbears.tbears_exception import TBearsCommandException
-from tbears.util.icx_signer import key_from_key_store
-from tbears.config.tbears_config import tbears_config
+from tbears.libs.icx_signer import key_from_key_store
+from tbears.config.tbears_config import tbears_server_config
 from iconcommons.icon_config import IconConfig
 
 from tests.test_util import TEST_UTIL_DIRECTORY
@@ -62,7 +62,7 @@ class TestTbearsCommands(TestCommand):
 
         # start
         tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears.json')
-        start_conf = IconConfig(tbears_config_path, tbears_config)
+        start_conf = IconConfig(tbears_config_path, tbears_server_config)
         start_conf.load()
         start_conf['config'] = tbears_config_path
         self.cmd.cmdServer.start(start_conf)
@@ -72,7 +72,7 @@ class TestTbearsCommands(TestCommand):
         # in prompt, still output "Started Tbears service successfully"
 
         # deploy
-        conf = self.cmd.cmdScore.get_deploy_conf(project=self.project_name)
+        conf = self.cmd.cmdScore.get_score_conf(project=self.project_name)
         deploy_response = self.cmd.cmdScore.deploy(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 

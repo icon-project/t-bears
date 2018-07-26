@@ -19,20 +19,19 @@ import socket
 
 
 from tbears.command.command import Command
-from tbears.libs.icon_client import IconClient
-from tbears.config.tbears_config import tbears_config
+from tbears.libs.icon_jsonrpc import IconClient
+from tbears.config.tbears_config import tbears_server_config
 from iconcommons.icon_config import IconConfig
 from tests.test_util import TEST_UTIL_DIRECTORY
 
-from tbears.tbears_exception import IconClientException
 
 class TestIconClient(unittest.TestCase):
     def setUp(self):
         self.cmd = Command()
-        tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears.json')
-        self.conf = IconConfig(tbears_config_path, tbears_config)
+        tbears_server_config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears.json')
+        self.conf = IconConfig(tbears_server_config_path, tbears_server_config)
         self.conf.load()
-        self.conf['config'] = tbears_config_path
+        self.conf['config'] = tbears_server_config_path
         self.cmd.cmdServer.start(self.conf)
 
         # Check server started (before test Icon client, sever has to be started)
@@ -53,34 +52,39 @@ class TestIconClient(unittest.TestCase):
         payload = {"jsonrpc": "2.0", "method": "icx_getTotalSupply", "id": 111}
         client = IconClient('http://127.0.0.1:9000/api/v3')
         response = client.send(payload)
-        #check get response correctly, don't check the response data
-        self.assertEqual(200, response.status_code)
+
+        # the return type should 'dict'
+        expected_type = type({})
+        self.assertEqual(type(response), expected_type)
+
+        self.assertIsNotNone(response['result'])
 
         # Incorrect request: input url which is omitted port number
         payload = {"jsonrpc": "2.0", "method": "icx_getTotalSupply", "id": 111}
         client = IconClient('http://127.0.0.1:/api/v3')
-        response = client.send(payload)
         # check get response correctly, don't check the response data
-        self.assertEqual(404, response.status_code)
+        self.assertRaises(Exception, client.send, payload)
+
+        # Incorrect request: invalid url
+        payload = {"jsonrpc": "2.0", "method": "icx_getTotalSupply", "id": 111}
+        client = IconClient('http://127.0.0.1:9000/api/invalidUrl')
+        # check get response correctly, don't check the response data
+        self.assertRaises(Exception, client.send, payload)
 
         # Bad request: invalid payload data (nonexistent method name)
         incorrect_payload = {"jsonrpc": "2.0", "method": "icx_invalid_requests", "id": 111}
         client = IconClient('http://127.0.0.1:9000/api/v3')
         response = client.send(incorrect_payload)
-        print(400, response.status_code)
+        self.assertIsNotNone(response['error'])
 
         # Bad request: insufficient payload data (method is not set)
         insufficient_payload = {"jsonrpc": "2.0", "id": 111}
         client = IconClient('http://127.0.0.1:9000/api/v3')
         response = client.send(insufficient_payload)
-        print(400, response.text)
+        self.assertIsNotNone(response['error'])
 
         # requests when server stopped
         self.cmd.cmdServer.stop(self.conf)
         payload = {"jsonrpc": "2.0", "method": "icx_getTotalSupply", "id": 111}
         client = IconClient('http://127.0.0.1:9000/api/v3')
-        self.assertRaises(IconClientException, client.send, payload )
-
-
-
-
+        self.assertRaises(Exception, client.send, payload)

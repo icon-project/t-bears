@@ -17,7 +17,7 @@ import unittest
 import json
 
 from tbears.util.keystore_manager import make_key_store_content
-from tbears.util.icx_signer import key_from_key_store
+from tbears.libs.icx_signer import key_from_key_store
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsCommandException
 from tbears.command.command import Command

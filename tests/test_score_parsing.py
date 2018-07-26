@@ -43,7 +43,7 @@ class TestCommandScore(TestCommand):
         self.assertEqual(parsed.command, 'deploy')
         self.assertEqual(parsed.project, self.project)
         self.assertEqual(parsed.uri, self.uri)
-        self.assertEqual(parsed.scoreType, self.arg_type)
+        self.assertEqual(parsed.contentType, self.arg_type)
         self.assertEqual(parsed.mode, self.mode)
         self.assertEqual(parsed.to, self.to)
         self.assertEqual(parsed.keyStore, self.keystore)
@@ -85,22 +85,22 @@ class TestCommandScore(TestCommand):
 
         os.mkdir(self.project)
 
-        # # Deploy to icon
+        # # Deploy to zip
 
         # Without keystore option
-        cmd = f'deploy {self.project} -t icon'
+        cmd = f'deploy {self.project} -t zip'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         # Keystore file does not exist
-        cmd = f'deploy {self.project} -t icon -k ./keystore_not_exist'
+        cmd = f'deploy {self.project} -t zip -k ./keystore_not_exist'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         # Invaild password value
         # Even though input invaild password, _check_deploy method should return password
         # (this method doesn't check password value)
-        cmd = f'deploy {self.project} -t icon -k {self.keystore}'
+        cmd = f'deploy {self.project} -t zip -k {self.keystore}'
         user_input_password = "1234"
         expected_password = "1234"
         parsed = self.parser.parse_args(cmd.split())
@@ -111,19 +111,12 @@ class TestCommandScore(TestCommand):
         # Correct command (when deploy to tbears, return value from _check_deploy method should None)
         cmd = f'deploy {self.project} -t tbears'
         parsed = self.parser.parse_args(cmd.split())
-        actual_password = CommandScore._check_deploy(vars(parsed))
-        expected_password = None
-        self.assertEqual(actual_password, expected_password)
+        self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         # Deploy tbears SCORE to remote(doesn't check actual -uri value)
         cmd = f'deploy {self.project} -t tbears -u http://1.2.3.4:9000/api/v3'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
-
-        # Check return value is None. as tbears mode doesn't accept user's password input, return value always None
-        cmd = f'deploy {self.project} -t tbears'
-        parsed = self.parser.parse_args(cmd.split())
-        self.assertEqual(CommandScore._check_deploy(vars(parsed)), None)
 
         # Insufficient argument
         cmd = f'deploy {self.project} -m update'

@@ -16,7 +16,7 @@ import unittest
 import base64
 import hashlib
 
-from tbears.util.icx_signer import IcxSigner, key_from_key_store
+from tbears.libs.icx_signer import IcxSigner, key_from_key_store
 from secp256k1 import PrivateKey
 
 from tbears.tbears_exception import KeyStoreException
