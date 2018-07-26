@@ -14,6 +14,8 @@
 
 import os
 import time
+from random import randint
+
 import requests
 from typing import Optional, Union
 import itertools
@@ -100,7 +102,7 @@ class IconJsonrpc:
         }
 
     @classmethod
-    def getBlockByHeight(cls, height: int) -> dict:
+    def getBlockByHeight(cls, height: str) -> dict:
         """Make JSON-RPC request for icx_getBlockByHeight
 
         :param height: Block height
@@ -110,7 +112,7 @@ class IconJsonrpc:
             "jsonrpc": "2.0",
             "method": "icx_getBlockByHeight",
             "params": {
-                "height": hex(height)
+                "height": height
             },
             "id": next(cls.request_id)
         }
@@ -212,6 +214,22 @@ class IconJsonrpc:
         }
 
     @classmethod
+    def getTransactionResult_v2(cls, tx_hash: str) -> dict:
+        """Make JSON-RPC request for icx_getTransactionResult for api version 2
+
+        :param tx_hash: Hash string to query
+        :return: JSON dictionary
+        """
+        return {
+            "jsonrpc": "2.0",
+            "method": "icx_getTransactionResult",
+            "params": {
+                "tx_hash": tx_hash
+            },
+            "id": next(cls.request_id)
+        }
+
+    @classmethod
     def getTransactionByHash(cls, tx_hash: str) -> dict:
         """Make JSON-RPC request for icx_getTransactionByHash
 
@@ -223,6 +241,22 @@ class IconJsonrpc:
             "method": "icx_getTransactionByHash",
             "params": {
                 "txHash": tx_hash
+            },
+            "id": next(cls.request_id)
+        }
+
+    @classmethod
+    def getTransactionByHash_v2(cls, tx_hash: str) -> dict:
+        """Make JSON-RPC request for icx_getTransactionByHash for api version 2
+
+        :param tx_hash: Hash string to query
+        :return: JSON dictionary
+        """
+        return {
+            "jsonrpc": "2.0",
+            "method": "icx_getTransactionByHash",
+            "params": {
+                "tx_hash": tx_hash
             },
             "id": next(cls.request_id)
         }
@@ -279,7 +313,35 @@ class IconJsonrpc:
             "id": next(self.request_id)
         }
 
+    def sendTransaction_v2(self, from_: str = None, to: str = None, value: int = 0x0):
+        """ make JSON-RPC request of icx_sendTransaction
+        :param from_: From address. If not set, use __address member of object
+        :param to: To address
+        :param value: Amount of ICX coin in loop to transfer (1 icx = 1e18 loop)
+        :return: icx_sendTransaction JSON-RPC request dictionary
+        """
+        params = {
+            "from": from_ or self.__address,
+            "value": hex(value),
+            "fee": hex(int(1e16)),
+            "timestamp": hex(int(time.time() * 10 ** 6)),
+            "nonce": hex(randint(1, 10 ** 4))
+        }
+        if to:
+            params['to'] = to
 
+        msg_phrase = generate_origin_for_icx_send_tx_hash(params)
+        msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest().hex()
+
+        params["tx_hash"] = msg_hash
+        self.put_signature(params)
+
+        return {
+            "jsonrpc": "2.0",
+            "method": "icx_sendTransaction",
+            "params": params,
+            "id": next(self.request_id)
+        }
 
     @staticmethod
     def gen_call_data(method: str, params: dict = {}) -> dict:
