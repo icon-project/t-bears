@@ -172,13 +172,7 @@ class CommandScore(object):
 
     @staticmethod
     def get_score_conf(command: str, project: str = None, args: dict = None):
-        config_path = FN_CLI_CONF
-        config_dict = tbears_cli_config
-        if command == "clear":
-            config_path = FN_SERVER_CONF
-            config_dict = tbears_server_config
-
-        conf = IconConfig(config_path, config_dict)
+        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
         if args:
             conf.load(user_input=args)
 
