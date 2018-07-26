@@ -42,8 +42,6 @@ class IconJsonrpc:
         else:
             self.__signer = None
             self.__address = signer
-        if self.__signer:
-            self.__address = f'hx{self.__signer.address.hex()}'
 
     @staticmethod
     def from_string(from_: str) -> 'IconJsonrpc':
@@ -147,7 +145,7 @@ class IconJsonrpc:
             "params": {
                 "from": from_ or self.__address,
                 "to": to,
-                "dataTy[e": "call",
+                "dataType": "call",
                 "data": data
             },
             "id": next(self.request_id)
