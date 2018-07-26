@@ -18,7 +18,7 @@ import json
 
 from tbears.util.keystore_manager import make_key_store_content
 from tbears.tbears_exception import KeyStoreException
-from tbears.util.icx_signer import key_from_key_store
+from tbears.libs.icx_signer import key_from_key_store
 
 
 class TestKeyStore(unittest.TestCase):

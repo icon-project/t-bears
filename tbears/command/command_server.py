@@ -23,8 +23,9 @@ from ipaddress import ip_address
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
-from tbears.util import post, make_exit_json_payload, write_file
+from tbears.util import write_file
 from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
+from tbears.libs.icon_jsonrpc import IconClient
 
 
 TBEARS_CLI_ENV = '/tmp/.tbears.env'
@@ -126,7 +127,9 @@ class CommandServer(object):
             if not server:
                 server = {'port': 9000}
 
-        post(f"http://127.0.0.1:{server['port']}/api/v3", make_exit_json_payload())
+        server_exit = IconClient(uri=f"http://127.0.0.1:{server['port']}/api/v3")
+        request = {"jsonrpc": "2.0", "method": "server_exit", "id": 99999}
+        server_exit.send(request=request)
 
     @staticmethod
     def is_server_running(name: str = SERVER_MODULE_NAME) -> bool:

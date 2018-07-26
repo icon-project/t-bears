@@ -13,18 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import hashlib
 import re
-import sys
 
 import pkg_resources
-import requests
-from secp256k1 import PrivateKey
 
-from tbears.util.in_memory_zip import InMemoryZip
-from .icx_signer import IcxSigner
-from tbears.libs.icon_json import JsonContents
-from ..tbears_exception import TBearsWriteFileException, ZipException, DeployPayloadException
+from ..tbears_exception import TBearsWriteFileException
 
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -94,47 +87,6 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
         "main_score": f"{score_class}"
     }
     return package_json_dict
-
-
-def make_install_json_payload(project: str, fr: str=f"hx{'a' * 40}", to: str=f"cx{'0' * 40}", nid: str="0x3",
-                              step_limit: int=0x1234000, data_params: dict = {}) -> dict:
-    """Returns payload of install request.
-
-    :param project: SCORE's name
-    :param fr: From address
-    :param to: To address
-    :param nid: Network ID
-    :param step_limit: step Limit.
-    :param data_params: params of data object
-
-
-    :return: payload of install request json.
-    """
-    path = os.path.abspath(project)
-    data = {
-        "contentType": "application/tbears",
-        "content": path,
-        "params": data_params
-    }
-    json_contents = JsonContents(step_limit)
-    params = json_contents.params_send_transaction(fr=fr, to=to, value=hex(0), nid=nid, data=data, data_type='deploy')
-    params['signature'] = 'sig'
-    payload = json_contents.json_rpc_format('icx_sendTransaction', params)
-    return payload
-
-
-def make_exit_json_payload() -> dict:
-    payload = {"jsonrpc": "2.0", "method": "server_exit", "id": 99999}
-    return payload
-
-
-def post(url: str, payload: dict):
-    try:
-        r = requests.post(url, json=payload, verify=False)
-    except requests.exceptions.Timeout:
-        raise RuntimeError("Timeout happened. Check your internet connection status.")
-    else:
-        return r
 
 
 def get_sample_crowd_sale_contents(score_class: str):
@@ -399,32 +351,6 @@ class MySampleToken(IconScoreBase, TokenStandard):
     return template.replace("MySampleToken", score_class)
 
 
-def create_address(data: bytes) -> str:
-    """Create address using given data.
-
-    :param data: Some byte data
-    :return: Body part of Address.(deleted prefix hx or cx)
-    """
-    hash_value = hashlib.sha3_256(data).digest()
-    return hash_value[-20:].hex()
-
-
-def get_deploy_contents_by_path(project_root_path: str = None):
-    """Get zip data(hex string) of SCORE.
-
-    :param project_root_path: The path of the directory to be zipped.
-    """
-    if os.path.isdir(project_root_path) is False:
-        raise Exception
-    try:
-        memory_zip = InMemoryZip()
-        memory_zip.zip_in_memory(project_root_path)
-    except ZipException:
-        raise DeployPayloadException(f"Can't zip SCORE contents")
-    else:
-        return f'0x{memory_zip.data.hex()}'
-
-
 def is_lowercase_hex_string(value: str) -> bool:
     """Check whether value is hexadecimal format or not
 
@@ -451,13 +377,6 @@ def is_tx_hash(tx_hash: str) -> bool:
         return prefix == '0x' and is_lowercase_hex_string(body)
 
     return False
-
-
-def address_from_private_key(private_key: bytes) ->str:
-    private_key_obj = PrivateKey(private_key)
-    public_key = private_key_obj.pubkey.serialize(compressed=False)
-    address = hashlib.sha3_256(public_key[1:]).digest()[-20:]
-    return f'hx{address.hex()}'
 
 
 def get_tbears_version() -> str:

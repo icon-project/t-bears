@@ -21,7 +21,7 @@ import socket
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
 from tbears.tbears_exception import TBearsCommandException
-from tbears.util.icx_signer import key_from_key_store
+from tbears.libs.icx_signer import key_from_key_store
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 from iconcommons.icon_config import IconConfig
 
