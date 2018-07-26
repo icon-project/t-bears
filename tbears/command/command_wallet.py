@@ -20,13 +20,9 @@ from iconcommons import IconConfig
 from iconservice.base.address import is_icon_address_valid
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
-from tbears.libs.icon_client import IconClient
-from tbears.libs.icon_json import get_icx_getTransactionResult_payload, get_icx_sendTransaction_payload, \
-    get_dummy_icx_sendTransaction_payload, get_icx_getBalance_payload, get_icx_getTotalSupply_payload, \
-    get_icx_getScoreApi_payload, get_icx_getTransactionByHash
+from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
 from tbears.tbears_exception import TBearsCommandException
-from tbears.util import is_tx_hash, IcxSigner
-from tbears.util.icx_signer import key_from_key_store
+from tbears.util import is_tx_hash
 from tbears.util.keystore_manager import validate_password, make_key_store_content
 
 
@@ -120,6 +116,9 @@ class CommandWallet:
                 raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
             if not password:
                 password = getpass.getpass("input your key store password: ")
+        else:
+            if not is_icon_address_valid(conf['from']):
+                raise TBearsCommandException(f'You entered invalid address')
 
         return password
 
@@ -153,13 +152,11 @@ class CommandWallet:
         """
         self._validate_tx_hash(conf['hash'])
         icon_client = IconClient(conf['uri'])
-        get_tx_result_payload = get_icx_getTransactionByHash(conf['hash'])
 
-        response = icon_client.send(get_tx_result_payload)
-        response_json = response.json()
-        print(f"Transaction: {json.dumps(response_json, indent=4)}")
+        response = icon_client.send(IconJsonrpc.getTransactionByHash(conf['hash']))
+        print(f"Transaction: {json.dumps(response, indent=4)}")
 
-        return response_json
+        return response
 
     def txresult(self, conf):
         """Query transaction result using given transaction hash.
@@ -169,13 +166,11 @@ class CommandWallet:
         """
         self._validate_tx_hash(conf['hash'])
         icon_client = IconClient(conf['uri'])
-        get_tx_result_payload = get_icx_getTransactionResult_payload(conf['hash'])
 
-        response = icon_client.send(get_tx_result_payload)
-        response_json = response.json()
-        print(f"Transaction result: {json.dumps(response_json, indent=4)}")
+        response = icon_client.send(IconJsonrpc.getTransactionResult(conf['hash']))
+        print(f"Transaction result: {json.dumps(response, indent=4)}")
 
-        return response_json
+        return response
 
     def transfer(self, conf: dict, password: str = None):
         """Transfer Icx Coin.
@@ -184,33 +179,29 @@ class CommandWallet:
         :param password: password of keystore
         :return: response of transfer.
         """
-        icon_client = IconClient(conf['uri'])
         password = self._check_transfer(conf, password)
-        nid = conf['nid']
 
         if password:
-            sender_signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
-            transfer_tx_payload = get_icx_sendTransaction_payload(sender_signer, conf['to'],
-                                                                  hex(int(conf['value'])), nid)
+            transfer = IconJsonrpc.from_key_store(conf['keyStore'], password)
         else:
-            if not is_icon_address_valid(conf['from']):
-                raise TBearsCommandException(f'You entered invalid address')
-            sender = conf['from']
-            transfer_tx_payload = get_dummy_icx_sendTransaction_payload(sender, conf['to'],
-                                                                        hex(int(conf['value'])), nid)
+            transfer = IconJsonrpc.from_string(conf['from'])
 
-        response = icon_client.send(transfer_tx_payload)
-        response_json = response.json()
+        request = transfer.sendTransaction(to=conf['to'],
+                                           value=int(conf['value']),
+                                           nid=int(conf['nid'], 16))
 
-        if 'result' in response_json:
+        icon_client = IconClient(conf['uri'])
+        response = icon_client.send(request=request)
+
+        if 'result' in response:
             print('Send transfer request successfully.')
-            tx_hash = response_json['result']
+            tx_hash = response['result']
             print(f"transaction hash: {tx_hash}")
         else:
             print('Got an error response')
-            print(json.dumps(response_json, indent=4))
+            print(json.dumps(response, indent=4))
 
-        return response_json
+        return response
 
     def keystore(self, conf: dict, password: str = None):
         """Make keystore file with passed path and password.
@@ -233,14 +224,12 @@ class CommandWallet:
         :param conf: balance command configuration.
         """
         self._check_balance(conf)
+
         icon_client = IconClient(conf['uri'])
-        get_balance_payload = get_icx_getBalance_payload(conf['address'])
+        response = icon_client.send(IconJsonrpc.getBalance(conf['address']))
 
-        response = icon_client.send(get_balance_payload)
-        response_json = response.json()
-
-        print(f'balance : {response_json["result"]}')
-        return response_json
+        print(f'balance : {response["result"]}')
+        return response
 
     @staticmethod
     def totalsup(conf: dict):
@@ -249,14 +238,11 @@ class CommandWallet:
         :param conf: totalsup command configuration
         """
         icon_client = IconClient(conf['uri'])
-        total_supply_payload = get_icx_getTotalSupply_payload()
+        response = icon_client.send(IconJsonrpc.getTotalSupply())
 
-        response = icon_client.send(total_supply_payload)
-        response_json = response.json()
+        print(f'Total supply  of Icx: {response["result"]}')
 
-        print(f'Total supply  of Icx: {response_json["result"]}')
-
-        return response_json
+        return response
 
     def scoreapi(self, conf):
         """Query score API of given score address.
@@ -266,14 +252,11 @@ class CommandWallet:
         """
         self._check_scoreapi(conf)
         icon_client = IconClient(conf['uri'])
-        get_score_api_payload = get_icx_getScoreApi_payload(conf['address'])
+        response = icon_client.send(IconJsonrpc.getScoreApi(conf['address']))
 
-        response = icon_client.send(get_score_api_payload)
-        response_json = response.json()
+        print(f'scoreAPI: {response["result"]}')
 
-        print(f'scoreAPI: {response_json["result"]}')
-
-        return response_json
+        return response
 
     def check_command(self, command):
         return hasattr(self, command)

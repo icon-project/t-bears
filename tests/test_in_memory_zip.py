@@ -18,7 +18,7 @@ import shutil
 import unittest
 import zipfile
 
-from tbears.util.in_memory_zip import InMemoryZip
+from tbears.libs.in_memory_zip import InMemoryZip
 from tests.test_util import IN_MEMORY_ZIP_TEST_DIRECTORY
 
 

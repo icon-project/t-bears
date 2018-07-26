@@ -20,11 +20,8 @@ from iconcommons.icon_config import IconConfig
 from iconservice.base.address import is_icon_address_valid
 
 from tbears.command.command_server import CommandServer
-from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
-from tbears.util.icx_signer import key_from_key_store, IcxSigner
-from tbears.libs.icon_client import IconClient
-from tbears.libs.icon_json import get_icx_sendTransaction_deploy_payload
-from tbears.util import make_install_json_payload, get_deploy_contents_by_path
+from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
+from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
 from tbears.tbears_exception import TBearsDeleteTreeException, TBearsCommandException
 
 
@@ -77,53 +74,52 @@ class CommandScore(object):
         password = self._check_deploy(conf, password)
 
         step_limit = int(conf.get('stepLimit', "0x1234000"), 16)
+
         if conf['mode'] == 'install':
             score_address = f'cx{"0"*40}'
         else:
             score_address = conf['to']
-            if not is_icon_address_valid(score_address):
-                raise TBearsCommandException(f"You entered invalid 'to' address '{conf['to']}")
 
         if conf['contentType'] == 'zip':
-            signer = IcxSigner(key_from_key_store(conf['keyStore'], password))
-            deploy_contents = get_deploy_contents_by_path(conf['project'])
-            payload = get_icx_sendTransaction_deploy_payload(signer=signer,
-                                                             contents=deploy_contents,
-                                                             nid=conf['nid'],
-                                                             to=score_address,
-                                                             deploy_params=conf.get('scoreParams', {}),
-                                                             step_limit=step_limit)
+            content_type = "application/zip"
+            content = IconJsonrpc.gen_deploy_data_content(conf['project'])
         else:
-            if not is_icon_address_valid(conf['from']):
-                raise TBearsCommandException(f"You entered invalid 'from' address '{conf['from']}")
-            payload = make_install_json_payload(project=conf['project'],
-                                                fr=conf['from'],
-                                                to=score_address,
-                                                nid=conf['nid'],
-                                                step_limit=step_limit,
-                                                data_params=conf.get('scoreParams', {}))
+            content_type = "application/tbears"
+            content = os.path.abspath(conf['project'])
+
+        if conf['keyStore']:
+            deploy = IconJsonrpc.from_key_store(keystore=conf['keyStore'], password=password)
+        else:
+            deploy = IconJsonrpc.from_string(from_=conf['from'])
+
+        # make JSON-RPC request
+        request = deploy.sendTransaction(to=score_address,
+                                         nid=int(conf['nid'], 16),
+                                         step_limit=step_limit,
+                                         data_type="deploy",
+                                         data=IconJsonrpc.gen_deploy_data(
+                                             params=conf.get('scoreParams', {}),
+                                             content_type=content_type,
+                                             content=content))
 
         icon_client = IconClient(conf['uri'])
-        response = icon_client.send(payload)
-        response_json = response.json()
+        response = icon_client.send(request)
 
-        if 'result' in response_json:
+        if 'result' in response:
             print('Send deploy request successfully.')
-            tx_hash = response_json['result']
+            tx_hash = response['result']
             print(f"transaction hash: {tx_hash}")
         else:
             print('Got an error response')
-            print(response_json)
+            print(response)
 
-        # print(f"Deployed SCORE successfully")
-
-        return response.json()
+        return response
 
     @staticmethod
-    def clear(conf: dict):
+    def clear(_conf: dict):
         """Clear all SCORE deployed on tbears service
 
-        :param conf: deploy command configuration
+        :param _conf: clear command configuration
         """
         score_dir_info = CommandServer._get_server_conf()
 
@@ -156,14 +152,20 @@ class CommandScore(object):
                     raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
                 if not password:
                     password = getpass.getpass("input your key store password: ")
-
-        if conf['mode'] == 'update' and conf.get('to', None) is None:
-            raise TBearsCommandException(f'If you want to update SCORE, set --to option')
-
-        if conf['contentType'] == 'tbears':
+        else:
             uri: str = conf.get('uri', "")
-            if uri and uri.find('127.0.0.1') == -1 and uri.find('localhost') == -1:
+            if uri and uri.find('127.0.0.1') == -1:
                 raise TBearsCommandException(f"TBears does not support deploying tbears SCORE to remote")
+
+        if not conf['keyStore']:
+            if not is_icon_address_valid(conf['from']):
+                raise TBearsCommandException(f"You entered invalid 'from' address '{conf['from']}")
+
+        if conf['mode'] == 'update':
+            if conf.get('to', None) is None:
+                raise TBearsCommandException(f'If you want to update SCORE, set --to option')
+            elif not is_icon_address_valid(conf['to']):
+                raise TBearsCommandException(f"You entered invalid 'to' address '{conf['to']}")
 
         return password
 
