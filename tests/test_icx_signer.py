@@ -35,15 +35,16 @@ class TestIcxSigner(unittest.TestCase):
         # check if signature which sign_recoverable method made is valid
         # use ecdsa_verify. before verify signature, convert sign (recoverable_sig -> normal_sig)
         # check secp256k1 doc: https://github.com/ludbb/secp256k1-py
+
     def test_sign_recoverable_verify_sig(self):
         # get sign, recovery
         sign, recovery_id = self.signer.sign_recoverable(self.hashed_message)
 
-        # convert recoverable sig to normal sig
+        # Convert recoverable sig to normal sig
         deserialized_recoverable_sig = self.test_private_key.ecdsa_recoverable_deserialize(sign, recovery_id)
         normal_sig = self.test_private_key.ecdsa_recoverable_convert(deserialized_recoverable_sig)
 
-        # check sig
+        # Check sig
         self.assertTrue(self.test_private_key.pubkey.ecdsa_verify(self.hashed_message, normal_sig, raw=True))
 
         # Verify using invalid message

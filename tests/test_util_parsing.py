@@ -24,7 +24,7 @@ from tests.test_command_parsing import TestCommand
 class TestCommandUtil(TestCommand):
     def setUp(self):
         super().setUp()
-        self.tear_down_params = {'proj_unittest': 'file', 'proj_unittest_dir': 'dir'}
+        self.tear_down_params = ['proj_unittest', 'proj_unittest_dir']
         self.project = 'proj_unittest'
         self.score_class = 'TestClass'
 

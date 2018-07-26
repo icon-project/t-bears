@@ -173,7 +173,7 @@ class CommandScore(object):
     def check_command(self, command):
         return hasattr(self, command)
 
-    # sb. get_deploy_conf를 사용하는 곳이 test_tbears_commands 밖에 없습니다.
+
     @staticmethod
     def get_score_conf(command: str, project: str = None, args: dict = None):
         conf = IconConfig(FN_CLI_CONF, tbears_cli_config)

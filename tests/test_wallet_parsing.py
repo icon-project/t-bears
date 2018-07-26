@@ -22,7 +22,7 @@ from tests.test_command_parsing import TestCommand
 class TestWalletParsing(TestCommand):
     def setUp(self):
         super().setUp()
-        self.tear_down_params = {'unit_test_keystore': 'file'}
+        self.tear_down_params = ['unit_test_keystore']
         self.keystore_path = 'unit_test_keystore'
         self.keystore_password = 'qwer1234%'
 

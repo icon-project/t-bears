@@ -24,7 +24,7 @@ from tests.test_util import TEST_UTIL_DIRECTORY, TEST_DIRECTORY
 class TestCommandScore(TestCommand):
     def setUp(self):
         super().setUp()
-        self.tear_down_params = {'proj_unittest': 'dir'}
+        self.tear_down_params = ['proj_unittest']
 
         self.project = 'proj_unittest'
         self.uri = 'http://127.0.0.1:9000/api/v3'
@@ -108,6 +108,13 @@ class TestCommandScore(TestCommand):
 
         # # Deploy to tbears
 
+        # Correct command (when deploy to tbears, return value from _check_deploy method should None)
+        cmd = f'deploy {self.project} -t tbears'
+        parsed = self.parser.parse_args(cmd.split())
+        actual_password = CommandScore._check_deploy(vars(parsed))
+        expected_password = None
+        self.assertEqual(actual_password, expected_password)
+
         # Deploy tbears SCORE to remote(doesn't check actual -uri value)
         cmd = f'deploy {self.project} -t tbears -u http://1.2.3.4:9000/api/v3'
         parsed = self.parser.parse_args(cmd.split())
@@ -118,17 +125,12 @@ class TestCommandScore(TestCommand):
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(CommandScore._check_deploy(vars(parsed)), None)
 
-        # To-do: update succecced check
-
         # Insufficient argument
         cmd = f'deploy {self.project} -m update'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         shutil.rmtree(self.project)
-
-        # To-do: write case, invaild 'to' address
-        # To-do: write case, invalid 'from' address
 
     def test_clear_args_parsing(self):
         # Parsing test

@@ -35,9 +35,14 @@ class TestCommand(unittest.TestCase):
 
     def tearDown(self):
         # tear_down_params' key value(file or directory) is always relative path
-        for path, format in self.tear_down_params.items():
-            if os.path.isfile(path) or os.path.isdir(path):
-                os.remove(path) if format == 'file' else shutil.rmtree(path)
+        for path in self.tear_down_params:
+            if os.path.isfile(path):
+                os.remove(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                continue
+
 
 
 

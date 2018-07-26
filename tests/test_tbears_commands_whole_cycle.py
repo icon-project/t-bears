@@ -28,7 +28,6 @@ from tests.test_util import TEST_UTIL_DIRECTORY
 from tests.test_command_parsing import TestCommand
 
 
-
 class TestTbearsCommands(TestCommand):
     def setUp(self):
         self.cmd = Command()
