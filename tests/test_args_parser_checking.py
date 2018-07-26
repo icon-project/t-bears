@@ -312,17 +312,17 @@ class ArgsParserTest(unittest.TestCase):
     def test_totalsup(self):
         node_uri = 'http://localhost:9000/api/v3'
 
-        cmd = f'totalsup -u {node_uri}'
+        cmd = f'totalsupply -u {node_uri}'
         parsed = self.parser.parse_args(cmd.split())
-        self.assertEqual(parsed.command, 'totalsup')
+        self.assertEqual(parsed.command, 'totalsupply')
         self.assertEqual(parsed.uri, node_uri)
 
         # invalid argument tests
         # given more arguments.
-        cmd = f'totalsup arg1 arg2 arg3'
+        cmd = f'totalsupply arg1 arg2 arg3'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
         # invalid argument
-        cmd = f'totalsup -w wrongoption'
+        cmd = f'totalsupply -w wrongoption'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
     def test_scoreapi(self):
@@ -347,24 +347,24 @@ class ArgsParserTest(unittest.TestCase):
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandWallet._check_scoreapi, vars(parsed))
 
-    def test_get_tx(self):
+    def test_tx_by_hash(self):
         tx_hash = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
         node_uri = 'http://localhost:9000/api/v3'
         config = FN_CLI_CONF
-        cmd = f'gettx {tx_hash} -u {node_uri} -c {config}'
+        cmd = f'txbyhash {tx_hash} -u {node_uri} -c {config}'
         invalid_hash = '0x1'
         parsed = self.parser.parse_args(cmd.split())
 
-        self.assertEqual(parsed.command, 'gettx')
+        self.assertEqual(parsed.command, 'txbyhash')
         self.assertEqual(parsed.hash, tx_hash)
         self.assertEqual(parsed.uri, node_uri)
         self.assertEqual(parsed.config, config)
 
         # given more arguments.
-        cmd = f'gettx {tx_hash} arg1'
+        cmd = f'txbyhash {tx_hash} arg1'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
         # given invalid tx hash
-        cmd = f'gettx {invalid_hash}'
+        cmd = f'txbyhash {invalid_hash}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandWallet._validate_tx_hash, vars(parsed))

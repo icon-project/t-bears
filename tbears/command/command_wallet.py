@@ -32,9 +32,9 @@ class CommandWallet:
         self._add_transfer_parser(subparsers)
         self._add_keystore_parser(subparsers)
         self._add_balance_parser(subparsers)
-        self._add_totalsup_parser(subparsers)
+        self._add_totalsupply_parser(subparsers)
         self._add_scoreapi_parser(subparsers)
-        self._add_gettx_parser(subparsers)
+        self._add_txbyhash_parser(subparsers)
 
     @staticmethod
     def _add_txresult_parser(subparsers):
@@ -77,8 +77,8 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3', dest='uri')
 
     @staticmethod
-    def _add_totalsup_parser(subparsers):
-        parser = subparsers.add_parser('totalsup', help='Query total supply of icx')
+    def _add_totalsupply_parser(subparsers):
+        parser = subparsers.add_parser('totalsupply', help='Query total supply of icx')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3', dest='uri')
 
     @staticmethod
@@ -88,8 +88,8 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3', dest='uri')
 
     @staticmethod
-    def _add_gettx_parser(subparsers):
-        parser = subparsers.add_parser('gettx', help='Get transaction by transaction hash',
+    def _add_txbyhash_parser(subparsers):
+        parser = subparsers.add_parser('txbyhash', help='Get transaction by transaction hash',
                                        description='Get transaction by transaction hash')
         parser.add_argument('hash', help='Hash of the transaction to be queried.')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
@@ -144,10 +144,10 @@ class CommandWallet:
         if not (is_icon_address_valid(conf['address']) and conf['address'].startswith('cx')):
             raise TBearsCommandException(f'You entered invalid score address')
 
-    def gettx(self, conf):
+    def txbyhash(self, conf):
         """Query transaction using given transaction hash.
 
-        :param conf: txresult command configuration.
+        :param conf: txbyhash command configuration.
         :return: result of query.
         """
         self._validate_tx_hash(conf['hash'])
@@ -232,10 +232,10 @@ class CommandWallet:
         return response
 
     @staticmethod
-    def totalsup(conf: dict):
+    def totalsupply(conf: dict):
         """Query total supply of icx
 
-        :param conf: totalsup command configuration
+        :param conf: totalsupply command configuration
         """
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(IconJsonrpc.getTotalSupply())
