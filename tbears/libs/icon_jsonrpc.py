@@ -403,7 +403,7 @@ class IconJsonrpc:
         :param path: The path of the directory to be zipped.
         """
         if os.path.isdir(path) is False:
-            raise Exception
+            raise ValueError(f"Invalid path {path}")
         try:
             memory_zip = InMemoryZip()
             memory_zip.zip_in_memory(path)
