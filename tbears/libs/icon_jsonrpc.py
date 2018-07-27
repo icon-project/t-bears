@@ -244,22 +244,6 @@ class IconJsonrpc:
             "id": next(cls.request_id)
         }
 
-    @classmethod
-    def getTransactionByHash_v2(cls, tx_hash: str) -> dict:
-        """Make JSON-RPC request for icx_getTransactionByHash for api version 2
-
-        :param tx_hash: Hash string to query
-        :return: JSON dictionary
-        """
-        return {
-            "jsonrpc": "2.0",
-            "method": "icx_getTransactionByHash",
-            "params": {
-                "tx_hash": tx_hash
-            },
-            "id": next(cls.request_id)
-        }
-
     def sendTransaction(self,
                         version: str = '0x3',
                         from_: str = None,
@@ -403,7 +387,7 @@ class IconJsonrpc:
         :param path: The path of the directory to be zipped.
         """
         if os.path.isdir(path) is False:
-            raise Exception
+            raise ValueError(f"Invalid path {path}")
         try:
             memory_zip = InMemoryZip()
             memory_zip.zip_in_memory(path)
