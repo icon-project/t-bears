@@ -177,7 +177,7 @@ class CommandScore(object):
 
     @staticmethod
     def get_score_conf(command: str, project: str = None, args: dict = None):
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
+        conf = IconConfig(str(), tbears_cli_config)
         if args:
             conf.load(user_input=args)
 
