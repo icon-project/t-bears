@@ -22,9 +22,10 @@ tbears_server_config = {
     "scoreRootPath": "./.score",
     "stateDbRootPath": "./.statedb",
     "log": {
-        "colorLog": True,
+        "logger": "tbears",
         "level": "info",
         "filePath": "./tbears.log",
+        "colorLog": True,
         "outputType": "console|file"
     },
     "service": {
