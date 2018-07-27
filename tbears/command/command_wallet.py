@@ -187,8 +187,8 @@ class CommandWallet:
             transfer = IconJsonrpc.from_string(conf['from'])
 
         request = transfer.sendTransaction(to=conf['to'],
-                                           value=int(conf['value']),
-                                           nid=int(conf['nid'], 16))
+                                           value=hex(int(conf['value'])),
+                                           nid=conf['nid'])
 
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(request=request)

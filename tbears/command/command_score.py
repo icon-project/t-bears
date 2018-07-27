@@ -73,7 +73,7 @@ class CommandScore(object):
 
         password = self._check_deploy(conf, password)
 
-        step_limit = int(conf.get('stepLimit', "0x1234000"), 16)
+        step_limit = conf.get('stepLimit', "0x1234000")
 
         if conf['mode'] == 'install':
             score_address = f'cx{"0"*40}'
@@ -94,7 +94,7 @@ class CommandScore(object):
 
         # make JSON-RPC request
         request = deploy.sendTransaction(to=score_address,
-                                         nid=int(conf['nid'], 16),
+                                         nid=conf['nid'],
                                          step_limit=step_limit,
                                          data_type="deploy",
                                          data=IconJsonrpc.gen_deploy_data(
