@@ -13,17 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import time
 import unittest
 import json
 import shutil
 import socket
 from tbears.command.command import Command
+from tbears.command.command_server import TBEARS_CLI_ENV
 from tbears.tbears_exception import TBearsCommandException
-from tbears.util.icx_signer import key_from_key_store
-from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config
+from tbears.libs.icx_signer import key_from_key_store
+from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 from iconcommons.icon_config import IconConfig
 
-from tests.test_util import TEST_UTIL_DIRECTORY
+from tests.test_util import TEST_UTIL_DIRECTORY, get_total_supply
 
 
 class TestTBearsCommands(unittest.TestCase):
@@ -99,7 +101,27 @@ class TestTBearsCommands(unittest.TestCase):
         start_conf['config'] = tbears_config_path
         self.start_conf = start_conf
         self.cmd.cmdServer.start(start_conf)
-        self.assertTrue(self.check_server())
+        self.assertTrue(self.cmd.cmdServer.is_server_running())
+
+        # totalsup
+        total_sup = get_total_supply(tbears_config_path)
+        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
+        total_supply_response = self.cmd.cmdWallet.totalsup(conf)
+        self.assertEqual(total_sup, total_supply_response['result'])
+
+        # get balance - get balance of genesis address
+        genesis_info = start_conf['genesis']['accounts'][0]
+        conf['address'] = genesis_info['address']
+        genesis_balance = genesis_info['balance']
+        get_balance_response = self.cmd.cmdWallet.balance(conf)
+        self.assertEqual(genesis_balance, get_balance_response['result'])
+
+        # get balance - get balance of treasury address
+        treasury_info = start_conf['genesis']['accounts'][1]
+        conf['address'] = treasury_info['address']
+        treasury_balance = treasury_info['balance']
+        get_balance_response = self.cmd.cmdWallet.balance(conf)
+        self.assertEqual(treasury_balance, get_balance_response['result'])
 
         # deploy - f"-t tbears -m install"
         conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
@@ -111,6 +133,12 @@ class TestTBearsCommands(unittest.TestCase):
         conf = self.cmd.cmdWallet.get_result_config(tx_hash)
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
         self.assertFalse(transaction_result_response.get('error', False))
+
+        # scoreapi
+        score_address = transaction_result_response['result']['scoreAddress']
+        conf['address'] = score_address
+        score_api_response = self.cmd.cmdWallet.scoreapi(conf)
+        self.assertFalse(score_api_response.get('error', False))
 
         # deploy - f"-t tbears -m update --to socreAddress from_transactionResult -c tbears_cli_config.json"
         scoreAddress = transaction_result_response['result']['scoreAddress']
@@ -161,6 +189,16 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
+        # gettx (query transaction)
+        gettx_response = self.cmd.cmdWallet.gettx(conf)
+        gettx_response_result = gettx_response['result']
+        gettx_params = gettx_response_result['params']
+        self.assertIn('method', gettx_response_result)
+        self.assertIn('params', gettx_response_result)
+        self.assertIn('from', gettx_params)
+        self.assertIn('to', gettx_params)
+        self.assertIn('value', gettx_params)
+
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 0.3e2)
@@ -170,11 +208,13 @@ class TestTBearsCommands(unittest.TestCase):
         # stop
         self.cmd.cmdServer.stop(None)
         self.assertFalse(self.check_server())
+        self.assertTrue(os.path.exists(TBEARS_CLI_ENV))
 
         # clear
         self.cmd.cmdScore.clear(start_conf)
         self.assertFalse(os.path.exists(start_conf['scoreRootPath']))
         self.assertFalse(os.path.exists(start_conf['stateDbRootPath']))
+        self.assertFalse(os.path.exists(TBEARS_CLI_ENV))
         shutil.rmtree(f'./{self.project_name}')
 
     def test_keystore(self):
