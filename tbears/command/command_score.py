@@ -123,6 +123,9 @@ class CommandScore(object):
         """
         score_dir_info = CommandServer._get_server_conf()
 
+        if score_dir_info is None:
+            raise TBearsDeleteTreeException("Already clean.")
+
         if CommandServer.is_server_running():
             raise TBearsCommandException(f'You must stop tbears service to clear SCORE')
 
