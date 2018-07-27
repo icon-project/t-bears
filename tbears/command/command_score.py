@@ -178,8 +178,6 @@ class CommandScore(object):
     @staticmethod
     def get_score_conf(command: str, project: str = None, args: dict = None):
         conf = IconConfig(str(), tbears_cli_config)
-        if args:
-            conf.load(user_input=args)
 
         if project is not None:
             conf['project'] = project
@@ -187,5 +185,8 @@ class CommandScore(object):
         if command in conf:
             conf.update(conf[command])
             del conf[command]
+
+        if args:
+            conf.load(user_input=args)
 
         return conf

@@ -368,3 +368,68 @@ class ArgsParserTest(unittest.TestCase):
         cmd = f'txbyhash {invalid_hash}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandWallet._validate_tx_hash, vars(parsed))
+
+    def test_block_by_hash(self):
+        block_hash = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
+        node_uri = 'http://localhost:9000/api/v3'
+        config = FN_CLI_CONF
+        cmd = f'blockbyhash {block_hash} -u {node_uri} -c {config}'
+        invalid_hash = '0x1'
+        parsed = self.parser.parse_args(cmd.split())
+
+        self.assertEqual(parsed.command, 'blockbyhash')
+        self.assertEqual(parsed.hash, block_hash)
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'blockbyhash {block_hash} arg1'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # invalid argument
+        cmd = f'totalsupply -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid tx hash
+        cmd = f'blockbyhash {invalid_hash}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertRaises(TBearsCommandException, CommandWallet._validate_tx_hash, vars(parsed))
+
+    def test_block_by_height(self):
+        block_height = '0x12'
+        node_uri = 'http://localhost:9000/api/v3'
+        config = FN_CLI_CONF
+        cmd = f'blockbyheight {block_height} -u {node_uri} -c {config}'
+        parsed = self.parser.parse_args(cmd.split())
+
+        self.assertEqual(parsed.command, 'blockbyheight')
+        self.assertEqual(parsed.height, block_height)
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'blockbyheight {block_height} arg1'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # invalid argument
+        cmd = f'blockbyheight -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+    def test_last_block(self):
+        node_uri = 'http://localhost:9000/api/v3'
+        config = FN_CLI_CONF
+        cmd = f'lastblock -u {node_uri} -c {config}'
+        parsed = self.parser.parse_args(cmd.split())
+
+        self.assertEqual(parsed.command, 'lastblock')
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'lastblock arg1'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # invalid argument
+        cmd = f'lastblock -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
