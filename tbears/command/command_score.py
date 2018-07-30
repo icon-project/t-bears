@@ -181,10 +181,15 @@ class CommandScore(object):
         if project is not None:
             conf['project'] = project
 
+        # load -c config
+        if args and args.get('config', None):
+            conf.load(user_input=args)
+
         if command in conf:
             conf.update(conf[command])
             del conf[command]
 
+        # load user argument
         if args:
             conf.load(user_input=args)
 
