@@ -49,16 +49,16 @@ class TestKeyStoreManager(unittest.TestCase):
         os.remove(self.keystore_path)
 
     def test_validate_password(self):
-        keystore = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
+        no_keystore = './no_keystore'
 
         # Invalid password (password length is more than 8)
         invalid_password = 'qwe123!'
-        cmd = f'keystore {keystore}'
+        cmd = f'keystore {no_keystore}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandWallet._check_keystore, vars(parsed), invalid_password)
 
         # Invalid password (password has to be combined with special character and alphabet and number)
         invalid_password = 'qwer12345'
-        cmd = f'keystore {keystore}'
+        cmd = f'keystore {no_keystore}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandWallet._check_keystore, vars(parsed), invalid_password)

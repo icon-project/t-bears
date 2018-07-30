@@ -366,8 +366,8 @@ def is_lowercase_hex_string(value: str) -> bool:
     return False
 
 
-def is_valid_tx_hash(_hash: str) -> bool:
-    """Check transaction hash is valid.
+def is_valid_hash(_hash: str) -> bool:
+    """Check hash is valid.
 
     :param _hash:
     :return:
@@ -377,15 +377,6 @@ def is_valid_tx_hash(_hash: str) -> bool:
         return prefix == '0x' and is_lowercase_hex_string(body)
 
     return False
-
-
-def is_valid_block_hash(_hash: str) -> bool:
-    """Check if block hash is valid.
-
-    :param _hash:
-    :return:
-    """
-    return isinstance(_hash, str) and len(_hash) == 64 and is_lowercase_hex_string(_hash)
 
 
 def get_tbears_version() -> str:

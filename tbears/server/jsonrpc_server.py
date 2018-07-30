@@ -18,6 +18,7 @@ import hashlib
 from json import JSONDecodeError
 import argparse
 from ipaddress import ip_address
+from typing import Optional
 
 from iconservice.icon_constant import DATA_BYTE_ORDER, ConfigKey
 from jsonrpcserver import status
@@ -26,16 +27,13 @@ from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams
 from sanic import Sanic, response as sanic_response
 
 from iconservice.utils import check_error_response
-from iconservice.icon_config import default_icon_config
-from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
-
-from typing import Optional
-
+from iconservice.icon_inner_service import IconScoreInnerTask
+from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
 from tbears.server.tbears_db import TbearsDB
 from tbears.command.command_server import CommandServer
-from iconservice.icon_inner_service import IconScoreInnerTask
+from tbears.util.argparse_type import IconPath
 
 TBEARS_LOG_TAG = 'tbears'
 
@@ -389,7 +387,8 @@ def create_parser():
     parser = argparse.ArgumentParser(description='jsonrpc_server for tbears')
     parser.add_argument('-a', '--address', help='Address to host on (default: 0.0.0.0)', type=ip_address)
     parser.add_argument('-p', '--port', help='Listen port (default: 9000)', type=int)
-    parser.add_argument('-c', '--config', help=f'tbears configuration file path (default: {FN_SERVER_CONF})')
+    parser.add_argument('-c', '--config', type=IconPath(),
+                        help=f'tbears configuration file path (default: {FN_SERVER_CONF})')
 
     return parser
 

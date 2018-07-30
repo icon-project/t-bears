@@ -28,7 +28,7 @@ from tests.test_util import TEST_UTIL_DIRECTORY
 class TestIconClient(unittest.TestCase):
     def setUp(self):
         self.cmd = Command()
-        tbears_server_config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears.json')
+        tbears_server_config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_server_config.json')
         self.conf = IconConfig(tbears_server_config_path, tbears_server_config)
         self.conf.load()
         self.conf['config'] = tbears_server_config_path

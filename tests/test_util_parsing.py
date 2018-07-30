@@ -63,15 +63,15 @@ class TestCommandUtil(TestCommand):
 
         # Input existing SCORE path when initializing the SCORE
         cmd = f'init {self.project} {self.score_class}'
-        self.touch(self.project)
         parsed = self.parser.parse_args(cmd.split())
+        self.touch(self.project)
         self.assertRaises(TBearsCommandException, CommandUtil._check_init, vars(parsed))
         os.remove(self.project)
 
         # Input existing SCORE directory when initializing the SCORE.
         cmd = f'init {project_dir} {self.score_class}'
-        os.mkdir(project_dir)
         parsed = self.parser.parse_args(cmd.split())
+        os.mkdir(project_dir)
         self.assertRaises(TBearsCommandException, CommandUtil._check_init, vars(parsed))
         shutil.rmtree(project_dir)
 

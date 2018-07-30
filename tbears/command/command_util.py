@@ -21,6 +21,7 @@ from tbears.util import (
     get_package_json_dict, write_file, get_init_template
 )
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
+from tbears.util.argparse_type import IconPath
 
 
 class CommandUtil(object):
@@ -34,7 +35,7 @@ class CommandUtil(object):
                                        description='Initialize SCORE development environment.\n'
                                                    'Generate <project>.py and package.json in <project> directory. '
                                                    'The name of the score class is <score_class>.')
-        parser.add_argument('project', help='Project name')
+        parser.add_argument('project', type=IconPath('w'), help='Project name')
         parser.add_argument('score_class', help='SCORE class name')
 
     @staticmethod

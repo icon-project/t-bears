@@ -61,23 +61,7 @@ class TestTBearsCommands(unittest.TestCase):
         sock.close()
         return result == 0
 
-    def test_init_1(self):
-        # Case when entering the existing SCORE directory for initializing the SCORE.
-        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
-
-        os.mkdir(self.project_name)
-        self.assertRaises(TBearsCommandException, self.cmd.cmdUtil.init, conf)
-        os.rmdir(self.project_name)
-
-    def test_init_2(self):
-        # Case when entering the existing SCORE path for initializing the SCORE.
-        conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
-
-        self.touch(self.project_name)
-        self.assertRaises(TBearsCommandException, self.cmd.cmdUtil.init, conf)
-        os.remove(self.project_name)
-
-    def test_init_3(self):
+    def test_init(self):
         # Case when entering the right path for initializing the SCORE.
         conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
         self.cmd.cmdUtil.init(conf)
