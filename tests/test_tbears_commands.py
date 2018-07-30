@@ -50,7 +50,6 @@ class TestTBearsCommands(unittest.TestCase):
 
     @staticmethod
     def touch(path):
-        # sb. make dummy(?) file so that check the file overlapping
         with open(path, 'a'):
             os.utime(path, None)
 
