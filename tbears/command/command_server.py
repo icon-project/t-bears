@@ -77,7 +77,7 @@ class CommandServer(object):
         # wait 2 sec
         time.sleep(2)
 
-        print(f'Started tbear service successfully')
+        print(f'Started tbears service successfully')
 
     @staticmethod
     def stop(_conf: dict):

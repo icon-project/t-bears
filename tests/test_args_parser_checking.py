@@ -36,12 +36,14 @@ class ArgsParserTest(unittest.TestCase):
             os.utime(path, None)
 
     def test_init(self):
+        # set parcing data
         project = 'proj_unittest'
         score_class = 'TestClass'
 
-        # working good
+        # parcing data check
         cmd = f'init {project} {score_class}'
         parsed = self.parser.parse_args(cmd.split())
+        # check each parced data is equal to project, score_class
         self.assertEqual(parsed.command, 'init')
         self.assertEqual(parsed.project, project)
         self.assertEqual(parsed.score_class, score_class)
