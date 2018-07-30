@@ -202,9 +202,15 @@ class MockDispatcher:
         """
         Logger.debug(f'json_rpc_server icx_sendTransaction!', TBEARS_LOG_TAG)
 
-        method = 'icx_sendTransaction'
-        # Insert txHash into request params
+        # check duplication
         tx_hash = create_hash(json.dumps(request_params).encode())
+        result = TBEARS_DB.get(b'result|' + bytes.fromhex(tx_hash))
+        if result:
+            result = {"error": {"code": 32000, "message": "Duplicated transaction"}}
+            return response_to_json_invoke(result)
+
+        # Insert txHash into request params
+        method = 'icx_sendTransaction'
         request_params['txHash'] = tx_hash
         tx = {
             'method': method,
