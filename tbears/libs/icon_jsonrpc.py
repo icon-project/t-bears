@@ -252,7 +252,7 @@ class IconJsonrpc:
                         step_limit: str = '0x2000',
                         nid: str = '0x3',
                         nonce: str= '0x1',
-                        timestamp: str = hex(int(time.time() * 10 ** 6)),
+                        timestamp: str = None,
                         data_type: str = None,
                         data: Union[dict, str, None] = None) -> dict:
         """Make JSON-RPC request of icx_sendTransaction
@@ -269,6 +269,8 @@ class IconJsonrpc:
         :return: icx_sendTransaction JSON-RPC request dictionary
         """
         # make params
+        if timestamp is None:
+            timestamp = hex(int(time.time() * 10 ** 6))
         params = {
             "version": version,
             "from": from_ or self.__address,
@@ -299,7 +301,7 @@ class IconJsonrpc:
         }
 
     def sendTransaction_v2(self, from_: str = None, to: str = None, value: str = '0x0', fee: str = hex(int(1e16)),
-                           timestamp: str=hex(int(time.time() * 10 ** 6)), nonce: str='0x1'):
+                           timestamp: str=None, nonce: str='0x1'):
         """Make JSON-RPC request of icx_sendTransaction
         :param from_: From address. If not set, use __address member of object
         :param to: To address
@@ -309,6 +311,8 @@ class IconJsonrpc:
         :param nonce: nonce
         :return: icx_sendTransaction JSON-RPC request dictionary
         """
+        if timestamp is None:
+            timestamp = str(int(time.time() * 10 ** 6))
         params = {
             "from": from_ or self.__address,
             "value": value,
@@ -322,8 +326,8 @@ class IconJsonrpc:
         msg_phrase = generate_origin_for_icx_send_tx_hash(params)
         msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest().hex()
 
-        params["tx_hash"] = msg_hash
         self.put_signature(params)
+        params["tx_hash"] = msg_hash
 
         return {
             "jsonrpc": "2.0",
