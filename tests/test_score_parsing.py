@@ -33,12 +33,14 @@ class TestCommandScore(TestCommand):
         self.arg_from = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         self.to = "cx0000000000000000000000000000000000000000"
         self.keystore = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        self.config_path = os.path.join(TEST_DIRECTORY, 'deploy')
+        self.config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config.json')
 
     # Test if cli arguments are parsed correctly.
     def test_deploy_args_parsing(self):
         # Parsing test
-        cmd = f'deploy {self.project} -u {self.uri} -t {self.arg_type} -m {self.mode} -f {self.arg_from} -o {self.to} -k {self.keystore} -c {self.config_path}'
+        os.mkdir(self.project)
+        cmd = f"deploy {self.project} -u {self.uri} -t {self.arg_type} -m {self.mode} -f {self.arg_from} " \
+              f"-o {self.to} -k {self.keystore} -c {self.config_path} "
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(parsed.command, 'deploy')
         self.assertEqual(parsed.project, self.project)
@@ -48,6 +50,7 @@ class TestCommandScore(TestCommand):
         self.assertEqual(parsed.to, self.to)
         self.assertEqual(parsed.keyStore, self.keystore)
         self.assertEqual(parsed.config, self.config_path)
+        shutil.rmtree(self.project)
 
         # Too much argument
         cmd = f'deploy arg1 arg2'
@@ -73,14 +76,42 @@ class TestCommandScore(TestCommand):
         cmd = f'deploy {self.project} -m not_supported_mode'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
+        # No project directory
+        cmd = f'deploy {self.project}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        os.mkdir(self.project)
+
+        # Invalid from address
+        invalid_addr = 'hx1'
+        cmd = f'deploy {self.project} -f {invalid_addr}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # Invalid to address
+        invalid_addr = 'hx1'
+        cmd = f'deploy {self.project} -o {invalid_addr}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # Keystore file does not exist
+        cmd = f'deploy {self.project} -t zip -k ./keystore_not_exist'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # config file does not exist
+        cmd = f'deploy {self.project} -c ./config_not_exist'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        shutil.rmtree(self.project)
+
     # Deploy method(deploy, _check_deploy) test. before deploy score,
     # Check if arguments satisfy requirements.
     # bug: when test this method in terminal, no error found, but in pycharm Run Test, it raise error
     def test_check_deploy_necessary_args(self):
         # # Deploy essential check
         # No project directory
+        os.mkdir(self.project)
         cmd = f'deploy {self.project}'
         parsed = self.parser.parse_args(cmd.split())
+        shutil.rmtree(self.project)
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         os.mkdir(self.project)
@@ -93,8 +124,11 @@ class TestCommandScore(TestCommand):
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         # Keystore file does not exist
-        cmd = f'deploy {self.project} -t zip -k ./keystore_not_exist'
+        no_keystore = './keystore_not_exist'
+        cmd = f'deploy {self.project} -t zip -k {no_keystore}'
+        self.touch(no_keystore)
         parsed = self.parser.parse_args(cmd.split())
+        os.remove(no_keystore)
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         # Invaild password value

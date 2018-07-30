@@ -80,7 +80,7 @@ class TestTbearsCommands(unittest.TestCase):
         # totalsup
         total_sup = get_total_supply(tbears_config_path)
         conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
-        total_supply_response = self.cmd.cmdWallet.totalsup(conf)
+        total_supply_response = self.cmd.cmdWallet.totalsupply(conf)
         self.assertEqual(total_sup, total_supply_response['result'])
 
         # get balance - get balance of genesis address
@@ -160,24 +160,7 @@ class TestTbearsCommands(unittest.TestCase):
         self.assertFalse(transaction_result_response.get('error', False))
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
 
-        # deploy - f"-t zip -m update -k test_keystore --to scoreAddres_from_transactionResult
-        scoreAddress = transaction_result_response['result']['scoreAddress']
-        conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
-        conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        conf['contentType'] = 'zip'
-        conf['mode'] = 'update'
-        conf['to'] = scoreAddress
-        deploy_response = self.cmd.cmdScore.deploy(conf=conf, password='qwer1234%')
-        self.assertEqual(deploy_response.get('error', False), False)
-
-        # result (query transaction result)
-        tx_hash = deploy_response['result']
-        conf = self.cmd.cmdWallet.get_result_config(tx_hash)
-        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
-        self.assertFalse(transaction_result_response.get('error', False))
-        self.assertEqual(transaction_result_response['result']['status'], "0x1")
-
-        # deploy - f"-t zip -m update -k test_keystore --to scoreAddres_from_transactionResult
+        # deploy - f"-t zip -m update -k test_keystore --to scoreAddress_from_transactionResult
         scoreAddress = transaction_result_response['result']['scoreAddress']
         conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
@@ -195,15 +178,15 @@ class TestTbearsCommands(unittest.TestCase):
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
-        # gettx (query transaction)
-        gettx_response = self.cmd.cmdWallet.gettx(conf)
-        gettx_response_result = gettx_response['result']
-        gettx_params = gettx_response_result['params']
-        self.assertIn('method', gettx_response_result)
-        self.assertIn('params', gettx_response_result)
-        self.assertIn('from', gettx_params)
-        self.assertIn('to', gettx_params)
-        self.assertIn('value', gettx_params)
+        # txbyhash (query transaction)
+        txbyhash_response = self.cmd.cmdWallet.txbyhash(conf)
+        txbyhash_response_result = txbyhash_response['result']
+        txbyhash_params = txbyhash_response_result['params']
+        self.assertIn('method', txbyhash_response_result)
+        self.assertIn('params', txbyhash_response_result)
+        self.assertIn('from', txbyhash_params)
+        self.assertIn('to', txbyhash_params)
+        self.assertIn('value', txbyhash_params)
 
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
