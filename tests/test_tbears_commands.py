@@ -106,7 +106,7 @@ class TestTBearsCommands(unittest.TestCase):
         # totalsup
         total_sup = get_total_supply(tbears_config_path)
         conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
-        total_supply_response = self.cmd.cmdWallet.totalsup(conf)
+        total_supply_response = self.cmd.cmdWallet.totalsupply(conf)
         self.assertEqual(total_sup, total_supply_response['result'])
 
         # get balance - get balance of genesis address
@@ -190,7 +190,7 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
         # gettx (query transaction)
-        gettx_response = self.cmd.cmdWallet.gettx(conf)
+        gettx_response = self.cmd.cmdWallet.txbyhash(conf)
         gettx_response_result = gettx_response['result']
         gettx_params = gettx_response_result['params']
         self.assertIn('method', gettx_response_result)

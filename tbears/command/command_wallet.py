@@ -22,7 +22,7 @@ from iconservice.base.address import is_icon_address_valid
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
 from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
 from tbears.tbears_exception import TBearsCommandException
-from tbears.util import is_tx_hash
+from tbears.util import is_valid_tx_hash, is_valid_block_hash
 from tbears.util.keystore_manager import validate_password, make_key_store_content
 
 
@@ -32,10 +32,38 @@ class CommandWallet:
         self._add_transfer_parser(subparsers)
         self._add_keystore_parser(subparsers)
         self._add_balance_parser(subparsers)
-        self._add_totalsup_parser(subparsers)
+        self._add_totalsupply_parser(subparsers)
         self._add_scoreapi_parser(subparsers)
-        self._add_gettx_parser(subparsers)
+        self._add_txbyhash_parser(subparsers)
+        self._add_lastblock_parser(subparsers)
+        self._add_blockbyhash_parser(subparsers)
+        self._add_blockbyheight_parser(subparsers)
 
+    @staticmethod
+    def _add_lastblock_parser(subparsers):
+        parser = subparsers.add_parser('lastblock', help='Get last block\'s info')
+        parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
+                            dest='uri')
+        parser.add_argument('-c', '--config', help=f'Configuration file path. This file defines the default value for '
+                                                   f'the "uri"(default: {FN_CLI_CONF})')
+
+    @staticmethod
+    def _add_blockbyhash_parser(subparsers):
+        parser = subparsers.add_parser('blockbyhash', help='Get last block\'s info')
+        parser.add_argument('hash', help='Hash of the block to be queried.')
+        parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
+                            dest='uri')
+        parser.add_argument('-c', '--config', help=f'Configuration file path. This file defines the default value for '
+                                                   f'the "uri"(default: {FN_CLI_CONF})')
+
+    @staticmethod
+    def _add_blockbyheight_parser(subparsers):
+        parser = subparsers.add_parser('blockbyheight', help='Get block\'s info using given block height')
+        parser.add_argument('height', help='height of the block to be queried.')
+        parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
+                            dest='uri')
+        parser.add_argument('-c', '--config', help=f'Configuration file path. This file defines the default value for '
+                                                   f'the "uri"(default: {FN_CLI_CONF})')
     @staticmethod
     def _add_txresult_parser(subparsers):
         parser = subparsers.add_parser('txresult', help='Get transaction result by transaction hash',
@@ -65,8 +93,8 @@ class CommandWallet:
     def _add_keystore_parser(subparsers):
         parser = subparsers.add_parser('keystore',
                                        help='Create keystore file',
-                                       description='Create keystore file in passed path.')
-        parser.add_argument('path', help='path of keystore file.')
+                                       description='Create keystore file in passed path')
+        parser.add_argument('path', help='path of keystore file')
 
     @staticmethod
     def _add_balance_parser(subparsers):
@@ -75,23 +103,29 @@ class CommandWallet:
                                        description='Get balance of given address')
         parser.add_argument('address', help='Address to query the icx balance')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3', dest='uri')
+        parser.add_argument('-c', '--config', help=f'Configuration file path. This file defines the default value for '
+                                                   f'the "uri"(default: {FN_CLI_CONF})')
 
     @staticmethod
-    def _add_totalsup_parser(subparsers):
-        parser = subparsers.add_parser('totalsup', help='Query total supply of icx')
+    def _add_totalsupply_parser(subparsers):
+        parser = subparsers.add_parser('totalsupply', help='Query total supply of icx')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3', dest='uri')
+        parser.add_argument('-c', '--config', help=f'Configuration file path. This file defines the default value for '
+                                                   f'the "uri"(default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_scoreapi_parser(subparsers):
         parser = subparsers.add_parser('scoreapi', help='Get score\'s api using given score address')
         parser.add_argument('address', help='Score address to query score api')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3', dest='uri')
+        parser.add_argument('-c', '--config', help=f'Configuration file path. This file defines the default value for '
+                                                   f'the "uri"(default: {FN_CLI_CONF})')
 
     @staticmethod
-    def _add_gettx_parser(subparsers):
-        parser = subparsers.add_parser('gettx', help='Get transaction by transaction hash',
+    def _add_txbyhash_parser(subparsers):
+        parser = subparsers.add_parser('txbyhash', help='Get transaction by transaction hash',
                                        description='Get transaction by transaction hash')
-        parser.add_argument('hash', help='Hash of the transaction to be queried.')
+        parser.add_argument('hash', help='Hash of the transaction to be queried')
         parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
                             dest='uri')
         parser.add_argument('-c', '--config', help=f'Configuration file path. This file defines the default value for '
@@ -99,8 +133,13 @@ class CommandWallet:
 
     @staticmethod
     def _validate_tx_hash(tx_hash):
-        if not is_tx_hash(tx_hash):
-            raise TBearsCommandException(f'invalid transaction hash')
+        if not is_valid_tx_hash(tx_hash):
+            raise TBearsCommandException('invalid transaction hash')
+
+    @staticmethod
+    def _validate_block_hash(block_hash):
+        if not is_valid_block_hash(block_hash):
+            raise TBearsCommandException('invalid block hash')
 
     @staticmethod
     def _check_transfer(conf: dict, password: str = None):
@@ -144,17 +183,85 @@ class CommandWallet:
         if not (is_icon_address_valid(conf['address']) and conf['address'].startswith('cx')):
             raise TBearsCommandException(f'You entered invalid score address')
 
-    def gettx(self, conf):
+    def lastblock(self, conf):
+        """Query last block
+
+        :param conf: lastblock command configuration
+        :return: result of query
+        """
+        icon_client = IconClient(conf['uri'])
+        last_block_payload = IconJsonrpc.getLastBlock()
+
+        response = icon_client.send(last_block_payload)
+
+        if "error" in response:
+            if response['error']['code'] == -32601:
+                print(f"tbears does not support block information.")
+            else:
+                print(json.dumps(response, indent=4))
+        else:
+            print(f'block info : {json.dumps(response, indent=4)}')
+
+        return response
+
+    def blockbyheight(self, conf):
+        """Query block with given height
+
+        :param conf: blockbyheight command configuration
+        :return: result of query
+        """
+        icon_client = IconClient(conf['uri'])
+        block_by_height_payload = IconJsonrpc.getBlockByHeight(conf['height'])
+
+        response = icon_client.send(block_by_height_payload)
+
+        if "error" in response:
+            if response['error']['code'] == -32601:
+                print(f"tbears does not support block information.")
+            else:
+                print(json.dumps(response, indent=4))
+        else:
+            print(f"block info : {json.dumps(response, indent=4)}")
+
+        return response
+
+    def blockbyhash(self, conf):
+        """Query block with given hash
+
+        :param conf: blockbyhash command configuration
+        :return: result of query
+        """
+        self._validate_block_hash(conf['hash'])
+        icon_client = IconClient(conf['uri'])
+        block_by_hash_payload = IconJsonrpc.getBlockByHash(conf['hash'])
+
+        response = icon_client.send(block_by_hash_payload)
+
+        if "error" in response:
+            if response['error']['code'] == -32601:
+                print(f"tbears does not support block information.")
+            else:
+                print(json.dumps(response, indent=4))
+        else:
+            print(f"block info : {json.dumps(response, indent=4)}")
+
+        return response
+
+    def txbyhash(self, conf):
         """Query transaction using given transaction hash.
 
-        :param conf: txresult command configuration.
+        :param conf: txbyhash command configuration.
         :return: result of query.
         """
         self._validate_tx_hash(conf['hash'])
         icon_client = IconClient(conf['uri'])
 
         response = icon_client.send(IconJsonrpc.getTransactionByHash(conf['hash']))
-        print(f"Transaction: {json.dumps(response, indent=4)}")
+
+        if "error" in response:
+            print(f"Can not get transaction \n{json.dumps(response, indent=4)}")
+        else:
+            print(f"Transaction: {json.dumps(response, indent=4)}")
 
         return response
 
@@ -168,7 +275,11 @@ class CommandWallet:
         icon_client = IconClient(conf['uri'])
 
         response = icon_client.send(IconJsonrpc.getTransactionResult(conf['hash']))
-        print(f"Transaction result: {json.dumps(response, indent=4)}")
+
+        if "error" in response:
+            print(f"Can not get transaction result \n{json.dumps(response, indent=4)}")
+        else:
+            print(f"Transaction result: {json.dumps(response, indent=4)}")
 
         return response
 
@@ -228,19 +339,25 @@ class CommandWallet:
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(IconJsonrpc.getBalance(conf['address']))
 
-        print(f'balance : {response["result"]}')
+        if "error" in response:
+            print(json.dumps(response, indent=4))
+        else:
+            print(f"balance : {response['result']}")
         return response
 
     @staticmethod
-    def totalsup(conf: dict):
+    def totalsupply(conf: dict):
         """Query total supply of icx
 
-        :param conf: totalsup command configuration
+        :param conf: totalsupply command configuration
         """
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(IconJsonrpc.getTotalSupply())
 
-        print(f'Total supply  of Icx: {response["result"]}')
+        if "error" in response:
+            print(json.dumps(response, indent=4))
+        else:
+            print(f'Total supply of Icx: {response["result"]}')
 
         return response
 
@@ -254,7 +371,10 @@ class CommandWallet:
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(IconJsonrpc.getScoreApi(conf['address']))
 
-        print(f'scoreAPI: {response["result"]}')
+        if "error" in response:
+            print(f"Can not get {conf['address']}'s API\n{json.dumps(response, indent=4)}")
+        else:
+            print(f"SCORE API: {json.dumps(response['result'], indent=4)}")
 
         return response
 
