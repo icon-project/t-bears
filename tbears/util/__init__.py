@@ -372,7 +372,7 @@ def is_valid_tx_hash(_hash: str) -> bool:
     :param _hash:
     :return:
     """
-    if isinstance(_hash, str) and len(_hash) is 66:
+    if isinstance(_hash, str) and len(_hash) == 66:
         prefix, body = _hash[:2], _hash[2:]
         return prefix == '0x' and is_lowercase_hex_string(body)
 
@@ -385,7 +385,7 @@ def is_valid_block_hash(_hash: str) -> bool:
     :param _hash:
     :return:
     """
-    return isinstance(_hash, str) and len(_hash) is 64 and is_lowercase_hex_string(_hash)
+    return isinstance(_hash, str) and len(_hash) == 64 and is_lowercase_hex_string(_hash)
 
 
 def get_tbears_version() -> str:

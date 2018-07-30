@@ -195,7 +195,10 @@ class CommandWallet:
         response = icon_client.send(last_block_payload)
 
         if "error" in response:
-            print('Can not get block information.')
+            if response['error']['code'] == -32601:
+                print(f"tbears does not support block information.")
+            else:
+                print(json.dumps(response, indent=4))
         else:
             print(f'block info : {json.dumps(response, indent=4)}')
 
@@ -213,7 +216,10 @@ class CommandWallet:
         response = icon_client.send(block_by_height_payload)
 
         if "error" in response:
-            print("Can not get block information.")
+            if response['error']['code'] == -32601:
+                print(f"tbears does not support block information.")
+            else:
+                print(json.dumps(response, indent=4))
         else:
             print(f"block info : {json.dumps(response, indent=4)}")
 
@@ -232,7 +238,10 @@ class CommandWallet:
         response = icon_client.send(block_by_hash_payload)
 
         if "error" in response:
-            print("Can not get block information.")
+            if response['error']['code'] == -32601:
+                print(f"tbears does not support block information.")
+            else:
+                print(json.dumps(response, indent=4))
         else:
             print(f"block info : {json.dumps(response, indent=4)}")
 
@@ -248,7 +257,11 @@ class CommandWallet:
         icon_client = IconClient(conf['uri'])
 
         response = icon_client.send(IconJsonrpc.getTransactionByHash(conf['hash']))
-        print(f"Transaction: {json.dumps(response, indent=4)}")
+
+        if "error" in response:
+            print(f"Can not get transaction \n{json.dumps(response, indent=4)}")
+        else:
+            print(f"Transaction: {json.dumps(response, indent=4)}")
 
         return response
 
@@ -262,7 +275,11 @@ class CommandWallet:
         icon_client = IconClient(conf['uri'])
 
         response = icon_client.send(IconJsonrpc.getTransactionResult(conf['hash']))
-        print(f"Transaction result: {json.dumps(response, indent=4)}")
+
+        if "error" in response:
+            print(f"Can not get transaction result \n{json.dumps(response, indent=4)}")
+        else:
+            print(f"Transaction result: {json.dumps(response, indent=4)}")
 
         return response
 
@@ -322,7 +339,10 @@ class CommandWallet:
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(IconJsonrpc.getBalance(conf['address']))
 
-        print(f'balance : {response["result"]}')
+        if "error" in response:
+            print(json.dumps(response, indent=4))
+        else:
+            print(f"balance : {response['result']}")
         return response
 
     @staticmethod
@@ -334,7 +354,10 @@ class CommandWallet:
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(IconJsonrpc.getTotalSupply())
 
-        print(f'Total supply  of Icx: {response["result"]}')
+        if "error" in response:
+            print(json.dumps(response, indent=4))
+        else:
+            print(f'Total supply of Icx: {response["result"]}')
 
         return response
 
@@ -348,7 +371,10 @@ class CommandWallet:
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(IconJsonrpc.getScoreApi(conf['address']))
 
-        print(f'scoreAPI: {json.dumps(response["result"], indent=4)}')
+        if "error" in response:
+            print(f"Can not get {conf['address']}'s API\n{json.dumps(response, indent=4)}")
+        else:
+            print(f"SCORE API: {json.dumps(response['result'], indent=4)}")
 
         return response
 

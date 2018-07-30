@@ -115,7 +115,7 @@ Available commands:
     transfer        transfer ICX coin
     balance         Get balance of given address
     totalsupply     Get total supply of ICX
-    scoreapi        Get score's api using given score address
+    scoreapi        Get SCORE's api using given SCORE address
     txresult        Get transaction result by transaction hash
     txbyhash        Get transaction by transaction hash
     lastblock       Get last block's info
@@ -135,14 +135,14 @@ Available commands:
 
 **Description**
 
-Initialize SCORE development environment. Generate <project\>.py and package.json in <project\> directory. The name of the score class is \<score_class\>.  Configuration files, "tbears_server_config.json" used when starting tbears and "tbears_cli_config.json" used when deploying SCORE, are also generated.
+Initialize SCORE development environment. Generate <project\>.py and package.json in <project\> directory. The name of the SCORE class is \<score_class\>.  Configuration files, "tbears_server_config.json" used when starting tbears and "tbears_cli_config.json" used when deploying SCORE, are also generated.
 
 **Usage**
 
 ```bash
 usage: tbears init [-h] project score_class
 Initialize SCORE development environment. Generate <project>.py and
-package.json in <project> directory. The name of the score class is
+package.json in <project> directory. The name of the SCORE class is
 <score_class>.
 
 positional arguments:
@@ -277,7 +277,7 @@ optional arguments:
 | -t {tbears,icon},<br> --type {tbears,icon}      | tbears                       | Deploy SCORE type ("tbears" or "icon" ).                     |
 | -m {install,update},<br>--mode {install,update} | install                      | Deploy mode ("install" or "update").                         |
 | -f, --from                                      |                              | From address. i.e. SCORE owner address. It is ignored if '-k' option is set |
-| -o, --to                                        |                              | To address. i.e. SCORE address <br>**(needed only when updating score)** |
+| -o, --to                                        |                              | To address. i.e. SCORE address <br>**(needed only when updating SCORE)** |
 | -k, --key-store                                 |                              | Key store file for SCORE owner                               |
 | -n, --nid                                       |                              | Network ID of node                                           |
 | -c, --config                                    | ./tbears_cli_config.json                | deploy config path                                           |
@@ -297,7 +297,7 @@ Send deploy request successfully.
 transaction hash: 0x9c294b9608d9575f735ec2e2bf52dc891d7cca6a2fa7e97aee4818325c8a9d41
 
 #update abc SCORE
-#append prefix 'cx' in front of score address
+#append prefix 'cx' in front of SCORE address
 (Work)$ tbears deploy abc -m update -o cx6bd390bd855f086e3e9d525b46bfe24511431532
 Send deploy request successfully.
 transaction hash: 0xad292b9608d9575f735ec2ebbf52dc891d7cca6a2fa7e97aee4818325c80934d
@@ -501,9 +501,10 @@ optional arguments:
 ```
 
 **Options**
+
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
-| address  |         | Address to query the icx balance |
+| address  |    | Address to query the icx balance |
 | -h, --help      |         | show this help message and exit |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node   |
 | -c, --config    | ./tbears_cli_config.json | Configuration file path. This file defines the default value for the "uri". |
@@ -538,6 +539,7 @@ optional arguments:
 ```
 
 **Options**
+
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | -h, --help      |         | show this help message and exit |
@@ -556,17 +558,17 @@ Total supply  of Icx: 0x2961fff8ca4a62327800000
 
 **Description**
 
-Get score's api using given score address
+Get SCORE's api using given SCORE address
 
 **Usage**
 
 ```bash
-usage: tbears scoreapi [-h] [-u URI] [-c CONFIG] score address
+usage: tbears scoreapi [-h] [-u URI] [-c CONFIG] SCORE address
 
-Get score\'s api using given score address
+Get SCORE's api using given SCOREaddress
 
 positional arguments:
-  address                  Score address to query score api
+  address                  SCORE address to query SCORE api
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -577,9 +579,10 @@ optional arguments:
 ```
 
 **Options**
+
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
-| address  |         | Score address to query score api |
+| address  |         | SCORE address to query SCORE api |
 | -h, --help      |         | show this help message and exit |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node   |
 | -c, --config    | ./tbears_cli_config.json | Configuration file path. This file defines the default value for the "uri". |
@@ -635,6 +638,7 @@ optional arguments:
 ```
 
 **Options**
+
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | hash  |         | Hash of the transaction to be queried |
@@ -697,6 +701,7 @@ optional arguments:
 ```
 
 **Options**
+
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | -h, --help      |         | show this help message and exit |
@@ -770,6 +775,7 @@ optional arguments:
 ```
 
 **Options**
+
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | height          |         | height of the block to be queried |
@@ -847,6 +853,7 @@ optional arguments:
 ```
 
 **Options**
+
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | hash |         | hash of the block to be queried |
@@ -917,9 +924,10 @@ positional arguments:
 ```
 
 **Options**
+
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
-| path |         | Create keystore file in passed path |
+| path | | Create keystore file in passed path |
 
 **Examples**
 
@@ -930,7 +938,7 @@ input your key store password: (You have to initialize your keystore password)
 
 Made keystore file successfully
 
-``
+```
 
 ### Configuration Files
 
