@@ -1,5 +1,17 @@
 # ChangeLog - tbears
 
+## 0.9.6.1 - 2018-07-31
+
+* Fix configuration file loading bug
+* Add commands (lastblock, blockbyhash, blockbyheight)
+    * update tbears_tutorial.md
+   
+## 0.9.6 - 2018-07-27
+
+* Support log rotation with ICON Commons
+* Add commands (balance, totalsupply, scoreapi)
+    * tbears_tutorial.md is out of date. It will be updated later
+
 ## 0.9.5.1 - 2018-07-24
 
 * Improve configuration files
