@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+S3_HOST="http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com"
+
 function clear_build () {
   rm -rf build dist *.egg-info
 }
@@ -19,21 +21,15 @@ fi
 if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = "deploy") ]]; then
   pip3 install -r requirements.txt
 
-  VER=$(cat VERSION)
-  rm -rf ${VER}
-  mkdir -p ${VER}
+  MOD_VER=$(curl "${S3_HOST}/earlgrey/VERSION")
+  pip install --force-reinstall "${S3_HOST}/earlgrey/earlgrey-${MOD_VER}-py3-none-any.whl"
 
-  MOD_VER=$(curl http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/VERSION)
-  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/earlgrey/earlgrey-${MOD_VER}-py3-none-any.whl" -P ${VER}
-  pip install --force-reinstall "${VER}/earlgrey-${MOD_VER}-py3-none-any.whl"
-
-  MOD_VER=$(curl http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconcommons/VERSION)
-  wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/iconcommons/iconcommons-${MOD_VER}-py3-none-any.whl" -P ${VER}
-  pip install --force-reinstall "${VER}/iconcommons-${MOD_VER}-py3-none-any.whl"
+  MOD_VER=$(curl "${S3_HOST}/iconcommons/VERSION")
+  pip install --force-reinstall "${S3_HOST}/iconcommons/iconcommons-${MOD_VER}-py3-none-any.whl"
 
   if [[ -z "${ICONSERVICEPATH}" || ("$1" = "deploy") ]]; then
-    wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/${VER}/iconservice-${VER}-py3-none-any.whl" -P ${VER}
-    pip install --force-reinstall "${VER}/iconservice-${VER}-py3-none-any.whl"
+    MOD_VER=$(curl "${S3_HOST}/iconservice/VERSION")
+    pip install --force-reinstall "${S3_HOST}/iconservice/iconservice-${MOD_VER}-py3-none-any.whl"
   else
     if [ "$(pip3 list | grep iconservice)" ]; then
         pip uninstall iconservice -y
@@ -52,12 +48,7 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
     python setup.py bdist_wheel
 
     if [ "$1" = "deploy" ]; then
-      cp dist/*${VER}*.whl ${VER}
-      cp docs/tbears_jsonrpc_api_v3.md docs/tbears_tutorial.md ${VER}
-      wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/${VER}/CHANGELOG.md" -P ${VER}
-      wget "http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com/${VER}/dapp_guide.md" -P ${VER}
-      tar -cvzf tbears-${VER}.tar.gz ${VER}/*.whl ${VER}/*.md
-      mv tbears-${VER}.tar.gz ${VER}
+      VER=$(cat VERSION)
 
       if [[ -z "${AWS_ACCESS_KEY_ID}" || -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
         echo "Error: AWS keys should be in your environment"
@@ -66,8 +57,11 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
       fi
 
       pip install awscli
-      aws s3 cp ${VER}/tbears-${VER}.tar.gz s3://tbears.icon.foundation --acl public-read
-      aws s3 cp ${VER}/CHANGELOG.md s3://tbears.icon.foundation --acl public-read
+      aws s3 cp VERSION s3://tbears.icon.foundation/tbears/ --acl public-read
+      aws s3 cp dist/*$VER*.whl s3://tbears.icon.foundation/tbears/ --acl public-read
+      aws s3 cp docs/tbears_jsonrpc_api_v3.md s3://tbears.icon.foundation/docs/ --acl public-read
+      aws s3 cp docs/tbears_tutorial.md s3://tbears.icon.foundation/docs/ --acl public-read
+
     fi
   fi
 
