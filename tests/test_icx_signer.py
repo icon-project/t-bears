@@ -12,13 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import unittest
 import base64
 import hashlib
 
 from tbears.libs.icx_signer import IcxSigner, key_from_key_store
 from secp256k1 import PrivateKey
-
 from tbears.tbears_exception import KeyStoreException
 
 

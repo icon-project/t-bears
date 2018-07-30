@@ -12,19 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
 import time
 import unittest
 import json
 import shutil
 import socket
+
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
 from tbears.tbears_exception import TBearsCommandException
 from tbears.libs.icx_signer import key_from_key_store
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 from iconcommons.icon_config import IconConfig
-
 from tests.test_util import TEST_UTIL_DIRECTORY, get_total_supply
 
 

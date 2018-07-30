@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import unittest
 import os
 import shutil
@@ -47,9 +48,7 @@ class ArgsParserTest(unittest.TestCase):
         self.assertEqual(parsed.project, project)
         self.assertEqual(parsed.score_class, score_class)
 
-        # sb. _check_init function check, but there is no test when wrong params put in to func, exception raised
         try:
-            # sb. check_init check 1) project name is equal to score_class   2) if there is same project_name folder
             CommandUtil._check_init(vars(parsed))
         except:
             exception_raised = True
@@ -57,7 +56,6 @@ class ArgsParserTest(unittest.TestCase):
             exception_raised = False
         self.assertFalse(exception_raised)
 
-        # sb. didn't understand
         # not enough argument
         cmd = f'init {project}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
@@ -77,7 +75,6 @@ class ArgsParserTest(unittest.TestCase):
         os.remove(project)
 
     def test_samples(self):
-        # sb. main parcing,
         # parsing
         cmd = f'samples'
         parsed = self.parser.parse_args(cmd.split())
@@ -149,7 +146,6 @@ class ArgsParserTest(unittest.TestCase):
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
     def test_deploy(self):
-        # sb. right pram
         project = 'proj_unittest'
         uri = 'http://127.0.0.1:9000/api/v3'
         arg_type = 'tbears'

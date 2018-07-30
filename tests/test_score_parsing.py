@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
 import shutil
 
 from tbears.command.command_score import CommandScore
 from tbears.tbears_exception import TBearsCommandException
-
 from tests.test_command_parsing import TestCommand
 from tests.test_util import TEST_UTIL_DIRECTORY, TEST_DIRECTORY
 

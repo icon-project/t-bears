@@ -19,15 +19,14 @@ import json
 import shutil
 import socket
 from copy import deepcopy
+
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
 from tbears.tbears_exception import TBearsCommandException
 from tbears.libs.icx_signer import key_from_key_store
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 from iconcommons.icon_config import IconConfig
-
 from tests.test_util import TEST_UTIL_DIRECTORY, get_total_supply
-
 
 
 class TestTbearsCommands(unittest.TestCase):

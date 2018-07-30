@@ -152,7 +152,6 @@ class CommandScore(object):
                     raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
                 if not password:
                     password = getpass.getpass("input your key store password: ")
-
         else:
             uri: str = conf.get('uri', "")
             if uri and uri.find('127.0.0.1') == -1:
@@ -172,7 +171,6 @@ class CommandScore(object):
 
     def check_command(self, command):
         return hasattr(self, command)
-
 
     @staticmethod
     def get_score_conf(command: str, project: str = None, args: dict = None):

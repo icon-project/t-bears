@@ -12,12 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
 
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsCommandException
-
 from tests.test_command_parsing import TestCommand
+
 
 class TestWalletParsing(TestCommand):
     def setUp(self):
