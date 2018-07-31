@@ -410,7 +410,8 @@ def serve():
         path = FN_SERVER_CONF
 
     conf = IconConfig(path, tbears_server_config)
-    conf.load(vars(args))
+    conf.load()
+    conf.update_conf(vars(args))
     # init logger
     Logger.load_config(conf)
     Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
@@ -429,7 +430,7 @@ def serve():
 async def init_icon_inner_task(conf: 'IconConfig'):
     global __icon_inner_task
     config = IconConfig("", conf)
-    config.load({ConfigKey.BUILTIN_SCORE_OWNER: conf['genesis']['accounts'][0]['address']})
+    config.update_conf({ConfigKey.BUILTIN_SCORE_OWNER: conf['genesis']['accounts'][0]['address']})
     # TODO genesis address를 admin_address로 한다
     __icon_inner_task = IconScoreInnerTask(config)
 

@@ -149,11 +149,6 @@ class CommandScore(object):
             if conf.get('keyStore', None) is None:
                 raise TBearsCommandException(f'If you want to deploy SCORE to ICON node, set --key-store option or '
                                              f'write "keyStore" value in configuration file.')
-            else:
-                if not os.path.exists(conf['keyStore']):
-                    raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
-                if not password:
-                    password = getpass.getpass("input your key store password: ")
         else:
             uri: str = conf.get('uri', "")
             if uri and uri.find('127.0.0.1') == -1:
@@ -162,6 +157,11 @@ class CommandScore(object):
         if not conf['keyStore']:
             if not is_icon_address_valid(conf['from']):
                 raise TBearsCommandException(f"You entered invalid 'from' address '{conf['from']}")
+        else:
+            if not os.path.exists(conf['keyStore']):
+                raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
+            if not password:
+                password = getpass.getpass("input your key store password: ")
 
         if conf['mode'] == 'update':
             if conf.get('to', None) is None:
@@ -181,16 +181,20 @@ class CommandScore(object):
         if project is not None:
             conf['project'] = project
 
-        # load -c config
-        if args and args.get('config', None):
-            conf.load(user_input=args)
+        print(conf)
+        # load config file
+        conf.load(config_path=args.get('config', None) if args else None)
 
+        print(conf)
+        # move command config
         if command in conf:
-            conf.update(conf[command])
+            conf.update_conf(conf[command])
             del conf[command]
+        print(conf)
 
         # load user argument
         if args:
-            conf.load(user_input=args)
+            conf.update_conf(args)
 
+        print(conf)
         return conf

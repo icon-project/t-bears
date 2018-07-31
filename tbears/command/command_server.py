@@ -57,9 +57,12 @@ class CommandServer(object):
         if not hasattr(self, args.command):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
+        user_input = vars(args)
+
         # load configurations
         conf = IconConfig(FN_SERVER_CONF, tbears_server_config)
-        conf.load(user_input=vars(args))
+        conf.load(config_path=user_input.get('config', None))
+        conf.update_conf(user_input)
 
         # run command
         getattr(self, args.command)(conf)
