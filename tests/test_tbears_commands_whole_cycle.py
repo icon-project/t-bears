@@ -120,7 +120,7 @@ class TestTbearsCommands(unittest.TestCase):
         self.assertFalse(score_api_response.get('error', False))
 
         # scoreapi
-        # call scoreapi with Invalid scoreAddress. should return error
+        # call scoreapi with Invalid scoreAddress. response data should contain error data
         invalid_score_address = 'cx02b13428a8aef265fbaeeb37394d3ae8727f7a19'
         invalid_conf = deepcopy(conf)
         invalid_conf['address'] = invalid_score_address
@@ -138,13 +138,31 @@ class TestTbearsCommands(unittest.TestCase):
         deploy_response = self.cmd.cmdScore.deploy(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 
+        # deploy - f"-t tbears -m update --to invalid_scoreAddress -c tbears_cli_config.json"
+        # when invalid scoreAddress, response data should contain error data
+        invalid_score_address = 'cx02b13428a8aef265fbaeeb37394d3ae8727f7a19'
+        invalid_conf = deepcopy(conf)
+        invalid_conf['mode'] = 'update'
+        invalid_conf['to'] = invalid_score_address
+        invalid_conf['conf'] = './tbears_cli_config.json'
+        invalid_deploy_response = self.cmd.cmdScore.deploy(conf=invalid_conf)
+        self.assertIsNotNone(invalid_deploy_response.get('error', None))
+
         # result (query transaction result)
         tx_hash = deploy_response['result']
         conf = self.cmd.cmdWallet.get_result_config(tx_hash)
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        print('transcation_result_sb', tx_hash)
         self.assertFalse(transaction_result_response.get('error', False))
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
+
+        invalid_tx_hash = '0x3d6fa810d782a3b3aa6e4a95f5ac48d8bfa096366b3c2ba2922f49cccf3ac6b5'
+        invalid_conf = self.cmd.cmdWallet.get_result_config(invalid_tx_hash)
+        transaction_result_response = self.cmd.cmdWallet.txresult(invalid_conf)
+        self.assertIsNotNone(transaction_result_response.get('error', None))
+
+        # # deploy to zip
 
         # deploy - f"-t zip -m install -k test_keystore"
         conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
@@ -188,11 +206,21 @@ class TestTbearsCommands(unittest.TestCase):
         self.assertIn('to', txbyhash_params)
         self.assertIn('value', txbyhash_params)
 
+        # gettx (query transaction)
+        gettx_response = self.cmd.cmdWallet.txbyhash(conf)
+        gettx_response_result = gettx_response['result']
+        gettx_params = gettx_response_result['params']
+        self.assertIn('method', gettx_response_result)
+        self.assertIn('params', gettx_response_result)
+        self.assertIn('from', gettx_params)
+        self.assertIn('to', gettx_params)
+        self.assertIn('value', gettx_params)
+
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 0.3e2)
         transfer_response_json = self.cmd.cmdWallet.transfer(conf, 'qwer1234%')
-        self.assertTrue(transfer_response_json.get('error', True))
+        self.assertFalse(transfer_response_json.get('error', False))
 
         # stop
         self.cmd.cmdServer.stop(None)
