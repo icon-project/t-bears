@@ -19,6 +19,7 @@ import getpass
 from iconcommons.icon_config import IconConfig
 from iconservice.base.address import is_icon_address_valid
 
+from tbears.util.argparse_type import IconAddress, IconPath
 from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
 from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
@@ -33,19 +34,17 @@ class CommandScore(object):
     @staticmethod
     def _add_deploy_parser(subparsers):
         parser = subparsers.add_parser('deploy', help='Deploy the SCORE', description='Deploy the SCORE')
-        parser.add_argument('project', help='Project name')
-        parser.add_argument('-u', '--node-uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)',
-                            dest='uri')
-        parser.add_argument('-t', '--type', help='Deploy SCORE type (default: tbears)',
-                            choices=['tbears', 'zip'], dest='contentType')
-        parser.add_argument('-m', '--mode', help='Deploy mode (default: install)',
-                            choices=['install', 'update'], dest='mode')
-        parser.add_argument('-f', '--from', help='From address. i.e. SCORE owner address', dest='from')
-        parser.add_argument('-o', '--to', help='To address. i.e. SCORE address', dest='to')
-        parser.add_argument('-k', '--key-store', help='Keystore file path. Used to generate "from" address and '
-                                                      'transaction signature', dest='keyStore')
-        parser.add_argument('-n', '--nid', help='Network ID', dest='nid')
-        parser.add_argument('-c', '--config', help=f'deploy config path (default: {FN_CLI_CONF})')
+        parser.add_argument('project', type=IconPath('d'), help='Project name')
+        parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
+        parser.add_argument('-t', '--type', choices=['tbears', 'zip'], dest='contentType',
+                            help='Deploy SCORE type (default: tbears)')
+        parser.add_argument('-m', '--mode', choices=['install', 'update'], help='Deploy mode (default: install)')
+        parser.add_argument('-f', '--from', type=IconAddress(), help='From address. i.e. SCORE owner address')
+        parser.add_argument('-o', '--to', type=IconAddress('cx'), help='To address. i.e. SCORE address')
+        parser.add_argument('-k', '--key-store', type=IconPath('r'), dest='keyStore',
+                            help='Keystore file path. Used to generate "from" address and transaction signature')
+        parser.add_argument('-n', '--nid', help='Network ID')
+        parser.add_argument('-c', '--config', type=IconPath(), help=f'deploy config path (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_clear_parser(subparsers):
@@ -150,11 +149,6 @@ class CommandScore(object):
             if conf.get('keyStore', None) is None:
                 raise TBearsCommandException(f'If you want to deploy SCORE to ICON node, set --key-store option or '
                                              f'write "keyStore" value in configuration file.')
-            else:
-                if not os.path.exists(conf['keyStore']):
-                    raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
-                if not password:
-                    password = getpass.getpass("input your key store password: ")
         else:
             uri: str = conf.get('uri', "")
             if uri and uri.find('127.0.0.1') == -1:
@@ -163,6 +157,11 @@ class CommandScore(object):
         if not conf['keyStore']:
             if not is_icon_address_valid(conf['from']):
                 raise TBearsCommandException(f"You entered invalid 'from' address '{conf['from']}")
+        else:
+            if not os.path.exists(conf['keyStore']):
+                raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
+            if not password:
+                password = getpass.getpass("input your key store password: ")
 
         if conf['mode'] == 'update':
             if conf.get('to', None) is None:
@@ -177,15 +176,21 @@ class CommandScore(object):
 
     @staticmethod
     def get_score_conf(command: str, project: str = None, args: dict = None):
-        conf = IconConfig(str(), tbears_cli_config)
-        if args:
-            conf.load(user_input=args)
+        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
 
         if project is not None:
             conf['project'] = project
 
+        # load config file
+        conf.load(config_path=args.get('config', None) if args else None)
+
+        # move command config
         if command in conf:
-            conf.update(conf[command])
+            conf.update_conf(conf[command])
             del conf[command]
+
+        # load user argument
+        if args:
+            conf.update_conf(args)
 
         return conf

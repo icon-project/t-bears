@@ -24,6 +24,7 @@ from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
 from tbears.util import write_file
+from tbears.util.argparse_type import port_type, IconPath
 from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
 from tbears.libs.icon_jsonrpc import IconClient
 
@@ -42,9 +43,10 @@ class CommandServer(object):
     def _add_start_parser(subparsers) -> None:
         parser = subparsers.add_parser('start', help='Start tbears serivce',
                                        description='Start tbears service')
-        parser.add_argument('-a', '--address', help='Address to host on (default: 0.0.0.0)', type=ip_address)
-        parser.add_argument('-p', '--port', help='Port to host on (default: 9000)', type=int, dest='port')
-        parser.add_argument('-c', '--config', help=f'tbears configuration file path (default: {FN_SERVER_CONF})')
+        parser.add_argument('-a', '--address', type=ip_address, help='Address to host on (default: 0.0.0.0)')
+        parser.add_argument('-p', '--port', type=port_type, help='Port to host on (default: 9000)')
+        parser.add_argument('-c', '--config', type=IconPath(),
+                            help=f'tbears configuration file path (default: {FN_SERVER_CONF})')
 
     @staticmethod
     def _add_stop_parser(subparsers) -> None:
@@ -55,37 +57,38 @@ class CommandServer(object):
         if not hasattr(self, args.command):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
+        user_input = vars(args)
+
         # load configurations
         conf = IconConfig(FN_SERVER_CONF, tbears_server_config)
-        conf.load(user_input=vars(args))
+        conf.load(config_path=user_input.get('config', None))
+        conf.update_conf(user_input)
 
         # run command
         getattr(self, args.command)(conf)
 
-    @staticmethod
-    def start(conf: dict):
+    def start(self, conf: dict):
         """ Start tbears service
 
         :param conf: start command configuration
         """
-        if CommandServer.is_server_running():
+        if self.is_server_running():
             raise TBearsCommandException(f"Tbears service was started already")
 
         # start jsonrpc_server for tbears
-        CommandServer.__start_server(conf)
+        self.__start_server(conf)
 
         # wait 2 sec
         time.sleep(2)
 
-        print(f'Started tbear service successfully')
+        print(f'Started tbears service successfully')
 
-    @staticmethod
-    def stop(_conf: dict):
+    def stop(self, _conf: dict):
         """ Stop tbears service
         :param _conf: stop command configuration
         """
-        if CommandServer.is_server_running():
-            CommandServer.__exit_request()
+        if self.is_server_running():
+            self.__exit_request()
             # Wait until server socket is released
             time.sleep(2)
 

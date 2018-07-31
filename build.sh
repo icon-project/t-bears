@@ -1,10 +1,25 @@
 #!/bin/bash
 set -e
 
+HOST="tbears.icon.foundation"
 S3_HOST="http://tbears.icon.foundation.s3-website.ap-northeast-2.amazonaws.com"
+PRODUCT="tbears"
+DEPS="earlgrey iconcommons"
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 function clear_build () {
   rm -rf build dist *.egg-info
+}
+
+function install_package()
+{
+  PKG=$1
+
+  URL="${S3_HOST}/$BRANCH/$PKG"
+  VERSION=$(curl "$URL/VERSION")
+  FILE="${PKG}-${VERSION}-py3-none-any.whl"
+  echo "#### $URL/$FILE"
+  pip install --force-reinstall "${URL}/$FILE"
 }
 
 PYVER=$(python -c 'import sys; print(sys.version_info[0])')
@@ -19,17 +34,15 @@ if [[ "$1" == "clear" ]]; then
 fi
 
 if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = "deploy") ]]; then
-  pip3 install -r requirements.txt
+  # pip3 install -r requirements.txt
 
-  MOD_VER=$(curl "${S3_HOST}/earlgrey/VERSION")
-  pip install --force-reinstall "${S3_HOST}/earlgrey/earlgrey-${MOD_VER}-py3-none-any.whl"
-
-  MOD_VER=$(curl "${S3_HOST}/iconcommons/VERSION")
-  pip install --force-reinstall "${S3_HOST}/iconcommons/iconcommons-${MOD_VER}-py3-none-any.whl"
+  for PKG in $DEPS
+  do
+    install_package $PKG
+  done
 
   if [[ -z "${ICONSERVICEPATH}" || ("$1" = "deploy") ]]; then
-    MOD_VER=$(curl "${S3_HOST}/iconservice/VERSION")
-    pip install --force-reinstall "${S3_HOST}/iconservice/iconservice-${MOD_VER}-py3-none-any.whl"
+    install_package "iconservice"
   else
     if [ "$(pip3 list | grep iconservice)" ]; then
         pip uninstall iconservice -y
@@ -56,11 +69,12 @@ if [[ ("$1" = "test" && "$2" != "--ignore-test") || ("$1" = "build") || ("$1" = 
         exit 1
       fi
 
+      S3_URL="s3://${HOST}/${BRANCH}/${PRODUCT}/"
+      echo "$S3_URL"
+
       pip install awscli
-      aws s3 cp VERSION s3://tbears.icon.foundation/tbears/ --acl public-read
-      aws s3 cp dist/*$VER*.whl s3://tbears.icon.foundation/tbears/ --acl public-read
-      aws s3 cp docs/tbears_jsonrpc_api_v3.md s3://tbears.icon.foundation/docs/ --acl public-read
-      aws s3 cp docs/tbears_tutorial.md s3://tbears.icon.foundation/docs/ --acl public-read
+      aws s3 cp VERSION "$S3_URL" --acl public-read
+      aws s3 cp dist/*$VER*.whl "$S3_URL" --acl public-read
 
     fi
   fi

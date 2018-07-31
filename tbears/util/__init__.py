@@ -366,14 +366,14 @@ def is_lowercase_hex_string(value: str) -> bool:
     return False
 
 
-def is_tx_hash(tx_hash: str) -> bool:
+def is_valid_hash(_hash: str) -> bool:
     """Check hash is valid.
 
-    :param tx_hash:
+    :param _hash:
     :return:
     """
-    if isinstance(tx_hash, str) and len(tx_hash) == 66:
-        prefix, body = tx_hash[:2], tx_hash[2:]
+    if isinstance(_hash, str) and len(_hash) == 66:
+        prefix, body = _hash[:2], _hash[2:]
         return prefix == '0x' and is_lowercase_hex_string(body)
 
     return False

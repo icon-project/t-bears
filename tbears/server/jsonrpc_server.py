@@ -18,6 +18,7 @@ import hashlib
 from json import JSONDecodeError
 import argparse
 from ipaddress import ip_address
+from typing import Optional
 
 from iconservice.icon_constant import DATA_BYTE_ORDER, ConfigKey
 from jsonrpcserver import status
@@ -26,16 +27,13 @@ from jsonrpcserver.exceptions import JsonRpcServerError, InvalidParams
 from sanic import Sanic, response as sanic_response
 
 from iconservice.utils import check_error_response
-from iconservice.icon_config import default_icon_config
-from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
-
-from typing import Optional
-
+from iconservice.icon_inner_service import IconScoreInnerTask
+from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
 from tbears.server.tbears_db import TbearsDB
 from tbears.command.command_server import CommandServer
-from iconservice.icon_inner_service import IconScoreInnerTask
+from tbears.util.argparse_type import IconPath
 
 TBEARS_LOG_TAG = 'tbears'
 
@@ -202,9 +200,15 @@ class MockDispatcher:
         """
         Logger.debug(f'json_rpc_server icx_sendTransaction!', TBEARS_LOG_TAG)
 
-        method = 'icx_sendTransaction'
-        # Insert txHash into request params
+        # check duplication
         tx_hash = create_hash(json.dumps(request_params).encode())
+        result = TBEARS_DB.get(b'result|' + bytes.fromhex(tx_hash))
+        if result:
+            result = {"error": {"code": 32000, "message": "Duplicated transaction"}}
+            return response_to_json_invoke(result)
+
+        # Insert txHash into request params
+        method = 'icx_sendTransaction'
         request_params['txHash'] = tx_hash
         tx = {
             'method': method,
@@ -383,7 +387,8 @@ def create_parser():
     parser = argparse.ArgumentParser(description='jsonrpc_server for tbears')
     parser.add_argument('-a', '--address', help='Address to host on (default: 0.0.0.0)', type=ip_address)
     parser.add_argument('-p', '--port', help='Listen port (default: 9000)', type=int)
-    parser.add_argument('-c', '--config', help=f'tbears configuration file path (default: {FN_SERVER_CONF})')
+    parser.add_argument('-c', '--config', type=IconPath(),
+                        help=f'tbears configuration file path (default: {FN_SERVER_CONF})')
 
     return parser
 
@@ -405,7 +410,8 @@ def serve():
         path = FN_SERVER_CONF
 
     conf = IconConfig(path, tbears_server_config)
-    conf.load(vars(args))
+    conf.load()
+    conf.update_conf(vars(args))
     # init logger
     Logger.load_config(conf)
     Logger.info(f'config_file: {path}', TBEARS_LOG_TAG)
@@ -424,7 +430,7 @@ def serve():
 async def init_icon_inner_task(conf: 'IconConfig'):
     global __icon_inner_task
     config = IconConfig("", conf)
-    config.load({ConfigKey.BUILTIN_SCORE_OWNER: conf['genesis']['accounts'][0]['address']})
+    config.update_conf({ConfigKey.BUILTIN_SCORE_OWNER: conf['genesis']['accounts'][0]['address']})
     # TODO genesis address를 admin_address로 한다
     __icon_inner_task = IconScoreInnerTask(config)
 

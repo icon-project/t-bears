@@ -1,0 +1,15 @@
+{
+    "uri": "http://127.0.0.1:9000/api/v3",
+    "nid": "0x3",
+    "keyStore": null,
+    "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "to": "cx0000000000000000000000000000000000000000",
+    "stepLimit": "0x300000",
+    "deploy": {
+        "contentType": "tbears",
+        "mode": "install",
+        "scoreParams": {}
+    },
+    "txresult": {},
+    "transfer": {}
+}
