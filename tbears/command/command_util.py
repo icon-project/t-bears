@@ -65,7 +65,7 @@ class CommandUtil(object):
             return
 
         # run command
-        getattr(self, args.command)(vars(args))
+        return getattr(self, args.command)(vars(args))
 
     def init(self, conf: dict):
         """Initialize the tbears service.

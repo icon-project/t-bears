@@ -14,6 +14,8 @@
 # limitations under the License.
 import argparse
 
+from pyparsing import Optional
+
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsBaseException, TBearsExceptionCode
 from tbears.command.command_server import CommandServer
@@ -53,13 +55,13 @@ class Command(object):
             # e.g. Namespace(command='deploy', config=None, contentType='tbears' ...)
             args = self.parser.parse_args(args=sys_args)
             if self.cmdServer.check_command(args.command):
-                self.cmdServer.run(args)
+                result = self.cmdServer.run(args)
             elif self.cmdScore.check_command(args.command):
-                self.cmdScore.run(args)
+                result = self.cmdScore.run(args)
             elif self.cmdUtil.check_command(args.command):
-                self.cmdUtil.run(args)
+                result = self.cmdUtil.run(args)
             elif self.cmdWallet.check_command(args.command):
-                self.cmdWallet.run(args)
+                result = self.cmdWallet.run(args)
         except TBearsBaseException as e:
             print(f"{e}")
             return e.code.value
@@ -67,4 +69,4 @@ class Command(object):
             print(f"Exception: {e}")
             return TBearsExceptionCode.COMMAND_ERROR.value
         else:
-            return TBearsExceptionCode.OK.value
+            return result

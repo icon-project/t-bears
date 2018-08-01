@@ -63,7 +63,7 @@ class CommandScore(object):
         conf = self.get_score_conf(args.command, args=vars(args))
 
         # run command
-        getattr(self, args.command)(conf)
+        return getattr(self, args.command)(conf)
 
     def deploy(self, conf: dict, password: str = None) -> dict:
         """Deploy SCORE on the server.

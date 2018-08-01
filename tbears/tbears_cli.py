@@ -15,6 +15,7 @@
 import sys
 
 from tbears.command.command import Command
+from tbears.tbears_exception import TBearsExceptionCode
 
 
 def main():
@@ -22,5 +23,8 @@ def main():
 
     # tbears starting point
     result = cmd.run(sys.argv[1:])
+
+    if isinstance(result, int) is False:
+        sys.exit(TBearsExceptionCode.OK.value)
 
     sys.exit(result)

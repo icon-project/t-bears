@@ -62,7 +62,7 @@ class CommandServer(object):
         conf = self.get_icon_conf(args.command, args=user_input)
 
         # run command
-        getattr(self, args.command)(conf)
+        return getattr(self, args.command)(conf)
 
     @staticmethod
     def get_icon_conf(command: str, args: dict = None) -> dict:
