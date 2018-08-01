@@ -14,7 +14,7 @@
 # limitations under the License.
 import argparse
 
-from pyparsing import Optional
+from typing import Optional
 
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsBaseException, TBearsExceptionCode
