@@ -1,0 +1,15 @@
+{
+    "uri": "http://127.0.0.1:9000/api/v3_config_path",
+    "nid": "0x3_config_path",
+    "keyStore": null,
+    "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa_config_path",
+    "to": "cx0000000000000000000000000000000000000000_config_path",
+    "stepLimit": "0x300000_config_path",
+    "deploy": {
+        "contentType": "tbears_config_path",
+        "mode": "install_config_path",
+        "scoreParams": {}
+    },
+    "txresult": {},
+    "transfer": {}
+}

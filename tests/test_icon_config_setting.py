@@ -26,16 +26,22 @@ from tbears.command.command import Command
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
 from tests.test_util import TEST_UTIL_DIRECTORY
 
-IN_ICON_CONFIG_TEST_DIRECTORY = os.path.join(TEST_UTIL_DIRECTORY, 'test_icon_config/tbears_cli_config.json')
+IN_ICON_CONFIG_TEST_DIRECTORY = os.path.join(TEST_UTIL_DIRECTORY, 'test_icon_config')
+
+# this variable is for reset tbears_cli_config data.
+# after to tests, tbears_cli_config's options are changed and not refreshed.
+# so need to be reset these data
+# (if tbears support the interactive mode, tbears_cli_config should always refreshed automatically)
+tbears_cli_config_reset = deepcopy(tbears_cli_config)
 
 u = ['-u http://127.0.0.1:9000/api/v3_user_input', '']
 t = ['-t tbears', '-t zip', '']
 m = ['-m install', '-m update', '']
 f = ['-f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '']
 o = ['-o cx0000000000000000000000000000000000000000', '']
-k = ['-k keystore_user_input', '']
+k = [f'-k {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_cli_config_keystore")}', '']
 n = ['-n 0x3_user_input', '']
-c = [f'-c {IN_ICON_CONFIG_TEST_DIRECTORY}']
+c = [f'-c {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")}']
 
 
 def setting_cli(cli_tuple):
@@ -69,6 +75,7 @@ class TestIconConfig(unittest.TestCase):
                 shutil.rmtree(path)
             else:
                 continue
+        tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
 
     # -c: x, user input: X
     # base: default pass, overwrite: nothing
@@ -86,32 +93,13 @@ class TestIconConfig(unittest.TestCase):
 
         shutil.rmtree(self.project)
 
-    # -c: O, user input: X
-    # base: default pass, overwrite: -c
-    def test_get_score_conf_set_c(self):
-        with open(IN_ICON_CONFIG_TEST_DIRECTORY) as user_conf_path:
-            expected_conf: dict = json.load(user_conf_path)
-        expected_conf.update(expected_conf['deploy'])
-        del expected_conf['deploy']
-
-        os.mkdir(self.project)
-
-        cmd = f'deploy {self.project} -c {IN_ICON_CONFIG_TEST_DIRECTORY}'
-        parsed = self.parser.parse_args(cmd.split())
-
-        actual_conf = self.cmd.cmdScore.get_score_conf(parsed.command, args=vars(parsed))
-
-        for key in self.config_option_list:
-            self.assertEqual(expected_conf[key], actual_conf[key])
-
-        shutil.rmtree(self.project)
-
     # -c: x, user input: O
     # base: default pass, overwrite: user input
     def test_get_score_conf_set_user_input(self):
         os.mkdir(self.project)
 
-        whole_possible_cli = [setting_cli(cli) for cli in itertools.product([self.command], [self.project], u, t, m, f, o, n)]
+        whole_possible_cli = [setting_cli(cli) for cli in
+                              itertools.product([self.command], [self.project], u, t, m, f, o, k, n)]
 
         default_conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
         default_conf.update(default_conf['deploy'])
@@ -120,7 +108,7 @@ class TestIconConfig(unittest.TestCase):
         for cli in whole_possible_cli:
             parsed = self.parser.parse_args(cli.split())
             actual_conf = self.cmd.cmdScore.get_score_conf(parsed.command, args=vars(parsed))
-
+            print('default_conf:',default_conf)
             expected_conf = deepcopy(default_conf)
             expected_conf.update({k: v for k, v in vars(parsed).items() if v is not None})
 
@@ -131,7 +119,29 @@ class TestIconConfig(unittest.TestCase):
 
             for key in self.config_option_list:
                 # actual_conf[key] = 'raise_error'
-                self.assertEqual(actual_conf[key], expected_conf[key], msg='failed cli: ' + cli)
+                self.assertEqual(expected_conf[key], actual_conf[key], msg= \
+                'failed method: '+ self.test_get_score_conf_set_user_input.__name__ +'\nfailed cli: ' + cli +'\nfailed key: ' + key)
+
+            tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
+
+        shutil.rmtree(self.project)
+
+    # -c: O, user input: X
+    # base: default pass, overwrite: -c
+    def test_get_score_conf_set_c(self):
+        with open(os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")) as user_conf_path:
+            expected_conf: dict = json.load(user_conf_path)
+        expected_conf.update(expected_conf['deploy'])
+        del expected_conf['deploy']
+
+        os.mkdir(self.project)
+
+        cmd = f'deploy {self.project} -c {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")}'
+        parsed = self.parser.parse_args(cmd.split())
+
+        actual_conf = self.cmd.cmdScore.get_score_conf(parsed.command, args=vars(parsed))
+        for key in self.config_option_list:
+            self.assertEqual(expected_conf[key], actual_conf[key])
 
         shutil.rmtree(self.project)
 
@@ -140,9 +150,9 @@ class TestIconConfig(unittest.TestCase):
     def test_get_score_conf_set_c_and_user_input(self):
         os.mkdir(self.project)
 
-        whole_possible_cli = [setting_cli(cli) for cli in itertools.product([self.command], [self.project], u, t, m, f, o, n, c)]
+        whole_possible_cli = [setting_cli(cli) for cli in itertools.product([self.command], [self.project], u, t, m, f, o, k, n, c)]
 
-        with open(IN_ICON_CONFIG_TEST_DIRECTORY) as user_conf_path:
+        with open(os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")) as user_conf_path:
             user_conf: dict = json.load(user_conf_path)
         user_conf.update(user_conf['deploy'])
         del user_conf['deploy']
@@ -161,7 +171,10 @@ class TestIconConfig(unittest.TestCase):
 
             for key in self.config_option_list:
                 # actual_conf[key] = 'raise_error'
-                self.assertEqual(expected_conf[key], actual_conf[key], msg='failed cli: ' + cli)
+                self.assertEqual(expected_conf[key], actual_conf[key], msg= \
+                'failed method: '+ self.test_get_score_conf_set_c_and_user_input.__name__ +'\nfailed cli: ' + cli +'\nfailed key: ' + key)
+
+            tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
 
         shutil.rmtree(self.project)
 
