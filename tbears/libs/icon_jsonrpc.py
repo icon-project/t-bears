@@ -301,7 +301,7 @@ class IconJsonrpc:
         }
 
     def sendTransaction_v2(self, from_: str = None, to: str = None, value: str = '0x0', fee: str = hex(int(1e16)),
-                           timestamp: str=None, nonce: str='0x1'):
+                           timestamp: str=None, nonce: str='1'):
         """Make JSON-RPC request of icx_sendTransaction
         :param from_: From address. If not set, use __address member of object
         :param to: To address
