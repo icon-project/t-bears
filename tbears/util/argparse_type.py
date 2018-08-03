@@ -31,7 +31,7 @@ class IconPath(str):
         elif self._mode == 'w' and os.path.exists(string):
             raise ArgumentTypeError(f"'{string}' must be empty")
         elif self._mode == 'd' and not os.path.isdir(string):
-            raise  ArgumentTypeError(f"There is no directory '{string}'")
+            raise ArgumentTypeError(f"There is no directory '{string}'")
 
         return string
 
