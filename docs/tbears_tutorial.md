@@ -2,18 +2,6 @@
 
 # ICON SCORE development suite (tbears) TUTORIAL
 
-## Change History
-
-| Date       | Version  | Author | Description                                                 |
-| :--------- | :---- | :----: | :--------------------------------------------------- |
-| 2018.07.23 | 0.9.5 | Eunsoo Park | Improve tbears configuration files |
-| 2018.07.16 | 0.9.3 | Soobok Jin | tbears cli commands updated. Document structure revised, and translated to English. |
-| 2018.07.10 | 0.9.3 | Chiwon Cho | earlgrey package description added. |
-| 2018.07.06 | 0.9.3 | Inwon Kim | Configuration file updated.       |
-| 2018.06.12 | 0.9.2 | Chiwon Cho | Tutorial moved from doc to markdown. |
-| 2018.06.11 | 0.9.1 | Chiwon Cho | Error codes added. icx_getTransactionResult description updated. |
-| 2018.06.01 | 0.9.0 | Chiwon Cho | JSON-RPC API v3 ChangeLog added. |
-
 ## tbears Overview
 tbears is a suite of development tools for SCORE. You can code and test your smart contract locally, and when ready, deploy SCORE onto the ICON network from command-line interface. tbears provides a project template for SCORE to help you start right away.
 
