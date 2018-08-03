@@ -31,7 +31,7 @@ tbears_server_config = {
     "service": {
         "fee": False,
         "audit": False,
-        "deployerWhiteList": []
+        "deployerWhiteList": False
     },
     "genesis": {
         "nid": "0x03",
