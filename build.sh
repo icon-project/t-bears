@@ -10,7 +10,7 @@ fi
 
 if [ $# -eq 1 ]
 then
-    export VERSION=$1
+    echo $1 > ./VERSION
 fi
 
 pip install wheel
