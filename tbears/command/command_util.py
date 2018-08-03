@@ -18,7 +18,7 @@ import os
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import (
     get_score_main_template, get_sample_token_contents, get_sample_crowd_sale_contents,
-    get_package_json_dict, write_file, get_init_template
+    get_package_json_dict, write_file
 )
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 from tbears.util.argparse_type import IconPath
@@ -97,11 +97,10 @@ class CommandUtil(object):
         package_json_dict = get_package_json_dict(project, score_class)
         package_json_contents = json.dumps(package_json_dict, indent=4)
         py_contents = contents_func(score_class)
-        init_contents = get_init_template(project, score_class)
 
         write_file(project, f"{project}.py", py_contents)
         write_file(project, "package.json", package_json_contents)
-        write_file(project, '__init__.py', init_contents)
+        write_file(project, '__init__.py', '')
         write_file(f'{project}/tests', f'test_{project}.py', '')
         write_file(f'{project}/tests', f'__init__.py', '')
         write_file('./', f"{FN_SERVER_CONF}", json.dumps(tbears_server_config, indent=4))

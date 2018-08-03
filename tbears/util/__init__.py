@@ -42,10 +42,6 @@ def write_file(parent_directory: str, file_name: str, contents: str, overwrite: 
         raise TBearsWriteFileException(f"Can't write file {parent_directory}/{file_name}. {e}")
 
 
-def get_init_template(project: str, score_class: str) -> str:
-    return f'from .{project} import {score_class}\n'
-
-
 def get_score_main_template(score_class: str) -> str:
     """
     :param score_class: Your score class name.
