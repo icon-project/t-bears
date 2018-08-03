@@ -44,6 +44,15 @@ def setting_cli(cli_tuple):
     cli = re.sub(' +', ' ', cli)
     return cli
 
+def rm_file_dir(rm_list: list):
+    for path in rm_list:
+        if os.path.isfile(path):
+            os.remove(path)
+        elif os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            continue
+
 # todo: rmdir
 
 # this test can not check args parsing
@@ -53,33 +62,34 @@ class CliTestUtil(unittest.TestCase):
         self.cmd = Command()
         self.parser = self.cmd.parser
         self.subparsers = self.cmd.subparsers
+        self.tear_down_params = []
         self.verificationErrors = []
 
-    tbears_server_config.update(deepcopy(tbears_server_config_reset))
-    tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
-
     def tearDown(self):
+        rm_file_dir(self.tear_down_params)
         for idx, error in enumerate(self.verificationErrors):
-            print(str(idx) + '--------')
+            print('============ error number: '+str(idx)+' =====================')
             print(error)
-            print('')
+            print(' ')
         self.assertEqual([], self.verificationErrors)
 
-    tbears_server_config.update(deepcopy(tbears_server_config_reset))
-    tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
+        tbears_server_config.update(deepcopy(tbears_server_config_reset))
+        tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
 
     @staticmethod
-    def make_config_option_list(command: str, config_name: str):
+    def make_config_option_list(parsed_args: dict, config_name: str):
         # make config key list which is for check each config key and value.
         if config_name == 'cli':
             tbears_config = deepcopy(tbears_cli_config)
         elif config_name == 'server':
             tbears_config = deepcopy(tbears_server_config)
 
+        command = parsed_args.get('command', None)
+
         if command in tbears_config:
             tbears_config.update(tbears_config[command])
             del tbears_config[command]
-
+        tbears_config.update({k: v for k, v in parsed_args.items() if v is not None})
         config_option_list = [key for key in tbears_config.keys()]
 
         return config_option_list
@@ -109,29 +119,40 @@ class CliTestUtil(unittest.TestCase):
         if parsed.command in expected_conf:
             expected_conf.update(expected_conf[parsed.command])
             del expected_conf[parsed.command]
+        expected_conf.update({k: v for k, v in vars(parsed).items() if v is not None})
 
         print('============================================cli=============================================')
         print('cli: ', cli)
         print('expected_conf: ', expected_conf)
-        print('actual_conf: ', actual_conf)
+        print('actual_conf  : ', actual_conf)
 
-        config_option_list = self.make_config_option_list(command=parsed.command,
+        config_option_list = self.make_config_option_list(parsed_args=vars(parsed),
                                                           config_name=test_opts['config_type'])
-        for key in config_option_list:
-            self.assertEqual(expected_conf[key], actual_conf[key], msg= \
-                'failed command: ' + test_opts[
-                    'command'] + '\nfailed cli: ' + cli + '\nfailed key: ' + key + '\ndesc: ' + test_opts[
-                    'description'] + '\n')
+
+        try:
+            for key in config_option_list:
+                # expected_conf[key] = 'raise error'
+                self.assertEqual(expected_conf[key], actual_conf[key],\
+                                 msg= '\nfailed command: ' + test_opts['command'] +\
+                                      '\nfailed cli: ' + cli +\
+                                      '\nfailed key: ' + key +\
+                                      '\ncase: ' + test_opts['description'] + '\n')
+        except AssertionError as e:
+            self.verificationErrors.append(str(e))
 
     def c_x_i_x_wrapper(self, test_command_list: list):
         for test_command in test_command_list:
             for dir in test_command['user_config_file']:
+                # todo: should check whether if file or dir, and make adequately
                 os.mkdir(dir)
+                self.tear_down_params.append(dir)
+                print(self.tear_down_params)
 
             self.c_x_i_x(test_command)
 
-            for dir in test_command['user_config_file']:
-                shutil.rmtree(dir)
+            rm_file_dir(self.tear_down_params)
+            self.tear_down_params.clear()
+            print(self.tear_down_params)
 
     def test_c_x_i_x_case(self):
         test_deploy_opts = {
@@ -245,41 +266,50 @@ class CliTestUtil(unittest.TestCase):
 
         with open(test_opts['user_path']) as user_conf_path:
             user_conf: dict = json.load(user_conf_path)
-        if test_opts['command'] in user_conf:
-            user_conf.update(user_conf[test_opts['command']])
-            del user_conf[test_opts['command']]
-
         expected_conf = deepcopy(user_conf)
 
         if parsed.command in expected_conf:
             expected_conf.update(expected_conf[parsed.command])
             del expected_conf[parsed.command]
+        expected_conf.update({k: v for k, v in vars(parsed).items() if v is not None})
 
         print('============================================cli=============================================')
         print('cli: ', cli)
         print('expected_conf: ', expected_conf)
-        print('actual_conf: ', actual_conf)
+        print('actual_conf  : ', actual_conf)
 
-        config_option_list = self.make_config_option_list(command=parsed.command,
+        config_option_list = self.make_config_option_list(parsed_args=vars(parsed),
                                                           config_name=test_opts['config_type'])
-        for key in config_option_list:
-            self.assertEqual(expected_conf[key], actual_conf[key], msg= \
-                'failed command: ' + test_opts[
-                    'command'] + '\nfailed cli: ' + cli + '\nfailed key: ' + key + '\ndesc: ' + test_opts[
-                    'description'] + '\n')
 
-        tbears_server_config.update(deepcopy(tbears_server_config_reset))
-        tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
+        try:
+            for key in config_option_list:
+                # expected_conf[key] = 'raise error'
+                self.assertEqual(expected_conf[key], actual_conf[key],\
+                                 msg= '\nfailed command: ' + test_opts['command'] +\
+                                      '\nfailed cli: ' + cli +\
+                                      '\nfailed key: ' + key +\
+                                      '\ncase: ' + test_opts['description'] + '\n')
+        except AssertionError as e:
+            self.verificationErrors.append(str(e))
+
+        if test_opts['config_type'] == 'cli':
+            tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
+        elif test_opts['config_type'] == 'server':
+            tbears_server_config.update(deepcopy(tbears_server_config_reset))
 
     def c_o_i_x_wrapper(self, test_command_list: list):
         for test_command in test_command_list:
             for dir in test_command['user_config_file']:
+                # todo: should check whether if file or dir, and make adequately
                 os.mkdir(dir)
+                self.tear_down_params.append(dir)
+                print(self.tear_down_params)
 
             self.c_o_i_x(test_command)
 
-            for dir in test_command['user_config_file']:
-                shutil.rmtree(dir)
+            rm_file_dir(self.tear_down_params)
+            self.tear_down_params.clear()
+            print(self.tear_down_params)
 
     def test_c_o_i_x_case(self):
         c = [f'-c {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")}']
@@ -434,39 +464,43 @@ class CliTestUtil(unittest.TestCase):
             expected_conf = deepcopy(default_conf)
             expected_conf.update({k: v for k, v in vars(parsed).items() if v is not None})
 
-            config_option_list = self.make_config_option_list(command=parsed.command,
+            config_option_list = self.make_config_option_list(parsed_args=vars(parsed),
                                                               config_name=test_opts['config_type'])
 
-            #print('============================================cli=============================================')
-            #print('cli: ', cli)
-            #print('expected_conf: ', expected_conf)
-            #print('actual_conf: ', actual_conf)
+            print('============================================cli=============================================')
+            print('cli: ', cli)
+            print('expected_conf: ', expected_conf)
+            print('actual_conf:   ', actual_conf)
 
             for key in config_option_list:
                 # actual_conf[key] = 'raise_error'
-
                 try:
-                    self.assertEqual(expected_conf[key], actual_conf[key], msg= \
-                        'failed command: ' + test_opts[
-                            'command'] + '\nfailed cli: ' + cli + '\nfailed key: ' + key + '\ndesc: ' + test_opts[
-                            'description'] + '\n')
+                    self.assertEqual(expected_conf[key], actual_conf[key], \
+                                     msg='\nfailed command: ' + test_opts['command'] + \
+                                         '\nfailed cli: ' + cli + \
+                                         '\nfailed key: ' + key + \
+                                         '\ncase: ' + test_opts['description'] + '\n')
                 except AssertionError as e:
                     self.verificationErrors.append(str(e))
 
-            if test_opts['config_type'] == 'server':
-                tbears_server_config.update(deepcopy(tbears_server_config_reset))
-            else:
-                tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
+        if test_opts['config_type'] == 'cli':
+            tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
+        elif test_opts['config_type'] == 'server':
+            tbears_server_config.update(deepcopy(tbears_server_config_reset))
 
     def c_x_i_o_wrapper(self, test_command_list: list):
         for test_command in test_command_list:
             for dir in test_command['user_config_file']:
+                # todo: should check whether if file or dir, and make adequately
                 os.mkdir(dir)
+                self.tear_down_params.append(dir)
+                print(self.tear_down_params)
 
             self.c_x_i_o(test_command)
 
-            for dir in test_command['user_config_file']:
-                shutil.rmtree(dir)
+            rm_file_dir(self.tear_down_params)
+            self.tear_down_params.clear()
+            print(self.tear_down_params)
 
     def test_c_x_i_o_case(self):
         u = ['-u http://127.0.0.1:9000/api/v3_user_input', '']
@@ -600,10 +634,11 @@ class CliTestUtil(unittest.TestCase):
     # 2. all test_cli_opts key
     def c_o_i_o(self, test_opts: dict):
         with open(test_opts['user_path']) as user_conf_path:
-            user_conf: dict = json.load(user_conf_path)
-        if test_opts['command'] in user_conf:
-            user_conf.update(user_conf[test_opts['command']])
-            del user_conf[test_opts['command']]
+            default_conf: dict = json.load(user_conf_path)
+
+        if test_opts['command'] in default_conf:
+            default_conf.update(default_conf[test_opts['command']])
+            del default_conf[test_opts['command']]
 
         whole_possible_cli = self.make_whole_possible_cli(test_opts)
 
@@ -613,10 +648,11 @@ class CliTestUtil(unittest.TestCase):
             # should be refactoring, get_score_conf methods has one more parameter(project param)
             actual_conf = test_opts['get_config_func'](parsed.command, args=vars(parsed))
 
-            expected_conf = deepcopy(user_conf)
+            expected_conf = deepcopy(default_conf)
             expected_conf.update({k: v for k, v in vars(parsed).items() if v is not None})
 
-            config_option_list = self.make_config_option_list(command=parsed.command, config_name=test_opts['config_type'])
+            config_option_list = self.make_config_option_list(parsed_args=vars(parsed),
+                                                              config_name=test_opts['config_type'])
 
             print('============================================cli=============================================')
             print('cli: ', cli)
@@ -625,26 +661,33 @@ class CliTestUtil(unittest.TestCase):
 
             for key in config_option_list:
                 # actual_conf[key] = 'raise_error'
-
                 try:
-                    self.assertEqual(expected_conf[key], actual_conf[key], msg= \
-                        'failed command: ' + test_opts['command'] + '\nfailed cli: ' + cli + '\nfailed key: ' + key + '\ndesc: ' +test_opts['description'] + '\n')
-                except AssertionError as e: self.verificationErrors.append(str(e))
+                    self.assertEqual(expected_conf[key], actual_conf[key], \
+                                     msg='\nfailed command: ' + test_opts['command'] + \
+                                         '\nfailed cli: ' + cli + \
+                                         '\nfailed key: ' + key + \
+                                         '\ncase: ' + test_opts['description'] + '\n')
+                except AssertionError as e:
+                    self.verificationErrors.append(str(e))
 
-            if test_opts['config_type'] == 'server':
-                tbears_server_config.update(deepcopy(tbears_server_config_reset))
-            else:
-                tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
+        if test_opts['config_type'] == 'cli':
+            tbears_cli_config.update(deepcopy(tbears_cli_config_reset))
+        elif test_opts['config_type'] == 'server':
+            tbears_server_config.update(deepcopy(tbears_server_config_reset))
 
     def c_o_i_o_wrapper(self, test_command_list: list):
         for test_command in test_command_list:
             for dir in test_command['user_config_file']:
+                # todo: should check whether if file or dir, and make adequately
                 os.mkdir(dir)
+                self.tear_down_params.append(dir)
+                print(self.tear_down_params)
 
             self.c_o_i_o(test_command)
 
-            for dir in test_command['user_config_file']:
-                shutil.rmtree(dir)
+            rm_file_dir(self.tear_down_params)
+            self.tear_down_params.clear()
+            print(self.tear_down_params)
 
     def test_c_o_i_o_case(self):
         u = ['-u http://127.0.0.1:9000/api/v3_user_input', '']
