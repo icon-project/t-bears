@@ -43,7 +43,7 @@ class CommandServer(object):
     def _add_start_parser(subparsers) -> None:
         parser = subparsers.add_parser('start', help='Start tbears serivce',
                                        description='Start tbears service')
-        parser.add_argument('-a', '--address', type=ip_address, help='Address to host on (default: 0.0.0.0)')
+        parser.add_argument('-a', '--address', type=ip_address, help='Address to host on (default: 0.0.0.0)', dest='hostAddress')
         parser.add_argument('-p', '--port', type=port_type, help='Port to host on (default: 9000)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'tbears configuration file path (default: {FN_SERVER_CONF})')

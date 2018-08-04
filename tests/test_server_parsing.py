@@ -23,15 +23,15 @@ class TestCommandServer(TestCommand):
 
     # Test if cli arguments are parced correctly.
     def test_start_args_parsing(self):
-        address = '0.0.0.0'
-        port = 9000
+        hostAddress = '9.9.9.9'
+        port = 5000
         config_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_server_config.json')
 
         # Parsing test
-        cmd = f'start -a {address} -p {port} -c {config_path}'
+        cmd = f'start -a {hostAddress} -p {port} -c {config_path}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(parsed.command, 'start')
-        self.assertEqual(str(parsed.address), address)
+        self.assertEqual(str(parsed.hostAddress), hostAddress)
         self.assertEqual(int(parsed.port), port)
         self.assertEqual(parsed.config, config_path)
 
