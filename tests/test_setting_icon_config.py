@@ -97,11 +97,11 @@ class TestCliTestUtil(unittest.TestCase):
 
     @staticmethod
     def make_whole_possible_cli(test_opts: dict):
-        user_config = test_opts.get('user_config_opts', [])
+        user_config = test_opts.get('optional_args', [])
 
-        for idx, args in enumerate(test_opts['user_config_args']):
+        for idx, args in enumerate(test_opts['positional_args']):
             user_config.insert(idx, [args])
-        for idx, file in enumerate(test_opts['user_config_file']):
+        for idx, file in enumerate(test_opts['positional_files']):
             user_config.insert(idx, [file])
         user_config.insert(0, [test_opts['command']])
 
@@ -172,7 +172,7 @@ class TestCliTestUtil(unittest.TestCase):
 
     def config_setting_test_module_wrapper(self, test_command_list: list):
         for test_command in test_command_list:
-            for dir in test_command['user_config_file']:
+            for dir in test_command['positional_files']:
                 # todo: should check whether if file or dir, and make adequately
                 os.mkdir(dir)
                 self.tear_down_params.append(dir)
@@ -196,8 +196,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_deploy_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'deploy',
-            'user_config_file': ['test_project'],
-            'user_config_args': [],
+            'positional_files': ['test_project'],
+            'positional_args': [],
             'get_config_func': CommandScore.get_score_conf,
             'description': 'case: config: X , user input: x'
         }
@@ -205,18 +205,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'deploy',
-            'user_config_file': ['test_project'],
-            'user_config_args': [],
-            'user_config_opts': [c],
+            'positional_files': ['test_project'],
+            'positional_args': [],
+            'optional_args': [c],
             'get_config_func': CommandScore.get_score_conf,
             'description': 'config: O , user input: X'
         }
         test_deploy_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'deploy',
-            'user_config_file': ['test_project'],
-            'user_config_args': [],
-            'user_config_opts': [u, t, m, f, o, k, n],
+            'positional_files': ['test_project'],
+            'positional_args': [],
+            'optional_args': [u, t, m, f, o, k, n],
             'get_config_func': CommandScore.get_score_conf,
             'description': 'config: X , user input: O'
         }
@@ -224,9 +224,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'deploy',
-            'user_config_file': ['test_project'],
-            'user_config_args': [],
-            'user_config_opts': [u, t, m, f, o, k, n, c],
+            'positional_files': ['test_project'],
+            'positional_args': [],
+            'optional_args': [u, t, m, f, o, k, n, c],
             'get_config_func': CommandScore.get_score_conf,
             'description': 'config: O , user input: O'
         }
@@ -249,9 +249,9 @@ class TestCliTestUtil(unittest.TestCase):
         test_lastblock_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'lastblock',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -259,18 +259,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'lastblock',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_lastblock_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'lastblock',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [u],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [u],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -278,9 +278,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'lastblock',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [u, c],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [u, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -295,8 +295,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_blockbyhash_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'blockbyhash',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -304,18 +304,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'blockbyhash',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'optional_args': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_blockbyhash_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'blockbyhash',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
-            'user_config_opts': [u],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'optional_args': [u],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -323,9 +323,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'blockbyhash',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
-            'user_config_opts': [u, c],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'optional_args': [u, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -340,8 +340,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_blockbyheight_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'blockbyheight',
-            'user_config_file': [],
-            'user_config_args': ["0"],
+            'positional_files': [],
+            'positional_args': ["0"],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -349,18 +349,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'blockbyheight',
-            'user_config_file': [],
-            'user_config_args': ["0"],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': ["0"],
+            'optional_args': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_blockbyheight_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'blockbyheight',
-            'user_config_file': [],
-            'user_config_args': ["0"],
-            'user_config_opts': [u],
+            'positional_files': [],
+            'positional_args': ["0"],
+            'optional_args': [u],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -368,9 +368,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'blockbyheight',
-            'user_config_file': [],
-            'user_config_args': ["0"],
-            'user_config_opts': [u, c],
+            'positional_files': [],
+            'positional_args': ["0"],
+            'optional_args': [u, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -385,8 +385,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_txresult_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'txresult',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -394,18 +394,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'txresult',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'optional_args': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_txresult_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'txresult',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
-            'user_config_opts': [u],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'optional_args': [u],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -413,9 +413,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'txresult',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
-            'user_config_opts': [u, c],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'optional_args': [u, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -430,8 +430,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_transfer_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'transfer',
-            'user_config_file': [],
-            'user_config_args': ["cx0000000000000000000000000000000000000000", "1e18"],
+            'positional_files': [],
+            'positional_args': ["cx0000000000000000000000000000000000000000", "1e18"],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -439,18 +439,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'transfer',
-            'user_config_file': [],
-            'user_config_args': ["cx0000000000000000000000000000000000000000", "1e18"],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': ["cx0000000000000000000000000000000000000000", "1e18"],
+            'optional_args': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_transfer_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'transfer',
-            'user_config_file': [],
-            'user_config_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", "1e18"],
-            'user_config_opts': [f, k, n, u],
+            'positional_files': [],
+            'positional_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", "1e18"],
+            'optional_args': [f, k, n, u],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -458,9 +458,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'transfer',
-            'user_config_file': [],
-            'user_config_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", "1e18"],
-            'user_config_opts': [f, k, n, u, c],
+            'positional_files': [],
+            'positional_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", "1e18"],
+            'optional_args': [f, k, n, u, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -475,8 +475,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_balance_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'balance',
-            'user_config_file': [],
-            'user_config_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
+            'positional_files': [],
+            'positional_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -484,18 +484,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'balance',
-            'user_config_file': [],
-            'user_config_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
+            'optional_args': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_balance_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'balance',
-            'user_config_file': [],
-            'user_config_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
-            'user_config_opts': [u],
+            'positional_files': [],
+            'positional_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
+            'optional_args': [u],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -503,9 +503,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'balance',
-            'user_config_file': [],
-            'user_config_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
-            'user_config_opts': [u, c],
+            'positional_files': [],
+            'positional_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
+            'optional_args': [u, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -520,8 +520,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_totalsupply_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'totalsupply',
-            'user_config_file': [],
-            'user_config_args': [],
+            'positional_files': [],
+            'positional_args': [],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -529,18 +529,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'totalsupply',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_totalsupply_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'totalsupply',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [u],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [u],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -548,9 +548,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'totalsupply',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [u, c],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [u, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -565,8 +565,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_scoreapi_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'scoreapi',
-            'user_config_file': [],
-            'user_config_args': ["cxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
+            'positional_files': [],
+            'positional_args': ["cxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -574,18 +574,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'scoreapi',
-            'user_config_file': [],
-            'user_config_args': ["cxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': ["cxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
+            'optional_args': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_scoreapi_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'scoreapi',
-            'user_config_file': [],
-            'user_config_args': ["cxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
-            'user_config_opts': [u],
+            'positional_files': [],
+            'positional_args': ["cxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
+            'optional_args': [u],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -593,9 +593,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'scoreapi',
-            'user_config_file': [],
-            'user_config_args': ["cxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
-            'user_config_opts': [u, c],
+            'positional_files': [],
+            'positional_args': ["cxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"],
+            'optional_args': [u, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -610,8 +610,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_txbyhash_opts_c_x_i_x = {
             'config_type': 'cli',
             'command': 'txbyhash',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -619,18 +619,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'txbyhash',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'optional_args': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_txbyhash_opts_c_x_i_o = {
             'config_type': 'cli',
             'command': 'txbyhash',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
-            'user_config_opts': [u],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'optional_args': [u],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -638,9 +638,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'cli',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'txbyhash',
-            'user_config_file': [],
-            'user_config_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
-            'user_config_opts': [u, c],
+            'positional_files': [],
+            'positional_args': ["0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"],
+            'optional_args': [u, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -660,8 +660,8 @@ class TestCliTestUtil(unittest.TestCase):
         test_start_opts_c_x_i_x = {
             'config_type': 'server',
             'command': 'start',
-            'user_config_file': [],
-            'user_config_args': [],
+            'positional_files': [],
+            'positional_args': [],
             'get_config_func': CommandServer.get_icon_conf,
             'description': 'config: X , user input: X'
         }
@@ -669,18 +669,18 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'server',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_server_config.json"),
             'command': 'start',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [c],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [c],
             'get_config_func': CommandServer.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_start_opts_c_x_i_o = {
             'config_type': 'server',
             'command': 'start',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [a, p],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [a, p],
             'get_config_func': CommandServer.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -688,9 +688,9 @@ class TestCliTestUtil(unittest.TestCase):
             'config_type': 'server',
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_server_config.json"),
             'command': 'start',
-            'user_config_file': [],
-            'user_config_args': [],
-            'user_config_opts': [a, p, c],
+            'positional_files': [],
+            'positional_args': [],
+            'optional_args': [a, p, c],
             'get_config_func': CommandServer.get_icon_conf,
             'description': 'config: O , user input: O'
         }
