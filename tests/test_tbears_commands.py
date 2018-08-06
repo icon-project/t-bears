@@ -195,22 +195,25 @@ class TestTBearsCommands(unittest.TestCase):
         # txbyhash (query transaction)
         txbyhash_response = self.cmd.cmdWallet.txbyhash(conf)
         txbyhash_response_result = txbyhash_response['result']
-        txbyhash_params = txbyhash_response_result['params']
-        self.assertIn('method', txbyhash_response_result)
-        self.assertIn('params', txbyhash_response_result)
-        self.assertIn('from', txbyhash_params)
-        self.assertIn('to', txbyhash_params)
-        self.assertIn('value', txbyhash_params)
+        self.assertIn('from', txbyhash_response_result)
+        self.assertIn('to', txbyhash_response_result)
+        self.assertIn('value', txbyhash_response_result)
 
-        # gettx (query transaction)
-        gettx_response = self.cmd.cmdWallet.txbyhash(conf)
-        gettx_response_result = gettx_response['result']
-        gettx_params = gettx_response_result['params']
-        self.assertIn('method', gettx_response_result)
-        self.assertIn('params', gettx_response_result)
-        self.assertIn('from', gettx_params)
-        self.assertIn('to', gettx_params)
-        self.assertIn('value', gettx_params)
+        # lastblock
+        response = self.cmd.cmdWallet.lastblock(conf)
+        self.assertIn('result', response)
+        conf['hash'] = f"0x{response['result']['block_hash']}"
+        conf['height'] = hex(response['result']['height'])
+
+        # blockbyheight
+        response_height = self.cmd.cmdWallet.blockbyheight(conf)
+        self.assertIn('result', response_height)
+        self.assertEqual(hex(response_height['result']['height']), conf['height'])
+
+        # blockbyhash
+        response_hash = self.cmd.cmdWallet.blockbyhash(conf)
+        self.assertIn('result', response_hash)
+        self.assertEqual(f"0x{response_hash['result']['block_hash']}", conf['hash'])
 
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
