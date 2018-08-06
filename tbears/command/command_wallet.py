@@ -78,8 +78,8 @@ class CommandWallet:
     @staticmethod
     def _add_transfer_parser(subparsers):
         parser = subparsers.add_parser('transfer', help='Transfer ICX coin.', description='Transfer ICX coin.')
-        parser.add_argument('-f', '--from', type=IconAddress, help='From address. Must use with dummy type.')
-        parser.add_argument('to', type=IconAddress, help='Recipient')
+        parser.add_argument('-f', '--from', type=IconAddress(), help='From address. Must use with dummy type.')
+        parser.add_argument('to', type=IconAddress(), help='Recipient')
         parser.add_argument("value", type=float, help='Amount of ICX coin in loop to transfer (1 icx = 1e18 loop)')
         parser.add_argument('-k', '--key-store', type=IconPath(), dest='keyStore',
                             help='Keystore file path. Used to generate "from" address and transaction signature')
@@ -391,14 +391,28 @@ class CommandWallet:
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         user_input = vars(args)
-
-        # load configurations
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
-        conf.load(user_input.get('config', None))
-        conf.update_conf(user_input)
+        conf = self.get_icon_conf(args.command, args= user_input)
 
         # run command
         getattr(self, args.command)(conf)
+
+    @staticmethod
+    def get_icon_conf(command: str, args: dict = None) -> dict:
+        # load configurations
+        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
+        # load config file
+        conf.load(config_path=args.get('config', None) if args else None)
+
+        # move command config
+        if command in conf:
+            conf.update_conf(conf[command])
+            del conf[command]
+
+        # load user argument
+        if args:
+            conf.update_conf(args)
+
+        return conf
 
     @staticmethod
     def get_keystore_args(path: str):

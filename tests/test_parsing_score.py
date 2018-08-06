@@ -17,7 +17,7 @@ import shutil
 
 from tbears.command.command_score import CommandScore
 from tbears.tbears_exception import TBearsCommandException
-from tests.test_command_parsing import TestCommand
+from tests.test_parsing_command import TestCommand
 from tests.test_util import TEST_UTIL_DIRECTORY, TEST_DIRECTORY
 
 
@@ -52,6 +52,17 @@ class TestCommandScore(TestCommand):
         self.assertEqual(parsed.config, self.config_path)
         shutil.rmtree(self.project)
 
+        # No project directory
+        cmd = f'deploy {self.project}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        os.mkdir(self.project)
+
+        # Invalid from address
+        invalid_addr = 'hx1'
+        cmd = f'deploy {self.project} -f {invalid_addr}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
         # Too much argument
         cmd = f'deploy arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
@@ -74,17 +85,6 @@ class TestCommandScore(TestCommand):
 
         # Not supported mode (only install, update are available)
         cmd = f'deploy {self.project} -m not_supported_mode'
-        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
-
-        # No project directory
-        cmd = f'deploy {self.project}'
-        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
-
-        os.mkdir(self.project)
-
-        # Invalid from address
-        invalid_addr = 'hx1'
-        cmd = f'deploy {self.project} -f {invalid_addr}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
         # Invalid to address

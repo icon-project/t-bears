@@ -11,7 +11,8 @@
     },
     "service": {
         "fee": false,
-        "audit": false
+        "audit": false,
+        "deployerWhiteList": false
     },
     "genesis": {
         "nid": "0x3",
