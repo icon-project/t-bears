@@ -17,7 +17,7 @@ import shutil
 
 from tbears.command.command_score import CommandScore
 from tbears.tbears_exception import TBearsCommandException
-from tests.test_command_parsing import TestCommand
+from tests.test_parsing_command import TestCommand
 from tests.test_util import TEST_UTIL_DIRECTORY, TEST_DIRECTORY
 
 

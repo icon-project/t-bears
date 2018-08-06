@@ -58,7 +58,7 @@ def rm_file_dir(rm_list: list):
 
 # this test can not check args parsing
 # parsing should be checked on test_{command}_parsing
-class CliTestUtil(unittest.TestCase):
+class TestCliTestUtil(unittest.TestCase):
     def setUp(self):
         self.cmd = Command()
         self.parser = self.cmd.parser
@@ -149,10 +149,10 @@ class CliTestUtil(unittest.TestCase):
             config_option_list = self.make_config_option_list(parsed_args=vars(parsed),
                                                               config_name=test_opts['config_type'])
 
-            print('============================================cli=============================================')
-            print('* cli: ', cli)
-            print('* expected_conf: ', expected_conf)
-            print('* actual_conf:   ', actual_conf)
+            #print('============================================cli=============================================')
+            #print('* cli: ', cli)
+            #print('* expected_conf: ', expected_conf)
+            #print('* actual_conf:   ', actual_conf)
 
             for key in config_option_list:
                 # actual_conf['command'] = 'raise_error'
@@ -440,7 +440,7 @@ class CliTestUtil(unittest.TestCase):
             'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
             'command': 'transfer',
             'user_config_file': [],
-            'user_config_args': ["cx0000000000000000000000000000000000000000_config_path", "1e18"],
+            'user_config_args': ["cx0000000000000000000000000000000000000000", "1e18"],
             'user_config_opts': [c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: X'
