@@ -15,10 +15,12 @@ import json
 import sys
 import time
 import hashlib
-from json import JSONDecodeError
+import uuid
 import argparse
+from json import JSONDecodeError
 from ipaddress import ip_address
-from typing import Optional
+from typing import Optional, Union
+from copy import deepcopy
 
 from iconservice.icon_constant import DATA_BYTE_ORDER, ConfigKey
 from jsonrpcserver import status
@@ -48,6 +50,12 @@ sys.path.append('..')
 sys.path.append('.')
 
 TBEARS_DB = None
+DB_PREFIX_TX = b'tx|'
+DB_PREFIX_TXRESULT = b'txResult|'
+DB_PREFIX_BLOCK = b'block|'
+DB_PREFIX_BLOCK_INDEX = b'blockIndex|'
+DB_PREFIX_BLOCK_HEIGHT = b'blockHeight|'
+DB_PREFIX_PREV_BLOCK = b'prevBlockHash|'
 
 
 def create_hash(data: bytes) -> str:
@@ -60,10 +68,13 @@ def get_icon_inner_task() -> Optional['IconScoreInnerTask']:
 
 
 def get_block_height():
+    return __block_height
+
+
+def set_block_height():
     global __block_height
     __block_height += 1
-    TBEARS_DB.put(b'blockHeight', str(__block_height).encode())
-    return __block_height
+    TBEARS_DB.put(DB_PREFIX_BLOCK_HEIGHT, str(__block_height).encode())
 
 
 def get_prev_block_hash():
@@ -74,13 +85,22 @@ def get_prev_block_hash():
 def set_prev_block_hash(block_hash: str):
     global __prev_block_hash
     __prev_block_hash = block_hash
-    TBEARS_DB.put(b'prevBlockHash', bytes.fromhex(__prev_block_hash))
+    TBEARS_DB.put(DB_PREFIX_PREV_BLOCK, bytes.fromhex(__prev_block_hash))
 
 
 def rollback_block():
     global __block_height
+
+    # delete block
+    block_hash = TBEARS_DB.get(DB_PREFIX_BLOCK_INDEX + __block_height.to_bytes(32, DATA_BYTE_ORDER))
+    TBEARS_DB.delete(DB_PREFIX_BLOCK + bytes.fromhex(block_hash))
+
+    # delete block index
+    TBEARS_DB.delete(DB_PREFIX_BLOCK_INDEX + __block_height.to_bytes(32, DATA_BYTE_ORDER))
+
+    # decrease block_height
     __block_height -= 1
-    TBEARS_DB.put(b'blockHeight', str(__block_height).encode())
+    TBEARS_DB.put(DB_PREFIX_BLOCK_HEIGHT, str(__block_height).encode())
 
 
 def get_tx_result_mapper():
@@ -202,7 +222,7 @@ class MockDispatcher:
 
         # check duplication
         tx_hash = create_hash(json.dumps(request_params).encode())
-        result = TBEARS_DB.get(b'result|' + bytes.fromhex(tx_hash))
+        result = TBEARS_DB.get(DB_PREFIX_TXRESULT + bytes.fromhex(tx_hash))
         if result:
             result = {"error": {"code": 32000, "message": "Duplicated transaction"}}
             return response_to_json_invoke(result)
@@ -221,15 +241,16 @@ class MockDispatcher:
 
         # prepare request data to invoke
         request = {'transactions': [tx]}
-        block_height: int = get_block_height()
+        block_height: int = get_block_height() + 1
         block_timestamp_us = int(time.time() * 10 ** 6)
         block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
+        prev_block_hash = get_prev_block_hash()
 
         request['block'] = {
             'blockHeight': hex(block_height),
             'blockHash': block_hash,
             'timestamp': hex(block_timestamp_us),
-            'prevBlockHash': get_prev_block_hash()
+            'prevBlockHash': prev_block_hash
         }
 
         precommit_request = {'blockHeight': hex(block_height),
@@ -245,6 +266,7 @@ class MockDispatcher:
             await get_icon_inner_task().remove_precommit_state(precommit_request)
         else:
             set_prev_block_hash(block_hash)
+            set_block_height()
             await get_icon_inner_task().write_precommit_state(precommit_request)
 
         tx_result = tx_results[tx_hash]
@@ -256,8 +278,15 @@ class MockDispatcher:
             tx_result['txHash'] = tx_hash
             tx_hash = tx_hash[2:]
 
-        TBEARS_DB.put(b'result|' + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
-        TBEARS_DB.put(b'transaction|' + bytes.fromhex(tx_hash), json.dumps(tx).encode())
+        # save transaction result
+        save_txresult(tx_hash, tx_result)
+
+        # save transaction
+        save_transaction(tx_hash=tx_hash, params=request_params, block_hash=block_hash, block_height=block_height)
+
+        # save block
+        save_block(block_hash, block_height, tx_hash, prev_block_hash)
+
         return response_to_json_invoke(tx_results)
 
     @staticmethod
@@ -297,7 +326,7 @@ class MockDispatcher:
 
         try:
             tx_hash = request_params['txHash']
-            tx_hash_result = TBEARS_DB.get(b'result|' + bytes.fromhex(tx_hash[2:]))
+            tx_hash_result = TBEARS_DB.get(DB_PREFIX_TXRESULT + bytes.fromhex(tx_hash[2:]))
             tx_hash_result_str = tx_hash_result.decode()
             tx_result_json = json.loads(tx_hash_result_str)
         except Exception:
@@ -314,10 +343,7 @@ class MockDispatcher:
         Logger.debug(f'json_rpc_server getTransactionByHash!', TBEARS_LOG_TAG)
 
         try:
-            tx_hash = request_params['txHash']
-            tx_payload = TBEARS_DB.get(b'transaction|' + bytes.fromhex(tx_hash[2:]))
-            tx_payload_str = tx_payload.decode()
-            tx_payload_json = json.loads(tx_payload)
+            tx_payload_json = get_transaction(request_params['txHash'])
         except Exception:
             raise GenericJsonRpcServerError(
                 code=InvalidParams.code,
@@ -335,6 +361,29 @@ class MockDispatcher:
         request = {'method': method, 'params': request_params}
         response = await get_icon_inner_task().query(request)
         return response_to_json_query(response)
+
+    @staticmethod
+    @methods.add
+    async def icx_getLastBlock(**_request_params):
+        Logger.debug(f'json_rpc_server icx_getLastBlock!', TBEARS_LOG_TAG)
+
+        return get_block_by_height(get_block_height())
+
+    @staticmethod
+    @methods.add
+    async def icx_getBlockByHeight(**request_params):
+        Logger.debug(f'json_rpc_server icx_getBlockByHeight!', TBEARS_LOG_TAG)
+
+        return get_block_by_height(int(request_params['height'], 16))
+
+    @staticmethod
+    @methods.add
+    async def icx_getBlockByHash(**request_params):
+        Logger.debug(f'json_rpc_server icx_getBlockByHash!', TBEARS_LOG_TAG)
+
+        hash = request_params['hash']
+
+        return get_block_by_hash(bytes.fromhex(hash[2:]))
 
     @staticmethod
     @methods.add
@@ -448,7 +497,7 @@ async def init_icon_inner_task(conf: 'IconConfig'):
     }
 
     request = {'transactions': [tx]}
-    block_height: int = get_block_height()
+    block_height: int = get_block_height() + 1
     block_timestamp_us = tx_timestamp_us
     block_hash = create_hash(block_timestamp_us.to_bytes(8, DATA_BYTE_ORDER))
 
@@ -471,6 +520,7 @@ async def init_icon_inner_task(conf: 'IconConfig'):
         await get_icon_inner_task().remove_precommit_state(precommit_request)
     elif response[tx_hash]['status'] == hex(1):
         set_prev_block_hash(block_hash)
+        set_block_height()
         await get_icon_inner_task().write_precommit_state(precommit_request)
     else:
         rollback_block()
@@ -486,7 +536,12 @@ async def init_icon_inner_task(conf: 'IconConfig'):
         tx_result['txHash'] = tx_hash
         tx_hash = tx_hash[2:]
 
-    TBEARS_DB.put(b'result|' + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
+    # save transaction result
+    save_txresult(tx_hash, tx_result)
+
+    # save block
+    save_block(block_hash=block_hash, block_height=block_height, tx=conf['genesis'])
+
     return response_to_json_invoke(response)
 
 
@@ -502,8 +557,8 @@ def load_tbears_global_variable():
     global __block_height
     global __prev_block_hash
 
-    byte_block_height = TBEARS_DB.get(b'blockHeight')
-    byte_prev_block_hash = TBEARS_DB.get(b'prevBlockHash')
+    byte_block_height = TBEARS_DB.get(DB_PREFIX_BLOCK_HEIGHT)
+    byte_prev_block_hash = TBEARS_DB.get(DB_PREFIX_PREV_BLOCK)
 
     if byte_block_height is not None:
         block_height = byte_block_height.decode()
@@ -514,6 +569,87 @@ def load_tbears_global_variable():
 
 def is_done_genesis_invoke() -> bool:
     return get_prev_block_hash()
+
+
+def save_transaction(tx_hash: str, params: dict, block_hash: str, block_height: int):
+    value = deepcopy(params)
+    del value['txHash']
+    value['txIndex'] = "0x0"
+    value['blockHeight'] = hex(block_height)
+    value['blockHash'] = f'0x{block_hash}'
+
+    TBEARS_DB.put(DB_PREFIX_TX + bytes.fromhex(tx_hash), json.dumps(value).encode())
+
+
+def save_txresult(tx_hash: str, tx_result):
+    TBEARS_DB.put(DB_PREFIX_TXRESULT + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
+
+
+def save_block(block_hash: str, block_height: int, tx: Union[str, dict], prev_block_hash: str = ""):
+    is_genesis = isinstance(tx, dict)
+    block = {
+        "version": "tbears",
+        "prev_block_hash": prev_block_hash,
+        "merkle_tree_root_hash": "tbears_does_not_support_merkel_tree",
+        "time_stamp": int(time.time() * 10 ** 6),
+        "confirmed_transaction_list": [f'0x{tx}'] if not is_genesis else tx,
+        "block_hash": block_hash,
+        "height": block_height,
+        "peer_id": str(uuid.uuid1()) if not is_genesis else "",
+        "signature": "tbears_does_not_support_signature" if not is_genesis else ""
+    }
+
+    # save block
+    TBEARS_DB.put(DB_PREFIX_BLOCK + bytes.fromhex(block_hash), json.dumps(block).encode())
+
+    # save block id/hash
+    TBEARS_DB.put(DB_PREFIX_BLOCK_INDEX + block_height.to_bytes(32, DATA_BYTE_ORDER), bytes.fromhex(block_hash))
+
+
+def get_block_by_height(block_height: int):
+    block_hash: bytes = TBEARS_DB.get(DB_PREFIX_BLOCK_INDEX + block_height.to_bytes(32, DATA_BYTE_ORDER))
+
+    return get_block_by_hash(block_hash=block_hash)
+
+
+def get_block_by_hash(block_hash: bytes):
+        try:
+            block: bytes = TBEARS_DB.get(DB_PREFIX_BLOCK + block_hash)
+            block_json = get_block_result(json.loads(block))
+        except Exception:
+            raise GenericJsonRpcServerError(
+                code=InvalidParams.code,
+                message=f"Can't get block information",
+                http_status=status.HTTP_BAD_REQUEST)
+        else:
+            return block_json
+
+
+def get_block_result(block: dict):
+    tx_list = block.get('confirmed_transaction_list', None)
+    if tx_list is not None and isinstance(tx_list, list):
+        result_list = []
+        for tx in tx_list:
+            if isinstance(tx, dict):
+                # genesis block
+                result_list.append(tx)
+                break
+            tx_result = get_transaction(tx_hash=tx)
+            del tx_result['txIndex']
+            del tx_result['blockHeight']
+            del tx_result['blockHash']
+            result_list.append(tx_result)
+
+        block['confirmed_transaction_list'] = result_list
+
+    return block
+
+
+def get_transaction(tx_hash: str):
+    tx_payload = TBEARS_DB.get(DB_PREFIX_TX + bytes.fromhex(tx_hash[2:]))
+    tx_payload_json = json.loads(tx_payload)
+
+    return tx_payload_json
 
 
 if __name__ == '__main__':
