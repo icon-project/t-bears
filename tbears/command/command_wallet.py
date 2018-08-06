@@ -196,10 +196,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getLastBlock())
 
         if "error" in response:
-            if response['error']['code'] == -32601:
-                print(f"tbears does not support block information.")
-            else:
-                print(json.dumps(response, indent=4))
+            print(json.dumps(response, indent=4))
         else:
             print(f'block info : {json.dumps(response, indent=4)}')
 
@@ -216,10 +213,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getBlockByHeight(conf['height']))
 
         if "error" in response:
-            if response['error']['code'] == -32601:
-                print(f"tbears does not support block information.")
-            else:
-                print(json.dumps(response, indent=4))
+            print(json.dumps(response, indent=4))
         else:
             print(f"block info : {json.dumps(response, indent=4)}")
 
@@ -238,10 +232,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getBlockByHash(conf['hash']))
 
         if "error" in response:
-            if response['error']['code'] == -32601:
-                print(f"tbears does not support block information.")
-            else:
-                print(json.dumps(response, indent=4))
+            print(json.dumps(response, indent=4))
         else:
             print(f"block info : {json.dumps(response, indent=4)}")
 
