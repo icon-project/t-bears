@@ -151,4 +151,5 @@ class CommandUtil(object):
         }
 
     def console(self, conf):
+        """Get into tbears interactive mode by embedding ipython"""
         IPython.start_ipython(['--profile', 'tbears', '--ipython-dir', f'{PROJECT_ROOT_PATH}/tbears'])

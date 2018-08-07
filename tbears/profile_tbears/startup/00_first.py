@@ -12,29 +12,41 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
+
 from IPython import get_ipython
 from IPython.core.magic import magics_class, Magics, line_magic
+from IPython.core import page
 from IPython.terminal.prompts import Prompts, Token
 
 from tbears.command.command import Command
 
-command_ins = Command()
 
 @magics_class
 class TbearsCommands(Magics):
+    command_ins = Command()
+    score_info = []
 
-    def run_command(self, line):
+    def run_command(self, command):
         try:
-            full_command_list = f'{line}'.split()
-            result = command_ins.run(full_command_list)
+            full_command_list = f'{command}'.split()
+            response = self.command_ins.run(full_command_list)
         except:
             pass
         else:
-            return result
+            if full_command_list[0] == 'deploy' and not response.get("error", None):
+                args = self.command_ins.parser.parse_args(full_command_list)
+                conf = self.command_ins.cmdScore.get_score_conf('deploy', args=vars(args))
+                self.score_info.append(f"{conf['project']} : {json.dumps(response)}")
+            return response
 
     @line_magic
     def tbears(self, line):
         return self.run_command(line)
+
+    @line_magic
+    def deployresults(self, line):
+        return page.page("\n".join(self.score_info))
 
     @line_magic
     def init(self, line):
