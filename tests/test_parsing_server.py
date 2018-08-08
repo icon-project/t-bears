@@ -14,7 +14,7 @@
 
 import os
 
-from tests.test_command_parsing import TestCommand
+from tests.test_parsing_command import TestCommand
 from tests.test_util import TEST_UTIL_DIRECTORY
 
 class TestCommandServer(TestCommand):

@@ -58,14 +58,28 @@ class CommandServer(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         user_input = vars(args)
-
-        # load configurations
-        conf = IconConfig(FN_SERVER_CONF, tbears_server_config)
-        conf.load(config_path=user_input.get('config', None))
-        conf.update_conf(user_input)
+        conf = self.get_icon_conf(args.command, args=user_input)
 
         # run command
         getattr(self, args.command)(conf)
+
+    @staticmethod
+    def get_icon_conf(command: str, args: dict = None) -> dict:
+        # load configurations
+        conf = IconConfig(FN_SERVER_CONF, tbears_server_config)
+        # load config file
+        conf.load(config_path=args.get('config', None) if args else None)
+
+        # move command config
+        if command in conf:
+            conf.update_conf(conf[command])
+            del conf[command]
+
+        # load user argument
+        if args:
+            conf.update_conf(args)
+
+        return conf
 
     def start(self, conf: dict):
         """ Start tbears service
@@ -151,8 +165,8 @@ class CommandServer(object):
         conf = {
             "hostAddress": host,
             "port": port,
-            "scoreRootPath": score_root,
-            "stateDbRootPath": score_db_root
+            "scoreRootPath": os.path.abspath(score_root),
+            "stateDbRootPath": os.path.abspath(score_db_root)
         }
         Logger.debug(f"Write server Info.({conf}) to {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
         file_path = TBEARS_CLI_ENV

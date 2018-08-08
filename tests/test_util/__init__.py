@@ -20,7 +20,7 @@ from tbears.util import PROJECT_ROOT_PATH
 TEST_DIRECTORY = os.path.abspath(os.path.join(PROJECT_ROOT_PATH, 'tests'))
 TEST_UTIL_DIRECTORY = os.path.join(TEST_DIRECTORY, 'test_util')
 IN_MEMORY_ZIP_TEST_DIRECTORY = os.path.join(TEST_UTIL_DIRECTORY, 'test_in_memory_zip')
-IN_ICON_CONFIG_TEST_DIRECTORY = os.path.join(TEST_UTIL_DIRECTORY, 'test_icon_config')
+
 
 def get_total_supply(path: str):
     # get total supply using config file.

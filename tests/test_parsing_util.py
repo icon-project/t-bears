@@ -19,7 +19,7 @@ import shutil
 from tbears.command.command_util import CommandUtil
 from tbears.tbears_exception import TBearsCommandException
 
-from tests.test_command_parsing import TestCommand
+from tests.test_parsing_command import TestCommand
 
 
 class TestCommandUtil(TestCommand):

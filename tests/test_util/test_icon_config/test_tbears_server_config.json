@@ -1,0 +1,33 @@
+{
+    "hostAddress": "0.0.0.0_config_path",
+    "port": 9000,
+    "scoreRootPath": "./.score_config_path",
+    "stateDbRootPath": "./.statedb_config_path",
+    "log": {
+        "logger": "tbears_config_path",
+        "level": "info_config_path",
+        "filePath": "./tbears.log_config_path",
+        "colorLog": true,
+        "outputType": "console|file_config_path"
+    },
+    "service": {
+        "fee": false,
+        "audit": false,
+        "deployerWhiteList": false
+    },
+    "genesis": {
+        "nid": "0x03_config_path",
+        "accounts": [
+            {
+                "name": "genesis",
+                "address": "hx0000000000000000000000000000000000000000",
+                "balance": "0x2961fff8ca4a62327800000_config_path"
+            },
+            {
+                "name": "fee_treasury_config_path",
+                "address": "hx1000000000000000000000000000000000000000",
+                "balance": "0x0_config_path"
+            }
+        ]
+    }
+}

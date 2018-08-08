@@ -19,6 +19,7 @@ import unittest
 import json
 import shutil
 import socket
+from copy import deepcopy
 
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
@@ -114,6 +115,8 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(deploy_response.get('error', False), False)
 
         # result (query transaction result)
+        # response(after deploy) contains tx_hash.
+        # below is check if the tx_hash is valid using 'txresult' method
         tx_hash = deploy_response['result']
         conf = self.cmd.cmdWallet.get_result_config(tx_hash)
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
@@ -133,6 +136,16 @@ class TestTBearsCommands(unittest.TestCase):
         conf['conf'] = './tbears_cli_config.json'
         deploy_response = self.cmd.cmdScore.deploy(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
+
+        # deploy - f"-t tbears -m update --to invalid_scoreAddress -c tbears_cli_config.json"
+        # when invalid scoreAddress, response data should contain error data
+        invalid_score_address = 'cx02b13428a8aef265fbaeeb37394d3ae8727f7a19'
+        invalid_conf = deepcopy(conf)
+        invalid_conf['mode'] = 'update'
+        invalid_conf['to'] = invalid_score_address
+        invalid_conf['conf'] = './tbears_cli_config.json'
+        invalid_deploy_response = self.cmd.cmdScore.deploy(conf=invalid_conf)
+        self.assertIsNotNone(invalid_deploy_response.get('error', None))
 
         # result (query transaction result)
         tx_hash = deploy_response['result']
@@ -166,6 +179,11 @@ class TestTBearsCommands(unittest.TestCase):
         deploy_response = self.cmd.cmdScore.deploy(conf=conf, password='qwer1234%')
         self.assertEqual(deploy_response.get('error', False), False)
 
+        invalid_tx_hash = '0x3d6fa810d782a3b3aa6e4a95f5ac48d8bfa096366b3c2ba2922f49cccf3ac6b5'
+        invalid_conf = self.cmd.cmdWallet.get_result_config(invalid_tx_hash)
+        transaction_result_response = self.cmd.cmdWallet.txresult(invalid_conf)
+        self.assertIsNotNone(transaction_result_response.get('error', None))
+
         # result (query transaction result)
         tx_hash = deploy_response['result']
         conf = self.cmd.cmdWallet.get_result_config(tx_hash)
@@ -174,15 +192,28 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
-        # gettx (query transaction)
-        gettx_response = self.cmd.cmdWallet.txbyhash(conf)
-        gettx_response_result = gettx_response['result']
-        gettx_params = gettx_response_result['params']
-        self.assertIn('method', gettx_response_result)
-        self.assertIn('params', gettx_response_result)
-        self.assertIn('from', gettx_params)
-        self.assertIn('to', gettx_params)
-        self.assertIn('value', gettx_params)
+        # txbyhash (query transaction)
+        txbyhash_response = self.cmd.cmdWallet.txbyhash(conf)
+        txbyhash_response_result = txbyhash_response['result']
+        self.assertIn('from', txbyhash_response_result)
+        self.assertIn('to', txbyhash_response_result)
+        self.assertIn('value', txbyhash_response_result)
+
+        # lastblock
+        response = self.cmd.cmdWallet.lastblock(conf)
+        self.assertIn('result', response)
+        conf['hash'] = f"0x{response['result']['block_hash']}"
+        conf['height'] = hex(response['result']['height'])
+
+        # blockbyheight
+        response_height = self.cmd.cmdWallet.blockbyheight(conf)
+        self.assertIn('result', response_height)
+        self.assertEqual(hex(response_height['result']['height']), conf['height'])
+
+        # blockbyhash
+        response_hash = self.cmd.cmdWallet.blockbyhash(conf)
+        self.assertIn('result', response_hash)
+        self.assertEqual(f"0x{response_hash['result']['block_hash']}", conf['hash'])
 
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')

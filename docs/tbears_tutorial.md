@@ -1,13 +1,12 @@
-
-
 # ICON SCORE development suite (tbears) TUTORIAL
 
-## tbears Overview
+This tutorial is intended to give an introduction to using tbears dev suite. This guide will walk you through the basics of setting up your development environrment and the usage of tbears CLI commands. 
+
 tbears is a suite of development tools for SCORE. You can code and test your smart contract locally, and when ready, deploy SCORE onto the ICON network from command-line interface. tbears provides a project template for SCORE to help you start right away.
 
 ## Installation
 
-This guide will explain how to install tbears on your system. 
+This chapter will explain how to install tbears on your system. 
 
 ### Requirements
 
@@ -123,7 +122,7 @@ Available commands:
 
 **Description**
 
-Initialize SCORE development environment. Generate <project\>.py and package.json in <project\> directory. The name of the SCORE class is \<score_class\>.  Configuration files, "tbears_server_config.json" used when starting tbears and "tbears_cli_config.json" used when deploying SCORE, are also generated.
+Initialize SCORE development environment. Generate <project\>.py and package.json in <project\> directory. The name of the SCORE class is \<score_class\>.  Default configuration files, "tbears_server_config.json" used when starting tbears and "tbears_cli_config.json" used when deploying SCORE, are also generated.
 
 **Usage**
 
@@ -163,7 +162,7 @@ abc.py  __init__.py package.json tests
 | :------------------------- | :----------------------------------------------------------- |
 | \<project>                 | SCORE project name. Project directory is create with the same name. |
 | tbears_server_config.json  | tbears default configuration file will be created on the working directory. |
-| tbears_cli_config.json     | Configuration file for 'deploy', 'txresult' and 'transfer' command will be created on the working directory. |
+| tbears_cli_config.json     | Configuration file for CLI commands will be created on the working directory. |
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project folder recognized as a python package. |
 | \<project>/package.json    | SCORE metadata.                                              |
 | \<project>/\<project>.py   | SCORE main file. ABCToken class is defined.                  |
@@ -173,7 +172,7 @@ abc.py  __init__.py package.json tests
 
 **Description**
 
-Start tbears service. Whenever tbears service starts, it loads the configutaion from "tbears_server_config.json" file. If you want to use other configuration file, you can specify the file location with the '-c' option.
+Start tbears service. Whenever tbears service starts, it loads the configutaion from "tbears_server_config.json" file. If you want to use other configuration file, you can specify the file location with the '-c' option.
 
 **Usage**
 
@@ -194,8 +193,8 @@ optional arguments:
 | shorthand, Name | default       | Description                     |
 | --------------- | :------------ | ------------------------------- |
 | -h, --help      |               | show this help message and exit |
-| -a, --address   | 0.0.0.0       | Address to host on              |
-| -p, --port      | 9000          | Listen port                     |
+| -a, --address   | 0.0.0.0       | IP address that the tbears service will listen on. |
+| -p, --port      | 9000          | Port number that the tbears service will listen on. |
 | -c, --config    | ./tbears_server_config.json | tbears configuration file path  |
 
 #### tbears stop
@@ -262,13 +261,13 @@ optional arguments:
 | project                                         |                              | Project directory which contains the SCORE package.          |
 | -h, --help                                      |                              | show this help message and exit                              |
 | -u, --node-uri                                  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
-| -t {tbears,icon},<br> --type {tbears,icon}      | tbears                       | Deploy SCORE type ("tbears" or "icon" ).                     |
+| -t {tbears,icon},<br> --type {tbears,zip}       | tbears                       | Deploy SCORE type ("tbears" or "zip" ).<br>Use "tbears" for local deploy.  When deploy to remote network, you must use "zip". |
 | -m {install,update},<br>--mode {install,update} | install                      | Deploy mode ("install" or "update").                         |
 | -f, --from                                      |                              | From address. i.e. SCORE owner address. It is ignored if '-k' option is set |
-| -o, --to                                        |                              | To address. i.e. SCORE address <br>**(needed only when updating SCORE)** |
+| -o, --to                                        |                              | To address. i.e. SCORE address <br>This parameter is required when updating SCORE. |
 | -k, --key-store                                 |                              | Key store file for SCORE owner                               |
-| -n, --nid                                       |                              | Network ID of node                                           |
-| -c, --config                                    | ./tbears_cli_config.json                | deploy config path                                           |
+| -n, --nid                                       |                              | Network ID of node. <br>Each network has unique ID. If the Nerwork ID does not match, node will reject the SCORE. Network ID will be announced when a network opens to public.<br>0x3 is reserved for tbears service. However, tbears service does not verify the Network id. |
+| -c, --config                                    | ./tbears_cli_config.json     | Configuration file path                                      |
 
 **Examples**
 
@@ -318,7 +317,7 @@ optional arguments:
 
 **Description**
 
-Create two SCORE samples ("standard_crowd_sale", and "standard_token").
+Create two SCORE samples ("standard_crowd_sale" and "standard_token").
 
 **usage**
 
@@ -359,7 +358,7 @@ Transfer designated amount of ICX coins.
 **Usage**
 
 ```bash
-usage: tbears transfer [-h] [-f FROM] [-t {dummy,real}] [-k KEYSTORE] [-u URI]
+usage: tbears transfer [-h] [-f FROM] [-k KEYSTORE] [-n NID] [-u URI]
                        [-c CONFIG]
                        to value
 
@@ -375,10 +374,13 @@ optional arguments:
   -f FROM, --from FROM  From address. Must use with dummy type.
   -k KEYSTORE, --key-store KEYSTORE
                         Sender's key store file
+  -n NID, --nid NID     Network ID (default: 0x3)
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        deploy config path (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        values for the properties "keyStore", "uri" and
+                        "from". (default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -397,11 +399,11 @@ optional arguments:
 **Examples**
 
 ```bash
-(work) $ transfer -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 100
+(work) $ transfer -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa hxbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 100
 Got an error response
 {'jsonrpc': '2.0', 'error': {'code': -32600, 'message': 'Out of balance'}, 'id': 1}
 
-(work) $ tbears transfer -k tests/test_util/test_keystore -t real hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 1e18
+(work) $ tbears transfer -k test_keystore hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 1e18
 Send transfer request successfully.
 transaction hash: 0xc1b92b9a08d8575f735ec2ebbf52dc831d7c2a6a2fa7e97aee4818325cad919e
 ```
@@ -410,7 +412,7 @@ transaction hash: 0xc1b92b9a08d8575f735ec2ebbf52dc831d7c2a6a2fa7e97aee4818325cad
 
 **Description**
 
-Get transaction result.
+Get transaction result by transaction hash.
 
 **Usage**
 
@@ -427,7 +429,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -442,23 +445,22 @@ optional arguments:
 **Examples**
 
 ```bash
-(work) $ tbears txresult 0x2adc1c73da604c7c4247336d98bf5902eee9977ed017ffa3b2b5fd266ab3cd8d
+(work) $ tbears txresult 0x227fb3e6fdc89de8d24e019b1ddc88538633c4202102297da204444d393249c2
 Transaction result: {
     "jsonrpc": "2.0",
     "result": {
-        "txHash": "0x2adc1c73da604c7c4247336d98bf5902eee9977ed017ffa3b2b5fd266ab3cd8d",
-        "blockHeight": "0x1",
-        "blockHash": "86fb191dada862c0996d883d8112baea212c4b2705676bf15f5eadb60a29de72",
+        "txHash": "0x227fb3e6fdc89de8d24e019b1ddc88538633c4202102297da204444d393249c2",
+        "blockHeight": "0x2",
+        "blockHash": "28e6e4710c56e053920b95df0058317a4ac641b16d17d64db7f958e8a5650391",
         "txIndex": "0x0",
         "to": "cx0000000000000000000000000000000000000000",
-        "scoreAddress": "cxeee6a1a4e8ab4d4e3d39c520ceb722217f9a9ef1",
-        "stepUsed": "0x11670",
+        "scoreAddress": "cx6bd390bd855f086e3e9d525b46bfe24511431532",
+        "stepUsed": "0xe2a4",
         "stepPrice": "0x0",
-        "cumulativeStepUsed": "0x11670",
+        "cumulativeStepUsed": "0xe2a4",
         "eventLogs": [],
         "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-        "status": "0x1",
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "status": "0x1"
     },
     "id": 1
 }
@@ -485,7 +487,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -523,7 +526,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -546,12 +550,12 @@ Total supply  of Icx: 0x2961fff8ca4a62327800000
 
 **Description**
 
-Get SCORE's api using given SCORE address
+Get SCORE's APIs using given SCORE address.
 
 **Usage**
 
 ```bash
-usage: tbears scoreapi [-h] [-u URI] [-c CONFIG] SCORE address
+usage: tbears scoreapi [-h] [-u URI] [-c CONFIG] address
 
 Get SCORE's api using given SCOREaddress
 
@@ -563,16 +567,17 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
 
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
-| address  |         | SCORE address to query SCORE api |
+| address  |         | SCORE address to query APIs |
 | -h, --help      |         | show this help message and exit |
-| -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node   |
+| -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node.  |
 | -c, --config    | ./tbears_cli_config.json | Configuration file path. This file defines the default value for the "uri". |
 
 **Examples**
@@ -610,7 +615,7 @@ Get transaction by transaction hash
 **Usage**
 
 ```bash
-usage: tbears txbyhash [-h] [-u URI] [-c CONFIG] transaction hash
+usage: tbears txbyhash [-h] [-u URI] [-c CONFIG] hash
 
 Get transaction by transaction hash
 
@@ -622,7 +627,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -637,30 +643,29 @@ optional arguments:
 **Examples**
 
 ```bash
-(work) $ tbears txbyhash cx0123456789abcdef0123456789abcdefabcdef12
+(work) $ tbears txbyhash 0x95be9f0247bc3b7ed07fe07c53613c580642ef991c574c85db45dbac9e8366df
 
 Transaction: {
     "jsonrpc": "2.0",
     "result": {
-        "method": "icx_sendTransaction",
-        "params": {
-            "version": "0x3",
-            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "value": "0x0",
-            "stepLimit": "0x300000",
-            "timestamp": "0x5722d3c3a1b9e",
-            "nid": "0x3",
-            "nonce": "0x1",
-            "to": "cx0000000000000000000000000000000000000000",
-            "data": {
-                "contentType": "application/tbears",
-                "content": "/Users/lp1709no01/Desktop/tbears/standard_crowd_sale",
-                "params": {}
-            },
-            "dataType": "deploy",
-            "signature": "sig",
-            "txHash": "95be9f0247bc3b7ed07fe07c53613c580642ef991c574c85db45dbac9e8366df"
-        }
+        "version": "0x3",
+        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "value": "0x0",
+        "stepLimit": "0x300000",
+        "timestamp": "0x572e8fd95db26",
+        "nid": "0x3",
+        "nonce": "0x1",
+        "to": "cx0000000000000000000000000000000000000000",
+        "data": {
+            "contentType": "application/tbears",
+            "content": "/Users/lp1709no01/Desktop/abc/abc",
+            "params": {}
+        },
+        "dataType": "deploy",
+        "signature": "sig",
+        "txIndex": "0x0",
+        "blockHeight": "0x2",
+        "blockHash": "0x28e6e4710c56e053920b95df0058317a4ac641b16d17d64db7f958e8a5650391"
     },
     "id": 1
 }
@@ -671,7 +676,7 @@ Transaction: {
 
 **Description**
 
-Query last block's info(Not supported in tbears server.)
+Query last block info. When running on tbears service, "merkle_tree_root_hash" and "signature" will be empty. 
 
 **Usage**
 
@@ -685,7 +690,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -699,39 +705,38 @@ optional arguments:
 **Examples**
 
 ```bash
-(work) $ tbears blockbyheight 0x1
+(work) $ tbears lastblock 
 
 block info : {
     "jsonrpc": "2.0",
     "result": {
-        "version": "0.1a",
-        "prev_block_hash": "12a8cff14a8d09880a8b7db260ce003b27138a888f02c4b175a626d87b4066b0",
-        "merkle_tree_root_hash": "990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef",
-        "time_stamp": 1532915456013722,
+        "version": "tbears",
+        "prev_block_hash": "815c0fd7a0dd4594bb19ee39030c1bd91c200878f1f456fe8dd7ff4e0a19b839",
+        "merkle_tree_root_hash": "tbears_does_not_support_merkel_tree",
+        "time_stamp": 1533719896011654,
         "confirmed_transaction_list": [
             {
                 "version": "0x3",
-                "from": "hx3beeabe68be9c2f753d0fac917255df3ff8321c0",
+                "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 "value": "0x0",
                 "stepLimit": "0x300000",
-                "timestamp": "0x5722db0fb6060",
+                "timestamp": "0x572e8fd95db26",
                 "nid": "0x3",
                 "nonce": "0x1",
                 "to": "cx0000000000000000000000000000000000000000",
                 "data": {
-                    "contentType": "application/zip",
-                    "content": "0x504b03041400000008004756fe4c65fabe8...",
+                    "contentType": "application/tbears",
+                    "content": "/Users/lp1709no01/Desktop/abc/abc",
                     "params": {}
                 },
                 "dataType": "deploy",
-                "signature": "MHWDNI9P2yNTgj4EK3bt2UBcU7jRLdLighPQ/f5BPSQk3t1pgT2jxOqsCrjiSiQFL2eg/86N6hCJo4dHiX3jEwA=",
-                "txHash": "0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"
+                "signature": "sig"
             }
         ],
-        "block_hash": "ce00facd0ac3832e1e6e623d8f4b9344782da881e55abb48d1494fde9e465f78",
-        "height": 1,
-        "peer_id": "hx86aba2210918a9b116973f3c4b27c41a54d5dafe",
-        "signature": "75SpeY478raMZDVgFTXtZOa5wHZOn7nqAcWQfFgHta19IkGnRUzv/6J5hUaG+/Td55GClVrnrCn2ow1JsEV6IQA="
+        "block_hash": "28e6e4710c56e053920b95df0058317a4ac641b16d17d64db7f958e8a5650391",
+        "height": 2,
+        "peer_id": "fb5f43dc-9aeb-11e8-a31b-acde48001122",
+        "signature": "tbears_does_not_support_signature"
     },
     "id": 1
 }
@@ -742,7 +747,7 @@ block info : {
 
 **Description**
 
-Get block's info using given block height(Not supported in tbears server.)
+Get block info using given block height.
 
 **Usage**
 
@@ -759,14 +764,15 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
 
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
-| height          |         | height of the block to be queried |
+| height          |         | Height of the block to be queried |
 | -h, --help      |         | show this help message and exit |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node   |
 | -c, --config    | ./tbears_cli_config.json | Configuration file path. This file defines the default value for the "uri". |
@@ -779,34 +785,27 @@ optional arguments:
 block info : {
     "jsonrpc": "2.0",
     "result": {
-        "version": "0.1a",
-        "prev_block_hash": "12a8cff14a8d09880a8b7db260ce003b27138a888f02c4b175a626d87b4066b0",
-        "merkle_tree_root_hash": "990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef",
-        "time_stamp": 1532915456013722,
+        "version": "tbears",
+        "prev_block_hash": "859083707985809a8b52982b9d8d86bfe48c0020a478b3a99d7eeb3c74c38e7c",
+        "merkle_tree_root_hash": "tbears_does_not_support_merkel_tree",
+        "time_stamp": 1533719753948440,
         "confirmed_transaction_list": [
             {
                 "version": "0x3",
-                "from": "hx3beeabe68be9c2f753d0fac917255df3ff8321c0",
-                "value": "0x0",
-                "stepLimit": "0x300000",
-                "timestamp": "0x5722db0fb6060",
+                "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+                "value": "0x8ac7230489e80000",
+                "stepLimit": "0x2000",
+                "timestamp": "0x572e8f51e4481",
                 "nid": "0x3",
                 "nonce": "0x1",
-                "to": "cx0000000000000000000000000000000000000000",
-                "data": {
-                    "contentType": "application/zip",
-                    "content": "0x504b03041400000008...",
-                    "params": {}
-                },
-                "dataType": "deploy",
-                "signature": "MHWDNI9P2yNTgj4EK3bt2UBcU7jRLdLighPQ/f5BPSQk3t1pgT2jxOqsCrjiSiQFL2eg/86N6hCJo4dHiX3jEwA=",
-                "txHash": "0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"
+                "to": "hxbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+                "signature": "f2B3r27u7peL3I9uBnKA8yn82odqlMECU+UBkRiZTJIwWFo57AmlUjKhoK8OZBBRdaWWmLF+JTZNs70yF8+zIwA="
             }
         ],
-        "block_hash": "ce00facd0ac3832e1e6e623d8f4b9344782da881e55abb48d1494fde9e465f78",
+        "block_hash": "815c0fd7a0dd4594bb19ee39030c1bd91c200878f1f456fe8dd7ff4e0a19b839",
         "height": 1,
-        "peer_id": "hx86aba2210918a9b116973f3c4b27c41a54d5dafe",
-        "signature": "75SpeY478raMZDVgFTXtZOa5wHZOn7nqAcWQfFgHta19IkGnRUzv/6J5hUaG+/Td55GClVrnrCn2ow1JsEV6IQA="
+        "peer_id": "a6b22354-9aeb-11e8-a0ae-acde48001122",
+        "signature": "tbears_does_not_support_signature"
     },
     "id": 1
 }
@@ -817,11 +816,17 @@ block info : {
 
 **Description**
 
-Get block's info using given block hash(Not supported in tbears server.)
+Get block info using given block hash.
 
-positional arguments:
-  hash                  hash of the block to be queried
-  
+**Options**
+
+| shorthand, Name | default                      | Description                                                  |
+| --------------- | :--------------------------- | ------------------------------------------------------------ |
+| hash            |                              | Hash of the block to be queried                              |
+| -h, --help      |                              | show this help message and exit                              |
+| -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
+| -c, --config    | ./tbears_cli_config.json     | Configuration file path. This file defines the default value for the "uri". |
+
 **Usage**
 
 ```bash
@@ -837,54 +842,39 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
-
-**Options**
-
-| shorthand, Name | default | Description                     |
-| --------------- | :------ | ------------------------------- |
-| hash |         | hash of the block to be queried |
-| -h, --help      |         | show this help message and exit |
-| -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node   |
-| -c, --config    | ./tbears_cli_config.json | Configuration file path. This file defines the default value for the "uri". |
 
 **Examples**
 
 ```bash
-(work) $ tbears blockbyhash ce00facd0ac3832e1e6e623d8f4b9344782da881e55abb48d1494fde9e465f78
+(work) $ tbears blockbyhash 0xce00facd0ac3832e1e6e623d8f4b9344782da881e55abb48d1494fde9e465f78
 
 block info : {
     "jsonrpc": "2.0",
     "result": {
-        "version": "0.1a",
-        "prev_block_hash": "12a8cff14a8d09880a8b7db260ce003b27138a888f02c4b175a626d87b4066b0",
-        "merkle_tree_root_hash": "990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef",
-        "time_stamp": 1532915456013722,
+        "version": "tbears",
+        "prev_block_hash": "859083707985809a8b52982b9d8d86bfe48c0020a478b3a99d7eeb3c74c38e7c",
+        "merkle_tree_root_hash": "tbears_does_not_support_merkel_tree",
+        "time_stamp": 1533719753948440,
         "confirmed_transaction_list": [
             {
                 "version": "0x3",
-                "from": "hx3beeabe68be9c2f753d0fac917255df3ff8321c0",
-                "value": "0x0",
-                "stepLimit": "0x300000",
-                "timestamp": "0x5722db0fb6060",
+                "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+                "value": "0x8ac7230489e80000",
+                "stepLimit": "0x2000",
+                "timestamp": "0x572e8f51e4481",
                 "nid": "0x3",
                 "nonce": "0x1",
-                "to": "cx0000000000000000000000000000000000000000",
-                "data": {
-                    "contentType": "application/zip",
-                    "content": "0x504b03041400000008...",
-                    "params": {}
-                },
-                "dataType": "deploy",
-                "signature": "MHWDNI9P2yNTgj4EK3bt2UBcU7jRLdLighPQ/f5BPSQk3t1pgT2jxOqsCrjiSiQFL2eg/86N6hCJo4dHiX3jEwA=",
-                "txHash": "0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"
+                "to": "hxbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+                "signature": "f2B3r27u7peL3I9uBnKA8yn82odqlMECU+UBkRiZTJIwWFo57AmlUjKhoK8OZBBRdaWWmLF+JTZNs70yF8+zIwA="
             }
         ],
-        "block_hash": "ce00facd0ac3832e1e6e623d8f4b9344782da881e55abb48d1494fde9e465f78",
+        "block_hash": "815c0fd7a0dd4594bb19ee39030c1bd91c200878f1f456fe8dd7ff4e0a19b839",
         "height": 1,
-        "peer_id": "hx86aba2210918a9b116973f3c4b27c41a54d5dafe",
-        "signature": "75SpeY478raMZDVgFTXtZOa5wHZOn7nqAcWQfFgHta19IkGnRUzv/6J5hUaG+/Td55GClVrnrCn2ow1JsEV6IQA="
+        "peer_id": "a6b22354-9aeb-11e8-a0ae-acde48001122",
+        "signature": "tbears_does_not_support_signature"
     },
     "id": 1
 }
@@ -899,7 +889,7 @@ Create keystore file in passed path
 
 positional arguments:
   path                  path of keystore file
-  
+
 **Usage**
 
 ```bash
@@ -909,6 +899,9 @@ Create keystore file in passed path
 
 positional arguments:
   path                  Create keystore file in passed path
+
+optional arguments:
+  -h, --help  show this help message and exit
 ```
 
 **Options**
@@ -916,6 +909,7 @@ positional arguments:
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | path | | Create keystore file in passed path |
+| -h, --help      |                              | show this help message and exit                              |
 
 **Examples**
 
@@ -941,9 +935,10 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
     "scoreRootPath": "./.score",
     "stateDbRootPath": "./.statedb",
     "log": {
-        "colorLog": true,
+        "logger": "tbears",
         "level": "info",
         "filePath": "./tbears.log",
+        "colorLog": true,
         "outputType": "console|file"
     },
     "service": {
@@ -970,27 +965,29 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
 
 | Field          | Data type | Description                                                  |
 | :------------- | :-------- | :----------------------------------------------------------- |
-| hostAddress    | string    | Address to host on                                           |
-| port           | int       | Port to host on                                 |
+| hostAddress    | string    | IP address that tbears service will listen on. |
+| port           | int       | Port number that tbears service will listen on. |
 | scoreRootPath  | string    | Root directory that SCORE will be installed.                 |
 | stateDbRootPath| string    | Root directory that state DB file will be created.           |
 | log            | dict      | tbears log setting                                       |
-| log.colorLog   | boolean   | Log display option (color or black)                         |
+| log.logger     | string    | Main logger in process |
 | log.level      | string    | log level. <br/>"debug", "info", "warning", "error"          |
-| log.filePath   | string    | log file path.                                               |
+| log.filePath   | string    | Log file path.                                              |
+| log.colorLog   | boolean   | Log display option (color or black)                         |
 | log.outputType | string    | “console”: log outputs to the console that tbears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
 | service        | didct     | tbears service setting |
-| service.fee    | boolean   | not implemented                                              |
-| service.audit  | boolean   | not implemented                                              |
-| genesis        | dict      | genesis information of tbears node |
-| genesis.nid    | string    | Network ID                                                   |
-| genesis.accounts| list     | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): accounts. |
+| service.fee    | boolean   | true \| false. Charge a fee per transaction when enabled |
+| service.audit  | boolean   | true \| false. Audit deploy transactions when enabled |
+| service.deployerWhiteList | boolean   | true \| false. Limit SCORE deploy permission when enabled |
+| genesis        | dict      | Genesis information of tbears node. |
+| genesis.nid    | string    | Network ID.                                                 |
+| genesis.accounts| list     | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): test accounts that you can add. |
 
 #### tbears_cli_config.json
 
-When run `deploy`, `txreulst` and `transfer` commands, this file is used to configure the parameters and initial settings .
+For every tbears CLI commands except `start`, `stop`, `samples`, `clear` and `init`, this file is used to configure the default parameters and initial settings.  
 
-SCORE's  `on_install()` or  `on_update()`  method is called on deployment.  For example, if you deploy a new SCORE (mode: install), `on_install()` method is called to initialize the SCORE. In this config file, you can set the deploy "mode" and the parameters ("scoreParams") of `on_install()` or `on_update()`.
+In this cofiguration file, you can define default options values for some CLI commnds. For example, SCORE's  `on_install()` or  `on_update()`  method is called on deployment. In this config file, you can set the deploy "mode" and the parameters ("scoreParams") of `on_install()` or `on_update()` as shown in the following example.
 
 ```json
 {
@@ -1013,25 +1010,23 @@ SCORE's  `on_install()` or  `on_update()`  method is called on deployment.  F
 | Field       | Data  type | Description                                                  |
 | ----------- | :--------- | :----------------------------------------------------------- |
 | uri         | string     | uri to send the request.                              |
-| nid         | string     | Network ID                                                   |
-| keyStore    | string     | keystore file path                                |
-| from        | string     | From address. It is ignored if 'keyStore' is set |
-| to          | string     | To address |
-| stepLimit   | string     | (optional) stepLimit value                                   |
-| deploy      | dict       | options for deploy command |
-| deploy.contentType | string     | SCORE type of the deployment (tbears or zip)                |
+| nid         | string     | Network ID. 0x03 is reserved for tbears.  |
+| keyStore    | string     | Keystore file path.                              |
+| from        | string     | From address. It is ignored if 'keyStore' is set. |
+| to          | string     | To address. |
+| stepLimit   | string     | (optional) stepLimit value. Default is 0x300000. |
+| deploy      | dict       | Options for deploy command. |
+| deploy.contentType | string     | SCORE type for the deployment. ("tbears" or "zip")        |
 | deploy.mode        | string     | Deploy mode.<br>install: new SCORE deployment.<br>update: update the SCORE that was previously deployed. |
 | deploy.scoreParams | dict       | Parameters to be passed to on_install() or on_update()       |
-| deploy.from        | string     | Address of the SCORE deployer |
-| deploy.to          | string     | Used when update SCORE (The address of the SCORE being updated).<br/>(in the case of "install" mode, the address should be 'cx0000~') |
-| txresult    | dict       | options for txresult command |
-| transfer    | dict       | options for transfer command |
+| deploy.from        | string     | Address of the SCORE deployer<br>Optional. This value will override "from" value. If not given, "from" value will be used. |
+| deploy.to          | string     | Used when update SCORE (The address of the SCORE being updated).<br/>In the case of "install" mode, the address should be 'cx0000~'.<br>Optional. This value will override "to" value. If not given, "to" value will be used. |
+| txresult    | dict       | Options for txresult command.<br>You can define command options in a dict. |
+| transfer    | dict       | Options for transfer command.<br>You can define command options in a dict. |
 
-Each command can have a set of options and that has a higher priority than global options
+Following CLI commands and options can be defined in the configuration file.  
 
-Following fields are working for each command
-
-| Command | Field      |
+| Command | Options |
 | ------- | :--------- |
 | deploy  | uri, nid, keyStore, from, to, mode, contentType, scoreParams, stepLimit |
 | txresult| uri |
@@ -1065,13 +1060,6 @@ Logger.warning('warning log', TAG)
 Logger.error('error log', TAG)
 ```
 
-## Notes
 
-* tbears currently does not have loopchain engine, so some JSON-RPC APIs which are not related to SCORE development may not function.
-    * Below JSON-RPC APIs are supported in tbears:
-        * `icx_getBalance`, `icx_getTotalSupply`, `icx_getBalance`, `icx_call`, `icx_sendTransaction`, `icx_getTransactionResult`
-* When unavoidable, tbears commands or its behavior may change for the sake of improvement.
-* For the development convenience, JSON-RPC server in tbears does not verify the transaction signature.
 
-## Reference
-[tbears JSON-RPC API v3](https://repo.theloop.co.kr/icon/tbears/blob/master/docs/tbears_jsonrpc_api_v3.md)
+
