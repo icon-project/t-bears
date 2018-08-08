@@ -358,7 +358,7 @@ Transfer designated amount of ICX coins.
 **Usage**
 
 ```bash
-usage: tbears transfer [-h] [-f FROM] [-t {dummy,real}] [-k KEYSTORE] [-u URI]
+usage: tbears transfer [-h] [-f FROM] [-k KEYSTORE] [-n NID] [-u URI]
                        [-c CONFIG]
                        to value
 
@@ -374,10 +374,13 @@ optional arguments:
   -f FROM, --from FROM  From address. Must use with dummy type.
   -k KEYSTORE, --key-store KEYSTORE
                         Sender's key store file
+  -n NID, --nid NID     Network ID (default: 0x3)
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        deploy config path (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        values for the properties "keyStore", "uri" and
+                        "from". (default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -426,7 +429,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -483,7 +487,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -521,7 +526,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -561,7 +567,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -620,7 +627,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -682,7 +690,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -755,7 +764,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -832,7 +842,8 @@ optional arguments:
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
   -c CONFIG, --config CONFIG
-                        config path. Use "uri" value (default: ./tbears_cli_config.json)
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
 ```
 
 **Examples**
@@ -888,6 +899,9 @@ Create keystore file in passed path
 
 positional arguments:
   path                  Create keystore file in passed path
+
+optional arguments:
+  -h, --help  show this help message and exit
 ```
 
 **Options**
@@ -895,6 +909,7 @@ positional arguments:
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | path | | Create keystore file in passed path |
+| -h, --help      |                              | show this help message and exit                              |
 
 **Examples**
 
@@ -920,9 +935,10 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
     "scoreRootPath": "./.score",
     "stateDbRootPath": "./.statedb",
     "log": {
-        "colorLog": true,
+        "logger": "tbears",
         "level": "info",
         "filePath": "./tbears.log",
+        "colorLog": true,
         "outputType": "console|file"
     },
     "service": {
@@ -954,13 +970,15 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
 | scoreRootPath  | string    | Root directory that SCORE will be installed.                 |
 | stateDbRootPath| string    | Root directory that state DB file will be created.           |
 | log            | dict      | tbears log setting                                       |
-| log.colorLog   | boolean   | Log display option (color or black)                         |
+| log.logger     | string    | Main logger in process |
 | log.level      | string    | log level. <br/>"debug", "info", "warning", "error"          |
 | log.filePath   | string    | Log file path.                                              |
+| log.colorLog   | boolean   | Log display option (color or black)                         |
 | log.outputType | string    | “console”: log outputs to the console that tbears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
 | service        | didct     | tbears service setting |
-| service.fee    | boolean   | true \| false. Default is false.        |
-| service.audit  | boolean   | true \| false. Default is false.          |
+| service.fee    | boolean   | true \| false. Charge a fee per transaction when enabled |
+| service.audit  | boolean   | true \| false. Audit deploy transactions when enabled |
+| service.deployerWhiteList | boolean   | true \| false. Limit SCORE deploy permission when enabled |
 | genesis        | dict      | Genesis information of tbears node. |
 | genesis.nid    | string    | Network ID.                                                 |
 | genesis.accounts| list     | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): test accounts that you can add. |
