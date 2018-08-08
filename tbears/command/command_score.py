@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 import os
 import shutil
 import getpass
@@ -60,7 +61,7 @@ class CommandScore(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = self.get_score_conf(args.command, args=vars(args))
+        conf = self.get_icon_conf(args.command, args=vars(args))
 
         # run command
         return getattr(self, args.command)(conf)

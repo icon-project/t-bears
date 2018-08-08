@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 import json
 import os
 import sys
@@ -75,8 +76,8 @@ class CommandServer(object):
         :return: command configuration
         """
         # load configurations
-        conf = IconConfig(FN_SERVER_CONF, tbears_server_config)
-
+        conf = IconConfig(FN_SERVER_CONF, copy.deepcopy(tbears_server_config))
+        # load config file
         conf.load(config_path=args.get('config', None) if args else None)
 
         # move command config

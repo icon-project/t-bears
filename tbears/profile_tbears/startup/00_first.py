@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 import json
 
 from IPython import get_ipython
@@ -20,16 +21,20 @@ from IPython.core import page
 from IPython.terminal.prompts import Prompts, Token
 
 from tbears.command.command import Command
+from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
 
 
 @magics_class
 class TbearsCommands(Magics):
     command_ins = Command()
     score_info = []
+    deployed_id = itertools.count(start=1)
 
     def run_command(self, command):
         try:
             full_command_list = f'{command}'.split()
+            if full_command_list[0] == 'console':
+                return
             response = self.command_ins.run(full_command_list)
         except:
             pass
@@ -37,7 +42,9 @@ class TbearsCommands(Magics):
             if full_command_list[0] == 'deploy' and not response.get("error", None):
                 args = self.command_ins.parser.parse_args(full_command_list)
                 conf = self.command_ins.cmdScore.get_score_conf('deploy', args=vars(args))
-                self.score_info.append(f"{conf['project']} : {json.dumps(response)}")
+                self.score_info.append(f"{next(self.deployed_id)}."
+                                       f"path : {conf['project']}, txhash : {response['result']},"
+                                       f" deployed in : {conf['uri']}")
             return response
 
     @line_magic
@@ -117,8 +124,8 @@ class MyPrompt(Prompts):
     def in_prompt_tokens(self, cli=None):
         return [(Token.Prompt, 'tbears) ')]
 
-    def out_prompt_tokens(self, cli=None):
-        return [(Token.Prompt, 'result) ')]
+    def out_prompt_tokens(self):
+        return [(Token.OutPrompt, 'tbears) ')]
 
 
 ip = get_ipython()

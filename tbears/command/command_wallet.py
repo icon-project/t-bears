@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 import getpass
 import json
 import os
@@ -491,7 +492,7 @@ class CommandWallet:
         :return: command configuration
         """
         # load configurations
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
+        conf = IconConfig(FN_CLI_CONF, copy.deepcopy(tbears_cli_config))
         # load config file
         conf.load(config_path=args.get('config', None) if args else None)
 
@@ -504,24 +505,4 @@ class CommandWallet:
         if args:
             conf.update_conf(args)
 
-        return conf
-
-    @staticmethod
-    def get_keystore_args(path: str):
-        return {
-            'path': path
-        }
-
-    @staticmethod
-    def get_result_config(tx_hash: str):
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
-        conf['hash'] = tx_hash
-        return conf
-
-    @staticmethod
-    def get_transfer_config(key_path: str, to: str, value: float) -> dict:
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
-        conf['keyStore'] = key_path
-        conf['to'] = to
-        conf['value'] = value
         return conf
