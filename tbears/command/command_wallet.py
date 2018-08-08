@@ -252,6 +252,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getBlockByHeight(conf['height']))
 
         if "error" in response:
+            print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
             print(f"block info : {json.dumps(response, indent=4)}")
@@ -271,6 +272,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getBlockByHash(conf['hash']))
 
         if "error" in response:
+            print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
             print(f"block info : {json.dumps(response, indent=4)}")
@@ -290,6 +292,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getTransactionByHash(conf['hash']))
 
         if "error" in response:
+            print('Got an error response')
             print(f"Can not get transaction \n{json.dumps(response, indent=4)}")
         else:
             print(f"Transaction: {json.dumps(response, indent=4)}")
@@ -309,6 +312,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getTransactionResult(conf['hash']))
 
         if "error" in response:
+            print('Got an error response')
             print(f"Can not get transaction result \n{json.dumps(response, indent=4)}")
         else:
             print(f"Transaction result: {json.dumps(response, indent=4)}")
@@ -378,6 +382,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getBalance(conf['address']))
 
         if "error" in response:
+            print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
             print(f"balance : {response['result']}")
@@ -394,6 +399,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getTotalSupply())
 
         if "error" in response:
+            print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
             print(f'Total supply of Icx: {response["result"]}')
@@ -412,6 +418,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getScoreApi(conf['address']))
 
         if "error" in response:
+            print('Got an error response')
             print(f"Can not get {conf['address']}'s API\n{json.dumps(response, indent=4)}")
         else:
             print(f"SCORE API: {json.dumps(response['result'], indent=4)}")

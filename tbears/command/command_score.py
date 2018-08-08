@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import copy
+import json
 import os
 import shutil
 import getpass
@@ -113,13 +114,13 @@ class CommandScore(object):
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(request)
 
-        if 'result' in response:
+        if 'error' in response:
+            print('Got an error response')
+            print(json.dumps(response, indent=4))
+        else:
             print('Send deploy request successfully.')
             tx_hash = response['result']
             print(f"transaction hash: {tx_hash}")
-        else:
-            print('Got an error response')
-            print(response)
 
         return response
 
@@ -144,6 +145,7 @@ class CommandScore(object):
                 shutil.rmtree(score_dir_info['scoreRootPath'])
             if os.path.exists(score_dir_info['stateDbRootPath']):
                 shutil.rmtree(score_dir_info['stateDbRootPath'])
+            CommandServer._delete_server_conf()
         except (PermissionError, NotADirectoryError) as e:
             raise TBearsDeleteTreeException(f"Can't delete SCORE files. {e}")
 
