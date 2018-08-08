@@ -396,11 +396,11 @@ optional arguments:
 **Examples**
 
 ```bash
-(work) $ transfer -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 100
+(work) $ transfer -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa hxbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 100
 Got an error response
 {'jsonrpc': '2.0', 'error': {'code': -32600, 'message': 'Out of balance'}, 'id': 1}
 
-(work) $ tbears transfer -k tests/test_util/test_keystore -t real hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 1e18
+(work) $ tbears transfer -k test_keystore hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 1e18
 Send transfer request successfully.
 transaction hash: 0xc1b92b9a08d8575f735ec2ebbf52dc831d7c2a6a2fa7e97aee4818325cad919e
 ```
@@ -441,23 +441,22 @@ optional arguments:
 **Examples**
 
 ```bash
-(work) $ tbears txresult 0x2adc1c73da604c7c4247336d98bf5902eee9977ed017ffa3b2b5fd266ab3cd8d
+(work) $ tbears txresult 0x227fb3e6fdc89de8d24e019b1ddc88538633c4202102297da204444d393249c2
 Transaction result: {
     "jsonrpc": "2.0",
     "result": {
-        "txHash": "0x2adc1c73da604c7c4247336d98bf5902eee9977ed017ffa3b2b5fd266ab3cd8d",
-        "blockHeight": "0x1",
-        "blockHash": "86fb191dada862c0996d883d8112baea212c4b2705676bf15f5eadb60a29de72",
+        "txHash": "0x227fb3e6fdc89de8d24e019b1ddc88538633c4202102297da204444d393249c2",
+        "blockHeight": "0x2",
+        "blockHash": "28e6e4710c56e053920b95df0058317a4ac641b16d17d64db7f958e8a5650391",
         "txIndex": "0x0",
         "to": "cx0000000000000000000000000000000000000000",
-        "scoreAddress": "cxeee6a1a4e8ab4d4e3d39c520ceb722217f9a9ef1",
-        "stepUsed": "0x11670",
+        "scoreAddress": "cx6bd390bd855f086e3e9d525b46bfe24511431532",
+        "stepUsed": "0xe2a4",
         "stepPrice": "0x0",
-        "cumulativeStepUsed": "0x11670",
+        "cumulativeStepUsed": "0xe2a4",
         "eventLogs": [],
         "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-        "status": "0x1",
-        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "status": "0x1"
     },
     "id": 1
 }
@@ -641,25 +640,24 @@ optional arguments:
 Transaction: {
     "jsonrpc": "2.0",
     "result": {
-        "method": "icx_sendTransaction",
-        "params": {
-            "version": "0x3",
-            "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "value": "0x0",
-            "stepLimit": "0x300000",
-            "timestamp": "0x5722d3c3a1b9e",
-            "nid": "0x3",
-            "nonce": "0x1",
-            "to": "cx0000000000000000000000000000000000000000",
-            "data": {
-                "contentType": "application/tbears",
-                "content": "/Users/lp1709no01/Desktop/tbears/standard_crowd_sale",
-                "params": {}
-            },
-            "dataType": "deploy",
-            "signature": "sig",
-            "txHash": "95be9f0247bc3b7ed07fe07c53613c580642ef991c574c85db45dbac9e8366df"
-        }
+        "version": "0x3",
+        "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "value": "0x0",
+        "stepLimit": "0x300000",
+        "timestamp": "0x572e8fd95db26",
+        "nid": "0x3",
+        "nonce": "0x1",
+        "to": "cx0000000000000000000000000000000000000000",
+        "data": {
+            "contentType": "application/tbears",
+            "content": "/Users/lp1709no01/Desktop/abc/abc",
+            "params": {}
+        },
+        "dataType": "deploy",
+        "signature": "sig",
+        "txIndex": "0x0",
+        "blockHeight": "0x2",
+        "blockHash": "0x28e6e4710c56e053920b95df0058317a4ac641b16d17d64db7f958e8a5650391"
     },
     "id": 1
 }
@@ -703,34 +701,33 @@ optional arguments:
 block info : {
     "jsonrpc": "2.0",
     "result": {
-        "version": "0.1a",
-        "prev_block_hash": "12a8cff14a8d09880a8b7db260ce003b27138a888f02c4b175a626d87b4066b0",
-        "merkle_tree_root_hash": "990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef", 
-        "time_stamp": 1532915456013722,
+        "version": "tbears",
+        "prev_block_hash": "815c0fd7a0dd4594bb19ee39030c1bd91c200878f1f456fe8dd7ff4e0a19b839",
+        "merkle_tree_root_hash": "tbears_does_not_support_merkel_tree",
+        "time_stamp": 1533719896011654,
         "confirmed_transaction_list": [
             {
                 "version": "0x3",
-                "from": "hx3beeabe68be9c2f753d0fac917255df3ff8321c0",
+                "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 "value": "0x0",
                 "stepLimit": "0x300000",
-                "timestamp": "0x5722db0fb6060",
+                "timestamp": "0x572e8fd95db26",
                 "nid": "0x3",
                 "nonce": "0x1",
                 "to": "cx0000000000000000000000000000000000000000",
                 "data": {
-                    "contentType": "application/zip",
-                    "content": "0x504b03041400000008004756fe4c65fabe8...",
+                    "contentType": "application/tbears",
+                    "content": "/Users/lp1709no01/Desktop/abc/abc",
                     "params": {}
                 },
                 "dataType": "deploy",
-                "signature": "MHWDNI9P2yNTgj4EK3bt2UBcU7jRLdLighPQ/f5BPSQk3t1pgT2jxOqsCrjiSiQFL2eg/86N6hCJo4dHiX3jEwA=",
-                "txHash": "0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"
+                "signature": "sig"
             }
         ],
-        "block_hash": "ce00facd0ac3832e1e6e623d8f4b9344782da881e55abb48d1494fde9e465f78",
-        "height": 1,
-        "peer_id": "90f58036-b6c7-468e-a1de-a26beb959626",
-        "signature": "75SpeY478raMZDVgFTXtZOa5wHZOn7nqAcWQfFgHta19IkGnRUzv/6J5hUaG+/Td55GClVrnrCn2ow1JsEV6IQA=" 
+        "block_hash": "28e6e4710c56e053920b95df0058317a4ac641b16d17d64db7f958e8a5650391",
+        "height": 2,
+        "peer_id": "fb5f43dc-9aeb-11e8-a31b-acde48001122",
+        "signature": "tbears_does_not_support_signature"
     },
     "id": 1
 }
@@ -778,34 +775,27 @@ optional arguments:
 block info : {
     "jsonrpc": "2.0",
     "result": {
-        "version": "0.1a",
-        "prev_block_hash": "12a8cff14a8d09880a8b7db260ce003b27138a888f02c4b175a626d87b4066b0",
-        "merkle_tree_root_hash": "990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef",
-        "time_stamp": 1532915456013722,
+        "version": "tbears",
+        "prev_block_hash": "859083707985809a8b52982b9d8d86bfe48c0020a478b3a99d7eeb3c74c38e7c",
+        "merkle_tree_root_hash": "tbears_does_not_support_merkel_tree",
+        "time_stamp": 1533719753948440,
         "confirmed_transaction_list": [
             {
                 "version": "0x3",
-                "from": "hx3beeabe68be9c2f753d0fac917255df3ff8321c0",
-                "value": "0x0",
-                "stepLimit": "0x300000",
-                "timestamp": "0x5722db0fb6060",
+                "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+                "value": "0x8ac7230489e80000",
+                "stepLimit": "0x2000",
+                "timestamp": "0x572e8f51e4481",
                 "nid": "0x3",
                 "nonce": "0x1",
-                "to": "cx0000000000000000000000000000000000000000",
-                "data": {
-                    "contentType": "application/zip",
-                    "content": "0x504b03041400000008...",
-                    "params": {}
-                },
-                "dataType": "deploy",
-                "signature": "MHWDNI9P2yNTgj4EK3bt2UBcU7jRLdLighPQ/f5BPSQk3t1pgT2jxOqsCrjiSiQFL2eg/86N6hCJo4dHiX3jEwA=",
-                "txHash": "0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"
+                "to": "hxbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+                "signature": "f2B3r27u7peL3I9uBnKA8yn82odqlMECU+UBkRiZTJIwWFo57AmlUjKhoK8OZBBRdaWWmLF+JTZNs70yF8+zIwA="
             }
         ],
-        "block_hash": "ce00facd0ac3832e1e6e623d8f4b9344782da881e55abb48d1494fde9e465f78",
+        "block_hash": "815c0fd7a0dd4594bb19ee39030c1bd91c200878f1f456fe8dd7ff4e0a19b839",
         "height": 1,
-        "peer_id": "90f58036-b6c7-468e-a1de-a26beb959626",
-        "signature": "75SpeY478raMZDVgFTXtZOa5wHZOn7nqAcWQfFgHta19IkGnRUzv/6J5hUaG+/Td55GClVrnrCn2ow1JsEV6IQA="
+        "peer_id": "a6b22354-9aeb-11e8-a0ae-acde48001122",
+        "signature": "tbears_does_not_support_signature"
     },
     "id": 1
 }
@@ -853,34 +843,27 @@ optional arguments:
 block info : {
     "jsonrpc": "2.0",
     "result": {
-        "version": "0.1a",
-        "prev_block_hash": "12a8cff14a8d09880a8b7db260ce003b27138a888f02c4b175a626d87b4066b0",
-        "merkle_tree_root_hash": "990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef",
-        "time_stamp": 1532915456013722,
+        "version": "tbears",
+        "prev_block_hash": "859083707985809a8b52982b9d8d86bfe48c0020a478b3a99d7eeb3c74c38e7c",
+        "merkle_tree_root_hash": "tbears_does_not_support_merkel_tree",
+        "time_stamp": 1533719753948440,
         "confirmed_transaction_list": [
             {
                 "version": "0x3",
-                "from": "hx3beeabe68be9c2f753d0fac917255df3ff8321c0",
-                "value": "0x0",
-                "stepLimit": "0x300000",
-                "timestamp": "0x5722db0fb6060",
+                "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+                "value": "0x8ac7230489e80000",
+                "stepLimit": "0x2000",
+                "timestamp": "0x572e8f51e4481",
                 "nid": "0x3",
                 "nonce": "0x1",
-                "to": "cx0000000000000000000000000000000000000000",
-                "data": {
-                    "contentType": "application/zip",
-                    "content": "0x504b03041400000008...",
-                    "params": {}
-                },
-                "dataType": "deploy",
-                "signature": "MHWDNI9P2yNTgj4EK3bt2UBcU7jRLdLighPQ/f5BPSQk3t1pgT2jxOqsCrjiSiQFL2eg/86N6hCJo4dHiX3jEwA=",
-                "txHash": "0x990fb821e0499fe2c62b6e7e3259d7ddc594f3f83e85879ade9ed8379375f2ef"
+                "to": "hxbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+                "signature": "f2B3r27u7peL3I9uBnKA8yn82odqlMECU+UBkRiZTJIwWFo57AmlUjKhoK8OZBBRdaWWmLF+JTZNs70yF8+zIwA="
             }
         ],
-        "block_hash": "ce00facd0ac3832e1e6e623d8f4b9344782da881e55abb48d1494fde9e465f78",
+        "block_hash": "815c0fd7a0dd4594bb19ee39030c1bd91c200878f1f456fe8dd7ff4e0a19b839",
         "height": 1,
-        "peer_id": "90f58036-b6c7-468e-a1de-a26beb959626",
-        "signature": "75SpeY478raMZDVgFTXtZOa5wHZOn7nqAcWQfFgHta19IkGnRUzv/6J5hUaG+/Td55GClVrnrCn2ow1JsEV6IQA="
+        "peer_id": "a6b22354-9aeb-11e8-a0ae-acde48001122",
+        "signature": "tbears_does_not_support_signature"
     },
     "id": 1
 }
