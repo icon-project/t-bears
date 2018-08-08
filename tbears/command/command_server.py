@@ -165,8 +165,8 @@ class CommandServer(object):
         conf = {
             "hostAddress": host,
             "port": port,
-            "scoreRootPath": score_root,
-            "stateDbRootPath": score_db_root
+            "scoreRootPath": os.path.abspath(score_root),
+            "stateDbRootPath": os.path.abspath(score_db_root)
         }
         Logger.debug(f"Write server Info.({conf}) to {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
         file_path = TBEARS_CLI_ENV
