@@ -1055,10 +1055,24 @@ response : {
 
 Get into tbears interactive mode by embedding IPython. ([Ipython.org](https://ipython.org/))
 
+**Usage**
+
+```bash
+usage: tbears console [-h]
+
+
+Get into tbears interactive mode by embedding IPython
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+**Examples**
+
 Using Interacive mode, you can execute command with shorten command(without tbears) by predefined IPython's magic command.
 
-example)
 ```bash
+(work) $ tbears console
 tbears) start
 Started tbears service successfully
 ...
@@ -1069,7 +1083,6 @@ tbears) {'jsonrpc': '2.0', 'result': '0x0', 'id': 2}
 ```
 In IPython, you can access previous output using _ expression.
 
-example)
 ```bash
 tbears) pwd
 tbears) '/Users/username/working/'
@@ -1094,7 +1107,6 @@ tbears) 'second'
 ```
 You can pass variables assigned string type to magic command by using $ expressions.
 
-example)
 ```bash
 tbears) address = 'hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6'
 
@@ -1105,7 +1117,6 @@ tbears) {'jsonrpc': '2.0', 'result': '0x0', 'id': 2}
 
 You would {} expression when you passing member of list or dictionary.
 
-example)
 ```bash
 tbears) deploy sample_token
 
@@ -1123,10 +1134,15 @@ tbears)
 
 ```
 
-In interactive mode, you can check SCORE's information deployed while tbears interactive mode is running.
+In interactive mode, you can check SCORE's information deployed while tbears interactive mode is running by executing deployresults command.
+```bash
+tbears) deployresults
+tbears)
+1.path : abc/, txhash : 0x583a89ec656d71d1641945a39792e016eefd6221ad536f9c312957f0c4336774, deployed in : http://127.0.0.1:9000/api/v3
+2.path : token/, txhash : 0x8c2fe3c877d46b7a1ba7feb117d0b12c8b88f33517ad2315ec45e8b7223c22f8, deployed in : http://127.0.0.1:9000/api/v3
+3.path : abctoken/, txhash : 0xee6e311d2652fd5ed5981f4906bca5d4d6933400721fcbf3528249d7bf460e42, deployed in : http://127.0.0.1:9000/api/v3
 
-**Usage**
-
+```
 
 >>>>>>> Write tbears console mode's instruction(#42):docs/tbears_tutorial.md
 ### Configuration Files
