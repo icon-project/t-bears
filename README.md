@@ -928,6 +928,7 @@ Made keystore file successfully
 
 ```
 
+<<<<<<< HEAD:README.md
 ### tbears genconf
 
 **Description**
@@ -1047,6 +1048,87 @@ response : {
 }
 
 ```
+=======
+### tbears console
+
+**Description**
+
+Get into tbears interactive mode by embedding IPython. ([Ipython.org](https://ipython.org/))
+
+Using Interacive mode, you can execute command with shorten command(without tbears) by predefined IPython's magic command.
+
+example)
+```bash
+tbears) start
+Started tbears service successfully
+...
+
+tbears) balance hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6
+
+tbears) {'jsonrpc': '2.0', 'result': '0x0', 'id': 2}
+```
+In IPython, you can access previous output using _ expression.
+
+example)
+```bash
+tbears) pwd
+tbears) '/Users/username/working/'
+
+tbears) _
+tbears) '/Users/username/working/'
+```
+
+You can access nth-output using _n-th expression.
+```bash
+tbears) '1'
+tbears) '1'
+
+tbears) 'second'
+tbears) 'second'
+
+tbears) 3
+tbears) 3
+
+tbears) _2
+tbears) 'second'
+```
+You can pass variables assigned string type to magic command by using $ expressions.
+
+example)
+```bash
+tbears) address = 'hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6'
+
+tbears) balance $address
+
+tbears) {'jsonrpc': '2.0', 'result': '0x0', 'id': 2}
+```
+
+You would {} expression when you passing member of list or dictionary.
+
+example)
+```bash
+tbears) deploy sample_token
+
+tbears) 
+{'jsonrpc': '2.0',
+ 'result': '0xd1ee48aa5d26c1deb275da644e4ffe607c9e556474403c51040dfa59b0dd563c',
+ 'id': 5}
+
+tbears) txresult {_['result']}
+tbears)
+{'jsonrpc': '2.0',
+ 'result': {'txHash': '0xd1ee48aa5d26c1deb275da644e4ffe607c9e556474403c51040dfa59b0dd563c',
+  'blockHeight': '0x3',
+...
+
+```
+
+In interactive mode, you can check SCORE's information deployed while tbears interactive mode is running.
+
+**Usage**
+
+
+>>>>>>> Write tbears console mode's instruction(#42):docs/tbears_tutorial.md
 ### Configuration Files
 
 #### tbears_server_config.json

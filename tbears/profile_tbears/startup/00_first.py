@@ -41,7 +41,7 @@ class TbearsCommands(Magics):
         else:
             if full_command_list[0] == 'deploy' and not response.get("error", None):
                 args = self.command_ins.parser.parse_args(full_command_list)
-                conf = self.command_ins.cmdScore.get_score_conf('deploy', args=vars(args))
+                conf = self.command_ins.cmdScore.get_icon_conf('deploy', args=vars(args))
                 self.score_info.append(f"{next(self.deployed_id)}."
                                        f"path : {conf['project']}, txhash : {response['result']},"
                                        f" deployed in : {conf['uri']}")
