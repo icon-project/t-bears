@@ -1,5 +1,14 @@
 # ChangeLog - tbears
 
+## 0.9.8 - 2018-08-09
+* Tbears service support 'lastblock', 'blockbyhash' and 'blockbyheight' command
+    * Can query block information on tbears service now
+* Proofread tbears_tutorial.md
+
+## 0.9.7 - 2018-08-03
+* Fix the bug that '-a' option of start command does not work
+* Exception logs are saved separately
+
 ## 0.9.6.1 - 2018-07-31
 
 * Fix configuration file loading bug
