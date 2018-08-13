@@ -141,9 +141,13 @@ class CommandWallet:
     def _add_sendtx_parser(subparsers):
         parser = subparsers.add_parser('sendtx', help='Send transaction', description='Send transaction')
         parser.add_argument('json_file', type=IconPath(), help='File path which Contents of icx_sendTransaction')
+        parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-k', '--key-store', type=IconPath(), help='Keystore file path. Used to generate "from"'
                                                                        'address and transaction signature',
                             dest='keyStore')
+        parser.add_argument('-c', '--config', type=IconPath(),
+                            help=f'Configuration file path. This file defines the default value for '
+                                 f'the "uri"(default: {FN_CLI_CONF})')
 
     @staticmethod
     def _validate_tx_hash(tx_hash):

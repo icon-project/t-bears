@@ -221,6 +221,12 @@ class TestTBearsCommands(unittest.TestCase):
         transfer_response_json = self.cmd.cmdWallet.transfer(conf, 'qwer1234%')
         self.assertFalse(transfer_response_json.get('error', False))
 
+        # sendtx
+        conf = self.cmd.cmdWallet.get_icon_conf('sendtx', {"json_file": os.path.join(TEST_UTIL_DIRECTORY, 'send.json'),
+                                                           "keyStore": key_path})
+        sendtx_response_json = self.cmd.cmdWallet.sendtx(conf, 'qwer1234%')
+        self.assertFalse(sendtx_response_json.get('error', False))
+
         # stop
         self.cmd.cmdServer.stop(None)
         self.assertFalse(self.check_server())

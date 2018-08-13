@@ -19,7 +19,8 @@ from argparse import ArgumentTypeError, ArgumentError
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsCommandException
 from tests.test_parsing_command import TestCommand
-from tests.test_util import TEST_UTIL_DIRECTORY
+from tests.test_util import TEST_UTIL_DIRECTORY, TEST_DIRECTORY
+
 
 class TestWalletParsing(TestCommand):
     def setUp(self):
@@ -343,4 +344,26 @@ class TestWalletParsing(TestCommand):
 
         # given invalid tx hash
         cmd = f'txbyhash {invalid_hash}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+    #sendtx
+    def test_sendtx_args_parsing(self):
+        node_uri = 'http://localhost:9999/api/v3'
+        json_path = os.path.join(TEST_UTIL_DIRECTORY, 'send.json')
+        config = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config.json')
+        self.touch(self.keystore_path)
+        cmd = f'sendtx {json_path} -u {node_uri} -k {self.keystore_path} -c {config}'
+        parsed = self.parser.parse_args(cmd.split())
+
+        self.assertEqual(parsed.command, 'sendtx')
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.keyStore, self.keystore_path)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'sendtx {json_path} arg1'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid json path
+        cmd = f'sendtx json_path'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
