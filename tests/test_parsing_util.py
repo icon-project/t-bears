@@ -17,6 +17,7 @@ import json
 import shutil
 
 from tbears.command.command_util import CommandUtil
+from tbears.config.tbears_config import FN_CLI_CONF, FN_SERVER_CONF
 from tbears.tbears_exception import TBearsCommandException
 
 from tests.test_parsing_command import TestCommand
@@ -28,6 +29,17 @@ class TestCommandUtil(TestCommand):
         self.tear_down_params = ['proj_unittest', 'proj_unittest_dir']
         self.project = 'proj_unittest'
         self.score_class = 'TestClass'
+
+    def tearDown(self):
+        try:
+            if os.path.exists(FN_CLI_CONF):
+                os.remove(FN_CLI_CONF)
+            if os.path.exists(FN_SERVER_CONF):
+                os.remove(FN_SERVER_CONF)
+            if os.path.exists('./tbears.log'):
+                os.remove('./tbears.log')
+        except:
+            pass
 
     # Test if cli arguments are parced correctly.
     def test_init_args_parsing(self):

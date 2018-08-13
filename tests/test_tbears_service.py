@@ -17,7 +17,7 @@ import unittest
 import shutil
 import time
 from tbears.command.command import Command
-from tbears.config.tbears_config import FN_CLI_CONF, tbears_server_config
+from tbears.config.tbears_config import FN_CLI_CONF, tbears_server_config, FN_SERVER_CONF
 from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
 from iconcommons.icon_config import IconConfig
 
@@ -40,6 +40,8 @@ class TestTBearsService(unittest.TestCase):
         try:
             if os.path.exists(FN_CLI_CONF):
                 os.remove(FN_CLI_CONF)
+            if os.path.exists(FN_SERVER_CONF):
+                os.remove(FN_SERVER_CONF)
             if os.path.exists('./tbears.log'):
                 os.remove('./tbears.log')
             if os.path.exists(self.project_name):
