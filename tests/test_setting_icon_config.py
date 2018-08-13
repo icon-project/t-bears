@@ -140,6 +140,7 @@ class TestCliTestUtil(unittest.TestCase):
         for cli in whole_possible_cli:
             parsed = self.parser.parse_args(cli.split())
 
+            # todo: diff between terminal unit tests and pycharm unit tests as user config file reference is diff
             # should be refactoring, get_score_conf methods has one more parameter(project param)
             actual_conf = test_opts['get_config_func'](parsed.command, args=vars(parsed))
 

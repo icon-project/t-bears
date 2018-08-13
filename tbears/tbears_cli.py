@@ -20,6 +20,7 @@ from tbears.command.command import Command
 def main():
     cmd = Command()
 
+    # tbears starting point
     result = cmd.run(sys.argv[1:])
 
     sys.exit(result)

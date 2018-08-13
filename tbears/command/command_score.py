@@ -34,13 +34,17 @@ class CommandScore(object):
     @staticmethod
     def _add_deploy_parser(subparsers):
         parser = subparsers.add_parser('deploy', help='Deploy the SCORE', description='Deploy the SCORE')
+        # IconPath's 'd' argument means directory
         parser.add_argument('project', type=IconPath('d'), help='Project name')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-t', '--type', choices=['tbears', 'zip'], dest='contentType',
                             help='Deploy SCORE type (default: tbears)')
         parser.add_argument('-m', '--mode', choices=['install', 'update'], help='Deploy mode (default: install)')
-        parser.add_argument('-f', '--from', type=IconAddress(), help='From address. i.e. SCORE owner address')
+        # --from option only accept eoa address('hx')
+        parser.add_argument('-f', '--from', type=IconAddress('hx'), help='From address. i.e. SCORE owner address')
+        # --to option is used only when update score, so eoa address('hx') need to be denied
         parser.add_argument('-o', '--to', type=IconAddress('cx'), help='To address. i.e. SCORE address')
+        # IconPath's 'r' argument means 'read file'
         parser.add_argument('-k', '--key-store', type=IconPath('r'), dest='keyStore',
                             help='Keystore file path. Used to generate "from" address and transaction signature')
         parser.add_argument('-n', '--nid', help='Network ID')
@@ -70,6 +74,8 @@ class CommandScore(object):
         if conf['contentType'] == 'tbears' and not CommandServer.is_server_running():
             raise TBearsCommandException(f'Start tbears service first')
 
+        # check keystore presence, and get password from user's terminal input(not validate password)
+        # the reason why _check_deploy receive password as parameter is for unit tests
         password = self._check_deploy(conf, password)
 
         step_limit = conf.get('stepLimit', "0x1234000")
@@ -81,17 +87,19 @@ class CommandScore(object):
 
         if conf['contentType'] == 'zip':
             content_type = "application/zip"
+            # make zip and convert to hexadecimal string data(start with 0x) and return
             content = IconJsonrpc.gen_deploy_data_content(conf['project'])
         else:
             content_type = "application/tbears"
             content = os.path.abspath(conf['project'])
 
+        # make IconJsonrpc instance which is used for making request(with signature)
         if conf['keyStore']:
             deploy = IconJsonrpc.from_key_store(keystore=conf['keyStore'], password=password)
         else:
             deploy = IconJsonrpc.from_string(from_=conf['from'])
 
-        # make JSON-RPC request
+        # make JSON-RPC 2.0 request standard format
         request = deploy.sendTransaction(to=score_address,
                                          nid=conf['nid'],
                                          step_limit=step_limit,
@@ -101,6 +109,7 @@ class CommandScore(object):
                                              content_type=content_type,
                                              content=content))
 
+        # send request to rpcserver
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(request)
 
@@ -120,6 +129,7 @@ class CommandScore(object):
 
         :param _conf: clear command configuration
         """
+        # referenced data's path is /tmp/.tbears.env(temporary config data)
         score_dir_info = CommandServer._get_server_conf()
 
         if score_dir_info is None:
@@ -128,6 +138,7 @@ class CommandScore(object):
         if CommandServer.is_server_running():
             raise TBearsCommandException(f'You must stop tbears service to clear SCORE')
 
+        # delete whole score data
         try:
             if os.path.exists(score_dir_info['scoreRootPath']):
                 shutil.rmtree(score_dir_info['scoreRootPath'])
@@ -136,6 +147,7 @@ class CommandScore(object):
         except (PermissionError, NotADirectoryError) as e:
             raise TBearsDeleteTreeException(f"Can't delete SCORE files. {e}")
 
+        # delete temporary config data(path: /tmp/.tbears.env)
         CommandServer._delete_server_conf()
 
         print(f"Cleared SCORE deployed on tbears successfully")
@@ -154,6 +166,7 @@ class CommandScore(object):
             if uri and uri.find('127.0.0.1') == -1:
                 raise TBearsCommandException(f"TBears does not support deploying tbears SCORE to remote")
 
+        # check if keystore exist. if exist, get password from user input
         if not conf['keyStore']:
             if not is_icon_address_valid(conf['from']):
                 raise TBearsCommandException(f"You entered invalid 'from' address '{conf['from']}")
@@ -163,6 +176,7 @@ class CommandScore(object):
             if not password:
                 password = getpass.getpass("input your key store password: ")
 
+        # in case of update mode, validate -to option
         if conf['mode'] == 'update':
             if conf.get('to', None) is None:
                 raise TBearsCommandException(f'If you want to update SCORE, set --to option')
@@ -176,6 +190,9 @@ class CommandScore(object):
 
     @staticmethod
     def get_score_conf(command: str, project: str = None, args: dict = None):
+        # load config file using IconConfig instance
+        # config file is loaded as below priority
+        # system config -> default config -> user config -> user input config(higher priority)
         conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
 
         if project is not None:

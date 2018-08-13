@@ -59,6 +59,8 @@ class CommandUtil(object):
         """
         self._check_init(conf)
 
+        # initialize score project package. score class is set using main template.
+        # you can check main template at util/__init__/get_score_main_template method
         self.__initialize_project(project=conf['project'],
                                   score_class=conf['score_class'],
                                   contents_func=get_score_main_template)
@@ -69,8 +71,10 @@ class CommandUtil(object):
         """Generate two SCORE samples (standard_crowd_sale, standard_token)
         :param _conf: samples command configuration
         """
+        # initialize standard_token project package.
         self.__initialize_project(project="standard_token", score_class="StandardToken",
                                   contents_func=get_sample_token_contents)
+        # initialize standard_crowd_sale project package.
         self.__initialize_project(project="standard_crowd_sale", score_class="StandardCrowdSale",
                                   contents_func=get_sample_crowd_sale_contents)
 
@@ -94,8 +98,12 @@ class CommandUtil(object):
         :param score_class: class name of SCORE.
         :param contents_func contents generator
         """
+        # make package.json data
         package_json_dict = get_package_json_dict(project, score_class)
         package_json_contents = json.dumps(package_json_dict, indent=4)
+
+        # when command is init, make score templete.
+        # when command is samples, make standard_crowd_sale or standard_token
         py_contents = contents_func(score_class)
 
         write_file(project, f"{project}.py", py_contents)

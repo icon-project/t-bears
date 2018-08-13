@@ -283,6 +283,8 @@ class CommandWallet:
         :param password: password of keystore
         :return: response of transfer.
         """
+        # check value type(must be int), address and keystore file
+        # if valid, return user input password
         password = self._check_transfer(conf, password)
 
         if password:
@@ -290,10 +292,12 @@ class CommandWallet:
         else:
             transfer = IconJsonrpc.from_string(conf['from'])
 
+        # make jsonrpc 2.0 format(dict type)
         request = transfer.sendTransaction(to=conf['to'],
                                            value=hex(int(conf['value'])),
                                            nid=conf['nid'])
 
+        # request to rpcserver
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(request=request)
 
@@ -313,6 +317,7 @@ class CommandWallet:
         :param conf: keystore command configuration
         :param password: password for keystore file
         """
+        # check if same keystore file already exist, and if user input valid password
         password = self._check_keystore(conf, password)
 
         key_store_content = make_key_store_content(password)

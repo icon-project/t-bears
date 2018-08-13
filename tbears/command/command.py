@@ -46,7 +46,11 @@ class Command(object):
         return parser
 
     def run(self, sys_args) -> int:
+        # sys_args is list of commands splitted by space
+        # e.g. tbears deploy project -t tbears => ['deploy', 'project', '-t', 'tbears']
         try:
+            # parse_args return the populated namespace
+            # e.g. Namespace(command='deploy', config=None, contentType='tbears' ...)
             args = self.parser.parse_args(args=sys_args)
             if self.cmdServer.check_command(args.command):
                 self.cmdServer.run(args)
