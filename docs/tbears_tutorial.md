@@ -922,6 +922,124 @@ Made keystore file successfully
 
 ```
 
+### tbears genconf
+
+**Description**
+
+Generate tbears config files. tbears_cli_config.json and tbears_server_config.json
+
+```bash
+usage: tbears genconf [-h]
+
+Generate tbears config files. tbears_cli_config.json and
+tbears_cli_config.json
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+**Options**
+
+| shorthand, Name | default | Description                     |
+| --------------- | :------ | ------------------------------- |
+| -h, --help      |                              | show this help message and exit|
+
+**Examples**
+
+```bash
+(work) $ tbears genconf
+
+Made tbears_cli_config.json, tbears_server_config.json successfully
+```
+
+### tbears sendtx
+
+**Description**
+
+Request icx_sendTransaction using json contents of user input file path.
+
+```bash
+usage: tbears sendtx [-h] [-u URI] [-k KEYSTORE] [-c CONFIG] json_file
+
+Request icx_sendTransaction using json contents of user input file path
+
+positional arguments:
+  json_file             File path which Contents of icx_sendTransaction
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -u URI, --node-uri URI
+                        URI of node (default: http://127.0.0.1:9000/api/v3)
+  -k KEYSTORE, --key-store KEYSTORE
+                        Keystore file path. Used to generate "from"address and
+                        transaction signature
+  -c CONFIG, --config CONFIG
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
+```
+
+**Options**
+
+| shorthand, Name | default | Description                     |
+| --------------- | :------ | ------------------------------- |
+| -h, --help      |         | show this help message and exit |
+| -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
+| -k, --key-store |         | Keystore file path. Used to generate transaction signature. |
+| -c, --config    | ./tbears_cli_config.json | Configuration file path. This file defines the default values for the properties "keyStore", "uri" and "from". |
+
+**Examples**
+
+```bash
+(work) $ tbears sendtx send.json
+
+input your key store password: 
+
+Send transaction request successfully.
+transaction hash: 0xc8a3e3f77f21f8f1177d829cbc4c0ded6fd064cc8e42ef309dacff5c0a952289
+```
+
+### tbears call
+
+**Description**
+
+Request icx_call using json contents of user input file path.
+
+```bash
+usage: tbears call [-h] [-u URI] [-c CONFIG] json_file
+
+Request icx_call using json contents of user input file path
+
+positional arguments:
+  json_file             File path which Contents of icx_sendTransaction
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -u URI, --node-uri URI
+                        URI of node (default: http://127.0.0.1:9000/api/v3)
+  -c CONFIG, --config CONFIG
+                        Configuration file path. This file defines the default
+                        value for the "uri"(default: ./tbears_cli_config.json)
+```
+
+**Options**
+
+| shorthand, Name | default | Description                     |
+| --------------- | :------ | ------------------------------- |
+| -h, --help      |         | show this help message and exit |
+| -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
+| -c, --config    | ./tbears_cli_config.json | Configuration file path. This file defines the default values for the properties "keyStore", "uri" and "from". |
+
+**Examples**
+
+```bash
+(work) $ tbears call call.json
+response : {
+    "jsonrpc": "2.0",
+    "result": "0xe8d4a51000",
+    "id": 1
+}
+
+```
 ### Configuration Files
 
 #### tbears_server_config.json

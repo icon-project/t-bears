@@ -367,3 +367,23 @@ class TestWalletParsing(TestCommand):
         # given invalid json path
         cmd = f'sendtx json_path'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+    #call
+    def test_call_args_parsing(self):
+        node_uri = 'http://localhost:9999/api/v3'
+        json_path = os.path.join(TEST_UTIL_DIRECTORY, 'call.json')
+        config = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config.json')
+        cmd = f'call {json_path} -u {node_uri} -c {config}'
+        parsed = self.parser.parse_args(cmd.split())
+
+        self.assertEqual(parsed.command, 'call')
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'call {json_path} arg1'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid json path
+        cmd = f'call json_path'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())

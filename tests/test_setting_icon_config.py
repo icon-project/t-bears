@@ -662,6 +662,96 @@ class TestCliTestUtil(unittest.TestCase):
                          test_txbyhash_opts_c_o_i_o]
         self.config_setting_test_module_wrapper(txbyhash_test)
 
+        # sendtx
+        test_sendtx_opts_c_x_i_x = {
+            'config_type': 'cli',
+            'command': 'sendtx',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'send.json')],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: X'
+        }
+        test_sendtx_opts_c_o_i_x = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'sendtx',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'send.json')],
+            'optional_args': [c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: X'
+        }
+        test_sendtx_opts_c_x_i_o = {
+            'config_type': 'cli',
+            'command': 'sendtx',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'send.json')],
+            'optional_args': [k, u],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: O'
+        }
+        test_sendtx_opts_c_o_i_o = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'sendtx',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'send.json')],
+            'optional_args': [k, u, c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: O'
+        }
+
+        sendtx_test = [test_sendtx_opts_c_o_i_o,
+                       test_sendtx_opts_c_o_i_x,
+                       test_sendtx_opts_c_x_i_o,
+                       test_sendtx_opts_c_x_i_x]
+        self.config_setting_test_module_wrapper(sendtx_test)
+
+        # call
+        test_call_opts_c_x_i_x = {
+            'config_type': 'cli',
+            'command': 'call',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'call.json')],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: X'
+        }
+        test_call_opts_c_o_i_x = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'call',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'call.json')],
+            'optional_args': [c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: X'
+        }
+        test_call_opts_c_x_i_o = {
+            'config_type': 'cli',
+            'command': 'call',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'call.json')],
+            'optional_args': [u],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: O'
+        }
+        test_call_opts_c_o_i_o = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'call',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'call.json')],
+            'optional_args': [u, c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: O'
+        }
+
+        call_test = [test_call_opts_c_o_i_o,
+                     test_call_opts_c_o_i_x,
+                     test_call_opts_c_x_i_o,
+                     test_call_opts_c_x_i_x]
+        self.config_setting_test_module_wrapper(call_test)
+
     def test_command_server_config_setting(self):
         a = ['-a 127.0.0.1', '']
         p = ['-p %d' % 10000, '']

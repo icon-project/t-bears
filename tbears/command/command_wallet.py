@@ -42,6 +42,7 @@ class CommandWallet:
         self._add_blockbyhash_parser(subparsers)
         self._add_blockbyheight_parser(subparsers)
         self._add_sendtx_parser(subparsers)
+        self._add_call_parser(subparsers)
 
     @staticmethod
     def _add_lastblock_parser(subparsers):
@@ -139,12 +140,26 @@ class CommandWallet:
 
     @staticmethod
     def _add_sendtx_parser(subparsers):
-        parser = subparsers.add_parser('sendtx', help='Send transaction', description='Send transaction')
+        parser = subparsers.add_parser('sendtx', help='Request icx_sendTransaction using json contents of user input '
+                                                      'file path',
+                                       description='Request icx_sendTransaction using json contents '
+                                                   'of user input file path')
         parser.add_argument('json_file', type=IconPath(), help='File path which Contents of icx_sendTransaction')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-k', '--key-store', type=IconPath(), help='Keystore file path. Used to generate "from"'
                                                                        'address and transaction signature',
                             dest='keyStore')
+        parser.add_argument('-c', '--config', type=IconPath(),
+                            help=f'Configuration file path. This file defines the default value for '
+                                 f'the "uri"(default: {FN_CLI_CONF})')
+
+    @staticmethod
+    def _add_call_parser(subparsers):
+        parser = subparsers.add_parser('call', help='Request icx_call using json contents of user input file path',
+                                       description='Request icx_call using json contents of '
+                                                   'user input file path')
+        parser.add_argument('json_file', type=IconPath(), help='File path which Contents of icx_sendTransaction')
+        parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
                                  f'the "uri"(default: {FN_CLI_CONF})')
@@ -432,6 +447,26 @@ class CommandWallet:
         else:
             print('Got an error response')
             print(json.dumps(response, indent=4))
+
+        return response
+
+    @staticmethod
+    def call(conf):
+        """Request icx_call
+
+        :param conf: call command configuration.
+        :return: response of icx_call
+        """
+        icon_client = IconClient(conf['uri'])
+        with open(conf['json_file'], 'r') as jf:
+            payload = json.load(jf)
+
+        response = icon_client.send(request=payload)
+
+        if 'error' in response:
+            print(json.dumps(response, indent=4))
+        else:
+            print(f'response : {json.dumps(response, indent=4)}')
 
         return response
 
