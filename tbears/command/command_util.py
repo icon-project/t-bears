@@ -28,6 +28,7 @@ class CommandUtil(object):
     def __init__(self, subparsers):
         self._add_init_parser(subparsers)
         self._add_samples_parser(subparsers)
+        self._add_genconf_parser(subparsers)
 
     @staticmethod
     def _add_init_parser(subparsers) -> None:
@@ -43,6 +44,11 @@ class CommandUtil(object):
         subparsers.add_parser('samples',
                               help='Create two SCORE samples (standard_crowd_sale, standard_token)',
                               description='Create two SCORE samples (standard_crowd_sale, standard_token)')
+
+    @staticmethod
+    def _add_genconf_parser(subparser):
+        subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]})',
+                             description=f'Generate tbears config files. ({FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]})')
 
     def run(self, args):
         if not hasattr(self, args.command):
@@ -79,6 +85,20 @@ class CommandUtil(object):
                                   contents_func=get_sample_crowd_sale_contents)
 
         print(f"Made samples successfully")
+
+    def genconf(self, _conf: dict):
+        """Generate tbears config files. (tbears_server_config.json, tbears_cli_config.json)"""
+        result = []
+
+        if os.path.exists(FN_CLI_CONF) is False:
+            result.append(FN_CLI_CONF[2:])
+            write_file('./', FN_CLI_CONF, json.dumps(tbears_cli_config, indent=4))
+        if os.path.exists(FN_SERVER_CONF) is False:
+            result.append(FN_SERVER_CONF[2:])
+            write_file('./', FN_SERVER_CONF, json.dumps(tbears_server_config, indent=4))
+
+        if result:
+            print(f"Made {', '.join(result)} successfully")
 
     def check_command(self, command):
         return hasattr(self, command)

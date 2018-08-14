@@ -96,7 +96,7 @@ class CommandServer(object):
         :param conf: start command configuration
         """
         if self.is_server_running():
-            raise TBearsCommandException(f"Tbears service was started already")
+            raise TBearsCommandException(f"tbears service was started already")
 
         # start jsonrpc_server for tbears
         self.__start_server(conf)
@@ -115,9 +115,9 @@ class CommandServer(object):
             # Wait until server socket is released
             time.sleep(2)
 
-            print(f'Stopped tbear service successfully')
+            print(f'Stopped tbears service successfully')
         else:
-            print(f'tbear service is not running')
+            print(f'tbears service is not running')
 
     def check_command(self, command):
         return hasattr(self, command)

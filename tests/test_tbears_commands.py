@@ -95,6 +95,12 @@ class TestTBearsCommands(unittest.TestCase):
         total_supply_response = self.cmd.cmdWallet.totalsupply(conf)
         self.assertEqual(total_sup, total_supply_response['result'])
 
+        # sendtx
+        conf = self.cmd.cmdWallet.get_icon_conf('call', {"json_file": os.path.join(TEST_UTIL_DIRECTORY, 'call.json')})
+        call_response_json = self.cmd.cmdWallet.call(conf)
+        self.assertFalse(call_response_json.get('error', False))
+        self.assertEqual(call_response_json['result'], "0xe8d4a51000")
+
         # get balance - get balance of genesis address
         genesis_info = start_conf['genesis']['accounts'][0]
         conf['address'] = genesis_info['address']
@@ -220,6 +226,12 @@ class TestTBearsCommands(unittest.TestCase):
         conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 0.3e2)
         transfer_response_json = self.cmd.cmdWallet.transfer(conf, 'qwer1234%')
         self.assertFalse(transfer_response_json.get('error', False))
+
+        # sendtx
+        conf = self.cmd.cmdWallet.get_icon_conf('sendtx', {"json_file": os.path.join(TEST_UTIL_DIRECTORY, 'send.json'),
+                                                           "keyStore": key_path})
+        sendtx_response_json = self.cmd.cmdWallet.sendtx(conf, 'qwer1234%')
+        self.assertFalse(sendtx_response_json.get('error', False))
 
         # stop
         self.cmd.cmdServer.stop(None)

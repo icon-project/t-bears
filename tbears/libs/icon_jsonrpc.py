@@ -14,7 +14,6 @@
 
 import os
 import time
-from random import randint
 
 import requests
 from typing import Optional, Union
@@ -410,10 +409,7 @@ class IconJsonrpc:
         if self.__signer:
             # generate phrase which is used for making signature.
             # if transaction data is changed, signature will be invalid as phrase also changed
-            phrase = generate_origin_for_icx_send_tx_hash(params)
-            msg_hash = hashlib.sha3_256(phrase.encode()).digest()
-            signature = self.__signer.sign(msg_hash)
-            params['signature'] = signature.decode()
+            put_signature_to_params(self.__signer, params)
         else:
             # in a local environment, doesn't need actual signature as doesn't validate tx
             # so just assign string data
@@ -457,3 +453,10 @@ class IconClient(object):
         # getTransactionResult
         return requests.post(url=self.__uri,
                              json=IconJsonrpc.getTransactionResult(tx_hash=response['result'])).json()
+
+
+def put_signature_to_params(signer: 'IcxSigner', params: dict) -> None:
+    phrase = generate_origin_for_icx_send_tx_hash(params)
+    msg_hash = hashlib.sha3_256(phrase.encode()).digest()
+    signature = signer.sign(msg_hash)
+    params['signature'] = signature.decode()

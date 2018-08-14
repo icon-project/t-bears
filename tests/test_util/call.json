@@ -1,0 +1,13 @@
+{
+  "jsonrpc": "2.0",
+  "method": "icx_call",
+  "params": {
+    "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "to": "cx0000000000000000000000000000000000000001",
+    "dataType": "call",
+    "data": {
+      "method": "getStepPrice"
+    }
+  },
+  "id": 1
+}
