@@ -47,8 +47,8 @@ class CommandUtil(object):
 
     @staticmethod
     def _add_genconf_parser(subparser):
-        subparser.add_parser('genconf', help=f'Generate tbears config files. {FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]}',
-                             description=f'Generate tbears config files. {FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]}')
+        subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]})',
+                             description=f'Generate tbears config files. ({FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]})')
 
     def run(self, args):
         if not hasattr(self, args.command):
