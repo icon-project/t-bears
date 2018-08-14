@@ -292,7 +292,7 @@ class CommandWallet:
         else:
             transfer = IconJsonrpc.from_string(conf['from'])
 
-        # make jsonrpc 2.0 format(dict type)
+        # make JSON-RPC 2.0 request standard format(dict type)
         request = transfer.sendTransaction(to=conf['to'],
                                            value=hex(int(conf['value'])),
                                            nid=conf['nid'])
@@ -394,6 +394,14 @@ class CommandWallet:
 
     @staticmethod
     def get_icon_conf(command: str, args: dict = None) -> dict:
+        """Load config file using IconConfig instance
+        config file is loaded as below priority
+        system config -> default config -> user config -> user input config(higher priority)
+
+        :param command: command name (e.g. balance)
+        :param args: user input command (converted to dictionary type)
+        :return: command configuration
+        """
         # load configurations
         conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
         # load config file

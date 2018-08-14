@@ -74,8 +74,7 @@ class CommandScore(object):
         if conf['contentType'] == 'tbears' and not CommandServer.is_server_running():
             raise TBearsCommandException(f'Start tbears service first')
 
-        # check keystore presence, and get password from user's terminal input(not validate password)
-        # the reason why _check_deploy receive password as parameter is for unit tests
+        # check keystore, and get password from user's terminal input
         password = self._check_deploy(conf, password)
 
         step_limit = conf.get('stepLimit', "0x1234000")
@@ -154,6 +153,13 @@ class CommandScore(object):
 
     @staticmethod
     def _check_deploy(conf: dict, password: str = None):
+        """Check keystore presence, and get password from user's terminal input(not validate password)
+        the reason why receive password as parameter is for unit tests
+
+        :param conf: command configuration
+        :param password: password for unit tests(optional)
+        :return: password for keystore file
+        """
         if not os.path.isdir(conf['project']):
             raise TBearsCommandException(f'There is no project directory.({conf["project"]})')
 
@@ -190,9 +196,16 @@ class CommandScore(object):
 
     @staticmethod
     def get_score_conf(command: str, project: str = None, args: dict = None):
-        # load config file using IconConfig instance
-        # config file is loaded as below priority
-        # system config -> default config -> user config -> user input config(higher priority)
+        """Load config file using IconConfig instance
+        config file is loaded as below priority
+        system config -> default config -> user config -> user input config(higher priority)
+
+        :param command: command name (e.g. deploy)
+        :param project: project name (in case of deploy)
+        :param args: user input command (converted to dictionary type)
+        :return: command configuration
+        """
+        # load configurations
         conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
 
         if project is not None:

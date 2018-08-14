@@ -66,9 +66,15 @@ class CommandServer(object):
 
     @staticmethod
     def get_icon_conf(command: str, args: dict = None) -> dict:
-        # load config file using IconConfig instance
-        # config file is loaded as below priority
-        # system config -> default config -> user config -> user input config(higher priority)
+        """Load config file using IconConfig instance
+        config file is loaded as below priority
+        system config -> default config -> user config -> user input config(higher priority)
+
+        :param command: command name (e.g. start)
+        :param args: user input command (converted to dictionary type)
+        :return: command configuration
+        """
+        # load configurations
         conf = IconConfig(FN_SERVER_CONF, tbears_server_config)
 
         conf.load(config_path=args.get('config', None) if args else None)
