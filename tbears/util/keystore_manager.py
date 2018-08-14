@@ -26,6 +26,7 @@ def make_key_store_content(password):
     :return:
     key_store_content(dict)
     """
+    # create PrivateKey object and using this, make public key, address
     private_key_obj = PrivateKey()
     private_key = private_key_obj.private_key
     public_key = private_key_obj.pubkey.serialize(compressed=False)

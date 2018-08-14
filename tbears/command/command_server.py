@@ -57,6 +57,7 @@ class CommandServer(object):
         if not hasattr(self, args.command):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
+        # load configurations
         user_input = vars(args)
         conf = self.get_icon_conf(args.command, args=user_input)
 
@@ -65,9 +66,17 @@ class CommandServer(object):
 
     @staticmethod
     def get_icon_conf(command: str, args: dict = None) -> dict:
+        """Load config file using IconConfig instance
+        config file is loaded as below priority
+        system config -> default config -> user config -> user input config(higher priority)
+
+        :param command: command name (e.g. start)
+        :param args: user input command (converted to dictionary type)
+        :return: command configuration
+        """
         # load configurations
         conf = IconConfig(FN_SERVER_CONF, tbears_server_config)
-        # load config file
+
         conf.load(config_path=args.get('config', None) if args else None)
 
         # move command config
@@ -137,6 +146,7 @@ class CommandServer(object):
     def __exit_request():
         """ Request for exiting SCORE on server.
         """
+        # get server config data from /tmp/.tbears.env
         server = CommandServer._get_server_conf()
         if server is None:
             Logger.debug(f"Can't get server Info. from {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)

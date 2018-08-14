@@ -41,6 +41,7 @@ class IconAddress(str):
         self._prefix = prefix
 
     def __call__(self, string: str) -> str:
+        # check prefix of given address(string). if not 'cx' or 'hx', raise error
         if not is_icon_address_valid(string):
             raise ArgumentTypeError(f"Invalid address '{string}'")
 
@@ -52,6 +53,7 @@ class IconAddress(str):
 
 
 def hash_type(string: str) -> str:
+    # check hash's length, prefix, lowcase.
     if not is_valid_hash(string):
         raise ArgumentTypeError(f"Invalid transaction hash '{string}'")
 

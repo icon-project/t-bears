@@ -79,7 +79,10 @@ def get_tx_version(icx_origin_data):
 def generate_origin_for_icx_send_tx_hash(icx_origin_data):
     copy_tx = copy.deepcopy(icx_origin_data)
 
+    # return hash_key string data in accordance with api version
     tx_hash_key = get_tx_hash_key(icx_origin_data)
+
+    # delete tx_hash_key, method, signature as not be included when makes signature massage hash
     if tx_hash_key in copy_tx:
         del copy_tx[tx_hash_key]
 
@@ -92,7 +95,3 @@ def generate_origin_for_icx_send_tx_hash(icx_origin_data):
     origin = generate_origin_for_hash(copy_tx)
     return f"icx_sendTransaction.{origin}"
 
-
-def generate_icx_hash(icx_origin_data):
-    origin = generate_origin_for_icx_send_tx_hash(icx_origin_data)
-    return hashlib.sha3_256(origin.encode()).hexdigest()
