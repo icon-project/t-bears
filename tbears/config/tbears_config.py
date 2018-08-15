@@ -16,6 +16,13 @@
 FN_SERVER_CONF = './tbears_server_config.json'
 FN_CLI_CONF = './tbears_cli_config.json'
 
+
+class ConfigKey:
+    CHANNEL = 'channel'
+    AMQP_KEY = 'amqpKey'
+    AMQP_TARGET = 'amqpTarget'
+
+
 tbears_server_config = {
     "hostAddress": "0.0.0.0",
     "port": 9000,
@@ -26,7 +33,12 @@ tbears_server_config = {
         "level": "info",
         "filePath": "./tbears.log",
         "colorLog": True,
-        "outputType": "console|file"
+        "outputType": "console|file",
+        "rotate": {
+            "type": "bytes",
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 10
+        }
     },
     "service": {
         "fee": False,
@@ -47,7 +59,10 @@ tbears_server_config = {
                 "balance": "0x0"
             }
         ]
-    }
+    },
+    ConfigKey.CHANNEL: "loopchain_default",
+    ConfigKey.AMQP_KEY: "7100",
+    ConfigKey.AMQP_TARGET: "127.0.0.1",
 }
 
 tbears_cli_config = {
@@ -64,4 +79,14 @@ tbears_cli_config = {
     },
     "txresult": {},
     "transfer": {}
+}
+
+log_to_file_config ={
+     "log": {
+        "logger": "tbears",
+        "level": "info",
+        "filePath": "./tbears.log",
+        "colorLog": True,
+        "outputType": "file"
+    }
 }

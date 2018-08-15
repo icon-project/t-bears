@@ -87,7 +87,7 @@ class TestTBearsCommands(unittest.TestCase):
         start_conf['config'] = tbears_config_path
         self.start_conf = start_conf
         self.cmd.cmdServer.start(start_conf)
-        self.assertTrue(self.cmd.cmdServer.is_server_running())
+        self.assertTrue(self.cmd.cmdServer.is_service_running())
 
         # totalsup
         total_sup = get_total_supply(tbears_config_path)

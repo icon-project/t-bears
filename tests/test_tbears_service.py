@@ -65,7 +65,7 @@ class TestTBearsService(unittest.TestCase):
         start_conf['config'] = tbears_config_path
         self.start_conf = start_conf
         self.cmd.cmdServer.start(start_conf)
-        self.assertTrue(self.cmd.cmdServer.is_server_running())
+        self.assertTrue(self.cmd.cmdServer.is_service_running())
 
         # prepare to send
         genesis_info = start_conf['genesis']['accounts'][0]

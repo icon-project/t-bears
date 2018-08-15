@@ -33,7 +33,7 @@ from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 from iconservice.icon_inner_service import IconScoreInnerTask
 from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
-from tbears.server.tbears_db import TbearsDB
+from tbears.block_manager.tbears_db import TbearsDB
 from tbears.command.command_server import CommandServer
 from tbears.util.argparse_type import IconPath
 

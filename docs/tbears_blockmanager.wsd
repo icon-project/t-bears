@@ -1,0 +1,52 @@
+@startuml tbears blockmanager work flow
+
+actor "Client or tbears cli" as client
+participant "ICON RpcServer" as rpcserver #lightblue
+participant "tbears Blockmanager" as blockmanager
+participant "ICON Service" as icon #lightgreen
+
+group initialize
+blockmanager -> icon : <font color=blue><b>hello
+blockmanager -> icon : <font color=blue><b>invoke</b></font> genesis
+icon -> blockmanager : response
+note over blockmanager, icon: confirm block
+blockmanager -> icon : <font color=blue><b>write_precommit_state
+end
+
+group transaction & block confirm
+
+client -> rpcserver: icx_sendTransaction
+rpcserver -> icon : validate_transaction
+icon -> rpcserver : response
+rpcserver -> blockmanager : <font color=blue><b>create_icx_tx
+blockmanager -> blockmanager : add TX to block
+blockmanager -> rpcserver : response
+rpcserver -> client : response
+
+group every 2sec
+blockmanager -> icon : <font color=blue><b>invoke</b></font> block
+icon -> blockmanager : response
+note over blockmanager, icon: confirm block
+blockmanager -> icon : <font color=blue><b>write_precommit_state
+end
+
+end
+
+group query
+
+client -> rpcserver: icx_getTransactionResult\n icx_getTransactionByHash\n icx_getLastBlock\n icx_getBlockByHash\n icx_getBlockByHeight
+rpcserver -> blockmanager : <font color=blue><b>get_invoke_result\n<font color=blue><b>get_tx_info\n<font color=blue><b>get_block
+blockmanager -> blockmanager : search
+blockmanager -> rpcserver : response
+rpcserver -> client : response
+
+end
+
+group ICON RpcServer initialize
+
+rpcserver -> blockmanager : <font color=blue><b>get_channel_infos\n<font color=blue><b>get_channel_info_detail
+blockmanager -> rpcserver : response
+rpcserver -> rpcserver : initialize
+end
+
+@enduml
