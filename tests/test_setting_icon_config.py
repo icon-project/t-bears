@@ -24,7 +24,6 @@ from copy import deepcopy
 from tbears.command.command_server import CommandServer
 from tbears.command.command_wallet import CommandWallet
 from tbears.command.command_score import CommandScore
-from iconcommons.icon_config import IconConfig
 from tbears.command.command import Command
 from tbears.config.tbears_config import FN_CLI_CONF, FN_SERVER_CONF, tbears_cli_config, tbears_server_config
 from tests.test_util import TEST_UTIL_DIRECTORY
@@ -36,8 +35,20 @@ IN_ICON_CONFIG_TEST_DIRECTORY = os.path.join(TEST_UTIL_DIRECTORY, 'test_icon_con
 # after to tests, tbears_cli_config's options are changed and not refreshed.
 # so need to be reset these data
 # (if tbears support the interactive mode, tbears_cli_config should always refreshed automatically)
-tbears_cli_config_reset = deepcopy(tbears_cli_config)
-tbears_server_config_reset = deepcopy(tbears_server_config)
+
+
+def get_config_reset(config_path, default_conf: dict):
+    try:
+        with open(config_path) as f:
+            conf: dict = json.load(f)
+    except:
+        return deepcopy(default_conf)
+    else:
+        return deepcopy(conf)
+
+
+tbears_cli_config_reset = get_config_reset(FN_CLI_CONF, tbears_cli_config)
+tbears_server_config_reset = get_config_reset(FN_SERVER_CONF, tbears_server_config)
 
 
 def setting_cli(cli_tuple):
@@ -81,9 +92,9 @@ class TestCliTestUtil(unittest.TestCase):
     def make_config_option_list(parsed_args: dict, config_name: str):
         # make config key list which is for check each config key and value.
         if config_name == 'cli':
-            tbears_config = deepcopy(tbears_cli_config)
+            tbears_config = deepcopy(tbears_cli_config_reset)
         elif config_name == 'server':
-            tbears_config = deepcopy(tbears_server_config)
+            tbears_config = deepcopy(tbears_server_config_reset)
 
         command = parsed_args.get('command', None)
 
@@ -127,9 +138,9 @@ class TestCliTestUtil(unittest.TestCase):
                 default_conf: dict = json.load(user_conf_path)
         else:
             if test_opts['config_type'] == 'cli':
-                default_conf = deepcopy(tbears_cli_config)
+                default_conf = deepcopy(tbears_cli_config_reset)
             elif test_opts['config_type'] == 'server':
-                default_conf = deepcopy(tbears_server_config)
+                default_conf = deepcopy(tbears_server_config_reset)
 
         if test_opts['command'] in default_conf:
             default_conf.update(default_conf[test_opts['command']])
@@ -157,10 +168,10 @@ class TestCliTestUtil(unittest.TestCase):
             for key in config_option_list:
                 # actual_conf['command'] = 'raise_error'
                 try:
-                    self.assertEqual(expected_conf[key], actual_conf[key],\
-                                     msg='\nfailed command: ' + test_opts['command'] +\
-                                         '\nfailed cli:     ' + cli +\
-                                         '\nfailed key:     ' + key +\
+                    self.assertEqual(expected_conf[key], actual_conf[key],
+                                     msg='\nfailed command: ' + test_opts['command'] +
+                                         '\nfailed cli:     ' + cli +
+                                         '\nfailed key:     ' + key +
                                          '\ncase:           ' + test_opts['description'] + '\n')
                 except AssertionError as e:
                     self.verificationErrors.append(str(e))
@@ -650,6 +661,96 @@ class TestCliTestUtil(unittest.TestCase):
                          test_txbyhash_opts_c_x_i_o,
                          test_txbyhash_opts_c_o_i_o]
         self.config_setting_test_module_wrapper(txbyhash_test)
+
+        # sendtx
+        test_sendtx_opts_c_x_i_x = {
+            'config_type': 'cli',
+            'command': 'sendtx',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'send.json')],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: X'
+        }
+        test_sendtx_opts_c_o_i_x = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'sendtx',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'send.json')],
+            'optional_args': [c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: X'
+        }
+        test_sendtx_opts_c_x_i_o = {
+            'config_type': 'cli',
+            'command': 'sendtx',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'send.json')],
+            'optional_args': [k, u],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: O'
+        }
+        test_sendtx_opts_c_o_i_o = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'sendtx',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'send.json')],
+            'optional_args': [k, u, c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: O'
+        }
+
+        sendtx_test = [test_sendtx_opts_c_o_i_o,
+                       test_sendtx_opts_c_o_i_x,
+                       test_sendtx_opts_c_x_i_o,
+                       test_sendtx_opts_c_x_i_x]
+        self.config_setting_test_module_wrapper(sendtx_test)
+
+        # call
+        test_call_opts_c_x_i_x = {
+            'config_type': 'cli',
+            'command': 'call',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'call.json')],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: X'
+        }
+        test_call_opts_c_o_i_x = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'call',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'call.json')],
+            'optional_args': [c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: X'
+        }
+        test_call_opts_c_x_i_o = {
+            'config_type': 'cli',
+            'command': 'call',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'call.json')],
+            'optional_args': [u],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: O'
+        }
+        test_call_opts_c_o_i_o = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'call',
+            'positional_files': [],
+            'positional_args': [os.path.join(TEST_UTIL_DIRECTORY, 'call.json')],
+            'optional_args': [u, c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: O'
+        }
+
+        call_test = [test_call_opts_c_o_i_o,
+                     test_call_opts_c_o_i_x,
+                     test_call_opts_c_x_i_o,
+                     test_call_opts_c_x_i_x]
+        self.config_setting_test_module_wrapper(call_test)
 
     def test_command_server_config_setting(self):
         a = ['-a 127.0.0.1', '']

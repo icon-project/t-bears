@@ -256,6 +256,7 @@ class TestTXPhrase(unittest.TestCase):
 
         question = request["params"]
 
-        result_new_hash = tbears.libs.icon_serializer.generate_icx_hash(question)
+        origin = generate_origin_for_icx_send_tx_hash(question)
+        result_new_hash = hashlib.sha3_256(origin.encode()).hexdigest()
         result_old_hash = generate_icx_hash(question, "tx_hash")
         self.assertEqual(result_new_hash, result_old_hash)

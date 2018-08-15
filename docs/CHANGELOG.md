@@ -1,5 +1,11 @@
 # ChangeLog - tbears
 
+## 1.0.0 - 2018-08-15
+* Tbears service support 'call', 'sendtx' and 'genconf' command
+    * call : Send icx_call request
+    * sendtx : Send icx_sendTransaction request
+    * genconf : Generate tbears configuration files. (tbears_server_config.json, tbears_cli_config.json)
+
 ## 0.9.8 - 2018-08-09
 * Tbears service support 'lastblock', 'blockbyhash' and 'blockbyheight' command
     * Can query block information on tbears service now

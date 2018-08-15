@@ -14,7 +14,6 @@
 
 import os
 import time
-from random import randint
 
 import requests
 from typing import Optional, Union
@@ -30,6 +29,7 @@ from tbears.tbears_exception import ZipException, DeployPayloadException
 
 
 class IconJsonrpc:
+    # used for generate jsonrpc id
     request_id = itertools.count(start=1)
 
     def __init__(self, signer: Union[IcxSigner, str]):
@@ -41,6 +41,7 @@ class IconJsonrpc:
             self.__signer = signer
             self.__address = f'hx{self.__signer.address.hex()}'
         else:
+            # in local environment, doesn't need signature. so just assign string
             self.__signer = None
             self.__address = signer
 
@@ -170,7 +171,7 @@ class IconJsonrpc:
 
     @classmethod
     def getScoreApi(cls, score_address: str) -> dict:
-        """Make JSON-RPC request for icx_getBalance
+        """Make JSON-RPC request for icx_getScoreApi
 
         :param score_address: SCORE address to query
         :return: JSON dictionary
@@ -406,11 +407,12 @@ class IconJsonrpc:
         :param params: params of icx_sendTransaction request.
         """
         if self.__signer:
-            phrase = generate_origin_for_icx_send_tx_hash(params)
-            msg_hash = hashlib.sha3_256(phrase.encode()).digest()
-            signature = self.__signer.sign(msg_hash)
-            params['signature'] = signature.decode()
+            # generate phrase which is used for making signature.
+            # if transaction data is changed, signature will be invalid as phrase also changed
+            put_signature_to_params(self.__signer, params)
         else:
+            # in a local environment, doesn't need actual signature as doesn't validate tx
+            # so just assign string data
             params['signature'] = 'sig'
 
 
@@ -428,6 +430,7 @@ class IconClient(object):
         :param request: JSON-RPC request
         :return: response dictionary of request.
         """
+        # if query doesn't change any state of iconservice or loopchain, use 'send' method
         return requests.post(url=self.__uri, json=request).json()
 
     def send_transaction(self, request) -> dict:
@@ -450,3 +453,10 @@ class IconClient(object):
         # getTransactionResult
         return requests.post(url=self.__uri,
                              json=IconJsonrpc.getTransactionResult(tx_hash=response['result'])).json()
+
+
+def put_signature_to_params(signer: 'IcxSigner', params: dict) -> None:
+    phrase = generate_origin_for_icx_send_tx_hash(params)
+    msg_hash = hashlib.sha3_256(phrase.encode()).digest()
+    signature = signer.sign(msg_hash)
+    params['signature'] = signature.decode()

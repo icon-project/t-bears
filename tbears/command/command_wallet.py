@@ -15,14 +15,16 @@
 import getpass
 import json
 import os
+import time
 
 from iconservice.base.address import is_icon_address_valid
 from iconcommons import IconConfig
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
-from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
+from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc, put_signature_to_params
+from tbears.libs.icx_signer import key_from_key_store, IcxSigner
 from tbears.tbears_exception import TBearsCommandException
-from tbears.util import is_valid_hash, is_valid_hash
+from tbears.util import is_valid_hash
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type
 from tbears.util.keystore_manager import validate_password, make_key_store_content
 
@@ -39,6 +41,8 @@ class CommandWallet:
         self._add_lastblock_parser(subparsers)
         self._add_blockbyhash_parser(subparsers)
         self._add_blockbyheight_parser(subparsers)
+        self._add_sendtx_parser(subparsers)
+        self._add_call_parser(subparsers)
 
     @staticmethod
     def _add_lastblock_parser(subparsers):
@@ -133,6 +137,30 @@ class CommandWallet:
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
                                  f'the "uri"(default: {FN_CLI_CONF})')
+
+    @staticmethod
+    def _add_sendtx_parser(subparsers):
+        parser = subparsers.add_parser('sendtx', help='Request icx_sendTransaction with user input json file',
+                                       description='Request icx_sendTransaction with user input json file')
+        parser.add_argument('json_file', type=IconPath(), help='File path containing icx_sendTransaction content')
+        parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
+        parser.add_argument('-k', '--key-store', type=IconPath(), help='Keystore file path. Used to generate "from"'
+                                                                       'address and transaction signature',
+                            dest='keyStore')
+        parser.add_argument('-c', '--config', type=IconPath(),
+                            help=f'Configuration file path. This file defines the default value for '
+                                 f'the "uri"(default: {FN_CLI_CONF})')
+
+    @staticmethod
+    def _add_call_parser(subparsers):
+        parser = subparsers.add_parser('call', help='Request icx_call with user input json file.',
+                                       description='Request icx_call with user input json file.')
+        parser.add_argument('json_file', type=IconPath(), help='File path containing icx_call content')
+        parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
+        parser.add_argument('-c', '--config', type=IconPath(),
+                            help=f'Configuration file path. This file defines the default value for '
+                                 f'the "uri"(default: {FN_CLI_CONF})')
+
     @staticmethod
     def _validate_tx_hash(tx_hash):
         if not is_valid_hash(tx_hash):
@@ -184,6 +212,16 @@ class CommandWallet:
     def _check_scoreapi(conf: dict):
         if not (is_icon_address_valid(conf['address']) and conf['address'].startswith('cx')):
             raise TBearsCommandException(f'You entered invalid score address')
+
+    @staticmethod
+    def _check_sendtx(conf: dict, password: str = None):
+        if conf.get('keyStore', None):
+            if not os.path.exists(conf['keyStore']):
+                raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
+            if not password:
+                password = getpass.getpass("input your key store password: ")
+
+        return password
 
     def lastblock(self, conf):
         """Query last block
@@ -283,6 +321,8 @@ class CommandWallet:
         :param password: password of keystore
         :return: response of transfer.
         """
+        # check value type(must be int), address and keystore file
+        # if valid, return user input password
         password = self._check_transfer(conf, password)
 
         if password:
@@ -290,10 +330,12 @@ class CommandWallet:
         else:
             transfer = IconJsonrpc.from_string(conf['from'])
 
+        # make JSON-RPC 2.0 request standard format(dict type)
         request = transfer.sendTransaction(to=conf['to'],
                                            value=hex(int(conf['value'])),
                                            nid=conf['nid'])
 
+        # request to rpcserver
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(request=request)
 
@@ -313,6 +355,7 @@ class CommandWallet:
         :param conf: keystore command configuration
         :param password: password for keystore file
         """
+        # check if same keystore file already exist, and if user input valid password
         password = self._check_keystore(conf, password)
 
         key_store_content = make_key_store_content(password)
@@ -374,6 +417,56 @@ class CommandWallet:
 
         return response
 
+    def sendtx(self, conf: dict, password: str = None):
+        """Send transaction.
+
+        :param conf: sendtx command configuration.
+        :param password: password of keystore
+        :return: response of transfer.
+        """
+        password = self._check_sendtx(conf, password)
+        private_key = key_from_key_store(conf['keyStore'], password)
+        signer = IcxSigner(private_key)
+        icon_client = IconClient(conf['uri'])
+
+        with open(conf['json_file'], 'r') as jf:
+            payload = json.load(jf)
+
+        payload['params']['from'] = f"hx{signer.address.hex()}"
+        payload['params']['timestamp'] = hex(int(time.time() * 10 ** 6))
+        put_signature_to_params(signer, payload['params'])
+        response = icon_client.send(request=payload)
+
+        if 'result' in response:
+            print('Send transaction request successfully.')
+            tx_hash = response['result']
+            print(f"transaction hash: {tx_hash}")
+        else:
+            print('Got an error response')
+            print(json.dumps(response, indent=4))
+
+        return response
+
+    @staticmethod
+    def call(conf):
+        """Request icx_call
+
+        :param conf: call command configuration.
+        :return: response of icx_call
+        """
+        icon_client = IconClient(conf['uri'])
+        with open(conf['json_file'], 'r') as jf:
+            payload = json.load(jf)
+
+        response = icon_client.send(request=payload)
+
+        if 'error' in response:
+            print(json.dumps(response, indent=4))
+        else:
+            print(f'response : {json.dumps(response, indent=4)}')
+
+        return response
+
     def check_command(self, command):
         return hasattr(self, command)
 
@@ -389,6 +482,14 @@ class CommandWallet:
 
     @staticmethod
     def get_icon_conf(command: str, args: dict = None) -> dict:
+        """Load config file using IconConfig instance
+        config file is loaded as below priority
+        system config -> default config -> user config -> user input config(higher priority)
+
+        :param command: command name (e.g. balance)
+        :param args: user input command (converted to dictionary type)
+        :return: command configuration
+        """
         # load configurations
         conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
         # load config file
