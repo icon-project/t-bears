@@ -75,40 +75,46 @@ $ source bin/activate
 
 #### Overview
 
-tbears has 16 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, `transfer`, `txresult`, `balance`,
-`totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash` and `keystore`.
+tbears has 19 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, `genconf`, `transfer`, `txresult`, `balance`,
+`totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash`, `keystore`, `sendtx` and `call`.
 
 **Usage**
 
 ```bash
 usage: tbears [-h] [-d] command ...
 
-tbears v0.9.5 arguments
+tbears v1.0.0 arguments
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -d, --debug           Debug mode
+  -h, --help     show this help message and exit
+  -d, --debug    Debug mode
 
 Available commands:
   If you want to see help message of commands, use "tbears command -h"
 
   command
-    start           Start tbears serivce
-    stop            Stop tbears service
-    deploy          Deploy the SCORE
-    clear           Clear all SCORE deployed on tbears service
-    init            Initialize tbears project
-    samples         Create two SCORE samples (standard_crowd_sale, standard_token)
-    transfer        transfer ICX coin
-    balance         Get balance of given address
-    totalsupply     Get total supply of ICX
-    scoreapi        Get SCORE's api using given SCORE address
-    txresult        Get transaction result by transaction hash
-    txbyhash        Get transaction by transaction hash
-    lastblock       Get last block's info
-    blockbyheight   Get block info by block hash
-    blockbyhash     Get block info by block height
-    keystore   Create keystore file in passed path
+    start        Start tbears serivce
+    stop         Stop tbears service
+    deploy       Deploy the SCORE
+    clear        Clear all SCOREs deployed on tbears service
+    init         Initialize tbears project
+    samples      Create two SCORE samples (standard_crowd_sale,
+                 standard_token)
+    genconf      Generate tbears config files. (tbears_cli_config.json and
+                 tbears_cli_config.json)
+    txresult     Get transaction result by transaction hash
+    transfer     Transfer ICX coin.
+    keystore     Create keystore file
+    balance      Get balance of given address
+    totalsupply  Query total supply of icx
+    scoreapi     Get score's api using given score address
+    txbyhash     Get transaction by transaction hash
+    lastblock    Get last block's info
+    blockbyhash  Get last block's info
+    blockbyheight
+                 Get block's info using given block height
+    sendtx       Request icx_sendTransaction with user input json file
+    call         Request icx_call with user input json file.
 ```
 
 **Options**
@@ -1182,7 +1188,6 @@ Logger.error('error log', TAG)
 ##  Reference
 
 - [SCORE development guide and examples](https://repo.theloop.co.kr/icon/loopchain-icon/blob/master/icon/docs/dapp_guide.md)
-- [Architecture of IconService](https://repo.theloop.co.kr/icon/loopchain-icon/blob/master/icon/docs/class.md)
 - [ICON JSON-RPC API v3](https://repo.theloop.co.kr/theloop/LoopChain/wikis/doc/loopchain-json-rpc-v3)
 
 ## License
