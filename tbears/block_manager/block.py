@@ -51,6 +51,10 @@ class Block(object):
         return self._peer_id
     
     def load_block_info(self):
+        """
+        Load block height and previous block hash from DB
+        :return:
+        """
         byte_block_height = self.db.get(DbPrefix.BLOCK_HEIGHT)
         byte_prev_block_hash = self.db.get(DbPrefix.PREV_BLOCK)
 
@@ -60,45 +64,61 @@ class Block(object):
         if byte_prev_block_hash is not None:
             self._prev_block_hash = bytes.hex(byte_prev_block_hash)
 
-    def get_block_height(self):
+    @property
+    def block_height(self):
         return self._block_height
 
-    def set_block_height(self):
+    def increase_block_height(self):
         self._block_height += 1
         self.db.put(DbPrefix.BLOCK_HEIGHT, str(self._block_height).encode())
 
-    def get_prev_block_hash(self):
+    @property
+    def prev_block_hash(self):
         return self._prev_block_hash
 
     def set_prev_block_hash(self, block_hash: str):
         self._prev_block_hash = block_hash
         self.db.put(DbPrefix.PREV_BLOCK, bytes.fromhex(self._prev_block_hash))
 
-    def confirm_block(self, prev_block_hash: str):
-        self.set_block_height()
+    def commit_block(self, prev_block_hash: str):
+        """
+        Update block height and previous block hash
+        :param prev_block_hash:
+        :return:
+        """
+        self.increase_block_height()
         self.set_prev_block_hash(block_hash=prev_block_hash)
 
-    def save_transaction(self, tx_hash: str, params: dict, block_hash: str, block_height: int):
-        del params['txHash']
-        params['txIndex'] = "0x0"
-        params['blockHeight'] = hex(block_height)
-        params['blockHash'] = f'0x{block_hash}'
-
-        self.db.put(DbPrefix.TX + bytes.fromhex(tx_hash), json.dumps(params).encode())
-
     def save_transactions(self, tx_list: list, block_hash: str):
+        """
+        Save transactions to DB
+        :param tx_list: transaction list
+        :param block_hash: block hash
+        :return:
+        """
         Logger.debug(f'save_transactions: {tx_list}', LOG_BLOCK)
         if len(tx_list) == 0:
             return
+
+        # write transaction with batch
         with self.db.create_write_batch() as wb:
             for i, tx in enumerate(tx_list):
                 k = tx[0]
                 v = tx[1]
-                key, value = self._get_tx_value(i, k, v, block_hash, self._block_height)
+                key, value = self._get_tx_value(i, k, v, block_hash, self.block_height + 1)
                 self.db.write_batch(write_batch=wb, key=key, value=value)
 
     @staticmethod
     def _get_tx_value(index: int, k: str, v: dict, block_hash: str, block_height: int):
+        """
+        Get transaction key, value bytes data for DB writing
+        :param index: transaction index
+        :param k: key
+        :param v: value
+        :param block_hash: block hash
+        :param block_height: block height
+        :return:
+        """
         key = DbPrefix.TX + bytes.fromhex(k)
 
         value = {
@@ -111,76 +131,141 @@ class Block(object):
         return key, json.dumps(value).encode()
 
     def save_txresult(self, tx_hash: str, tx_result):
+        """
+        Save transaction result to DB
+        :param tx_hash: transaction hash
+        :param tx_result: transaction result
+        :return:
+        """
         self.db.put(DbPrefix.TXRESULT + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
 
     def save_txresults(self, tx_list: list, results: dict):
+        """
+        Save transaction results to DB
+        :param tx_list: transaction list
+        :param results: transaction result dictionary
+        :return:
+        """
         Logger.debug(f'save_txresult:{results}', LOG_BLOCK)
         if len(tx_list) == 0:
             return
+
+        # write transaction result with batch
         with self.db.create_write_batch() as wb:
             for tx in tx_list:
+                # key from transaction hash
                 key = DbPrefix.TXRESULT + bytes.fromhex(tx[0])
+
+                # get value from transaction result dict by tx hash
                 tx_result = results.get(tx[0], "")
                 tx_result['txHash'] = f'0x{tx[0]}'
                 value = json.dumps(tx_result).encode()
+
                 self.db.write_batch(write_batch=wb, key=key, value=value)
 
     def save_block(self, block_hash: str, tx: Union[list, dict], timestamp: int):
+        """
+        Save block to DB
+        :param block_hash: block hash
+        :param tx: transactions
+        :param timestamp: block confirm timestamp
+        :return:
+        """
         is_genesis = isinstance(tx, dict)
         tx_list = []
         if not is_genesis:
             for tx_tuple in tx:
+                # write transaction hash
                 tx_list.append(tx_tuple[0])
         else:
             tx_list.append(tx)
+
+        block_height = self.block_height + 1
+
         block = {
             "version": "tbears",
-            "prev_block_hash": self._prev_block_hash if not is_genesis else "",
-            "merkle_tree_root_hash": "tbears_does_not_support_merkle_tree",
+            "prev_block_hash": self.prev_block_hash if not is_genesis else "",
+            "merkle_tree_root_hash": "tbears_block_manager_does_not_support_block_merkle_tree",
             "time_stamp": timestamp,
             "confirmed_transaction_list": tx_list,
             "block_hash": block_hash,
-            "height": self._block_height,
+            "height": block_height,
             "peer_id": self.peer_id if not is_genesis else "",
-            "signature": "tbears_does_not_support_signature" if not is_genesis else ""
+            "signature": "tbears_block_manager_does_not_support_block_signature" if not is_genesis else ""
         }
 
         # save block
         self.db.put(DbPrefix.BLOCK + bytes.fromhex(block_hash), json.dumps(block).encode())
 
-        # save block height/hash
-        self.db.put(DbPrefix.BLOCK_INDEX + self._block_height.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER),
+        # save block height/hash for block query request
+        self.db.put(DbPrefix.BLOCK_INDEX + block_height.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER),
                     bytes.fromhex(block_hash))
 
-        Logger.debug(f'save block : block_height:{self._block_height}, block_hash: {block_hash}, block: {block}',
-                     LOG_BLOCK)
+        Logger.debug(f'save block : block_height:{block_height}, block_hash: {block_hash}, block: {block}', LOG_BLOCK)
 
     def get_last_block(self) -> Optional[dict]:
-        block_hash: bytes = self.db.get(DbPrefix.BLOCK_INDEX + self._block_height.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
+        """
+        Get last block information
+        :return: block information
+        """
+        # get block hash from block height/hash DB
+        block_hash: bytes = self.db.get(DbPrefix.BLOCK_INDEX +
+                                        self.block_height.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
         if block_hash is None:
             return None
 
-        return self.get_block_by_hash(block_hash=block_hash)
+        # get block Info.
+        return self._get_block_by_hash(block_hash=block_hash)
 
     def get_block_by_height(self, block_height: int) -> Optional[dict]:
+        """
+        Get block information by height
+        :param block_height: block height
+        :return: block information
+        """
+        # get block hash from block height/hash DB
         block_hash: bytes = self.db.get(DbPrefix.BLOCK_INDEX + block_height.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
         if block_hash is None:
             return None
 
-        return self.get_block_by_hash(block_hash=block_hash)
+        # get block Info.
+        return self._get_block_by_hash(block_hash=block_hash)
 
-    def get_block_by_hash(self, block_hash: bytes) -> Optional[dict]:
-            try:
-                block: bytes = self.db.get(DbPrefix.BLOCK + block_hash)
-                if block is None:
-                    return None
-                block_json = self.get_block_result(json.loads(block))
-            except Exception:
+    def get_block_by_hash(self, block_hash: str) -> Optional[dict]:
+        """
+        Get block information by hash
+        :param block_hash: block hash
+        :return: block information
+        """
+        # get block Info.
+        return self._get_block_by_hash(block_hash=bytes.fromhex(block_hash))
+
+    def _get_block_by_hash(self, block_hash: bytes) -> Optional[dict]:
+        """
+        Get block information by hash
+        :param block_hash: block hash
+        :return: block information
+        """
+        try:
+            # get block dataa from DB
+            block: bytes = self.db.get(DbPrefix.BLOCK + block_hash)
+            if block is None:
                 return None
-            else:
-                return block_json
+            # do formatting
+            block_json = self._convert_block_data(json.loads(block))
+        except Exception as e:
+            Logger.debug(f'_get_block_by_hash: exception with ({e})', LOG_BLOCK)
+            return None
+        else:
+            Logger.debug(f'_get_block_by_hash: get {block_json}', LOG_BLOCK)
+            return block_json
 
-    def get_block_result(self, block: dict) -> dict:
+    def _convert_block_data(self, block: dict) -> dict:
+        """
+        Convert block data to output format
+        :param block:
+        :return: conerted block information
+        """
         tx_list = block.get('confirmed_transaction_list', None)
         if tx_list is not None and isinstance(tx_list, list):
             result_list = []
@@ -189,6 +274,7 @@ class Block(object):
                     # genesis block
                     result_list.append(tx)
                     break
+                # get transaction data from DB by transaction hash
                 tx_result = self.get_transaction(tx_hash=tx)
                 result_list.append(tx_result['transaction'])
 
@@ -197,6 +283,11 @@ class Block(object):
         return block
 
     def get_transaction(self, tx_hash: str) -> Optional[dict]:
+        """
+        Get transaction information by transaction hash
+        :param tx_hash: transaction hash
+        :return: transaction information
+        """
         tx_payload = self.db.get(DbPrefix.TX + bytes.fromhex(tx_hash))
         if tx_payload is None:
             return None
@@ -204,6 +295,11 @@ class Block(object):
         return json.loads(tx_payload)
 
     def get_txresult(self, tx_hash: str) -> Optional[bytes]:
+        """
+        Get transaction result by transaction hash
+        :param tx_hash: transaction hash
+        :return: transaction result information
+        """
         tx_payload = self.db.get(DbPrefix.TXRESULT + bytes.fromhex(tx_hash))
         if tx_payload is None:
             return None

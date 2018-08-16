@@ -21,6 +21,8 @@ class ConfigKey:
     CHANNEL = 'channel'
     AMQP_KEY = 'amqpKey'
     AMQP_TARGET = 'amqpTarget'
+    BLOCK_CONFIRM_INTERVAL = 'blockConfirmInterval'
+    BLOCK_CONFIRM_EMPTY = 'blockConfirmEmpty'
 
 
 tbears_server_config = {
@@ -63,6 +65,8 @@ tbears_server_config = {
     ConfigKey.CHANNEL: "loopchain_default",
     ConfigKey.AMQP_KEY: "7100",
     ConfigKey.AMQP_TARGET: "127.0.0.1",
+    ConfigKey.BLOCK_CONFIRM_INTERVAL: 10,
+    ConfigKey.BLOCK_CONFIRM_EMPTY: True
 }
 
 tbears_cli_config = {

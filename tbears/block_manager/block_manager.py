@@ -27,7 +27,7 @@ from tbears.block_manager.channel_service import ChannelService
 from tbears.block_manager.block import Block
 from tbears.block_manager.icon_service import IconStub
 from tbears.block_manager.periodic import Periodic
-from tbears.util import create_hash
+from tbears.util import create_hash, get_tbears_version
 
 
 TBEARS_BLOCK_MANAGER = 'tbears_block_manager'
@@ -45,8 +45,12 @@ class BlockManager(object):
         self._amqp_target = None
         self._channel_service = None
         self._icon_stub = None
-        self._block = Block(conf=conf)
+        self._block: 'Block' = Block(conf=conf)
         self._tx_queue = []
+        
+    @property
+    def block(self) -> 'Block':
+        return self._block
 
     def serve(self):
         async def _serve():
@@ -74,6 +78,10 @@ class BlockManager(object):
         loop.run_forever()
 
     async def init(self):
+        """
+        Initialize tbears block_manager
+        :return:
+        """
         Logger.debug(f'Initialize started!!', TBEARS_BLOCK_MANAGER)
 
         await self._init_channel()
@@ -85,6 +93,10 @@ class BlockManager(object):
         Logger.debug(f'Initialize done!!', TBEARS_BLOCK_MANAGER)
 
     async def _init_channel(self):
+        """
+        Initialize 'channel' message queue
+        :return:
+        """
         Logger.debug(f'Initialize channel started!!', TBEARS_BLOCK_MANAGER)
 
         self._channel_service = ChannelService(self._amqp_target, self._channel_mq_name,
@@ -96,6 +108,10 @@ class BlockManager(object):
         Logger.debug(f'Initialize channel done!!', TBEARS_BLOCK_MANAGER)
 
     async def _init_icon(self):
+        """
+        Initialize 'ICON' message queue and load genesis block if need
+        :return:
+        """
         Logger.debug(f'Initialize ICON started!!', TBEARS_BLOCK_MANAGER)
 
         # make MQ stub
@@ -105,8 +121,8 @@ class BlockManager(object):
         await self._icon_stub.async_task().hello()
 
         # send genesis block
-        if self._block.get_prev_block_hash():
-            Logger.debug(f'Initialize ICON done!!', TBEARS_BLOCK_MANAGER)
+        if self.block.block_height != -1:
+            Logger.debug(f'Initialize ICON done!! block_height: {self.block.block_height}', TBEARS_BLOCK_MANAGER)
             return None
 
         tx_hash = create_hash(b'genesis')
@@ -120,7 +136,7 @@ class BlockManager(object):
         }
 
         request = {'transactions': [tx]}
-        block_height: int = self._block.get_block_height() + 1
+        block_height: int = self.block.block_height + 1
         block_timestamp_us = tx_timestamp_us
         block_hash = create_hash(block_timestamp_us.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
 
@@ -138,9 +154,6 @@ class BlockManager(object):
                              'blockHash': block_hash}
         await self._icon_stub.async_task().write_precommit_state(precommit_request)
 
-        # confirm block
-        self._block.confirm_block(prev_block_hash=block_hash)
-
         tx_result = response[tx_hash]
         tx_result['from'] = request_params.get('from', '')
         # tx_result['txHash'] must start with '0x'
@@ -152,22 +165,37 @@ class BlockManager(object):
             tx_hash = tx_hash[2:]
 
         # save transaction result
-        self._block.save_txresult(tx_hash, tx_result)
+        self.block.save_txresult(tx_hash, tx_result)
 
         # save block
-        self._block.save_block(block_hash=block_hash, tx=self._conf['genesis'], timestamp=block_timestamp_us)
+        self.block.save_block(block_hash=block_hash, tx=self._conf['genesis'], timestamp=block_timestamp_us)
 
-        Logger.debug(f'Initialize ICON done!!', TBEARS_BLOCK_MANAGER)
+        # update block information
+        self.block.commit_block(prev_block_hash=block_hash)
+
+        Logger.debug(f'Initialize ICON done!! Load genesis block. block_height: {self.block.block_height}',
+                     TBEARS_BLOCK_MANAGER)
 
     async def _init_periodic(self):
+        """
+        Initialize periodic task.
+         - block confirmation
+        :return:
+        """
         Logger.debug(f'Initialize periodic task started!!', TBEARS_BLOCK_MANAGER)
 
-        self.periodic = Periodic(func=self.confirm_block, interval=10)
+        self.periodic = Periodic(func=self.confirm_block, interval=self._conf[ConfigKey.BLOCK_CONFIRM_INTERVAL])
         await self.periodic.start()
 
         Logger.debug(f'Initialize periodic task done!!', TBEARS_BLOCK_MANAGER)
 
     def add_tx(self, tx_hash: str, tx: dict):
+        """
+        Add transactions to queue for block confirmation
+        :param tx_hash: transaction hash
+        :param tx: transaction
+        :return:
+        """
         tx_copy = deepcopy(tx)
 
         # add txHash
@@ -177,20 +205,40 @@ class BlockManager(object):
 
         self._tx_queue.append((tx_hash, tx_copy))
 
-    def get_tx(self) -> list:
+    @property
+    def tx_queue(self) -> list:
+        """
+        Get transaction queue
+        :return:
+        """
         return self._tx_queue
 
     def clear_tx(self) -> list:
+        """
+        return transaction queue and clear
+        :return: transaction queue
+        """
         tx_queue: list = self._tx_queue
         self._tx_queue = []
 
         return tx_queue
 
     async def confirm_block(self):
+        """
+        Confirm block. Save transactions , transaction results and block. Update block height and previous block hash.
+        :return:
+        """
         Logger.debug(f'confirm block started!!', TBEARS_BLOCK_MANAGER)
 
         # clear tx_queue
         tx_list = self.clear_tx()
+
+        if len(tx_list) == 0:
+            if self._conf[ConfigKey.BLOCK_CONFIRM_EMPTY]:
+                Logger.debug(f'Confirm empty block', TBEARS_BLOCK_MANAGER)
+            else:
+                Logger.debug(f'There are no transactions for block confirm. Bye~', TBEARS_BLOCK_MANAGER)
+                return
 
         # make block hash. tbears block_manager is dev util
         block_timestamp_us = int(time.time() * 10 ** 6)
@@ -199,26 +247,33 @@ class BlockManager(object):
         # send invoke message to ICON
         response = await self._invoke_block(tx_list=tx_list, block_hash=block_hash, block_timestamp=block_timestamp_us)
         if response is None:
+            Logger.debug(f'iconservice response None for invoke request.', TBEARS_BLOCK_MANAGER)
             return
 
-        # confirm block
-        self._block.confirm_block(prev_block_hash=block_hash)
-
         # save transaction result
-        self._block.save_txresults(tx_list, response)
+        self.block.save_txresults(tx_list, response)
 
         # save transactions
-        self._block.save_transactions(tx_list=tx_list, block_hash=block_hash)
+        self.block.save_transactions(tx_list=tx_list, block_hash=block_hash)
 
         # save block
-        self._block.save_block(block_hash=block_hash, tx=tx_list, timestamp=block_timestamp_us)
+        self.block.save_block(block_hash=block_hash, tx=tx_list, timestamp=block_timestamp_us)
+
+        # update block information
+        self.block.commit_block(prev_block_hash=block_hash)
 
         Logger.debug(f'confirm block done!!', TBEARS_BLOCK_MANAGER)
 
     async def _invoke_block(self, tx_list: list, block_hash: str, block_timestamp) -> dict:
-        block = self._block
-        block_height = block.get_block_height() + 1
-        prev_block_hash = block.get_prev_block_hash()
+        """
+        Invoke block. Send 'invoke' message to iconservice and get response
+        :param tx_list: transaction list
+        :param block_hash: block hash
+        :param block_timestamp: block confirm timestamp
+        :return:
+        """
+        block_height = self.block.block_height + 1
+        prev_block_hash = self.block.prev_block_hash
 
         transactions = []
         for tx in tx_list:
@@ -239,9 +294,11 @@ class BlockManager(object):
         }
 
         # send invoke to iconservice
+        Logger.debug(f'send invoke request: {request}!!', TBEARS_BLOCK_MANAGER)
         response = await self._icon_stub.async_task().invoke(request)
 
         if 'error' in response:
+            Logger.debug(f'Get error response from iconservice: {response}!!', TBEARS_BLOCK_MANAGER)
             return None
 
         precommit_request = {'blockHeight': hex(block_height),
@@ -250,16 +307,25 @@ class BlockManager(object):
         # send write_prevommit_state to iconservice
         await self._icon_stub.async_task().write_precommit_state(precommit_request)
 
+        Logger.debug(f'invoke block done. txResults: {response["txResults"]}!!', TBEARS_BLOCK_MANAGER)
         return response["txResults"]
 
 
 def create_parser():
-    parser = argparse.ArgumentParser(prog='tbears_block_manager',
-                                     description=f'tbears_block_manager v arguments')
+    """
+    Create tbears_block_manager argument parser
+    :return:
+    """
+    parser = argparse.ArgumentParser(prog=TBEARS_BLOCK_MANAGER,
+                                     description=f'{TBEARS_BLOCK_MANAGER} v{get_tbears_version()} arguments')
     parser.add_argument('-ch', dest=ConfigKey.CHANNEL, help='Message Queue channel')
     parser.add_argument('-at', dest=ConfigKey.AMQP_TARGET, help='AMQP traget info')
     parser.add_argument('-ak', dest=ConfigKey.AMQP_KEY,
                         help="key sharing peer group using queue name. use it if one more peers connect one MQ")
+    parser.add_argument('-bi', '--block-confirm-interval', dest=ConfigKey.BLOCK_CONFIRM_INTERVAL, type=int,
+                        help='Block confirm interval in second')
+    parser.add_argument('-be', '--block-confirm-empty', dest=ConfigKey.BLOCK_CONFIRM_EMPTY, type=bool,
+                        help='Confirm empty block')
     parser.add_argument('-c', '--config', help='Configuration file path')
 
     return parser

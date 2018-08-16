@@ -17,6 +17,9 @@ from contextlib import suppress
 
 
 class Periodic:
+    """
+    Class for periodic work in asyncio
+    """
     def __init__(self, func: callable, interval: int):
         self.func = func
         self.interval = interval
@@ -24,12 +27,20 @@ class Periodic:
         self._task = None
 
     async def start(self):
+        """
+        Start the periodic work
+        :return:
+        """
         if not self.is_started:
             self.is_started = True
             # Start task to call func periodically:
             self._task = asyncio.ensure_future(self._run())
 
     async def stop(self):
+        """
+        Stop the periodic work
+        :return:
+        """
         if self.is_started:
             self.is_started = False
             # Stop task and await it stopped:
@@ -38,10 +49,19 @@ class Periodic:
                 await self._task
 
     async def _run(self):
+        """
+        Do the work
+        :return:
+        """
         next_time = time.time() + self.interval
         while True:
+            # get time to sleep
             remain_time = next_time - time.time()
             if remain_time > 0:
                 await asyncio.sleep(remain_time)
+
+            # set next working time
             next_time = time.time() + self.interval
+
+            # do work
             await self.func()

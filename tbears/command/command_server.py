@@ -98,17 +98,16 @@ class CommandServer(object):
 
         :param conf: start command configuration
         """
-        if self.is_server_running():
+        if self.is_service_running():
             raise TBearsCommandException(f"tbears service was started already")
 
         if self.is_port_available(conf) is False:
             raise TBearsCommandException(f"port {conf['port']} already in use. use other port.")
 
+        # write temporary configuration file
         temp_conf = './temp_conf.json'
-
-        # write temporary configuration file for log
         with open(temp_conf, mode='w') as file:
-            file.write(json.dumps(log_to_file_config))
+            file.write(json.dumps(conf))
 
         # run iconservice
         self._start_iconservice(conf, temp_conf)
@@ -128,13 +127,15 @@ class CommandServer(object):
         # write server configuration
         self.write_server_conf(conf)
 
+        print(f'Started tbears service successfully')
+
     def stop(self, _conf: dict):
         """ Stop tbears service
         Start iconservice, tbears_block_manager, iconrpcserver
 
         :param _conf: stop command configuration
         """
-        if not self.is_server_running():
+        if not self.is_service_running():
             print(f'tbears service is not running')
             return
 
@@ -155,27 +156,15 @@ class CommandServer(object):
 
     @staticmethod
     def _start_iconservice(conf: dict, config_path: str):
-        cmd = "iconservice start -sc {sc} -st {st} -ch {ch} -ak {ak} -at {at} -c {conf}".format(
-            sc=conf['scoreRootPath'],
-            st=conf['stateDbRootPath'],
-            ch=conf[ConfigKey.CHANNEL],
-            ak=conf[ConfigKey.AMQP_KEY],
-            at=conf[ConfigKey.AMQP_TARGET],
-            conf=config_path
-        )
+        cmd = f"iconservice start -c {config_path}"
 
         with open(os.devnull, 'w') as devnull:
             subprocess.run(cmd, shell=True, stdout=devnull)
 
     @staticmethod
     def _start_iconrpcserver(conf: dict, config_path: str):
-        cmd = "iconrpcserver start -p {port} -ch {ch} -ak {ak} -at {at} -c {conf}".format(
-            port=conf['port'],
-            ch=conf[ConfigKey.CHANNEL],
-            ak=conf[ConfigKey.AMQP_KEY],
-            at=conf[ConfigKey.AMQP_TARGET],
-            conf=config_path
-        )
+        cmd = f"iconrpcserver start -c {config_path}"
+
         with open(os.devnull, 'w') as devnull:
             subprocess.run(cmd, shell=True, stdout=devnull)
 

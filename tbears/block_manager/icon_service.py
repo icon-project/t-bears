@@ -21,8 +21,8 @@ if TYPE_CHECKING:
 
 
 class IconScoreInnerTask(object):
-    """Message queue
-
+    """
+    Send request to 'iconscore' message queue
     """
     @message_queue_task
     async def hello(self):
@@ -49,5 +49,4 @@ class IconStub(MessageQueueStub[IconScoreInnerTask]):
     TaskType = IconScoreInnerTask
 
     def _callback_connection_lost_callback(self, connection: 'RobustConnection'):
-        # FIXME
         exit(1)
