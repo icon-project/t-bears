@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
+import json
 import os
 import shutil
 import getpass
@@ -60,10 +62,10 @@ class CommandScore(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = self.get_score_conf(args.command, args=vars(args))
+        conf = self.get_icon_conf(args.command, args=vars(args))
 
         # run command
-        getattr(self, args.command)(conf)
+        return getattr(self, args.command)(conf)
 
     def deploy(self, conf: dict, password: str = None) -> dict:
         """Deploy SCORE on the server.
@@ -112,13 +114,13 @@ class CommandScore(object):
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(request)
 
-        if 'result' in response:
+        if 'error' in response:
+            print('Got an error response')
+            print(json.dumps(response, indent=4))
+        else:
             print('Send deploy request successfully.')
             tx_hash = response['result']
             print(f"transaction hash: {tx_hash}")
-        else:
-            print('Got an error response')
-            print(response)
 
         return response
 
@@ -143,6 +145,7 @@ class CommandScore(object):
                 shutil.rmtree(score_dir_info['scoreRootPath'])
             if os.path.exists(score_dir_info['stateDbRootPath']):
                 shutil.rmtree(score_dir_info['stateDbRootPath'])
+            CommandServer._delete_server_conf()
         except (PermissionError, NotADirectoryError) as e:
             raise TBearsDeleteTreeException(f"Can't delete SCORE files. {e}")
 
@@ -195,7 +198,7 @@ class CommandScore(object):
         return hasattr(self, command)
 
     @staticmethod
-    def get_score_conf(command: str, project: str = None, args: dict = None):
+    def get_icon_conf(command: str, project: str = None, args: dict = None):
         """Load config file using IconConfig instance
         config file is loaded as below priority
         system config -> default config -> user config -> user input config(higher priority)
@@ -206,7 +209,7 @@ class CommandScore(object):
         :return: command configuration
         """
         # load configurations
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
+        conf = IconConfig(FN_CLI_CONF, copy.deepcopy(tbears_cli_config))
 
         if project is not None:
             conf['project'] = project

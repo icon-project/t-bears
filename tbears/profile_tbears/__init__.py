@@ -12,19 +12,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys
-
-from tbears.command.command import Command
-from tbears.tbears_exception import TBearsExceptionCode
-
-
-def main():
-    cmd = Command()
-
-    # tbears starting point
-    result = cmd.run(sys.argv[1:])
-
-    if isinstance(result, int) is False:
-        sys.exit(TBearsExceptionCode.OK.value)
-
-    sys.exit(result)

@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 import getpass
 import json
 import os
@@ -251,6 +252,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getBlockByHeight(conf['height']))
 
         if "error" in response:
+            print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
             print(f"block info : {json.dumps(response, indent=4)}")
@@ -270,6 +272,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getBlockByHash(conf['hash']))
 
         if "error" in response:
+            print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
             print(f"block info : {json.dumps(response, indent=4)}")
@@ -289,6 +292,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getTransactionByHash(conf['hash']))
 
         if "error" in response:
+            print('Got an error response')
             print(f"Can not get transaction \n{json.dumps(response, indent=4)}")
         else:
             print(f"Transaction: {json.dumps(response, indent=4)}")
@@ -308,6 +312,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getTransactionResult(conf['hash']))
 
         if "error" in response:
+            print('Got an error response')
             print(f"Can not get transaction result \n{json.dumps(response, indent=4)}")
         else:
             print(f"Transaction result: {json.dumps(response, indent=4)}")
@@ -377,6 +382,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getBalance(conf['address']))
 
         if "error" in response:
+            print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
             print(f"balance : {response['result']}")
@@ -393,6 +399,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getTotalSupply())
 
         if "error" in response:
+            print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
             print(f'Total supply of Icx: {response["result"]}')
@@ -411,6 +418,7 @@ class CommandWallet:
         response = icon_client.send(IconJsonrpc.getScoreApi(conf['address']))
 
         if "error" in response:
+            print('Got an error response')
             print(f"Can not get {conf['address']}'s API\n{json.dumps(response, indent=4)}")
         else:
             print(f"SCORE API: {json.dumps(response['result'], indent=4)}")
@@ -478,7 +486,7 @@ class CommandWallet:
         conf = self.get_icon_conf(args.command, args= user_input)
 
         # run command
-        getattr(self, args.command)(conf)
+        return getattr(self, args.command)(conf)
 
     @staticmethod
     def get_icon_conf(command: str, args: dict = None) -> dict:
@@ -491,7 +499,7 @@ class CommandWallet:
         :return: command configuration
         """
         # load configurations
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
+        conf = IconConfig(FN_CLI_CONF, copy.deepcopy(tbears_cli_config))
         # load config file
         conf.load(config_path=args.get('config', None) if args else None)
 
@@ -504,24 +512,4 @@ class CommandWallet:
         if args:
             conf.update_conf(args)
 
-        return conf
-
-    @staticmethod
-    def get_keystore_args(path: str):
-        return {
-            'path': path
-        }
-
-    @staticmethod
-    def get_result_config(tx_hash: str):
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
-        conf['hash'] = tx_hash
-        return conf
-
-    @staticmethod
-    def get_transfer_config(key_path: str, to: str, value: float) -> dict:
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
-        conf['keyStore'] = key_path
-        conf['to'] = to
-        conf['value'] = value
         return conf

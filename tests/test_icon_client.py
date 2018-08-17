@@ -45,7 +45,8 @@ class TestIconClient(unittest.TestCase):
         return result == 0
 
     def tearDown(self):
-        self.cmd.cmdServer.stop(self.conf)
+        if self.check_server():
+            self.cmd.cmdServer.stop(self.conf)
 
     def test_send_request_to_server(self):
         # Correct request

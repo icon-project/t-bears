@@ -1047,6 +1047,145 @@ response : {
 }
 
 ```
+
+### tbears console
+
+**Description**
+
+Get into tbears interactive mode by embedding IPython. ([Ipython.org](https://ipython.org/))
+
+**Usage**
+
+```bash
+usage: tbears console [-h]
+
+
+Get into tbears interactive mode by embedding IPython
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+**Examples**
+
+Using Interacive mode, you can execute command with shorten command(without tbears) by predefined IPython's magic command.
+TAB will complete tbears's command or variable names. Use TAB.
+
+```bash
+(work) $ tbears console
+tbears) start
+Started tbears service successfully
+...
+
+tbears) balance hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6
+
+balance : 0x0
+```
+In IPython, you can access previous output using "_" expression.
+
+```bash
+tbears) pwd
+'/Users/username/working/'
+
+tbears) _
+'/Users/username/working/'
+```
+
+You can access nth-output using _n-th expression.
+The Out object is a dictionary mapping input numbers to their outputs.
+ 
+```bash
+tbears) '1'
+'1'
+
+tbears) 'second'
+'second'
+
+tbears) 3
+3
+
+tbears) _2
+'second'
+
+tbears) Out
+{1: '1', 2: 'second', 3: 3, 4: 'second'}
+```
+
+Pass variables assigned string type to magic command by using "$" expressions.
+
+```bash
+tbears) address = f"hx{'0'*40}"
+
+tbears) balance $address
+
+balance : 0x2961fff8ca4a62327800000
+```
+
+You would "{}" expression when you passing member of list or dictionary.
+
+```bash
+tbears) deploy sample_token
+
+Send deploy request successfully.
+transaction hash: 0x541d8c9d3e12d92ad50897f81178301f21650b0b48dd5cc722b28b5c56cbc29a
+
+
+tbears) txresult {_['result']}
+
+{'jsonrpc': '2.0',
+ 'result': {'txHash': '0xd1ee48aa5d26c1deb275da644e4ffe607c9e556474403c51040dfa59b0dd563c',
+  'blockHeight': '0x3',
+...
+
+```
+
+In interactive mode, you can check SCORE's information deployed while tbears interactive mode is running by executing deployresults command.
+```bash
+tbears) deployresults
+1.path : abc/, txhash : 0x583a89ec656d71d1641945a39792e016eefd6221ad536f9c312957f0c4336774, deployed in : http://127.0.0.1:9000/api/v3
+2.path : token/, txhash : 0x8c2fe3c877d46b7a1ba7feb117d0b12c8b88f33517ad2315ec45e8b7223c22f8, deployed in : http://127.0.0.1:9000/api/v3
+3.path : abctoken/, txhash : 0xee6e311d2652fd5ed5981f4906bca5d4d6933400721fcbf3528249d7bf460e42, deployed in : http://127.0.0.1:9000/api/v3
+
+```
+
+tbears assign tbears command result to '_r' variable.
+
+```bash
+
+tbears) deploy sample_token
+Send deploy request successfully.
+transaction hash: 0x5257b44fe0f36c492e255dbfcdb2ca1134dc9a942b875241d01db3d36ac2bdc8
+
+tbears) result = _r
+
+tbears) result
+{'jsonrpc': '2.0',
+ 'result': '0x5257b44fe0f36c492e255dbfcdb2ca1134dc9a942b875241d01db3d36ac2bdc8',
+ 'id': 1}
+
+tbears) txresult {result['result']}
+Transaction result: {
+    "jsonrpc": "2.0",
+    "result": {
+        "txHash": "0x5257b44fe0f36c492e255dbfcdb2ca1134dc9a942b875241d01db3d36ac2bdc8",
+        "blockHeight": "0x1",
+        "blockHash": "9c06e5c1bbd8ed1efc1ec7d1be59b64dd102bde43fc13c3f22e25e5aaa1eda51",
+        "txIndex": "0x0",
+        "to": "cx0000000000000000000000000000000000000000",
+        "scoreAddress": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
+...
+
+tbears) scoreapi {_r['result']['scoreAddress']}
+SCORE API: [
+    {
+        "type": "fallback",
+        "name": "fallback",
+        "inputs": []
+    },
+...
+
+```
+
 ### Configuration Files
 
 #### tbears_server_config.json
