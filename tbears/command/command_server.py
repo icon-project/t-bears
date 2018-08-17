@@ -14,6 +14,7 @@
 # limitations under the License.
 import json
 import os
+import socket
 import sys
 import subprocess
 import time
@@ -98,6 +99,9 @@ class CommandServer(object):
         if self.is_server_running():
             raise TBearsCommandException(f"tbears service was started already")
 
+        if self.is_port_available(conf) is False:
+            raise TBearsCommandException(f"port {conf['port']} already in use. use other port.")
+
         # start jsonrpc_server for tbears
         self.__start_server(conf)
 
@@ -169,6 +173,14 @@ class CommandServer(object):
         if result.returncode == 1:
             return False
         return True
+
+    @staticmethod
+    def is_port_available(conf):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # if socket is connected, the result code is 0 (false).
+        result = sock.connect_ex(('127.0.0.1', conf['port']))
+        sock.close()
+        return result != 0
 
     @staticmethod
     def write_server_conf(host: str, port: int, score_root, score_db_root) -> None:
