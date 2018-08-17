@@ -58,7 +58,7 @@ class TbearsCommands(Magics):
         return self.run_command(line)
 
     @line_magic
-    def deployresults(self):
+    def deployresults(self, line):
         return page.page("\n".join(self.score_info))
 
     @line_magic
