@@ -928,7 +928,6 @@ Made keystore file successfully
 
 ```
 
-<<<<<<< HEAD:README.md
 ### tbears genconf
 
 **Description**
@@ -1048,7 +1047,7 @@ response : {
 }
 
 ```
-=======
+
 ### tbears console
 
 **Description**
@@ -1079,54 +1078,53 @@ Started tbears service successfully
 
 tbears) balance hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6
 
-tbears) {'jsonrpc': '2.0', 'result': '0x0', 'id': 2}
+balance : 0x0
 ```
-In IPython, you can access previous output using _ expression.
+In IPython, you can access previous output using "_" expression.
 
 ```bash
 tbears) pwd
-tbears) '/Users/username/working/'
+'/Users/username/working/'
 
 tbears) _
-tbears) '/Users/username/working/'
+'/Users/username/working/'
 ```
 
 You can access nth-output using _n-th expression.
 ```bash
 tbears) '1'
-tbears) '1'
+'1'
 
 tbears) 'second'
-tbears) 'second'
+'second'
 
 tbears) 3
-tbears) 3
+3
 
 tbears) _2
-tbears) 'second'
+'second'
 ```
-You can pass variables assigned string type to magic command by using $ expressions.
+You can pass variables assigned string type to magic command by using "$' expressions.
 
 ```bash
-tbears) address = 'hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6'
+tbears) address = f"hx{'0'*40}"
 
 tbears) balance $address
 
-tbears) {'jsonrpc': '2.0', 'result': '0x0', 'id': 2}
+balance : 0x2961fff8ca4a62327800000
 ```
 
-You would {} expression when you passing member of list or dictionary.
+You would '{}' expression when you passing member of list or dictionary.
 
 ```bash
 tbears) deploy sample_token
 
-tbears) 
-{'jsonrpc': '2.0',
- 'result': '0xd1ee48aa5d26c1deb275da644e4ffe607c9e556474403c51040dfa59b0dd563c',
- 'id': 5}
+Send deploy request successfully.
+transaction hash: 0x541d8c9d3e12d92ad50897f81178301f21650b0b48dd5cc722b28b5c56cbc29a
+
 
 tbears) txresult {_['result']}
-tbears)
+
 {'jsonrpc': '2.0',
  'result': {'txHash': '0xd1ee48aa5d26c1deb275da644e4ffe607c9e556474403c51040dfa59b0dd563c',
   'blockHeight': '0x3',
@@ -1137,14 +1135,12 @@ tbears)
 In interactive mode, you can check SCORE's information deployed while tbears interactive mode is running by executing deployresults command.
 ```bash
 tbears) deployresults
-tbears)
 1.path : abc/, txhash : 0x583a89ec656d71d1641945a39792e016eefd6221ad536f9c312957f0c4336774, deployed in : http://127.0.0.1:9000/api/v3
 2.path : token/, txhash : 0x8c2fe3c877d46b7a1ba7feb117d0b12c8b88f33517ad2315ec45e8b7223c22f8, deployed in : http://127.0.0.1:9000/api/v3
 3.path : abctoken/, txhash : 0xee6e311d2652fd5ed5981f4906bca5d4d6933400721fcbf3528249d7bf460e42, deployed in : http://127.0.0.1:9000/api/v3
 
 ```
 
->>>>>>> Write tbears console mode's instruction(#42):docs/tbears_tutorial.md
 ### Configuration Files
 
 #### tbears_server_config.json

@@ -47,7 +47,7 @@ class Command(object):
 
         return parser
 
-    def run(self, sys_args) -> int:
+    def run(self, sys_args) -> Optional:
         # sys_args is list of commands splitted by space
         # e.g. tbears deploy project -t tbears => ['deploy', 'project', '-t', 'tbears']
         try:

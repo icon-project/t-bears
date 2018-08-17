@@ -198,7 +198,7 @@ class CommandScore(object):
         return hasattr(self, command)
 
     @staticmethod
-    def get_score_conf(command: str, project: str = None, args: dict = None):
+    def get_icon_conf(command: str, project: str = None, args: dict = None):
         """Load config file using IconConfig instance
         config file is loaded as below priority
         system config -> default config -> user config -> user input config(higher priority)
@@ -209,7 +209,7 @@ class CommandScore(object):
         :return: command configuration
         """
         # load configurations
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
+        conf = IconConfig(FN_CLI_CONF, copy.deepcopy(tbears_cli_config))
 
         if project is not None:
             conf['project'] = project

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-import json
 
 from IPython import get_ipython
 from IPython.core.magic import magics_class, Magics, line_magic
@@ -21,7 +20,9 @@ from IPython.core import page
 from IPython.terminal.prompts import Prompts, Token
 
 from tbears.command.command import Command
-from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
+
+
+ip = get_ipython()
 
 
 @magics_class
@@ -37,22 +38,27 @@ class TbearsCommands(Magics):
                 return
             response = self.command_ins.run(full_command_list)
         except:
-            pass
+            return
         else:
+            global _r
+            _r = response
+            if isinstance(response, int):
+                return
+
             if full_command_list[0] == 'deploy' and not response.get("error", None):
                 args = self.command_ins.parser.parse_args(full_command_list)
                 conf = self.command_ins.cmdScore.get_icon_conf('deploy', args=vars(args))
                 self.score_info.append(f"{next(self.deployed_id)}."
                                        f"path : {conf['project']}, txhash : {response['result']},"
                                        f" deployed in : {conf['uri']}")
-            return response
+            return
 
     @line_magic
     def tbears(self, line):
         return self.run_command(line)
 
     @line_magic
-    def deployresults(self, line):
+    def deployresults(self):
         return page.page("\n".join(self.score_info))
 
     @line_magic
@@ -119,15 +125,26 @@ class TbearsCommands(Magics):
     def blockbyheight(self, line):
         return self.run_command(f"blockbyhegith {line}")
 
+    @line_magic
+    def genconf(self, line):
+        return self.run_command(f"genconf {line}")
+
+    @line_magic
+    def sendtx(self, line):
+        return self.run_command(f"sendtx {line}")
+
+    @line_magic
+    def call(self, line):
+        return self.run_command(f"call {line}")
+
 
 class MyPrompt(Prompts):
     def in_prompt_tokens(self, cli=None):
         return [(Token.Prompt, 'tbears) ')]
 
     def out_prompt_tokens(self):
-        return [(Token.OutPrompt, 'tbears) ')]
+        return [(Token.OutPrompt, '')]
 
 
-ip = get_ipython()
 ip.register_magics(TbearsCommands)
 ip.prompts = MyPrompt(ip)
