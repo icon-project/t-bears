@@ -1175,7 +1175,7 @@ Transaction result: {
         "scoreAddress": "cxb8f2c9ba48856df2e889d1ee30ff6d2e002651cf",
 ...
 
-tbears) scoreapi {_['result']['scoreAddress']}
+tbears) scoreapi {_r['result']['scoreAddress']}
 SCORE API: [
     {
         "type": "fallback",
