@@ -17,7 +17,7 @@ import os
 import shutil
 import unittest
 
-from tbears.server.tbears_db import TbearsDB
+from tbears.block_manager.tbears_db import TbearsDB
 
 DIRECTORY_PATH = os.path.abspath((os.path.dirname(__file__)))
 DB_PATH = os.path.join(DIRECTORY_PATH, './.tbears_db')

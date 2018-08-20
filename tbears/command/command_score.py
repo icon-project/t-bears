@@ -73,7 +73,7 @@ class CommandScore(object):
         :param conf: deploy command configuration
         :param password: password for keystore file
         """
-        if conf['contentType'] == 'tbears' and not CommandServer.is_server_running():
+        if conf['contentType'] == 'tbears' and not CommandServer.is_service_running():
             raise TBearsCommandException(f'Start tbears service first')
 
         # check keystore, and get password from user's terminal input
@@ -131,12 +131,12 @@ class CommandScore(object):
         :param _conf: clear command configuration
         """
         # referenced data's path is /tmp/.tbears.env(temporary config data)
-        score_dir_info = CommandServer._get_server_conf()
+        score_dir_info = CommandServer.get_server_conf()
 
         if score_dir_info is None:
             raise TBearsDeleteTreeException("Already clean.")
 
-        if CommandServer.is_server_running():
+        if CommandServer.is_service_running():
             raise TBearsCommandException(f'You must stop tbears service to clear SCORE')
 
         # delete whole score data

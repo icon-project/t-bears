@@ -14,6 +14,7 @@
 # limitations under the License.
 import os
 import re
+import hashlib
 
 import pkg_resources
 
@@ -328,6 +329,10 @@ def is_lowercase_hex_string(value: str) -> bool:
         pass
 
     return False
+
+
+def create_hash(data: bytes) -> str:
+    return f'{hashlib.sha3_256(data).hexdigest()}'
 
 
 def is_valid_hash(_hash: str) -> bool:

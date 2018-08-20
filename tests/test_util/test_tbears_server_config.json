@@ -7,7 +7,12 @@
         "colorLog": true,
         "level": "debug",
         "filePath": "./tbears.log",
-        "outputType": "console|file"
+        "outputType": "file",
+        "rotate": {
+            "type": "bytes",
+            "maxBytes": 10485760,
+            "backupCount": 10
+        }
     },
     "service": {
         "fee": false,
@@ -28,5 +33,10 @@
                 "balance": "0x0"
             }
         ]
-    }
+    },
+    "channel": "loopchain_default",
+    "amqpKey": "7100",
+    "amqpTarget": "127.0.0.1",
+    "blockConfirmInterval": 1,
+    "blockConfirmEmpty": true
 }

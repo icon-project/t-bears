@@ -43,6 +43,7 @@ $ source bin/activate
 (work) $ pip install earlgrey-x.x.x-py3-none-any.whl
 (work) $ pip install iconcommons-x.x.x-py3-none-any.whl
 (work) $ pip install iconservice-x.x.x-py3-none-any.whl
+(work) $ pip install iconrpcserver-x.x.x-py3-none-any.whl
 (work) $ pip install tbears-x.x.x-py3-none-any.whl
 ```
 
@@ -66,6 +67,7 @@ $ source bin/activate
 (work) $ pip install earlgrey-x.x.x-py3-none-any.whl
 (work) $ pip install iconcommons-x.x.x-py3-none-any.whl
 (work) $ pip install iconservice-x.x.x-py3-none-any.whl
+(work) $ pip install iconrpcserver-x.x.x-py3-none-any.whl
 (work) $ pip install tbears-x.x.x-py3-none-any.whl
 ```
 
@@ -1203,11 +1205,17 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
         "level": "info",
         "filePath": "./tbears.log",
         "colorLog": true,
-        "outputType": "console|file"
+        "outputType": "console|file",
+        "rotate": {
+            "type": "bytes",
+            "maxBytes": 10485760,
+            "backupCount": 10
+        }
     },
     "service": {
         "fee": false,
-        "audit": false
+        "audit": false,
+        "deployerWhiteList": false
     },
     "genesis": {
         "nid": "0x03",
@@ -1223,7 +1231,12 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
                 "balance": "0x0"
             }
         ]
-    }
+    },
+    "channel": "loopchain_default",
+    "amqpKey": "7100",
+    "amqpTarget": "127.0.0.1",
+    "blockConfirmInterval": 10,
+    "blockConfirmEmpty": true
 }
 ```
 
@@ -1239,6 +1252,12 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
 | log.filePath              | string    | Log file path.                                               |
 | log.colorLog              | boolean   | Log display option (color or black)                          |
 | log.outputType            | string    | “console”: log outputs to the console that tbears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
+| log.rotate                | dict      | Log rotate setting                                           |
+| log.rotate.type           | string    | "peroid": rotate by period.<br/> "bytes": rotate by maxBytes.<br/> "period\|bytes": log rotate to both period and bytes.                                           |
+| log.rotate.period         | string    | use logging.TimedRotatingFileHandler 'when'<br/> ex) daily, weekly, hourly or minutely
+| log.rotate.interval       | string    | use logging.TimedRotatingFileHandler 'interval'<br/> ex) (period: hourly, interval: 24) == (period: daily, interval: 1)|
+| log.rotate.maxBytes       | integer   | use logging.RotatingFileHandler 'maxBytes'<br/> ex) 10mb == 10 * 1024 * 1024 |
+| log.rotate.backupCount    | integer   | limit log file count                                         |
 | service                   | didct     | tbears service setting                                       |
 | service.fee               | boolean   | true \| false. Charge a fee per transaction when enabled     |
 | service.audit             | boolean   | true \| false. Audit deploy transactions when enabled        |
@@ -1246,6 +1265,11 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
 | genesis                   | dict      | Genesis information of tbears node.                          |
 | genesis.nid               | string    | Network ID.                                                  |
 | genesis.accounts          | list      | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): test accounts that you can add. |
+| channel                   | string    | channel name interact with iconrpcserver and iconservice     |
+| amqpKey                   | string    | amqp key name interact with iconrpcserver and iconservice    |
+| amqpTarget                | string    | amqp target name interact with iconrpcserver and iconservice |
+| blockConfirmInterval      | integer   | Confirm block every N minute                                |
+| blockConfirmEmpty         | boolean   | true \| false. Confirm empty block when enabled              |
 
 #### tbears_cli_config.json
 

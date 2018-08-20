@@ -60,5 +60,16 @@ class TbearsDB:
             self._db.close()
             self._db = None
 
+    def create_write_batch(self) -> object:
+        return self._db.write_batch(transaction=True)
+
+    @staticmethod
+    def write_batch(write_batch, key: bytes, value: bytes):
+        write_batch.put(key, value)
+
+    @staticmethod
+    def commit_write_batch(write_batch):
+        write_batch.write()
+
     def iterator(self) -> iter:
         return self._db.iterator()
