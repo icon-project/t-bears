@@ -1268,7 +1268,7 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
 | channel                   | string    | channel name interact with iconrpcserver and iconservice     |
 | amqpKey                   | string    | amqp key name interact with iconrpcserver and iconservice    |
 | amqpTarget                | string    | amqp target name interact with iconrpcserver and iconservice |
-| blockConfirmInterval      | integer   | Confirm block evenry N minute                                |
+| blockConfirmInterval      | integer   | Confirm block every N minute                                |
 | blockConfirmEmpty         | boolean   | true \| false. Confirm empty block when enabled              |
 
 #### tbears_cli_config.json
