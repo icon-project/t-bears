@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
+
 FN_SERVER_CONF = './tbears_server_config.json'
 FN_CLI_CONF = './tbears_cli_config.json'
 
@@ -68,6 +70,16 @@ tbears_server_config = {
     ConfigKey.BLOCK_CONFIRM_INTERVAL: 10,
     ConfigKey.BLOCK_CONFIRM_EMPTY: True
 }
+
+
+def make_server_config(config: dict) -> dict:
+    server_config = deepcopy(config)
+    del server_config[ConfigKey.CHANNEL]
+    del server_config[ConfigKey.AMQP_KEY]
+    del server_config[ConfigKey.AMQP_TARGET]
+
+    return server_config
+
 
 tbears_cli_config = {
     "uri": "http://127.0.0.1:9000/api/v3",

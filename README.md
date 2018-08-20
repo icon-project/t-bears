@@ -1232,9 +1232,6 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
             }
         ]
     },
-    "channel": "loopchain_default",
-    "amqpKey": "7100",
-    "amqpTarget": "127.0.0.1",
     "blockConfirmInterval": 10,
     "blockConfirmEmpty": true
 }
@@ -1265,9 +1262,6 @@ When starting tbears (`tbears start`), "tbears_server_config.json" is used to
 | genesis                   | dict      | Genesis information of tbears node.                          |
 | genesis.nid               | string    | Network ID.                                                  |
 | genesis.accounts          | list      | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): test accounts that you can add. |
-| channel                   | string    | channel name interact with iconrpcserver and iconservice     |
-| amqpKey                   | string    | amqp key name interact with iconrpcserver and iconservice    |
-| amqpTarget                | string    | amqp target name interact with iconrpcserver and iconservice |
 | blockConfirmInterval      | integer   | Confirm block every N minute                                |
 | blockConfirmEmpty         | boolean   | true \| false. Confirm empty block when enabled              |
 
