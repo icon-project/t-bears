@@ -15,6 +15,8 @@
 from typing import TYPE_CHECKING
 
 from earlgrey import MessageQueueStub, message_queue_task
+from iconcommons.logger import Logger
+
 
 if TYPE_CHECKING:
     from earlgrey import RobustConnection
@@ -49,4 +51,5 @@ class IconStub(MessageQueueStub[IconScoreInnerTask]):
     TaskType = IconScoreInnerTask
 
     def _callback_connection_lost_callback(self, connection: 'RobustConnection'):
-        exit(1)
+        Logger.error(f'IconStub lost message queue connection', 'tbears_block_manager')
+        self._task._block_manager.close()

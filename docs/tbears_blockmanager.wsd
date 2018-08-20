@@ -13,7 +13,14 @@ note over blockmanager, icon: confirm block
 blockmanager -> icon : <font color=blue><b>write_precommit_state
 end
 
-group transaction & block confirm
+group confirm block every 10sec
+blockmanager -> icon : <font color=blue><b>invoke</b></font> block
+icon -> blockmanager : response
+note over blockmanager, icon: confirm block
+blockmanager -> icon : <font color=blue><b>write_precommit_state
+end
+
+group transaction
 
 client -> rpcserver: icx_sendTransaction
 rpcserver -> icon : validate_transaction
@@ -22,13 +29,6 @@ rpcserver -> blockmanager : <font color=blue><b>create_icx_tx
 blockmanager -> blockmanager : add TX to block
 blockmanager -> rpcserver : response
 rpcserver -> client : response
-
-group every 2sec
-blockmanager -> icon : <font color=blue><b>invoke</b></font> block
-icon -> blockmanager : response
-note over blockmanager, icon: confirm block
-blockmanager -> icon : <font color=blue><b>write_precommit_state
-end
 
 end
 
@@ -40,13 +40,6 @@ blockmanager -> blockmanager : search
 blockmanager -> rpcserver : response
 rpcserver -> client : response
 
-end
-
-group ICON RpcServer initialize
-
-rpcserver -> blockmanager : <font color=blue><b>get_channel_infos\n<font color=blue><b>get_channel_info_detail
-blockmanager -> rpcserver : response
-rpcserver -> rpcserver : initialize
 end
 
 @enduml

@@ -29,6 +29,7 @@ from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileExcep
 from tbears.util import write_file
 from tbears.util.argparse_type import port_type, IconPath
 from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, ConfigKey, log_to_file_config
+from tbears.block_manager.block_manager import TBEARS_BLOCK_MANAGER
 
 
 BLOCKMANAGER_MODULE_NAME = 'tbears.block_manager.block_manager'
@@ -111,15 +112,13 @@ class CommandServer(object):
 
         # run iconservice
         self._start_iconservice(conf, temp_conf)
-        time.sleep(2)
 
         # start tbears_block_manager
         self._start_blockmanager(conf)
-        time.sleep(2)
 
         # start iconrpcserver
         self._start_iconrpcserver(conf, temp_conf)
-        time.sleep(2)
+        time.sleep(3)
 
         # remove temporary configuration file
         os.remove(temp_conf)
@@ -148,6 +147,8 @@ class CommandServer(object):
 
             # stop iconservice
             subprocess.run(f'iconservice stop -c {TBEARS_CLI_ENV}', shell=True, stdout=devnull)
+
+            time.sleep(2)
 
         print(f'Stopped tbears service successfully')
 
@@ -187,7 +188,7 @@ class CommandServer(object):
         subprocess.Popen([sys.executable, '-m', BLOCKMANAGER_MODULE_NAME, *custom_argv], close_fds=True)
 
     @staticmethod
-    def is_service_running(name: str = BLOCKMANAGER_MODULE_NAME) -> bool:
+    def is_service_running(name: str = TBEARS_BLOCK_MANAGER) -> bool:
         """ Check if server is running.
         :return: True or False
         """

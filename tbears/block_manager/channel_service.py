@@ -53,8 +53,8 @@ class ChannelInnerTask(object):
 
         # check duplication
         duplicated_tx = False
-        for tx_tuple in block_manager.tx_queue:
-            if tx_hash == tx_tuple[0]:
+        for tx in block_manager.tx_queue:
+            if tx_hash == tx ['txHash']:
                 duplicated_tx = True
         if duplicated_tx is False and block_manager._block.get_transaction(tx_hash=tx_hash):
             duplicated_tx = True
@@ -149,4 +149,5 @@ class ChannelService(MessageQueueService[ChannelInnerTask]):
     TaskType = ChannelInnerTask
 
     def _callback_connection_lost_callback(self, connection: 'RobustConnection'):
-        exit(1)
+        Logger.error(f'ChannelService lost message queue connection', 'tbears_block_manager')
+        self._task._block_manager.close()

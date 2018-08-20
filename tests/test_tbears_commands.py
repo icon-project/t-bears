@@ -62,6 +62,12 @@ class TestTBearsCommands(unittest.TestCase):
         sock.close()
         return result == 0
 
+    def deploy_cmd(self, conf: dict, password: str = None) -> dict:
+        response = self.cmd.cmdScore.deploy(conf=conf, password=password)
+        # Wait until block_manager confirm block. block_manager for test confirm every second
+        time.sleep(2)
+        return response
+
     def test_init(self):
         # Case when entering the right path for initializing the SCORE.
         conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
@@ -117,7 +123,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         # deploy - f"-t tbears -m install"
         conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
-        deploy_response = self.cmd.cmdScore.deploy(conf=conf)
+        deploy_response = self.deploy_cmd(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 
         # result (query transaction result)
@@ -140,7 +146,7 @@ class TestTBearsCommands(unittest.TestCase):
         conf['mode'] = 'update'
         conf['to'] = scoreAddress
         conf['conf'] = './tbears_cli_config.json'
-        deploy_response = self.cmd.cmdScore.deploy(conf=conf)
+        deploy_response = self.deploy_cmd(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 
         # deploy - f"-t tbears -m update --to invalid_scoreAddress -c tbears_cli_config.json"
@@ -150,7 +156,7 @@ class TestTBearsCommands(unittest.TestCase):
         invalid_conf['mode'] = 'update'
         invalid_conf['to'] = invalid_score_address
         invalid_conf['conf'] = './tbears_cli_config.json'
-        invalid_deploy_response = self.cmd.cmdScore.deploy(conf=invalid_conf)
+        invalid_deploy_response = self.deploy_cmd(conf=invalid_conf)
         self.assertIsNotNone(invalid_deploy_response.get('error', None))
 
         # result (query transaction result)
@@ -165,7 +171,7 @@ class TestTBearsCommands(unittest.TestCase):
         conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf['contentType'] = 'zip'
-        deploy_response = self.cmd.cmdScore.deploy(conf=conf, password='qwer1234%')
+        deploy_response = self.deploy_cmd(conf=conf, password='qwer1234%')
         self.assertEqual(deploy_response.get('error', False), False)
 
         # result (query transaction result)
@@ -182,7 +188,7 @@ class TestTBearsCommands(unittest.TestCase):
         conf['contentType'] = 'zip'
         conf['mode'] = 'update'
         conf['to'] = scoreAddress
-        deploy_response = self.cmd.cmdScore.deploy(conf=conf, password='qwer1234%')
+        deploy_response = self.deploy_cmd(conf=conf, password='qwer1234%')
         self.assertEqual(deploy_response.get('error', False), False)
 
         invalid_tx_hash = '0x3d6fa810d782a3b3aa6e4a95f5ac48d8bfa096366b3c2ba2922f49cccf3ac6b5'

@@ -14,9 +14,10 @@
 import sys
 import argparse
 import time
-import setproctitle
 from copy import deepcopy
+from asyncio import get_event_loop
 
+import setproctitle
 from earlgrey import MessageQueueService
 from iconcommons.logger import Logger
 from iconcommons.icon_config import IconConfig
@@ -45,7 +46,7 @@ class BlockManager(object):
         self._amqp_target = None
         self._channel_service = None
         self._icon_stub = None
-        self._block: 'Block' = Block(conf=conf)
+        self._block: 'Block' = Block(f'{conf["stateDbRootPath"]}/tbears')
         self._tx_queue = []
         
     @property
@@ -54,7 +55,16 @@ class BlockManager(object):
 
     def serve(self):
         async def _serve():
-            await self.init()
+            try:
+                await self.init()
+            except RuntimeError as e:
+                msg = f'Failed to connect to MQ. Check rabbitMQ service. ({e})'
+                Logger.error(msg, TBEARS_BLOCK_MANAGER)
+                print(msg)
+                self.close()
+                # TODO how to notify process status to parent process or system
+                return
+
             Logger.info(f'Start tbears block_manager serve!', TBEARS_BLOCK_MANAGER)
 
         channel = self._conf[ConfigKey.CHANNEL]
@@ -184,10 +194,14 @@ class BlockManager(object):
         """
         Logger.debug(f'Initialize periodic task started!!', TBEARS_BLOCK_MANAGER)
 
-        self.periodic = Periodic(func=self.confirm_block, interval=self._conf[ConfigKey.BLOCK_CONFIRM_INTERVAL])
+        self.periodic = Periodic(func=self.process_block_data, interval=self._conf[ConfigKey.BLOCK_CONFIRM_INTERVAL])
         await self.periodic.start()
 
         Logger.debug(f'Initialize periodic task done!!', TBEARS_BLOCK_MANAGER)
+
+    def close(self):
+        Logger.debug(f'close {TBEARS_BLOCK_MANAGER}', TBEARS_BLOCK_MANAGER)
+        get_event_loop().stop()
 
     def add_tx(self, tx_hash: str, tx: dict):
         """
@@ -200,10 +214,9 @@ class BlockManager(object):
 
         # add txHash
         tx_copy['txHash'] = tx_hash
-        # add from
-        tx_copy['from'] = tx_copy.get('from', '')
 
-        self._tx_queue.append((tx_hash, tx_copy))
+        self._tx_queue.append(tx_copy)
+        Logger.debug(f'Append tx to tx_queue: {self._tx_queue}', TBEARS_BLOCK_MANAGER)
 
     @property
     def tx_queue(self) -> list:
@@ -223,12 +236,12 @@ class BlockManager(object):
 
         return tx_queue
 
-    async def confirm_block(self):
+    async def process_block_data(self):
         """
-        Confirm block. Save transactions , transaction results and block. Update block height and previous block hash.
+        Process block data. Invoke block and save transactions , transaction results and block. Update block height and previous block hash.
         :return:
         """
-        Logger.debug(f'confirm block started!!', TBEARS_BLOCK_MANAGER)
+        Logger.debug(f'process_block_data started!!', TBEARS_BLOCK_MANAGER)
 
         # clear tx_queue
         tx_list = self.clear_tx()
@@ -250,19 +263,9 @@ class BlockManager(object):
             Logger.debug(f'iconservice response None for invoke request.', TBEARS_BLOCK_MANAGER)
             return
 
-        # save transaction result
-        self.block.save_txresults(tx_list, response)
-
-        # save transactions
-        self.block.save_transactions(tx_list=tx_list, block_hash=block_hash)
-
-        # save block
-        self.block.save_block(block_hash=block_hash, tx=tx_list, timestamp=block_timestamp_us)
-
-        # update block information
-        self.block.commit_block(prev_block_hash=block_hash)
-
-        Logger.debug(f'confirm block done!!', TBEARS_BLOCK_MANAGER)
+        # send write precommit message and confirm block
+        await self._confirm_block(tx_list= tx_list, tx_result= response, block_hash=block_hash, timestamp=block_timestamp_us)
+        Logger.debug(f'process_block_data done!!', TBEARS_BLOCK_MANAGER)
 
     async def _invoke_block(self, tx_list: list, block_hash: str, block_timestamp) -> dict:
         """
@@ -272,6 +275,7 @@ class BlockManager(object):
         :param block_timestamp: block confirm timestamp
         :return:
         """
+        Logger.debug(f'invoke block start', TBEARS_BLOCK_MANAGER)
         block_height = self.block.block_height + 1
         prev_block_hash = self.block.prev_block_hash
 
@@ -279,7 +283,7 @@ class BlockManager(object):
         for tx in tx_list:
             transaction = {
                 "method": 'icx_sendTransaction',
-                "params": tx[1]
+                "params": tx
             }
             transactions.append(transaction)
 
@@ -293,22 +297,47 @@ class BlockManager(object):
             'transactions': transactions
         }
 
-        # send invoke to iconservice
-        Logger.debug(f'send invoke request: {request}!!', TBEARS_BLOCK_MANAGER)
+        # send invoke message to iconservice
         response = await self._icon_stub.async_task().invoke(request)
 
         if 'error' in response:
             Logger.debug(f'Get error response from iconservice: {response}!!', TBEARS_BLOCK_MANAGER)
             return None
 
+        Logger.debug(f'invoke block done. txResults: {response["txResults"]}!!', TBEARS_BLOCK_MANAGER)
+        return response["txResults"]
+
+    async def _confirm_block(self, tx_list: list, tx_result: dict, block_hash: str, timestamp: int):
+        """
+        Confirm block. Send 'write_precommit_state' message and save transaction, transaction result and block data
+        :param tx_list: transaction list
+        :param tx_result: transaction result
+        :param block_hash: block hash
+        :param timestamp: block timestamp
+        :return:
+        """
+        Logger.debug(f'confirm block start!!', TBEARS_BLOCK_MANAGER)
+
+        # save transaction result
+        self.block.save_txresults(tx_list=tx_list, results=tx_result)
+
+        # save transactions
+        self.block.save_transactions(tx_list=tx_list, block_hash=block_hash)
+
+        # save block
+        self.block.save_block(block_hash=block_hash, tx=tx_list, timestamp=timestamp)
+
+        # update block information
+        self.block.commit_block(prev_block_hash=block_hash)
+
+        block_height = self.block.block_height + 1
         precommit_request = {'blockHeight': hex(block_height),
                              'blockHash': block_hash}
 
-        # send write_prevommit_state to iconservice
+        # send write_prevommit_state message to iconservice
         await self._icon_stub.async_task().write_precommit_state(precommit_request)
 
-        Logger.debug(f'invoke block done. txResults: {response["txResults"]}!!', TBEARS_BLOCK_MANAGER)
-        return response["txResults"]
+        Logger.debug(f'confirm block done.', TBEARS_BLOCK_MANAGER)
 
 
 def create_parser():

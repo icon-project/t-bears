@@ -16,10 +16,13 @@ import os
 import unittest
 import shutil
 import time
+
+from iconcommons.icon_config import IconConfig
+
 from tbears.command.command import Command
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_server_config, FN_SERVER_CONF
 from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
-from iconcommons.icon_config import IconConfig
+from tbears.block_manager.message_code import Response, responseCodeMap
 
 from tests.test_util import TEST_UTIL_DIRECTORY
 
@@ -84,4 +87,4 @@ class TestTBearsService(unittest.TestCase):
         # send again
         response = icon_client.send(request)
         self.assertTrue('error' in response)
-        self.assertEqual('Duplicated transaction', response['error']['message'])
+        self.assertEqual(responseCodeMap[Response.fail_tx_invalid_duplicated_hash][1], response['error']['message'])

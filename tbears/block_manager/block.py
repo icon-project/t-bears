@@ -34,8 +34,8 @@ class DbPrefix(object):
 
 
 class Block(object):
-    def __init__(self, conf: 'IconConfig'):
-        self._db: TbearsDB = TbearsDB(TbearsDB.make_db(f'{conf["stateDbRootPath"]}/tbears'))
+    def __init__(self, db_path: str):
+        self._db: TbearsDB = TbearsDB(TbearsDB.make_db(db_path))
         self._block_height = -1
         self._prev_block_hash = None
         self._peer_id = str(uuid.uuid1())
@@ -103,9 +103,7 @@ class Block(object):
         # write transaction with batch
         with self.db.create_write_batch() as wb:
             for i, tx in enumerate(tx_list):
-                k = tx[0]
-                v = tx[1]
-                key, value = self._get_tx_value(i, k, v, block_hash, self.block_height + 1)
+                key, value = self._get_tx_value(i, tx['txHash'], tx, block_hash, self.block_height + 1)
                 self.db.write_batch(write_batch=wb, key=key, value=value)
 
     @staticmethod
@@ -153,12 +151,13 @@ class Block(object):
         # write transaction result with batch
         with self.db.create_write_batch() as wb:
             for tx in tx_list:
+                tx_hash = tx['txHash']
                 # key from transaction hash
-                key = DbPrefix.TXRESULT + bytes.fromhex(tx[0])
+                key = DbPrefix.TXRESULT + bytes.fromhex(tx_hash)
 
                 # get value from transaction result dict by tx hash
-                tx_result = results.get(tx[0], "")
-                tx_result['txHash'] = f'0x{tx[0]}'
+                tx_result = results.get(tx_hash, "")
+                tx_result['txHash'] = f'0x{tx_hash}'
                 value = json.dumps(tx_result).encode()
 
                 self.db.write_batch(write_batch=wb, key=key, value=value)
@@ -173,12 +172,10 @@ class Block(object):
         """
         is_genesis = isinstance(tx, dict)
         tx_list = []
-        if not is_genesis:
-            for tx_tuple in tx:
-                # write transaction hash
-                tx_list.append(tx_tuple[0])
-        else:
+        if is_genesis:
             tx_list.append(tx)
+        else:
+            tx_list = tx
 
         block_height = self.block_height + 1
 
