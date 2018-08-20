@@ -60,10 +60,10 @@ def hash_type(string: str) -> str:
     return string
 
 
-def port_type(string: str) -> str:
+def port_type(string: str) -> int:
     port = int(string, 10)
 
     if port < 0 or port > 65535:
         raise ArgumentTypeError(f"Invalid port'{string}'. Port must be 0 < port < 65536")
 
-    return string
+    return port
