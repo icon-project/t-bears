@@ -43,6 +43,7 @@ $ source bin/activate
 (work) $ pip install earlgrey-x.x.x-py3-none-any.whl
 (work) $ pip install iconcommons-x.x.x-py3-none-any.whl
 (work) $ pip install iconservice-x.x.x-py3-none-any.whl
+(work) $ pip install iconrpcserver-x.x.x-py3-none-any.whl
 (work) $ pip install tbears-x.x.x-py3-none-any.whl
 ```
 
