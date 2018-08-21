@@ -120,6 +120,7 @@ class CommandScore(object):
         else:
             print('Send deploy request successfully.')
             tx_hash = response['result']
+            print(f'If you want to check SCORE deployed successfully, execute txresult command')
             print(f"transaction hash: {tx_hash}")
 
         return response

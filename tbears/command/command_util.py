@@ -39,7 +39,7 @@ class CommandUtil(object):
         parser = subparsers.add_parser('init', help='Initialize tbears project',
                                        description='Initialize SCORE development environment.\n'
                                                    'Generate <project>.py and package.json in <project> directory. '
-                                                   'The name of the score class is <score_class>.')
+                                                   'The name of the score class is <scoreClass>.')
         parser.add_argument('project', type=IconPath('w'), help='Project name')
         parser.add_argument('score_class', help='SCORE class name')
 
@@ -111,7 +111,7 @@ class CommandUtil(object):
         if result:
             print(f"Made {', '.join(result)} successfully")
         else:
-            print(f"Failed to write configuration files. There were configuration files already.")
+            print(f"There were configuration files already.")
 
     def check_command(self, command):
         return hasattr(self, command)

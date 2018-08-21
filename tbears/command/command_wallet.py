@@ -97,8 +97,9 @@ class CommandWallet:
     @staticmethod
     def _add_keystore_parser(subparsers):
         parser = subparsers.add_parser('keystore',
-                                       help='Create keystore file',
-                                       description='Create keystore file in passed path.')
+                                       help='Create keystore file in passed path.',
+                                       description='Create keystore file in passed path. Generate privatekey, '
+                                                   'publickey pair using secp256k1 library.')
         parser.add_argument('path', type=IconPath('w'), help='path of keystore file.')
 
     @staticmethod

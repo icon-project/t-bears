@@ -130,11 +130,11 @@ Available commands:
 
 
 
-#### T-Bears server CLIs
+### T-Bears server CLIs
 
 Clis about T-Bears server. there are three commands 'tbears start', 'tbears stop' and 'tbears clear'.
 
-##### tbears start
+#### tbears start
 
 **Description**
 
@@ -163,7 +163,7 @@ optional arguments:
 | -p, --port      | 9000                        | Port number that the T-Bears service will listen on. |
 | -c, --config    | ./tbears_server_config.json | T-Bears configuration file path                      |
 
-##### tbears stop
+#### tbears stop
 
 **Description**
 
@@ -186,7 +186,7 @@ optional arguments:
 | --------------- | :------ | ------------------------------- |
 | -h, --help      |         | show this help message and exit |
 
-##### tbears clear
+#### tbears clear
 
 **Description**
 
@@ -211,15 +211,16 @@ optional arguments:
 
 
 
-#### T-Bears Util CLIs
+### T-Bears Util CLIs
 
 Clis that generate configuration file and keystore file.
 
-##### tbears keystore
+#### tbears keystore
 
 **Description**
 
-Create keystore file in passed path
+Create keystore file in passed path. Generate privatekey, publickey pair using
+secp256k1 library.
 
 positional arguments:
   path                  path of keystore file
@@ -256,7 +257,7 @@ Made keystore file successfully
 
 ```
 
-##### tbears genconf
+#### tbears genconf
 
 **Description**
 
@@ -287,27 +288,27 @@ Made tbears_cli_config.json, tbears_server_config.json successfully
 
 
 
-#### T-Bears SCORE CLIs
+### T-Bears SCORE CLIs
 
 Clis which is related to SCORE. generate SCORE using 'tbears init', 'tbears samples', and deploy SCORE, and call SCORE method using 'tbears sendtx' and 'tbears call'. 
 
-##### **tbears init**
+#### tbears init
 
 **Description**
 
-Initialize SCORE development environment. Generate <project\>.py and package.json in <project\> directory. The name of the SCORE class is \<score_class\>.  Default configuration files, "tbears_server_config.json" used when starting T-Bears and "tbears_cli_config.json" used when deploying SCORE, are also generated.
+Initialize SCORE development environment. Generate <project\>.py and package.json in <project\> directory. The name of the SCORE class is \<scoreClass\>.  Default configuration files, "tbears_server_config.json" used when starting T-Bears and "tbears_cli_config.json" used when deploying SCORE, are also generated.
 
 **Usage**
 
 ```bash
-usage: tbears init [-h] project score_class
+usage: tbears init [-h] project scoreClass
 Initialize SCORE development environment. Generate <project>.py and
 package.json in <project> directory. The name of the SCORE class is
-<score_class>.
+<scoreClass>.
 
 positional arguments:
   project      Project name
-  score_class  SCORE class name
+  scoreClass  SCORE class name
 
 optional arguments:
   -h, --help   show this help message and exit
@@ -318,7 +319,7 @@ optional arguments:
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | project         |         | Project name                    |
-| score_class     |         | SCORE class name                |
+| scoreClass     |         | SCORE class name                |
 | -h, --help      |         | show this help message and exit |
 
 **Examples**
@@ -337,11 +338,11 @@ abc.py  __init__.py package.json tests
 | tbears_server_config.json  | T-Bears default configuration file will be created on the working directory. |
 | tbears_cli_config.json     | Configuration file for CLI commands will be created on the working directory. |
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project folder recognized as a python package. |
-| \<project>/package.json    | SCORE metadata.                                              |
+| \<project>/package.json    | Contains the information needed when SCORE is loaded. <br> "main_file" and "main_class" is necessary. |
 | \<project>/\<project>.py   | SCORE main file. ABCToken class is defined.                  |
 | tests                      | Directory for SCORE unittest                                 |
 
-##### tbears samples
+#### tbears samples
 
 **Description**
 
@@ -377,7 +378,7 @@ standard_token:
 __init__.py  package.json  standard_token.py
 ```
 
-##### tbears deploy
+#### tbears deploy
 
 **Description**
 
@@ -447,7 +448,7 @@ Send deploy request successfully.
 transaction hash: 0xad292b9608d9575f735ec2ebbf52dc891d7cca6a2fa7e97aee4818325c80934d
 ```
 
-##### tbears sendtx
+#### tbears sendtx
 
 **Description**
 
@@ -486,6 +487,29 @@ optional arguments:
 **Examples**
 
 ```bash
+(work) $ cat send.json
+{
+  "jsonrpc": "2.0",
+  "method": "icx_sendTransaction",
+  "params": {
+    "version": "0x3",
+    "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "value": "0x0",
+    "stepLimit": "0x2000",
+    "timestamp": "0x573117f1d6568",
+    "nid": "0x3",
+    "nonce": "0x1",
+    "to": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "dataType": "call",
+    "data": {
+      "method": "setValue",
+      "params": {
+        "value": "0x123"
+      }
+    }
+  },
+  "id": 1
+}
 (work) $ tbears sendtx send.json
 
 input your key store password: 
@@ -494,7 +518,7 @@ Send transaction request successfully.
 transaction hash: 0xc8a3e3f77f21f8f1177d829cbc4c0ded6fd064cc8e42ef309dacff5c0a952289
 ```
 
-##### tbears call
+#### tbears call
 
 **Description**
 
@@ -529,15 +553,29 @@ optional arguments:
 **Examples**
 
 ```bash
+(work) $ cat call.json
+{
+  "jsonrpc": "2.0",
+  "method": "icx_call",
+  "params": {
+    "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "to": "cx53d5080a7d8a805bb10eb9bc64637809dc910832",
+    "dataType": "call",
+    "data": {
+      "method": "hello"
+    }
+  },
+  "id": 1
+}
 (work) $ tbears call call.json
 response : {
     "jsonrpc": "2.0",
-    "result": "0xe8d4a51000",
+    "result": "hello",
     "id": 1
 }
 ```
 
-##### tbears scoreapi
+#### tbears scoreapi
 
 **Description**
 
@@ -599,11 +637,11 @@ scoreAPI: [
 
 
 
-#### etc
+### etc
 
 cli which is related to ICX, transaction, block.
 
-##### tbears transfer
+#### tbears transfer
 
 **Description**
 
@@ -655,14 +693,22 @@ optional arguments:
 ```bash
 (work) $ tbears transfer -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa hxbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 100
 Got an error response
-{'jsonrpc': '2.0', 'error': {'code': -32600, 'message': 'Out of balance'}, 'id': 1}
+{
+    "jsonrpc": "2.0",
+    "error": {
+        "code": -32600,
+        "message": "Out of balance"
+    },
+    "id": 1
+}
+
 
 (work) $ tbears transfer -k test_keystore hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab 1e18
 Send transfer request successfully.
 transaction hash: 0xc1b92b9a08d8575f735ec2ebbf52dc831d7c2a6a2fa7e97aee4818325cad919e
 ```
 
-##### tbears balance
+#### tbears balance
 
 **Description**
 
@@ -704,7 +750,7 @@ optional arguments:
 balance : 0x2961fff8ca4a62327800000
 ```
 
-##### tbears totalsupply
+#### tbears totalsupply
 
 **Description**
 
@@ -742,7 +788,7 @@ optional arguments:
 Total supply  of Icx: 0x2961fff8ca4a62327800000
 ```
 
-##### tbears txresult
+#### tbears txresult
 
 **Description**
 
@@ -800,7 +846,7 @@ Transaction result: {
 }
 ```
 
-##### tbears txbyhash
+#### tbears txbyhash
 
 **Description**
 
@@ -867,7 +913,7 @@ Transaction: {
 
 
 
-##### tbears lastblock
+#### tbears lastblock
 
 **Description**
 
@@ -938,7 +984,7 @@ block info : {
 
 ```
 
-##### tbears blockbyheight
+#### tbears blockbyheight
 
 **Description**
 
@@ -1007,7 +1053,7 @@ block info : {
 
 ```
 
-##### tbears blockbyhash
+#### tbears blockbyhash
 
 **Description**
 
@@ -1078,7 +1124,7 @@ block info : {
 
 
 
-#### tbears console
+### tbears console
 
 **Description**
 
@@ -1279,17 +1325,17 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
 | log.level       | string    | log level. <br/>"debug", "info", "warning", "error"          |
 | log.filePath    | string    | Log file path.                                               |
 | log.colorLog    | boolean   | Log display option (color or black)                          |
-| log.outputType  | string    | “console”: log outputs to the console that T-Bears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
+| log.outputType  | string    | “console”: log outputs to the console that T-Bears is running.<br/>“file”: log outputs to the file path.<br/>“console&#124;file”: log outputs to both console and file. |
 | log.rotate      | dict      | Log rotate setting                                           |
-| log.rotate.type | string    | "peroid": rotate by period.<br/> "bytes": rotate by maxBytes.<br/> "period\|bytes": log rotate to both period and bytes. |
+| log.rotate.type | string    | "peroid": rotate by period.<br/> "bytes": rotate by maxBytes.<br/> "period&#124;bytes": log rotate to both period and bytes. |
 | log.rotate.period         | string    | use logging.TimedRotatingFileHandler 'when'<br/> ex) daily, weekly, hourly or minutely
 | log.rotate.interval       | string    | use logging.TimedRotatingFileHandler 'interval'<br/> ex) (period: hourly, interval: 24) == (period: daily, interval: 1)|
 | log.rotate.maxBytes       | integer   | use logging.RotatingFileHandler 'maxBytes'<br/> ex) 10mb == 10 * 1024 * 1024 |
 | log.rotate.backupCount    | integer   | limit log file count                                         |
 | service                   | didct     | T-Bears service setting                                       |
-| service.fee               | boolean   | true \| false. Charge a fee per transaction when enabled     |
-| service.audit             | boolean   | true \| false. Audit deploy transactions when enabled        |
-| service.deployerWhiteList | boolean   | true \| false. Limit SCORE deploy permission when enabled    |
+| service.fee               | boolean   | true &#124; false. Charge a fee per transaction when enabled     |
+| service.audit             | boolean   | true &#124; false. Audit deploy transactions when enabled        |
+| service.deployerWhiteList | boolean   | true &#124; false. Limit SCORE deploy permission when enabled    |
 | genesis                   | dict      | Genesis information of T-Bears node.                          |
 | genesis.nid               | string    | Network ID.                                                  |
 | genesis.accounts          | list      | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): test accounts that you can add. |
@@ -1297,7 +1343,7 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
 | amqpKey                   | string    | amqp key name interact with iconrpcserver and iconservice    |
 | amqpTarget                | string    | amqp target name interact with iconrpcserver and iconservice |
 | blockConfirmInterval      | integer   | Confirm block every N minute                                |
-| blockConfirmEmpty         | boolean   | true \| false. Confirm empty block when enabled              |
+| blockConfirmEmpty         | boolean   | true &#124; false. Confirm empty block when enabled              |
 
 #### tbears_cli_config.json
 

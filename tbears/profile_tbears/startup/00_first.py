@@ -123,7 +123,7 @@ class TbearsCommands(Magics):
 
     @line_magic
     def blockbyheight(self, line):
-        return self.run_command(f"blockbyhegith {line}")
+        return self.run_command(f"blockbyheight {line}")
 
     @line_magic
     def genconf(self, line):
@@ -136,6 +136,10 @@ class TbearsCommands(Magics):
     @line_magic
     def call(self, line):
         return self.run_command(f"call {line}")
+
+    @line_magic
+    def networkid(self, line):
+        return self.run_command(f"networkid {line}")
 
 
 class MyPrompt(Prompts):

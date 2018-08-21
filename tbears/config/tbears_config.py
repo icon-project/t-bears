@@ -28,7 +28,7 @@ class ConfigKey:
 
 
 tbears_server_config = {
-    "hostAddress": "0.0.0.0",
+    "hostAddress": "127.0.0.1",
     "port": 9000,
     "scoreRootPath": "./.score",
     "stateDbRootPath": "./.statedb",
