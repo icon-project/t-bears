@@ -41,7 +41,7 @@ class CommandUtil(object):
                                                    'Generate <project>.py and package.json in <project> directory. '
                                                    'The name of the score class is <scoreClass>.')
         parser.add_argument('project', type=IconPath('w'), help='Project name')
-        parser.add_argument('score_class', help='SCORE class name')
+        parser.add_argument('score_class', help='SCORE class name', metavar='scoreClass')
 
     @staticmethod
     def _add_samples_parser(subparsers):
