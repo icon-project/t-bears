@@ -123,7 +123,7 @@ class TbearsCommands(Magics):
 
     @line_magic
     def blockbyheight(self, line):
-        return self.run_command(f"blockbyhegith {line}")
+        return self.run_command(f"blockbyheight {line}")
 
     @line_magic
     def genconf(self, line):

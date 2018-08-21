@@ -22,7 +22,8 @@ from tbears.util import (
     get_score_main_template, get_sample_token_contents, get_sample_crowd_sale_contents,
     get_package_json_dict, write_file, PROJECT_ROOT_PATH
 )
-from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
+from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config,\
+    make_server_config
 from tbears.util.argparse_type import IconPath
 
 
@@ -38,9 +39,9 @@ class CommandUtil(object):
         parser = subparsers.add_parser('init', help='Initialize tbears project',
                                        description='Initialize SCORE development environment.\n'
                                                    'Generate <project>.py and package.json in <project> directory. '
-                                                   'The name of the score class is <score_class>.')
+                                                   'The name of the score class is <scoreClass>.')
         parser.add_argument('project', type=IconPath('w'), help='Project name')
-        parser.add_argument('score_class', help='SCORE class name')
+        parser.add_argument('score_class', help='SCORE class name', metavar='scoreClass')
 
     @staticmethod
     def _add_samples_parser(subparsers):
@@ -104,10 +105,13 @@ class CommandUtil(object):
             write_file('./', FN_CLI_CONF, json.dumps(tbears_cli_config, indent=4))
         if os.path.exists(FN_SERVER_CONF) is False:
             result.append(FN_SERVER_CONF[2:])
-            write_file('./', FN_SERVER_CONF, json.dumps(tbears_server_config, indent=4))
+            server_config_json = make_server_config(tbears_server_config)
+            write_file('./', FN_SERVER_CONF, json.dumps(server_config_json, indent=4))
 
         if result:
             print(f"Made {', '.join(result)} successfully")
+        else:
+            print(f"There were configuration files already.")
 
     def check_command(self, command):
         return hasattr(self, command)
@@ -135,12 +139,16 @@ class CommandUtil(object):
         # when command is samples, make standard_crowd_sale or standard_token
         py_contents = contents_func(score_class)
 
+        # contentes for tbears_server_config.json
+
+        server_config_json = make_server_config(tbears_server_config)
+
         write_file(project, f"{project}.py", py_contents)
         write_file(project, "package.json", package_json_contents)
         write_file(project, '__init__.py', '')
         write_file(f'{project}/tests', f'test_{project}.py', '')
         write_file(f'{project}/tests', f'__init__.py', '')
-        write_file('./', f"{FN_SERVER_CONF}", json.dumps(tbears_server_config, indent=4))
+        write_file('./', f"{FN_SERVER_CONF}", json.dumps(server_config_json, indent=4))
         write_file('./', f"{FN_CLI_CONF}", json.dumps(tbears_cli_config, indent=4))
 
     @staticmethod
