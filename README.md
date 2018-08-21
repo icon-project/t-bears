@@ -4,6 +4,41 @@ This tutorial is intended to give an introduction to using T-Bears dev suite. Th
 
 T-Bears is a suite of development tools for SCORE. You can code and test your smart contract locally, and when ready, deploy SCORE onto the ICON network from command-line interface. T-Bears provides a project template for SCORE to help you start right away.
 
+## Components
+![Componets](images/components.png)
+
+### ICON RPC Server
+A module that handles ICON JSON-RPC API request and send response to client. 
+
+### ICON Service
+A module that manages SCORE. Deploy and invoke SCORE and save their state.
+
+### T-Bears CLI
+T-Bears Command Line Interface. Supports following functions
+ * Manage T-Bears service
+ * Deploy SCORE
+ * Send transaction
+ * Send query request
+ 
+For the detail, see below '[Command-line Interfaces(CLIs)](#command-line-interfaces-clis-)' chapter
+
+### T-Bears Block Manager
+LoopChain emulator for T-Bears Service. It does not support 'consensus' and 'peer management'. Supports transaction and block information read/write only.
+
+### Message queue
+A module that queues the message of other modules.
+
+
+## Building source code
+ First, clone this project. Then go to the project folder and create a user environment and run build script.
+```
+$ virtualenv -p python3 venv  # Create a virtual environment.
+$ source venv/bin/activate    # Enter the virtual environment.
+(venv)$ ./build.sh            # run build script
+(venv)$ ls dist/              # check result wheel file
+tbears-1.0.1-py3-none-any.whl
+```
+
 ## Installation
 
 This chapter will explain how to install T-Bears on your system. 
@@ -132,7 +167,7 @@ Available commands:
 
 ### T-Bears server CLIs
 
-Clis about T-Bears server. there are three commands 'tbears start', 'tbears stop' and 'tbears clear'.
+CLIs about T-Bears server. there are three commands 'tbears start', 'tbears stop' and 'tbears clear'.
 
 #### tbears start
 
@@ -213,7 +248,7 @@ optional arguments:
 
 ### T-Bears Util CLIs
 
-Clis that generate configuration file and keystore file.
+CLIs that generate configuration file and keystore file.
 
 #### tbears keystore
 
@@ -290,7 +325,7 @@ Made tbears_cli_config.json, tbears_server_config.json successfully
 
 ### T-Bears SCORE CLIs
 
-Clis which is related to SCORE. generate SCORE using 'tbears init', 'tbears samples', and deploy SCORE, and call SCORE method using 'tbears sendtx' and 'tbears call'. 
+CLIs which is related to SCORE. generate SCORE using 'tbears init', 'tbears samples', and deploy SCORE, and call SCORE method using 'tbears sendtx' and 'tbears call'. 
 
 #### tbears init
 
