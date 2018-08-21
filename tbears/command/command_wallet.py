@@ -16,16 +16,14 @@ import copy
 import getpass
 import json
 import os
-import time
 
 from iconservice.base.address import is_icon_address_valid
 from iconcommons import IconConfig
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
-from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc, put_signature_to_params
-from tbears.libs.icx_signer import key_from_key_store, IcxSigner
+from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
 from tbears.tbears_exception import TBearsCommandException
-from tbears.util import is_valid_hash
+from tbears.util import is_valid_hash, jsonrpc_params_to_pep_style
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type
 from tbears.util.keystore_manager import validate_password, make_key_store_content
 
@@ -221,6 +219,9 @@ class CommandWallet:
                 raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
             if not password:
                 password = getpass.getpass("input your key store password: ")
+        else:
+            if not is_icon_address_valid(conf['from']):
+                raise TBearsCommandException(f'invalid address: {conf["from"]}')
 
         return password
 
@@ -432,17 +433,17 @@ class CommandWallet:
         :param password: password of keystore
         :return: response of transfer.
         """
-        password = self._check_sendtx(conf, password)
-        private_key = key_from_key_store(conf['keyStore'], password)
-        signer = IcxSigner(private_key)
-        icon_client = IconClient(conf['uri'])
-
         with open(conf['json_file'], 'r') as jf:
             payload = json.load(jf)
+        password = self._check_sendtx(conf, password)
 
-        payload['params']['from'] = f"hx{signer.address.hex()}"
-        payload['params']['timestamp'] = hex(int(time.time() * 10 ** 6))
-        put_signature_to_params(signer, payload['params'])
+        if password:
+            sendtx = IconJsonrpc.from_key_store(conf['keyStore'], password)
+            params = payload['params']
+            jsonrpc_params_to_pep_style(params)
+            payload = sendtx.sendTransaction(**params)
+
+        icon_client = IconClient(conf['uri'])
         response = icon_client.send(request=payload)
 
         if 'result' in response:

@@ -362,3 +362,14 @@ def get_tbears_version() -> str:
     except:
         version = 'unknown'
     return version
+
+
+def jsonrpc_params_to_pep_style(params: dict):
+    change_dict_key_name(params, 'from', 'from_')
+    change_dict_key_name(params, 'stepLimit', 'step_limit')
+    change_dict_key_name(params, 'dataType', 'data_type')
+
+
+def change_dict_key_name(params: dict, origin_name: str, new_name: str):
+    if params.get(origin_name, None):
+        params[new_name] = params.pop(origin_name)
