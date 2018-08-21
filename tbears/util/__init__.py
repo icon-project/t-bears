@@ -95,12 +95,14 @@ def get_sample_crowd_sale_contents(score_class: str):
 
 TAG = 'SampleCrowdSale'
 
+
 class TokenInterface(InterfaceScore):
     @interface
     def transfer(self, _to: Address, _value: int, _data: bytes=None):
         pass
 
-class SampleCrowdSale(IconScoreBase):
+
+class StandardCrowdSale(IconScoreBase):
     _ADDR_BENEFICIARY = 'addr_beneficiary'
     _ADDR_TOKEN_SCORE = 'addr_token_score'
     _FUNDING_GOAL = 'funding_goal'
@@ -229,8 +231,6 @@ class SampleCrowdSale(IconScoreBase):
                     # if the transfer to beneficiary fails, unlock contributors balance
                     Logger.debug(f'Failed to send to beneficiary!', TAG)
                     self._funding_goal_reached.set(False)
-
-
 """
     return template.replace("MyCrowdSale", score_class)
 
@@ -240,12 +240,14 @@ def get_sample_token_contents(score_class: str):
 
 TAG = 'SampleToken'
 
+
 class CrowdSaleInterface(InterfaceScore):
     @interface
     def tokenFallback(self, _from: Address, _value: int, _data: bytes):
         pass
 
-class SampleToken(IconScoreBase):
+
+class StandardToken(IconScoreBase):
 
     _BALANCES = 'balances'
     _TOTAL_SUPPLY = 'total_supply'
@@ -311,8 +313,7 @@ class SampleToken(IconScoreBase):
             crowdsale_score.tokenFallback(_from, _value, _data)
         self.Transfer(_from, _to, _value, _data)
         Logger.debug(f'Transfer({_from}, {_to}, {_value}, {_data})', TAG)
-
-    """
+"""
     return template.replace("MySampleToken", score_class)
 
 
