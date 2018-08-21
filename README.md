@@ -167,7 +167,7 @@ Available commands:
 
 ### T-Bears server CLIs
 
-CLIs about T-Bears server. there are three commands 'tbears start', 'tbears stop' and 'tbears clear'.
+CLIs about T-Bears server. There are three commands 'tbears start', 'tbears stop' and 'tbears clear'.
 
 #### tbears start
 
@@ -325,7 +325,7 @@ Made tbears_cli_config.json, tbears_server_config.json successfully
 
 ### T-Bears SCORE CLIs
 
-CLIs which is related to SCORE. generate SCORE using 'tbears init', 'tbears samples', and deploy SCORE, and call SCORE method using 'tbears sendtx' and 'tbears call'. 
+CLIs which is related to SCORE. Generate SCORE using 'tbears init', 'tbears samples', and deploy SCORE, and call SCORE method using 'tbears sendtx' and 'tbears call'. 
 
 #### tbears init
 
@@ -672,9 +672,9 @@ scoreAPI: [
 
 
 
-### etc
+### T-Bears other CLIs
 
-cli which is related to ICX, transaction, block.
+CLI which is related to ICX, transaction, block.
 
 #### tbears transfer
 
