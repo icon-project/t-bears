@@ -51,6 +51,7 @@ class CommandScore(object):
                             help='Keystore file path. Used to generate "from" address and transaction signature')
         parser.add_argument('-n', '--nid', help='Network ID')
         parser.add_argument('-c', '--config', type=IconPath(), help=f'deploy config path (default: {FN_CLI_CONF})')
+        parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
 
     @staticmethod
     def _add_clear_parser(subparsers):
@@ -67,16 +68,16 @@ class CommandScore(object):
         # run command
         return getattr(self, args.command)(conf)
 
-    def deploy(self, conf: dict, password: str = None) -> dict:
+    def deploy(self, conf: dict) -> dict:
         """Deploy SCORE on the server.
 
         :param conf: deploy command configuration
-        :param password: password for keystore file
         """
         if conf['contentType'] == 'tbears' and not CommandServer.is_service_running():
             raise TBearsCommandException(f'Start tbears service first')
 
         # check keystore, and get password from user's terminal input
+        password = conf.get('password', None)
         password = self._check_deploy(conf, password)
 
         step_limit = conf.get('stepLimit', "0x1234000")
