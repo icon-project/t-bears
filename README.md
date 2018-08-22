@@ -754,10 +754,10 @@ Get balance of given address.
 ```bash
 usage: tbears balance [-h] [-u URI] [-c CONFIG] address
 
-Get balance of given address
+Get balance of given address in loop unit
 
 positional arguments:
-  address                  Address to query the icx balance.
+  address               Address to query the icx balance
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -766,6 +766,7 @@ optional arguments:
   -c CONFIG, --config CONFIG
                         Configuration file path. This file defines the default
                         value for the "uri"(default: ./tbears_cli_config.json)
+
 ```
 
 **Options**
@@ -782,7 +783,8 @@ optional arguments:
 ```bash
 (work) $ tbears balance hx0123456789abcdef0123456789abcdefabcdef12
 
-balance : 0x2961fff8ca4a62327800000
+balance in hex: 0x2961fff8ca4a62327800000
+balance in decimal: 800460000000000000000000000
 ```
 
 #### tbears totalsupply
@@ -796,7 +798,7 @@ Query total supply of ICX.
 ```bash
 usage: tbears totalsupply [-h] [-u URI] [-c CONFIG]
 
-Get total supply of ICX
+Query total supply of ICX in loop unit
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -820,7 +822,8 @@ optional arguments:
 ```bash
 (work) $ tbears totalsupply
 
-Total supply  of Icx: 0x2961fff8ca4a62327800000
+Total supply of Icx in hex: 0x2961fff8ca4a62327800000
+Total supply of Icx in decimal: 800460000000000000000000000
 ```
 
 #### tbears txresult
