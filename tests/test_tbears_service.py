@@ -49,6 +49,8 @@ class TestTBearsService(unittest.TestCase):
                 os.remove('./tbears.log')
             if os.path.exists(self.project_name):
                 shutil.rmtree(self.project_name)
+            if os.path.exists('exc'):
+                shutil.rmtree('exc')
             self.cmd.cmdServer.stop(None)
             self.cmd.cmdScore.clear(None)
         except:

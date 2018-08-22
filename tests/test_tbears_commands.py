@@ -23,7 +23,6 @@ from copy import deepcopy
 
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
-from tbears.tbears_exception import TBearsCommandException
 from tbears.libs.icx_signer import key_from_key_store
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 from iconcommons.icon_config import IconConfig
@@ -41,11 +40,15 @@ class TestTBearsCommands(unittest.TestCase):
         try:
             if os.path.exists(FN_CLI_CONF):
                 os.remove(FN_CLI_CONF)
+            if os.path.exists(FN_SERVER_CONF):
+                os.remove(FN_SERVER_CONF)
             if os.path.exists('./tbears.log'):
                 os.remove('./tbears.log')
             if os.path.exists(self.project_name):
                 shutil.rmtree(self.project_name)
             self.cmd.cmdServer.stop(None)
+            if os.path.exists('exc'):
+                shutil.rmtree('exc')
             self.cmd.cmdScore.clear(self.start_conf if self.start_conf else tbears_server_config)
         except:
             pass

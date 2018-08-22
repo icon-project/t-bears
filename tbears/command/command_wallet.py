@@ -23,7 +23,7 @@ from iconcommons import IconConfig
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
 from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
 from tbears.tbears_exception import TBearsCommandException
-from tbears.util import is_valid_hash, jsonrpc_params_to_pep_style
+from tbears.util import jsonrpc_params_to_pep_style
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type
 from tbears.util.keystore_manager import validate_password, make_key_store_content
 
@@ -166,16 +166,6 @@ class CommandWallet:
                                  f'the "uri"(default: {FN_CLI_CONF})')
 
     @staticmethod
-    def _validate_tx_hash(tx_hash):
-        if not is_valid_hash(tx_hash):
-            raise TBearsCommandException('invalid transaction hash')
-
-    @staticmethod
-    def _validate_block_hash(block_hash):
-        if not is_valid_hash(block_hash):
-            raise TBearsCommandException('invalid block hash')
-
-    @staticmethod
     def _check_transfer(conf: dict, password: str = None):
         if not is_icon_address_valid(conf['to']):
             raise TBearsCommandException(f'You entered invalid address')
@@ -185,37 +175,19 @@ class CommandWallet:
             raise TBearsCommandException(f'You entered invalid value {conf["value"]}')
 
         if conf.get('keyStore', None):
-            if not os.path.exists(conf['keyStore']):
-                raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
             if not password:
                 password = getpass.getpass("input your key store password: ")
-        else:
-            if not is_icon_address_valid(conf['from']):
-                raise TBearsCommandException(f'You entered invalid address')
 
         return password
 
     @staticmethod
-    def _check_keystore(conf: dict, password: str):
-        if os.path.exists(conf['path']):
-            raise TBearsCommandException(f'{conf["path"]} must be empty')
-
+    def _check_keystore(password: str):
         if not password:
             password = getpass.getpass("input your key store password: ")
         if not validate_password(password):
             raise TBearsCommandException("Password must be at least 8 characters long including alphabet, number, "
                                          "and special character.")
         return password
-
-    @staticmethod
-    def _check_balance(conf: dict):
-        if not is_icon_address_valid(conf['address']):
-            raise TBearsCommandException(f'You entered invalid address')
-
-    @staticmethod
-    def _check_scoreapi(conf: dict):
-        if not (is_icon_address_valid(conf['address']) and conf['address'].startswith('cx')):
-            raise TBearsCommandException(f'You entered invalid score address')
 
     @staticmethod
     def _check_sendtx(conf: dict, password: str = None):
@@ -271,8 +243,6 @@ class CommandWallet:
         :param conf: blockbyhash command configuration
         :return: result of query
         """
-        self._validate_block_hash(conf['hash'])
-
         icon_client = IconClient(conf['uri'])
 
         response = icon_client.send(IconJsonrpc.getBlockByHash(conf['hash']))
@@ -291,8 +261,6 @@ class CommandWallet:
         :param conf: txbyhash command configuration.
         :return: result of query.
         """
-        self._validate_tx_hash(conf['hash'])
-
         icon_client = IconClient(conf['uri'])
 
         response = icon_client.send(IconJsonrpc.getTransactionByHash(conf['hash']))
@@ -311,8 +279,6 @@ class CommandWallet:
         :param conf: txresult command configuration.
         :return: result of query.
         """
-        self._validate_tx_hash(conf['hash'])
-
         icon_client = IconClient(conf['uri'])
 
         response = icon_client.send(IconJsonrpc.getTransactionResult(conf['hash']))
@@ -367,7 +333,7 @@ class CommandWallet:
         :param password: password for keystore file
         """
         # check if same keystore file already exist, and if user input valid password
-        password = self._check_keystore(conf, password)
+        password = self._check_keystore(password)
 
         key_store_content = make_key_store_content(password)
 
@@ -381,8 +347,6 @@ class CommandWallet:
 
         :param conf: balance command configuration.
         """
-        self._check_balance(conf)
-
         icon_client = IconClient(conf['uri'])
 
         response = icon_client.send(IconJsonrpc.getBalance(conf['address']))
@@ -420,8 +384,6 @@ class CommandWallet:
         :param conf: scoreapi command configuration.
         :return: result of query.
         """
-        self._check_scoreapi(conf)
-
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(IconJsonrpc.getScoreApi(conf['address']))
 
