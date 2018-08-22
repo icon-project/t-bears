@@ -15,4 +15,4 @@ fi
 
 pip install wheel
 rm -rf build dist *.egg-info
-python setup.py bdist_wheel
+python setup.py sdist bdist_wheel

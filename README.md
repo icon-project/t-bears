@@ -75,11 +75,7 @@ $ virtualenv -p python3 .
 $ source bin/activate
 
 # Install the ICON SCORE dev tools
-(work) $ pip install earlgrey-x.x.x-py3-none-any.whl
-(work) $ pip install iconcommons-x.x.x-py3-none-any.whl
-(work) $ pip install iconservice-x.x.x-py3-none-any.whl
-(work) $ pip install iconrpcserver-x.x.x-py3-none-any.whl
-(work) $ pip install tbears-x.x.x-py3-none-any.whl
+(work) $ pip install t-bears
 ```
 
 ### Setup on Linux
@@ -99,11 +95,7 @@ $ virtualenv -p python3 .
 $ source bin/activate
 
 # Install the ICON SCORE dev tools
-(work) $ pip install earlgrey-x.x.x-py3-none-any.whl
-(work) $ pip install iconcommons-x.x.x-py3-none-any.whl
-(work) $ pip install iconservice-x.x.x-py3-none-any.whl
-(work) $ pip install iconrpcserver-x.x.x-py3-none-any.whl
-(work) $ pip install tbears-x.x.x-py3-none-any.whl
+(work) $ pip install t-bears
 ```
 
 ## How to use T-Bears
@@ -1433,9 +1425,6 @@ Following CLI commands and options can be defined in the configuration file.
 | transfer | uri, nid, keyStore, from, to, stepLimit                      |
 
 ##  Reference
-
-- [SCORE development guide and examples](https://repo.theloop.co.kr/icon/loopchain-icon/blob/master/icon/docs/dapp_guide.md)
-- [ICON JSON-RPC API v3](https://repo.theloop.co.kr/theloop/LoopChain/wikis/doc/loopchain-json-rpc-v3)
 
 ## License
 

@@ -1,8 +1,8 @@
-@startuml tbears blockmanager work flow
+@startuml T-Bears blockmanager work flow
 
-actor "Client or tbears cli" as client
-participant "ICON RpcServer" as rpcserver #lightblue
-participant "tbears Blockmanager" as blockmanager
+actor "Client or T-Bears cli" as client
+participant "ICON RPC Server" as rpcserver #lightblue
+participant "T-Bears Block Manager" as blockmanager
 participant "ICON Service" as icon #lightgreen
 
 group initialize
