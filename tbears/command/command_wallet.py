@@ -45,7 +45,7 @@ class CommandWallet:
 
     @staticmethod
     def _add_lastblock_parser(subparsers):
-        parser = subparsers.add_parser('lastblock', help='Get last block\'s info')
+        parser = subparsers.add_parser('lastblock', help='Get last block\'s info', description='Get last block\'s info')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
@@ -53,7 +53,8 @@ class CommandWallet:
 
     @staticmethod
     def _add_blockbyhash_parser(subparsers):
-        parser = subparsers.add_parser('blockbyhash', help='Get last block\'s info')
+        parser = subparsers.add_parser('blockbyhash', help='Get block\'s info using given block hash',
+                                       description='Get block\'s info using given block hash')
         parser.add_argument('hash', type=hash_type, help='Hash of the block to be queried.')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
@@ -62,7 +63,8 @@ class CommandWallet:
 
     @staticmethod
     def _add_blockbyheight_parser(subparsers):
-        parser = subparsers.add_parser('blockbyheight', help='Get block\'s info using given block height')
+        parser = subparsers.add_parser('blockbyheight', help='Get block\'s info using given block height',
+                                       description='Get block\'s info using given block height')
         parser.add_argument('height', help='height of the block to be queried.')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
@@ -103,9 +105,9 @@ class CommandWallet:
     @staticmethod
     def _add_balance_parser(subparsers):
         parser = subparsers.add_parser('balance',
-                                       help='Get balance of given address',
-                                       description='Get balance of given address')
-        parser.add_argument('address', type=IconAddress(), help='Address to query the icx balance')
+                                       help='Get balance of given address in loop unit',
+                                       description='Get balance of given address in loop unit')
+        parser.add_argument('address', type=IconAddress(), help='Address to query the ICX balance')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
@@ -113,7 +115,8 @@ class CommandWallet:
 
     @staticmethod
     def _add_totalsupply_parser(subparsers):
-        parser = subparsers.add_parser('totalsupply', help='Query total supply of icx')
+        parser = subparsers.add_parser('totalsupply', help='Query total supply of ICX in loop unit',
+                                       description='Query total supply of ICX in loop unit')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
@@ -121,7 +124,8 @@ class CommandWallet:
 
     @staticmethod
     def _add_scoreapi_parser(subparsers):
-        parser = subparsers.add_parser('scoreapi', help='Get score\'s api using given score address')
+        parser = subparsers.add_parser('scoreapi', help='Get score\'s api using given score address',
+                                       description='Get score\'s api using given score address')
         parser.add_argument('address', type=IconAddress('cx'), help='Score address to query score api')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath,
@@ -322,7 +326,7 @@ class CommandWallet:
         return response
 
     def transfer(self, conf: dict, password: str = None):
-        """Transfer Icx Coin.
+        """Transfer ICX Coin.
 
         :param conf: transfer command configuration.
         :param password: password of keystore
@@ -387,12 +391,13 @@ class CommandWallet:
             print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
-            print(f"balance : {response['result']}")
+            print(f"balance in hex: {response['result']}")
+            print(f"balance in decimal: {int(response['result'], 16)}")
         return response
 
     @staticmethod
     def totalsupply(conf: dict):
-        """Query total supply of icx
+        """Query total supply of ICX
 
         :param conf: totalsupply command configuration
         """
@@ -404,7 +409,8 @@ class CommandWallet:
             print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
-            print(f'Total supply of Icx: {response["result"]}')
+            print(f'Total supply of ICX in hex: {response["result"]}')
+            print(f'Total supply of ICX in decimal: {int(response["result"], 16)}')
 
         return response
 
