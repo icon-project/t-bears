@@ -326,7 +326,7 @@ class CommandWallet:
         return response
 
     def transfer(self, conf: dict, password: str = None):
-        """Transfer Icx Coin.
+        """Transfer ICX Coin.
 
         :param conf: transfer command configuration.
         :param password: password of keystore
@@ -409,8 +409,8 @@ class CommandWallet:
             print('Got an error response')
             print(json.dumps(response, indent=4))
         else:
-            print(f'Total supply of Icx in hex: {response["result"]}')
-            print(f'Total supply of Icx in decimal: {int(response["result"], 16)}')
+            print(f'Total supply of ICX in hex: {response["result"]}')
+            print(f'Total supply of ICX in decimal: {int(response["result"], 16)}')
 
         return response
 

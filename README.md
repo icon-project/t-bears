@@ -822,8 +822,8 @@ optional arguments:
 ```bash
 (work) $ tbears totalsupply
 
-Total supply of Icx in hex: 0x2961fff8ca4a62327800000
-Total supply of Icx in decimal: 800460000000000000000000000
+Total supply of ICX in hex: 0x2961fff8ca4a62327800000
+Total supply of ICX in decimal: 800460000000000000000000000
 ```
 
 #### tbears txresult
