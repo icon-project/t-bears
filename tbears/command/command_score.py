@@ -181,8 +181,6 @@ class CommandScore(object):
             if not is_icon_address_valid(conf['from']):
                 raise TBearsCommandException(f"You entered invalid 'from' address '{conf['from']}")
         else:
-            if not os.path.exists(conf['keyStore']):
-                raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
             if not password:
                 password = getpass.getpass("input your key store password: ")
 

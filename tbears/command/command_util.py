@@ -120,8 +120,6 @@ class CommandUtil(object):
     def _check_init(conf: dict):
         if conf['project'] == conf['score_class']:
             raise TBearsCommandException(f'<project> and <score_class> must be different.')
-        if os.path.exists(f"./{conf['project']}"):
-            raise TBearsCommandException(f'{conf["project"]} directory must be empty.')
 
     @staticmethod
     def __initialize_project(project: str, score_class: str, contents_func):

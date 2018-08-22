@@ -77,14 +77,14 @@ class TestCommandUtil(TestCommand):
         cmd = f'init {self.project} {self.score_class}'
         parsed = self.parser.parse_args(cmd.split())
         self.touch(self.project)
-        self.assertRaises(TBearsCommandException, CommandUtil._check_init, vars(parsed))
+        self.assertRaises(SystemExit, self.parser.parse_args, vars(parsed))
         os.remove(self.project)
 
         # Input existing SCORE directory when initializing the SCORE.
         cmd = f'init {project_dir} {self.score_class}'
         parsed = self.parser.parse_args(cmd.split())
         os.mkdir(project_dir)
-        self.assertRaises(TBearsCommandException, CommandUtil._check_init, vars(parsed))
+        self.assertRaises(SystemExit, self.parser.parse_args, vars(parsed))
         shutil.rmtree(project_dir)
 
         # Input right path (path should equal to ./{project name}/package.json "main_file" property)
