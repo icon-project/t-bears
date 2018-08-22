@@ -66,7 +66,8 @@ class TestTBearsCommands(unittest.TestCase):
         return result == 0
 
     def deploy_cmd(self, conf: dict, password: str = None) -> dict:
-        response = self.cmd.cmdScore.deploy(conf=conf, password=password)
+        conf['password'] = password
+        response = self.cmd.cmdScore.deploy(conf=conf)
         # Wait until block_manager confirm block. block_manager for test confirm every second
         time.sleep(2)
         return response
@@ -234,14 +235,14 @@ class TestTBearsCommands(unittest.TestCase):
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf = self.cmd.cmdWallet.get_icon_conf('transfer', {'keyStore': key_path, 'to': f'hx123{"0"*37}',
-                                                             'value': 0.3e2})
-        transfer_response_json = self.cmd.cmdWallet.transfer(conf, 'qwer1234%')
+                                                             'value': 0.3e2, 'password': 'qwer1234%'})
+        transfer_response_json = self.cmd.cmdWallet.transfer(conf)
         self.assertFalse(transfer_response_json.get('error', False))
 
         # sendtx
         conf = self.cmd.cmdWallet.get_icon_conf('sendtx', {"json_file": os.path.join(TEST_UTIL_DIRECTORY, 'send.json'),
-                                                           "keyStore": key_path})
-        sendtx_response_json = self.cmd.cmdWallet.sendtx(conf, 'qwer1234%')
+                                                           "keyStore": key_path, 'password': 'qwer1234%'})
+        sendtx_response_json = self.cmd.cmdWallet.sendtx(conf)
         self.assertFalse(sendtx_response_json.get('error', False))
 
         # stop
@@ -261,8 +262,8 @@ class TestTBearsCommands(unittest.TestCase):
         password = '1234qwer%'
 
         # make keystore file
-        conf = {'path': path}
-        self.cmd.cmdWallet.keystore(conf, password)
+        conf = {'path': path, 'password': password}
+        self.cmd.cmdWallet.keystore(conf)
         self.assertTrue(os.path.exists(path))
 
         # get private key from file

@@ -93,6 +93,7 @@ class CommandWallet:
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default values for the properties '
                                  f'"keyStore", "uri" and "from". (default: {FN_CLI_CONF})')
+        parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
 
     @staticmethod
     def _add_keystore_parser(subparsers):
@@ -101,6 +102,7 @@ class CommandWallet:
                                        description='Create keystore file in passed path. Generate privatekey, '
                                                    'publickey pair using secp256k1 library.')
         parser.add_argument('path', type=IconPath('w'), help='path of keystore file.')
+        parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
 
     @staticmethod
     def _add_balance_parser(subparsers):
@@ -154,6 +156,7 @@ class CommandWallet:
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
                                  f'the "uri"(default: {FN_CLI_CONF})')
+        parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
 
     @staticmethod
     def _add_call_parser(subparsers):
@@ -291,15 +294,15 @@ class CommandWallet:
 
         return response
 
-    def transfer(self, conf: dict, password: str = None):
+    def transfer(self, conf: dict):
         """Transfer ICX Coin.
 
         :param conf: transfer command configuration.
-        :param password: password of keystore
         :return: response of transfer.
         """
         # check value type(must be int), address and keystore file
         # if valid, return user input password
+        password = conf.get('password', None)
         password = self._check_transfer(conf, password)
 
         if password:
@@ -326,13 +329,13 @@ class CommandWallet:
 
         return response
 
-    def keystore(self, conf: dict, password: str = None):
+    def keystore(self, conf: dict):
         """Make keystore file with passed path and password.
 
         :param conf: keystore command configuration
-        :param password: password for keystore file
         """
         # check if same keystore file already exist, and if user input valid password
+        password = conf.get('password', None)
         password = self._check_keystore(password)
 
         key_store_content = make_key_store_content(password)
@@ -395,15 +398,16 @@ class CommandWallet:
 
         return response
 
-    def sendtx(self, conf: dict, password: str = None):
+    def sendtx(self, conf: dict):
         """Send transaction.
 
         :param conf: sendtx command configuration.
-        :param password: password of keystore
         :return: response of transfer.
         """
         with open(conf['json_file'], 'r') as jf:
             payload = json.load(jf)
+
+        password = conf.get('password', None)
         password = self._check_sendtx(conf, password)
 
         if password:
