@@ -107,7 +107,7 @@ class CommandWallet:
         parser = subparsers.add_parser('balance',
                                        help='Get balance of given address in loop unit',
                                        description='Get balance of given address in loop unit')
-        parser.add_argument('address', type=IconAddress(), help='Address to query the icx balance')
+        parser.add_argument('address', type=IconAddress(), help='Address to query the ICX balance')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
@@ -397,7 +397,7 @@ class CommandWallet:
 
     @staticmethod
     def totalsupply(conf: dict):
-        """Query total supply of icx
+        """Query total supply of ICX
 
         :param conf: totalsupply command configuration
         """

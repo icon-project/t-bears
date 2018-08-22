@@ -145,7 +145,7 @@ Available commands:
     transfer     Transfer ICX coin.
     keystore     Create keystore file
     balance      Get balance of given address
-    totalsupply  Query total supply of icx
+    totalsupply  Query total supply of ICX
     scoreapi     Get score's api using given score address
     txbyhash     Get transaction by transaction hash
     lastblock    Get last block's info
@@ -757,7 +757,7 @@ usage: tbears balance [-h] [-u URI] [-c CONFIG] address
 Get balance of given address in loop unit
 
 positional arguments:
-  address               Address to query the icx balance
+  address               Address to query the ICX balance
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -773,7 +773,7 @@ optional arguments:
 
 | shorthand, Name | default                      | Description                                                  |
 | --------------- | :--------------------------- | ------------------------------------------------------------ |
-| address         |                              | Address to query the icx balance                             |
+| address         |                              | Address to query the ICX balance                             |
 | -h, --help      |                              | show this help message and exit                              |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
 | -c, --config    | ./tbears_cli_config.json     | Configuration file path. This file defines the default value for the "uri". |
