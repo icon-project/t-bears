@@ -1,0 +1,45 @@
+@startuml T-Bears blockmanager work flow
+
+actor "Client or T-Bears cli" as client
+participant "ICON RPC Server" as rpcserver #lightblue
+participant "T-Bears Block Manager" as blockmanager
+participant "ICON Service" as icon #lightgreen
+
+group initialize
+blockmanager -> icon : <font color=blue><b>hello
+blockmanager -> icon : <font color=blue><b>invoke</b></font> genesis
+icon -> blockmanager : response
+note over blockmanager, icon: confirm block
+blockmanager -> icon : <font color=blue><b>write_precommit_state
+end
+
+group confirm block every 10sec
+blockmanager -> icon : <font color=blue><b>invoke</b></font> block
+icon -> blockmanager : response
+note over blockmanager, icon: confirm block
+blockmanager -> icon : <font color=blue><b>write_precommit_state
+end
+
+group transaction
+
+client -> rpcserver: icx_sendTransaction
+rpcserver -> icon : validate_transaction
+icon -> rpcserver : response
+rpcserver -> blockmanager : <font color=blue><b>create_icx_tx
+blockmanager -> blockmanager : add TX to block
+blockmanager -> rpcserver : response
+rpcserver -> client : response
+
+end
+
+group query
+
+client -> rpcserver: icx_getTransactionResult\n icx_getTransactionByHash\n icx_getLastBlock\n icx_getBlockByHash\n icx_getBlockByHeight
+rpcserver -> blockmanager : <font color=blue><b>get_invoke_result\n<font color=blue><b>get_tx_info\n<font color=blue><b>get_block
+blockmanager -> blockmanager : search
+blockmanager -> rpcserver : response
+rpcserver -> client : response
+
+end
+
+@enduml

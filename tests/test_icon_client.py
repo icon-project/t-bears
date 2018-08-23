@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import shutil
 import unittest
 import os
 import socket
@@ -45,7 +45,12 @@ class TestIconClient(unittest.TestCase):
         return result == 0
 
     def tearDown(self):
-        self.cmd.cmdServer.stop(self.conf)
+        if self.check_server():
+            self.cmd.cmdServer.stop(self.conf)
+        if os.path.exists('exc'):
+            shutil.rmtree('exc')
+        if os.path.exists('tbears.log'):
+            os.remove('tbears.log')
 
     def test_send_request_to_server(self):
         # Correct request
@@ -88,3 +93,5 @@ class TestIconClient(unittest.TestCase):
         payload = {"jsonrpc": "2.0", "method": "icx_getTotalSupply", "id": 111}
         client = IconClient('http://127.0.0.1:9000/api/v3')
         self.assertRaises(Exception, client.send, payload)
+
+        self.cmd.cmdScore.clear(self.conf)

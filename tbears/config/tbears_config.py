@@ -13,11 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
+
 FN_SERVER_CONF = './tbears_server_config.json'
 FN_CLI_CONF = './tbears_cli_config.json'
 
+
+class ConfigKey:
+    CHANNEL = 'channel'
+    AMQP_KEY = 'amqpKey'
+    AMQP_TARGET = 'amqpTarget'
+    BLOCK_CONFIRM_INTERVAL = 'blockConfirmInterval'
+    BLOCK_CONFIRM_EMPTY = 'blockConfirmEmpty'
+
+
 tbears_server_config = {
-    "hostAddress": "0.0.0.0",
+    "hostAddress": "127.0.0.1",
     "port": 9000,
     "scoreRootPath": "./.score",
     "stateDbRootPath": "./.statedb",
@@ -26,7 +37,12 @@ tbears_server_config = {
         "level": "info",
         "filePath": "./tbears.log",
         "colorLog": True,
-        "outputType": "console|file"
+        "outputType": "console|file",
+        "rotate": {
+            "type": "bytes",
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 10
+        }
     },
     "service": {
         "fee": False,
@@ -47,8 +63,23 @@ tbears_server_config = {
                 "balance": "0x0"
             }
         ]
-    }
+    },
+    ConfigKey.CHANNEL: "loopchain_default",
+    ConfigKey.AMQP_KEY: "7100",
+    ConfigKey.AMQP_TARGET: "127.0.0.1",
+    ConfigKey.BLOCK_CONFIRM_INTERVAL: 10,
+    ConfigKey.BLOCK_CONFIRM_EMPTY: True
 }
+
+
+def make_server_config(config: dict) -> dict:
+    server_config = deepcopy(config)
+    del server_config[ConfigKey.CHANNEL]
+    del server_config[ConfigKey.AMQP_KEY]
+    del server_config[ConfigKey.AMQP_TARGET]
+
+    return server_config
+
 
 tbears_cli_config = {
     "uri": "http://127.0.0.1:9000/api/v3",
@@ -64,4 +95,14 @@ tbears_cli_config = {
     },
     "txresult": {},
     "transfer": {}
+}
+
+log_to_file_config ={
+     "log": {
+        "logger": "tbears",
+        "level": "info",
+        "filePath": "./tbears.log",
+        "colorLog": True,
+        "outputType": "file"
+    }
 }

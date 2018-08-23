@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 import json
 import os
 import socket
@@ -23,15 +24,16 @@ from ipaddress import ip_address
 
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
+
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
 from tbears.util import write_file
 from tbears.util.argparse_type import port_type, IconPath
-from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config
-from tbears.libs.icon_jsonrpc import IconClient
+from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, ConfigKey, log_to_file_config
+from tbears.block_manager.block_manager import TBEARS_BLOCK_MANAGER
 
 
+BLOCKMANAGER_MODULE_NAME = 'tbears.block_manager.block_manager'
 TBEARS_CLI_ENV = '/tmp/.tbears.env'
-SERVER_MODULE_NAME = 'tbears.server.jsonrpc_server'
 TBEARS_CLI_TAG = 'tbears_cli'
 
 
@@ -63,7 +65,7 @@ class CommandServer(object):
         conf = self.get_icon_conf(args.command, args=user_input)
 
         # run command
-        getattr(self, args.command)(conf)
+        return getattr(self, args.command)(conf)
 
     @staticmethod
     def get_icon_conf(command: str, args: dict = None) -> dict:
@@ -76,8 +78,8 @@ class CommandServer(object):
         :return: command configuration
         """
         # load configurations
-        conf = IconConfig(FN_SERVER_CONF, tbears_server_config)
-
+        conf = IconConfig(FN_SERVER_CONF, copy.deepcopy(tbears_server_config))
+        # load config file
         conf.load(config_path=args.get('config', None) if args else None)
 
         # move command config
@@ -93,47 +95,88 @@ class CommandServer(object):
 
     def start(self, conf: dict):
         """ Start tbears service
+        Start iconservice, tbears_block_manager, iconrpcserver
 
         :param conf: start command configuration
         """
-        if self.is_server_running():
+        if self.is_service_running():
             raise TBearsCommandException(f"tbears service was started already")
 
         if self.is_port_available(conf) is False:
             raise TBearsCommandException(f"port {conf['port']} already in use. use other port.")
 
-        # start jsonrpc_server for tbears
-        self.__start_server(conf)
+        # write temporary configuration file
+        temp_conf = './temp_conf.json'
+        with open(temp_conf, mode='w') as file:
+            file.write(json.dumps(conf))
 
-        # wait 2 sec
-        time.sleep(2)
+        # run iconservice
+        self._start_iconservice(conf, temp_conf)
+
+        # start tbears_block_manager
+        self._start_blockmanager(conf)
+
+        # start iconrpcserver
+        self._start_iconrpcserver(conf, temp_conf)
+        time.sleep(3)
+
+        # remove temporary configuration file
+        os.remove(temp_conf)
+
+        # write server configuration
+        self.write_server_conf(conf)
 
         print(f'Started tbears service successfully')
 
     def stop(self, _conf: dict):
         """ Stop tbears service
+        Start iconservice, tbears_block_manager, iconrpcserver
+
         :param _conf: stop command configuration
         """
-        if self.is_server_running():
-            self.__exit_request()
-            # Wait until server socket is released
+        if not self.is_service_running():
+            print(f'tbears service is not running')
+            return
+
+        with open(os.devnull, 'w') as devnull:
+            # stop iconrpcserver
+            subprocess.run('iconrpcserver stop', shell=True, stdout=devnull)
+
+            # stop tbears_block_manager
+            subprocess.run(f'pkill -f tbears_block_manager', shell=True)
+
+            # stop iconservice
+            subprocess.run(f'iconservice stop -c {TBEARS_CLI_ENV}', shell=True, stdout=devnull)
+
             time.sleep(2)
 
-            print(f'Stopped tbears service successfully')
-        else:
-            print(f'tbears service is not running')
+        print(f'Stopped tbears service successfully')
 
     def check_command(self, command):
         return hasattr(self, command)
 
     @staticmethod
-    def __start_server(conf: dict):
-        Logger.debug('start_server() start', TBEARS_CLI_TAG)
+    def _start_iconservice(conf: dict, config_path: str):
+        cmd = f"iconservice start -tbears -c {config_path}"
 
+        with open(os.devnull, 'w') as devnull:
+            subprocess.run(cmd, shell=True, stdout=devnull)
+
+    @staticmethod
+    def _start_iconrpcserver(conf: dict, config_path: str):
+        cmd = f"iconrpcserver start -tbears -c {config_path}"
+
+        with open(os.devnull, 'w') as devnull:
+            subprocess.run(cmd, shell=True, stdout=devnull)
+
+    @staticmethod
+    def _start_blockmanager(conf: dict):
         # make params
-        params = {'-a': str(conf.get('hostAddress', None)),
-                  '-p': str(conf.get('port', None)),
-                  '-c': conf.get('config', None)}
+        params = {'-ch': conf.get(ConfigKey.CHANNEL, None),
+                  '-at': conf.get(ConfigKey.AMQP_TARGET, None),
+                  '-ak': conf.get(ConfigKey.AMQP_KEY, None),
+                  '-c': conf.get('config', None)
+                  }
 
         custom_argv = []
         for k, v in params.items():
@@ -141,29 +184,11 @@ class CommandServer(object):
                 custom_argv.append(k)
                 custom_argv.append(v)
 
-        # Run jsonrpc_server on background mode
-        subprocess.Popen([sys.executable, '-m', SERVER_MODULE_NAME, *custom_argv], close_fds=True)
-
-        Logger.debug('start_server() end', TBEARS_CLI_TAG)
+        # Run block_manager background mode
+        subprocess.Popen([sys.executable, '-m', BLOCKMANAGER_MODULE_NAME, *custom_argv], close_fds=True)
 
     @staticmethod
-    def __exit_request():
-        """ Request for exiting SCORE on server.
-        """
-        # get server config data from /tmp/.tbears.env
-        server = CommandServer._get_server_conf()
-        if server is None:
-            Logger.debug(f"Can't get server Info. from {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
-            server = CommandServer._get_server_conf(FN_SERVER_CONF)
-            if not server:
-                server = {'port': 9000}
-
-        server_exit = IconClient(uri=f"http://127.0.0.1:{server['port']}/api/v3")
-        request = {"jsonrpc": "2.0", "method": "server_exit", "id": 99999}
-        server_exit.send(request=request)
-
-    @staticmethod
-    def is_server_running(name: str = SERVER_MODULE_NAME) -> bool:
+    def is_service_running(name: str = TBEARS_BLOCK_MANAGER) -> bool:
         """ Check if server is running.
         :return: True or False
         """
@@ -183,19 +208,22 @@ class CommandServer(object):
         return result != 0
 
     @staticmethod
-    def write_server_conf(host: str, port: int, score_root, score_db_root) -> None:
-        conf = {
-            "hostAddress": host,
-            "port": port,
-            "scoreRootPath": os.path.abspath(score_root),
-            "stateDbRootPath": os.path.abspath(score_db_root)
+    def write_server_conf(conf: dict):
+        write_conf = {
+            "hostAddress": conf['hostAddress'],
+            "port": conf['port'],
+            "scoreRootPath": conf['scoreRootPath'],
+            "stateDbRootPath": conf['stateDbRootPath'],
+            ConfigKey.CHANNEL: conf.get(ConfigKey.CHANNEL, None),           # to stop iconservice
+            ConfigKey.AMQP_TARGET: conf.get(ConfigKey.AMQP_TARGET, None),   # to stop iconservice
+            ConfigKey.AMQP_KEY: conf.get(ConfigKey.AMQP_KEY, None)          # to stop iconservice
         }
         Logger.debug(f"Write server Info.({conf}) to {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
         file_path = TBEARS_CLI_ENV
         file_name = file_path[file_path.rfind('/') + 1:]
         parent_directory = file_path[:file_path.rfind('/')]
         try:
-            write_file(parent_directory=parent_directory, file_name=file_name, contents=json.dumps(conf),
+            write_file(parent_directory=parent_directory, file_name=file_name, contents=json.dumps(write_conf),
                        overwrite=True)
         except Exception as e:
             print(f"Can't write conf to file. {e}")
@@ -203,7 +231,7 @@ class CommandServer(object):
             print(f"{e}")
 
     @staticmethod
-    def _get_server_conf(file_path: str= TBEARS_CLI_ENV) -> Optional[dict]:
+    def get_server_conf(file_path: str= TBEARS_CLI_ENV) -> Optional[dict]:
         try:
             with open(f'{file_path}') as f:
                 conf = json.load(f)

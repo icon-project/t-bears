@@ -14,6 +14,7 @@
 # limitations under the License.
 import os
 import re
+import hashlib
 
 import pkg_resources
 
@@ -92,7 +93,7 @@ def get_sample_crowd_sale_contents(score_class: str):
     """
     template = """from iconservice import *
 
-TAG = 'MyCrowdSale'
+TAG = 'SampleCrowdSale'
 
 
 class TokenInterface(InterfaceScore):
@@ -101,8 +102,7 @@ class TokenInterface(InterfaceScore):
         pass
 
 
-class MyCrowdSale(IconScoreBase):
-
+class StandardCrowdSale(IconScoreBase):
     _ADDR_BENEFICIARY = 'addr_beneficiary'
     _ADDR_TOKEN_SCORE = 'addr_token_score'
     _FUNDING_GOAL = 'funding_goal'
@@ -136,22 +136,19 @@ class MyCrowdSale(IconScoreBase):
         self._funding_goal_reached = VarDB(self._FUNDING_GOAL_REACHED, db, value_type=bool)
         self._crowdsale_closed = VarDB(self._CROWDSALE_CLOSED, db, value_type=bool)
 
-    def on_install(self, fundingGoalInIcx: int=1000, tokenScore: Address='cx02b13428a8aef265fbaeeb37394d3ae8727f7a19',
-    durationInSeconds: int=120) -> None:
+    def on_install(self, fundingGoalInIcx: int, tokenScore: Address, durationInBlocks: int) -> None:
         super().on_install()
 
         Logger.debug(f'on_install: fundingGoalInIcx={fundingGoalInIcx}', TAG)
         Logger.debug(f'on_install: tokenScore={tokenScore}', TAG)
-        Logger.debug(f'on_install: durationInSeconds={durationInSeconds}', TAG)
+        Logger.debug(f'on_install: durationInBlocks={durationInBlocks}', TAG)
 
-        one_second_in_microseconds = 1 * 10 ** 6
-        now_seconds = self.now()
         icx_cost_of_each_token = 1
 
         self._addr_beneficiary.set(self.msg.sender)
         self._addr_token_score.set(tokenScore)
         self._funding_goal.set(fundingGoalInIcx)
-        self._dead_line.set(now_seconds + durationInSeconds * one_second_in_microseconds)
+        self._dead_line.set(self.block.height + durationInBlocks)
         price = int(icx_cost_of_each_token)
         self._price.set(price)
 
@@ -163,7 +160,8 @@ class MyCrowdSale(IconScoreBase):
 
     @external
     def tokenFallback(self, _from: Address, _value: int, _data: bytes):
-        if self.msg.sender == self._addr_token_score.get() and _from == self.owner:
+        if self.msg.sender == self._addr_token_score.get() \
+                and _from == self.owner:
             # token supply to CrowdSale
             Logger.debug(f'tokenFallback: token supply = "{_value}"', TAG)
             if _value >= 0:
@@ -197,9 +195,9 @@ class MyCrowdSale(IconScoreBase):
         return len(self._joiner_list)
 
     def _after_dead_line(self) -> bool:
-        Logger.debug(f'after_dead_line: now()       = {self.now()}', TAG)
-        Logger.debug(f'after_dead_line: dead_line() = {self._dead_line.get()}', TAG)
-        return self.now() >= self._dead_line.get()
+        Logger.debug(f'after_dead_line: block.height = {self.block.height}', TAG)
+        Logger.debug(f'after_dead_line: dead_line()  = {self._dead_line.get()}', TAG)
+        return self.block.height >= self._dead_line.get()
 
     @external
     def check_goal_reached(self):
@@ -213,7 +211,7 @@ class MyCrowdSale(IconScoreBase):
     @external
     def safe_withdrawal(self):
         if self._after_dead_line():
-            # each contributor can withdraw the amount they contributed if goal was not reached
+            # each contributor can withdraw the amount they contributed if the goal was not reached
             if not self._funding_goal_reached.get():
                 amount = self._balances[self.msg.sender]
                 self._balances[self.msg.sender] = 0
@@ -233,44 +231,14 @@ class MyCrowdSale(IconScoreBase):
                     # if the transfer to beneficiary fails, unlock contributors balance
                     Logger.debug(f'Failed to send to beneficiary!', TAG)
                     self._funding_goal_reached.set(False)
-
-
 """
     return template.replace("MyCrowdSale", score_class)
 
 
 def get_sample_token_contents(score_class: str):
-    template = """import abc
+    template = """from iconservice import *
 
-from iconservice import *
-
-TAG = 'mySampleToken'
-
-
-class TokenStandard(abc.ABC):
-    @abc.abstractmethod
-    def name(self) -> str:
-        pass
-
-    @abc.abstractmethod
-    def symbol(self) -> str:
-        pass
-
-    @abc.abstractmethod
-    def decimals(self) -> int:
-        pass
-
-    @abc.abstractmethod
-    def totalSupply(self) -> int:
-        pass
-
-    @abc.abstractmethod
-    def balanceOf(self, _owner: Address) -> int:
-        pass
-
-    @abc.abstractmethod
-    def transfer(self, _to: Address, _value: int, _data: bytes=None):
-        pass
+TAG = 'SampleToken'
 
 
 class CrowdSaleInterface(InterfaceScore):
@@ -279,10 +247,11 @@ class CrowdSaleInterface(InterfaceScore):
         pass
 
 
-class MySampleToken(IconScoreBase, TokenStandard):
+class StandardToken(IconScoreBase):
 
     _BALANCES = 'balances'
     _TOTAL_SUPPLY = 'total_supply'
+    _DECIMALS = 'decimals'
 
     @eventlog(indexed=3)
     def Transfer(self, _from: Address, _to: Address, _value: int, _data: bytes):
@@ -291,15 +260,17 @@ class MySampleToken(IconScoreBase, TokenStandard):
     def __init__(self, db: IconScoreDatabase) -> None:
         super().__init__(db)
         self._total_supply = VarDB(self._TOTAL_SUPPLY, db, value_type=int)
+        self._decimals = VarDB(self._DECIMALS, db, value_type=int)
         self._balances = DictDB(self._BALANCES, db, value_type=int)
 
-    def on_install(self, initialSupply: int=1000, decimals: int=18) -> None:
+    def on_install(self, initialSupply: int, decimals: int) -> None:
         super().on_install()
 
         total_supply = initialSupply * 10 ** decimals
         Logger.debug(f'on_install: total_supply={total_supply}', TAG)
 
         self._total_supply.set(total_supply)
+        self._decimals.set(decimals)
         self._balances[self.msg.sender] = total_supply
 
     def on_update(self) -> None:
@@ -307,7 +278,7 @@ class MySampleToken(IconScoreBase, TokenStandard):
 
     @external(readonly=True)
     def name(self) -> str:
-        return "MySampleToken"
+        return "SampleToken"
 
     @external(readonly=True)
     def symbol(self) -> str:
@@ -315,7 +286,7 @@ class MySampleToken(IconScoreBase, TokenStandard):
 
     @external(readonly=True)
     def decimals(self) -> int:
-        return 18
+        return self._decimals.get()
 
     @external(readonly=True)
     def totalSupply(self) -> int:
@@ -342,8 +313,7 @@ class MySampleToken(IconScoreBase, TokenStandard):
             crowdsale_score.tokenFallback(_from, _value, _data)
         self.Transfer(_from, _to, _value, _data)
         Logger.debug(f'Transfer({_from}, {_to}, {_value}, {_data})', TAG)
-
-    """
+"""
     return template.replace("MySampleToken", score_class)
 
 
@@ -360,6 +330,10 @@ def is_lowercase_hex_string(value: str) -> bool:
         pass
 
     return False
+
+
+def create_hash(data: bytes) -> str:
+    return f'{hashlib.sha3_256(data).hexdigest()}'
 
 
 def is_valid_hash(_hash: str) -> bool:
@@ -389,3 +363,14 @@ def get_tbears_version() -> str:
     except:
         version = 'unknown'
     return version
+
+
+def jsonrpc_params_to_pep_style(params: dict):
+    change_dict_key_name(params, 'from', 'from_')
+    change_dict_key_name(params, 'stepLimit', 'step_limit')
+    change_dict_key_name(params, 'dataType', 'data_type')
+
+
+def change_dict_key_name(params: dict, origin_name: str, new_name: str):
+    if params.get(origin_name, None):
+        params[new_name] = params.pop(origin_name)

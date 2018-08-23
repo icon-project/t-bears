@@ -18,7 +18,7 @@ import shutil
 from tbears.command.command_score import CommandScore
 from tbears.tbears_exception import TBearsCommandException
 from tests.test_parsing_command import TestCommand
-from tests.test_util import TEST_UTIL_DIRECTORY, TEST_DIRECTORY
+from tests.test_util import TEST_UTIL_DIRECTORY
 
 
 class TestCommandScore(TestCommand):
@@ -129,7 +129,7 @@ class TestCommandScore(TestCommand):
         self.touch(no_keystore)
         parsed = self.parser.parse_args(cmd.split())
         os.remove(no_keystore)
-        self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
+        self.assertRaises(SystemExit, self.parser.parse_args, vars(parsed))
 
         # Invaild password value
         # Even though input invaild password, _check_deploy method should return password

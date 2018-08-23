@@ -1,5 +1,11 @@
 # ChangeLog - tbears
 
+## 1.0.3 - 2018-08-24
+* Add interactive mode. Activate with 'console' command
+* Add '-p' option to 'deploy' command. Now can enter keystore file password as argument.
+* Add block manager. 
+* Rename tbears_tutorial.md to README.md
+
 ## 1.0.0 - 2018-08-15
 * Tbears service support 'call', 'sendtx' and 'genconf' command
     * call : Send icx_call request

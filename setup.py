@@ -9,20 +9,28 @@ if version is None:
 		version = version_file.read().strip()
 
 requires = [
+    'earlgrey',
+    'iconcommons',
+    'iconrpcserver',
+    'iconservice',
     'requests>=2.19.1',
     'jsonrpcserver>=3.5.3',
     'sanic>=0.7.0',
     'plyvel>=1.0.4',
     'secp256k1>=0.13.2',
     'eth-keyfile>=0.5.1',
+    'ipython>=6.4.0',
 ]
 
 
 setup_options = {
     'name': 'tbears',
     'version': version,
-    'description': '`tbears` for ICON SCORE development',
-    'author': 'ICON foundation',
+    'description': 'Test suite for ICON SCORE development',
+    'long_description': open('README.md').read(),
+    'long_description_content_type': "text/markdown",
+    'url': 'https://github.com/icon-project/t-bears',
+    'author': 'ICON Foundation',
     'author_email': 'foo@icon.foundation',
     'packages': find_packages(exclude=['tests*', 'docs']),
     'include_package_data': True,

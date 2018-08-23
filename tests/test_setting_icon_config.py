@@ -151,7 +151,7 @@ class TestCliTestUtil(unittest.TestCase):
         for cli in whole_possible_cli:
             parsed = self.parser.parse_args(cli.split())
 
-            # should be refactoring, get_score_conf methods has one more parameter(project param)
+            # should be refactoring, get_icon_conf methods has one more parameter(project param)
             actual_conf = test_opts['get_config_func'](parsed.command, args=vars(parsed))
 
             expected_conf = deepcopy(default_conf)
@@ -209,7 +209,7 @@ class TestCliTestUtil(unittest.TestCase):
             'command': 'deploy',
             'positional_files': ['test_project'],
             'positional_args': [],
-            'get_config_func': CommandScore.get_score_conf,
+            'get_config_func': CommandScore.get_icon_conf,
             'description': 'case: config: X , user input: x'
         }
         test_deploy_opts_c_o_i_x = {
@@ -219,7 +219,7 @@ class TestCliTestUtil(unittest.TestCase):
             'positional_files': ['test_project'],
             'positional_args': [],
             'optional_args': [c],
-            'get_config_func': CommandScore.get_score_conf,
+            'get_config_func': CommandScore.get_icon_conf,
             'description': 'config: O , user input: X'
         }
         test_deploy_opts_c_x_i_o = {
@@ -228,7 +228,7 @@ class TestCliTestUtil(unittest.TestCase):
             'positional_files': ['test_project'],
             'positional_args': [],
             'optional_args': [u, t, m, f, o, k, n],
-            'get_config_func': CommandScore.get_score_conf,
+            'get_config_func': CommandScore.get_icon_conf,
             'description': 'config: X , user input: O'
         }
         test_deploy_opts_c_o_i_o = {
@@ -238,7 +238,7 @@ class TestCliTestUtil(unittest.TestCase):
             'positional_files': ['test_project'],
             'positional_args': [],
             'optional_args': [u, t, m, f, o, k, n, c],
-            'get_config_func': CommandScore.get_score_conf,
+            'get_config_func': CommandScore.get_icon_conf,
             'description': 'config: O , user input: O'
         }
 

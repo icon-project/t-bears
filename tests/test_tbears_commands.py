@@ -23,7 +23,6 @@ from copy import deepcopy
 
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
-from tbears.tbears_exception import TBearsCommandException
 from tbears.libs.icx_signer import key_from_key_store
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 from iconcommons.icon_config import IconConfig
@@ -41,11 +40,15 @@ class TestTBearsCommands(unittest.TestCase):
         try:
             if os.path.exists(FN_CLI_CONF):
                 os.remove(FN_CLI_CONF)
+            if os.path.exists(FN_SERVER_CONF):
+                os.remove(FN_SERVER_CONF)
             if os.path.exists('./tbears.log'):
                 os.remove('./tbears.log')
             if os.path.exists(self.project_name):
                 shutil.rmtree(self.project_name)
             self.cmd.cmdServer.stop(None)
+            if os.path.exists('exc'):
+                shutil.rmtree('exc')
             self.cmd.cmdScore.clear(self.start_conf if self.start_conf else tbears_server_config)
         except:
             pass
@@ -61,6 +64,13 @@ class TestTBearsCommands(unittest.TestCase):
         result = sock.connect_ex(('127.0.0.1', 9000))
         sock.close()
         return result == 0
+
+    def deploy_cmd(self, conf: dict, password: str = None) -> dict:
+        conf['password'] = password
+        response = self.cmd.cmdScore.deploy(conf=conf)
+        # Wait until block_manager confirm block. block_manager for test confirm every second
+        time.sleep(2)
+        return response
 
     def test_init(self):
         # Case when entering the right path for initializing the SCORE.
@@ -87,7 +97,7 @@ class TestTBearsCommands(unittest.TestCase):
         start_conf['config'] = tbears_config_path
         self.start_conf = start_conf
         self.cmd.cmdServer.start(start_conf)
-        self.assertTrue(self.cmd.cmdServer.is_server_running())
+        self.assertTrue(self.cmd.cmdServer.is_service_running())
 
         # totalsup
         total_sup = get_total_supply(tbears_config_path)
@@ -116,15 +126,15 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(treasury_balance, get_balance_response['result'])
 
         # deploy - f"-t tbears -m install"
-        conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
-        deploy_response = self.cmd.cmdScore.deploy(conf=conf)
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
+        deploy_response = self.deploy_cmd(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 
         # result (query transaction result)
         # response(after deploy) contains tx_hash.
         # below is check if the tx_hash is valid using 'txresult' method
         tx_hash = deploy_response['result']
-        conf = self.cmd.cmdWallet.get_result_config(tx_hash)
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
         self.assertFalse(transaction_result_response.get('error', False))
 
@@ -136,11 +146,11 @@ class TestTBearsCommands(unittest.TestCase):
 
         # deploy - f"-t tbears -m update --to socreAddress from_transactionResult -c tbears_cli_config.json"
         scoreAddress = transaction_result_response['result']['scoreAddress']
-        conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         conf['mode'] = 'update'
         conf['to'] = scoreAddress
         conf['conf'] = './tbears_cli_config.json'
-        deploy_response = self.cmd.cmdScore.deploy(conf=conf)
+        deploy_response = self.deploy_cmd(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 
         # deploy - f"-t tbears -m update --to invalid_scoreAddress -c tbears_cli_config.json"
@@ -150,55 +160,56 @@ class TestTBearsCommands(unittest.TestCase):
         invalid_conf['mode'] = 'update'
         invalid_conf['to'] = invalid_score_address
         invalid_conf['conf'] = './tbears_cli_config.json'
-        invalid_deploy_response = self.cmd.cmdScore.deploy(conf=invalid_conf)
+        invalid_deploy_response = self.deploy_cmd(conf=invalid_conf)
         self.assertIsNotNone(invalid_deploy_response.get('error', None))
 
         # result (query transaction result)
         tx_hash = deploy_response['result']
-        conf = self.cmd.cmdWallet.get_result_config(tx_hash)
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
         self.assertFalse(transaction_result_response.get('error', False))
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
         # deploy - f"-t zip -m install -k test_keystore"
-        conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf['contentType'] = 'zip'
-        deploy_response = self.cmd.cmdScore.deploy(conf=conf, password='qwer1234%')
+        deploy_response = self.deploy_cmd(conf=conf, password='qwer1234%')
         self.assertEqual(deploy_response.get('error', False), False)
 
         # result (query transaction result)
         tx_hash = deploy_response['result']
-        conf = self.cmd.cmdWallet.get_result_config(tx_hash)
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
         self.assertFalse(transaction_result_response.get('error', False))
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
 
         # deploy - f"-t zip -m update -k test_keystore --to scoreAddres_from_transactionResult
         scoreAddress = transaction_result_response['result']['scoreAddress']
-        conf = self.cmd.cmdScore.get_score_conf(command='deploy', project=self.project_name)
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf['contentType'] = 'zip'
         conf['mode'] = 'update'
         conf['to'] = scoreAddress
-        deploy_response = self.cmd.cmdScore.deploy(conf=conf, password='qwer1234%')
+        deploy_response = self.deploy_cmd(conf=conf, password='qwer1234%')
         self.assertEqual(deploy_response.get('error', False), False)
 
         invalid_tx_hash = '0x3d6fa810d782a3b3aa6e4a95f5ac48d8bfa096366b3c2ba2922f49cccf3ac6b5'
-        invalid_conf = self.cmd.cmdWallet.get_result_config(invalid_tx_hash)
+        invalid_conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': invalid_tx_hash})
         transaction_result_response = self.cmd.cmdWallet.txresult(invalid_conf)
         self.assertIsNotNone(transaction_result_response.get('error', None))
 
         # result (query transaction result)
         tx_hash = deploy_response['result']
-        conf = self.cmd.cmdWallet.get_result_config(tx_hash)
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
         self.assertFalse(transaction_result_response.get('error', False))
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
         # txbyhash (query transaction)
+        conf = self.cmd.cmdWallet.get_icon_conf('txbyhash', {'hash': tx_hash})
         txbyhash_response = self.cmd.cmdWallet.txbyhash(conf)
         txbyhash_response_result = txbyhash_response['result']
         self.assertIn('from', txbyhash_response_result)
@@ -223,14 +234,15 @@ class TestTBearsCommands(unittest.TestCase):
 
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        conf = self.cmd.cmdWallet.get_transfer_config(key_path, f'hx123{"0"*37}', 0.3e2)
-        transfer_response_json = self.cmd.cmdWallet.transfer(conf, 'qwer1234%')
+        conf = self.cmd.cmdWallet.get_icon_conf('transfer', {'keyStore': key_path, 'to': f'hx123{"0"*37}',
+                                                             'value': 0.3e2, 'password': 'qwer1234%'})
+        transfer_response_json = self.cmd.cmdWallet.transfer(conf)
         self.assertFalse(transfer_response_json.get('error', False))
 
         # sendtx
         conf = self.cmd.cmdWallet.get_icon_conf('sendtx', {"json_file": os.path.join(TEST_UTIL_DIRECTORY, 'send.json'),
-                                                           "keyStore": key_path})
-        sendtx_response_json = self.cmd.cmdWallet.sendtx(conf, 'qwer1234%')
+                                                           "keyStore": key_path, 'password': 'qwer1234%'})
+        sendtx_response_json = self.cmd.cmdWallet.sendtx(conf)
         self.assertFalse(sendtx_response_json.get('error', False))
 
         # stop
@@ -250,8 +262,8 @@ class TestTBearsCommands(unittest.TestCase):
         password = '1234qwer%'
 
         # make keystore file
-        conf = self.cmd.cmdWallet.get_keystore_args(path=path)
-        self.cmd.cmdWallet.keystore(conf, password)
+        conf = {'path': path, 'password': password}
+        self.cmd.cmdWallet.keystore(conf)
         self.assertTrue(os.path.exists(path))
 
         # get private key from file

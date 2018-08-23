@@ -8,7 +8,12 @@
         "level": "info_config_path",
         "filePath": "./tbears.log_config_path",
         "colorLog": true,
-        "outputType": "console|file_config_path"
+        "outputType": "console|file_config_path",
+        "rotate": {
+            "type": "bytes_config",
+            "maxBytes": 10485760,
+            "backupCount": 10
+        }
     },
     "service": {
         "fee": false,
@@ -29,5 +34,11 @@
                 "balance": "0x0_config_path"
             }
         ]
-    }
+    },
+    "channel": "loopchain_default_config_path",
+    "amqpKey": "7100_config_path",
+    "amqpTarget": "127.0.0.1_config_path",
+    "blockConfirmInterval": 10,
+    "blockConfirmEmpty": true
+
 }

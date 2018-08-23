@@ -14,12 +14,9 @@
 # limitations under the License.
 
 import os
-from argparse import ArgumentTypeError, ArgumentError
 
-from tbears.command.command_wallet import CommandWallet
-from tbears.tbears_exception import TBearsCommandException
 from tests.test_parsing_command import TestCommand
-from tests.test_util import TEST_UTIL_DIRECTORY, TEST_DIRECTORY
+from tests.test_util import TEST_UTIL_DIRECTORY
 
 
 class TestWalletParsing(TestCommand):
@@ -56,13 +53,13 @@ class TestWalletParsing(TestCommand):
         expected_password = self.keystore_password
         cmd = f'keystore {self.keystore_path}'
         parsed = self.parser.parse_args(cmd.split())
-        self.assertEqual(CommandWallet._check_keystore(vars(parsed), self.keystore_password), expected_password)
+        self.assertRaises(SystemExit, self.parser.parse_args, vars(parsed))
 
         # File already exist
         cmd = f'keystore {self.keystore_path}'
         parsed = self.parser.parse_args(cmd.split())
         self.touch(self.keystore_path)
-        self.assertRaises(TBearsCommandException, CommandWallet._check_keystore, vars(parsed), self.keystore_password)
+        self.assertRaises(SystemExit, self.parser.parse_args, vars(parsed))
         os.remove(self.keystore_path)
 
         # Invalid path: no directory exists
@@ -122,10 +119,12 @@ class TestWalletParsing(TestCommand):
 
     def test_validate_block_hash_data(self):
         invalid_prefix = 'ox685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
-        self.assertRaises(TBearsCommandException, self.cmd.cmdWallet._validate_block_hash, invalid_prefix)
+        cmd = f"blockbyhash {invalid_prefix}"
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
         invalid_length = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfefdsffds'
-        self.assertRaises(TBearsCommandException, self.cmd.cmdWallet._validate_block_hash, invalid_length)
+        cmd = f"blockbyhash {invalid_length}"
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
     #blockbyheight
     def test_blockbyheight_args_parsing(self):

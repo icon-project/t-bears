@@ -355,6 +355,24 @@ class IconJsonrpc:
             }
         }
 
+    @classmethod
+    def iseGetStatus(cls, _filter: list):
+        """Make JSON-RPC request of ise_GetStatus
+
+        :return: ise_GetStatus request dictionary
+        """
+
+        return {
+            "jsonrpc": "2.0",
+            "method": "ise_getStatus",
+            "id": next(cls.request_id),
+            "params": {
+                "filter": _filter
+            }
+        }
+
+
+
     @staticmethod
     def gen_call_data(method: str, params: dict = {}) -> dict:
         """Generate data dictionary for icx_call and icx_sendTransaction which dataType is 'call'

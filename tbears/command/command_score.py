@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
+import json
 import os
 import shutil
 import getpass
@@ -49,6 +51,7 @@ class CommandScore(object):
                             help='Keystore file path. Used to generate "from" address and transaction signature')
         parser.add_argument('-n', '--nid', help='Network ID')
         parser.add_argument('-c', '--config', type=IconPath(), help=f'deploy config path (default: {FN_CLI_CONF})')
+        parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
 
     @staticmethod
     def _add_clear_parser(subparsers):
@@ -60,21 +63,21 @@ class CommandScore(object):
             raise TBearsCommandException(f"Invalid command {args.command}")
 
         # load configurations
-        conf = self.get_score_conf(args.command, args=vars(args))
+        conf = self.get_icon_conf(args.command, args=vars(args))
 
         # run command
-        getattr(self, args.command)(conf)
+        return getattr(self, args.command)(conf)
 
-    def deploy(self, conf: dict, password: str = None) -> dict:
+    def deploy(self, conf: dict) -> dict:
         """Deploy SCORE on the server.
 
         :param conf: deploy command configuration
-        :param password: password for keystore file
         """
-        if conf['contentType'] == 'tbears' and not CommandServer.is_server_running():
+        if conf['contentType'] == 'tbears' and not CommandServer.is_service_running():
             raise TBearsCommandException(f'Start tbears service first')
 
         # check keystore, and get password from user's terminal input
+        password = conf.get('password', None)
         password = self._check_deploy(conf, password)
 
         step_limit = conf.get('stepLimit', "0x1234000")
@@ -112,13 +115,14 @@ class CommandScore(object):
         icon_client = IconClient(conf['uri'])
         response = icon_client.send(request)
 
-        if 'result' in response:
+        if 'error' in response:
+            print('Got an error response')
+            print(json.dumps(response, indent=4))
+        else:
             print('Send deploy request successfully.')
             tx_hash = response['result']
+            print(f'If you want to check SCORE deployed successfully, execute txresult command')
             print(f"transaction hash: {tx_hash}")
-        else:
-            print('Got an error response')
-            print(response)
 
         return response
 
@@ -129,12 +133,12 @@ class CommandScore(object):
         :param _conf: clear command configuration
         """
         # referenced data's path is /tmp/.tbears.env(temporary config data)
-        score_dir_info = CommandServer._get_server_conf()
+        score_dir_info = CommandServer.get_server_conf()
 
         if score_dir_info is None:
             raise TBearsDeleteTreeException("Already clean.")
 
-        if CommandServer.is_server_running():
+        if CommandServer.is_service_running():
             raise TBearsCommandException(f'You must stop tbears service to clear SCORE')
 
         # delete whole score data
@@ -143,6 +147,7 @@ class CommandScore(object):
                 shutil.rmtree(score_dir_info['scoreRootPath'])
             if os.path.exists(score_dir_info['stateDbRootPath']):
                 shutil.rmtree(score_dir_info['stateDbRootPath'])
+            CommandServer._delete_server_conf()
         except (PermissionError, NotADirectoryError) as e:
             raise TBearsDeleteTreeException(f"Can't delete SCORE files. {e}")
 
@@ -177,8 +182,6 @@ class CommandScore(object):
             if not is_icon_address_valid(conf['from']):
                 raise TBearsCommandException(f"You entered invalid 'from' address '{conf['from']}")
         else:
-            if not os.path.exists(conf['keyStore']):
-                raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
             if not password:
                 password = getpass.getpass("input your key store password: ")
 
@@ -195,7 +198,7 @@ class CommandScore(object):
         return hasattr(self, command)
 
     @staticmethod
-    def get_score_conf(command: str, project: str = None, args: dict = None):
+    def get_icon_conf(command: str, project: str = None, args: dict = None):
         """Load config file using IconConfig instance
         config file is loaded as below priority
         system config -> default config -> user config -> user input config(higher priority)
@@ -206,7 +209,7 @@ class CommandScore(object):
         :return: command configuration
         """
         # load configurations
-        conf = IconConfig(FN_CLI_CONF, tbears_cli_config)
+        conf = IconConfig(FN_CLI_CONF, copy.deepcopy(tbears_cli_config))
 
         if project is not None:
             conf['project'] = project
