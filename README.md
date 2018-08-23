@@ -1,17 +1,17 @@
 # ICON SCORE development suite (T-Bears) TUTORIAL
 
-This tutorial is intended to give an introduction to using T-Bears dev suite. This guide will walk you through the basics of setting up your development environrment and the usage of T-Bears CLI commands. 
+This tutorial is intended to give an introduction to using T-Bears. This guide will walk you through the basics of setting up your development environrment and the usage of T-Bears CLI commands. 
 
-T-Bears is a suite of development tools for SCORE. You can code and test your smart contract locally, and when ready, deploy SCORE onto the ICON network from command-line interface. T-Bears provides a project template for SCORE to help you start right away.
+T-Bears is a suite of development tools for SCORE. T-Bears provides a project template for SCORE to help you start right away. You can code and test your smart contract locally in an emulated environment, and when ready, deploy SCORE onto the ICON network from command-line interface. 
 
 ## Components
 ![Componets](images/components.png)
 
 ### ICON RPC Server
-A module that handles ICON JSON-RPC API request and send response to client. 
+A module that handles ICON JSON-RPC API request and sends response back to the client. 
 
 ### ICON Service
-A module that manages SCORE. Deploy and invoke SCORE and save their state.
+A module that manages the lifecycle of SCORE and its execution. SCORE's state transition is stored in a database.
 
 ### T-Bears CLI
 T-Bears Command Line Interface. Supports following functions
@@ -19,19 +19,19 @@ T-Bears Command Line Interface. Supports following functions
  * Deploy SCORE
  * Send transaction
  * Send query request
- 
-For the detail, see below '[Command-line Interfaces(CLIs)](#command-line-interfaces-clis-)' chapter
+
+For the details, see below '[Command-line Interfaces(CLIs)](#command-line-interfacesclis)' chapter
 
 ### T-Bears Block Manager
-LoopChain emulator for T-Bears Service. It does not support 'consensus' and 'peer management'. Supports transaction and block information read/write only.
+LoopChain emulator for T-Bears Service. It does not have full 'consensus' and 'peer management' functions. This module handles transaction and emulates block generation. 
 
 ### Message queue
-A module that queues the message of other modules.
+Message queue is used for inter-component communication.
 
 
 ## Building source code
- First, clone this project. Then go to the project folder and create a user environment and run build script.
-```
+ First, clone this project. Then go to the project folder, create a virtualenv environment, and run build script.
+```bash
 $ virtualenv -p python3 venv  # Create a virtual environment.
 $ source venv/bin/activate    # Enter the virtual environment.
 (venv)$ ./build.sh            # run build script
@@ -104,8 +104,7 @@ $ source bin/activate
 
 #### Overview
 
-T-Bears has 19 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, `genconf`, `transfer`, `txresult`, `balance`,
-`totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash`, `keystore`, `sendtx` and `call`.
+T-Bears has 19 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, `genconf`, `transfer`, `txresult`, `balance`, `totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash`, `keystore`, `sendtx` and `call`.
 
 
 
@@ -157,9 +156,9 @@ Available commands:
 
 
 
-### T-Bears server CLIs
+### T-Bears server commands
 
-CLIs about T-Bears server. There are three commands 'tbears start', 'tbears stop' and 'tbears clear'.
+Commands that manages the T-Bears server. There are three commands `tbears start`, `tbears stop` and `tbears clear`.
 
 #### tbears start
 
@@ -238,19 +237,15 @@ optional arguments:
 
 
 
-### T-Bears Util CLIs
+### T-Bears utility commands
 
-CLIs that generate configuration file and keystore file.
+Commands that generate configuration file and keystore file.
 
 #### tbears keystore
 
 **Description**
 
-Create keystore file in passed path. Generate privatekey, publickey pair using
-secp256k1 library.
-
-positional arguments:
-  path                  path of keystore file
+Create a keystore file in the given path. Generate a private abd public key pair using secp256k1 library.
 
 **Usage**
 
@@ -268,10 +263,10 @@ optional arguments:
 
 **Options**
 
-| shorthand, Name | default | Description                         |
-| --------------- | :------ | ----------------------------------- |
-| path            |         | Create keystore file in passed path |
-| -h, --help      |         | show this help message and exit     |
+| shorthand, Name | default | Description                              |
+| --------------- | :------ | ---------------------------------------- |
+| path            |         | Create a keystore file in the given path |
+| -h, --help      |         | show this help message and exit          |
 
 **Examples**
 
@@ -288,7 +283,7 @@ Made keystore file successfully
 
 **Description**
 
-Generate T-Bears config files. (tbears_cli_config.json and tbears_server_config.json)
+Generate T-Bears config files. ("tbears_cli_config.json" and "tbears_server_config.json")
 
 ```bash
 usage: tbears genconf [-h]
@@ -315,9 +310,9 @@ Made tbears_cli_config.json, tbears_server_config.json successfully
 
 
 
-### T-Bears SCORE CLIs
+### T-Bears SCORE commands
 
-CLIs which is related to SCORE. Generate SCORE using 'tbears init', 'tbears samples', and deploy SCORE, and call SCORE method using 'tbears sendtx' and 'tbears call'. 
+These commands are related to SCORE development and execution.  `tbears init` and `tbears samples` generate SCORE projects. `tbears deploy`,  `tbears sendtx` and `tbears call` commands are used to deploy the SCORE, send a transaction, and call a function. 
 
 #### tbears init
 
@@ -409,9 +404,9 @@ __init__.py  package.json  standard_token.py
 
 **Description**
 
-Deploy the SCORE. You can deploy it on local or icon service.
+Deploy the SCORE. You can deploy it on local T-Bears service or on ICON network.
 
-"tbears_cli_config.json" file contains deploymenet configuration properties. (See below 'Configuration Files' chapter). If you want to use other configuration file, you can specify the file location with the '-c' option.
+"tbears_cli_config.json" file contains the deploymenet configuration properties. (See below 'Configuration Files' chapter). If you want to use other configuration file, you can specify the file location with the '-c' option.
 
 **Usage**
 
@@ -505,7 +500,7 @@ optional arguments:
 
 | shorthand, Name | default                      | Description                                                  |
 | --------------- | :--------------------------- | ------------------------------------------------------------ |
-| json_file       |                              | File path containing icx_transaction content                 |
+| json_file       |                              | Path to the json file containing the request object for icx_transaction. |
 | -h, --help      |                              | show this help message and exit                              |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
 | -k, --key-store |                              | Keystore file path. Used to generate transaction signature.  |
@@ -572,7 +567,7 @@ optional arguments:
 
 | shorthand, Name | default                      | Description                                                  |
 | --------------- | :--------------------------- | ------------------------------------------------------------ |
-| json_file       |                              | File path containing icx_call content                        |
+| json_file       |                              | Path to the json file containing the request objet for icx_call |
 | -h, --help      |                              | Show this help message and exit                              |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
 | -c, --config    | ./tbears_cli_config.json     | Configuration file path. This file defines the default values for the properties "keyStore", "uri" and "from". |
@@ -606,7 +601,7 @@ response : {
 
 **Description**
 
-Get SCORE's APIs using given SCORE address.
+Get list of APIs that the given SCORE provides. 
 
 **Usage**
 
@@ -664,9 +659,9 @@ scoreAPI: [
 
 
 
-### T-Bears other CLIs
+### T-Bears other commands
 
-CLI which is related to ICX, transaction, block.
+Commands that are related to ICX coin, transaction, and block.
 
 #### tbears transfer
 
@@ -1158,7 +1153,7 @@ block info : {
 
 **Description**
 
-Get into T-Bears interactive mode by embedding IPython. ([Ipython.org](https://ipython.org/))
+Enter T-Bears interactive mode using IPython. ([Ipython.org](https://ipython.org/))
 
 **Usage**
 
@@ -1174,7 +1169,7 @@ optional arguments:
 
 **Examples**
 
-Using Interacive mode, you can execute command with shorten command(without T-Bears) by predefined IPython's magic command.
+In the interacive mode, you can execute command in short form (without `tbears`) by predefined IPython's magic command.
 TAB will complete T-Bears's command or variable names. Use TAB.
 
 ```bash
@@ -1198,7 +1193,7 @@ tbears) _
 ```
 
 You can access nth-output using _n-th expression.
-The Out object is a dictionary mapping input numbers to their outputs.
+The `Out` object is a dictionary mapping input numbers to their outputs.
 
 ```bash
 tbears) '1'
@@ -1217,7 +1212,7 @@ tbears) Out
 {1: '1', 2: 'second', 3: 3, 4: 'second'}
 ```
 
-Pass variables assigned string type to magic command by using "$" expressions.
+You can pass the value of a variable as an argument by prefixing the vairable name with "$".
 
 ```bash
 tbears) address = f"hx{'0'*40}"
@@ -1227,7 +1222,7 @@ tbears) balance $address
 balance : 0x2961fff8ca4a62327800000
 ```
 
-You would "{}" expression when you passing member of list or dictionary.
+You would use "{}" expression when you pass a member of list or dictionary.
 
 ```bash
 tbears) deploy sample_token
@@ -1245,7 +1240,7 @@ tbears) txresult {_['result']}
 
 ```
 
-In interactive mode, you can check SCORE's information deployed while T-Bears interactive mode is running by executing deployresults command.
+In the interactive mode, `deployresults`command is available to list up the SCOREs that has been deployed while T-Bears interactive mode is running.
 ```bash
 tbears) deployresults
 1.path : abc/, txhash : 0x583a89ec656d71d1641945a39792e016eefd6221ad536f9c312957f0c4336774, deployed in : http://127.0.0.1:9000/api/v3
@@ -1254,7 +1249,7 @@ tbears) deployresults
 
 ```
 
-T-Bears assign T-Bears command result to '_r' variable.
+T-Bears assigns T-Bears command execution result to '_r' variable.
 
 ```bash
 
@@ -1355,17 +1350,17 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
 | log.level       | string    | log level. <br/>"debug", "info", "warning", "error"          |
 | log.filePath    | string    | Log file path.                                               |
 | log.colorLog    | boolean   | Log display option (color or black)                          |
-| log.outputType  | string    | “console”: log outputs to the console that T-Bears is running.<br/>“file”: log outputs to the file path.<br/>“console&#124;file”: log outputs to both console and file. |
+| log.outputType  | string    | “console”: log outputs to the console that T-Bears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
 | log.rotate      | dict      | Log rotate setting                                           |
-| log.rotate.type | string    | "peroid": rotate by period.<br/> "bytes": rotate by maxBytes.<br/> "period&#124;bytes": log rotate to both period and bytes. |
-| log.rotate.period         | string    | use logging.TimedRotatingFileHandler 'when'<br/> ex) daily, weekly, hourly or minutely
+| log.rotate.type | string    | "peroid": rotate by period.<br/>"bytes": rotate by maxBytes.<br/>"period\|bytes": log rotate to both period and bytes. |
+| log.rotate.period         | string    | use logging.TimedRotatingFileHandler 'when'<br/> ex) daily, weekly, hourly or minutely |
 | log.rotate.interval       | string    | use logging.TimedRotatingFileHandler 'interval'<br/> ex) (period: hourly, interval: 24) == (period: daily, interval: 1)|
 | log.rotate.maxBytes       | integer   | use logging.RotatingFileHandler 'maxBytes'<br/> ex) 10mb == 10 * 1024 * 1024 |
 | log.rotate.backupCount    | integer   | limit log file count                                         |
 | service                   | didct     | T-Bears service setting                                       |
-| service.fee               | boolean   | true &#124; false. Charge a fee per transaction when enabled     |
-| service.audit             | boolean   | true &#124; false. Audit deploy transactions when enabled        |
-| service.deployerWhiteList | boolean   | true &#124; false. Limit SCORE deploy permission when enabled    |
+| service.fee               | boolean   | true \| false. Charge a fee per transaction when enabled     |
+| service.audit             | boolean   | true \| false. Audit deploy transactions when enabled        |
+| service.deployerWhiteList | boolean   | true \| false. Limit SCORE deploy permission when enabled    |
 | genesis                   | dict      | Genesis information of T-Bears node.                          |
 | genesis.nid               | string    | Network ID.                                                  |
 | genesis.accounts          | list      | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): test accounts that you can add. |
@@ -1373,7 +1368,7 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
 | amqpKey                   | string    | amqp key name interact with iconrpcserver and iconservice    |
 | amqpTarget                | string    | amqp target name interact with iconrpcserver and iconservice |
 | blockConfirmInterval      | integer   | Confirm block every N minute                                |
-| blockConfirmEmpty         | boolean   | true &#124; false. Confirm empty block when enabled              |
+| blockConfirmEmpty         | boolean   | true \| false. Confirm empty block when enabled              |
 
 #### tbears_cli_config.json
 
