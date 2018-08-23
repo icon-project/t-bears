@@ -9,7 +9,7 @@ fi
 
 HOST=tbears.icon.foundation
 S3_HOST="$HOST.s3-website.ap-northeast-2.amazonaws.com"
-DEPS="earlgrey icon-commons icon-service icon-rpc-server"
+DEPS="earlgrey iconcommons iconservice iconrpcserver"
 BRANCH=$1
 
 for PKG in $DEPS

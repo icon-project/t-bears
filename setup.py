@@ -10,9 +10,9 @@ if version is None:
 
 requires = [
     'earlgrey',
-    'icon-commons',
-    'icon-rpc-server',
-    'icon-service',
+    'iconcommons',
+    'iconrpcserver',
+    'iconservice',
     'requests>=2.19.1',
     'jsonrpcserver>=3.5.3',
     'sanic>=0.7.0',
@@ -24,11 +24,12 @@ requires = [
 
 
 setup_options = {
-    'name': 't-bears',
+    'name': 'tbears',
     'version': version,
     'description': 'Test suite for ICON SCORE development',
     'long_description': open('README.md').read(),
     'long_description_content_type': "text/markdown",
+    'url': 'https://github.com/icon-project/t-bears',
     'author': 'ICON Foundation',
     'author_email': 'foo@icon.foundation',
     'packages': find_packages(exclude=['tests*', 'docs']),

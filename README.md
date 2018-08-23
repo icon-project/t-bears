@@ -75,7 +75,7 @@ $ virtualenv -p python3 .
 $ source bin/activate
 
 # Install the ICON SCORE dev tools
-(work) $ pip install t-bears
+(work) $ pip install tbears
 ```
 
 ### Setup on Linux
@@ -95,7 +95,7 @@ $ virtualenv -p python3 .
 $ source bin/activate
 
 # Install the ICON SCORE dev tools
-(work) $ pip install t-bears
+(work) $ pip install tbears
 ```
 
 ## How to use T-Bears
@@ -1420,6 +1420,12 @@ Following CLI commands and options can be defined in the configuration file.
 | transfer | uri, nid, keyStore, from, to, stepLimit                      |
 
 ##  Reference
+[ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/docs/icon-json-rpc-v3.md)
+[earlgrey](https://github.com/icon-project/earlgrey-)
+[ICON Commons](https://github.com/icon-project/icon-commons)
+[ICON RPC Server](https://github.com/icon-project/icon-rpc-server)
+[ICON Service](https://github.com/icon-project/icon-service)
+
 
 ## License
 
