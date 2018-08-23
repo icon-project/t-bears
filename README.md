@@ -1350,17 +1350,17 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
 | log.level       | string    | log level. <br/>"debug", "info", "warning", "error"          |
 | log.filePath    | string    | Log file path.                                               |
 | log.colorLog    | boolean   | Log display option (color or black)                          |
-| log.outputType  | string    | “console”: log outputs to the console that T-Bears is running.<br/>“file”: log outputs to the file path.<br/>“console\|file”: log outputs to both console and file. |
+| log.outputType  | string    | “console”: log outputs to the console that T-Bears is running.<br/>“file”: log outputs to the file path.<br/>“console&#124;file”: log outputs to both console and file. |
 | log.rotate      | dict      | Log rotate setting                                           |
-| log.rotate.type | string    | "peroid": rotate by period.<br/>"bytes": rotate by maxBytes.<br/>"period\|bytes": log rotate to both period and bytes. |
+| log.rotate.type | string    | "peroid": rotate by period.<br/>"bytes": rotate by maxBytes.<br/>"period&#124;bytes": log rotate to both period and bytes. |
 | log.rotate.period         | string    | use logging.TimedRotatingFileHandler 'when'<br/> ex) daily, weekly, hourly or minutely |
 | log.rotate.interval       | string    | use logging.TimedRotatingFileHandler 'interval'<br/> ex) (period: hourly, interval: 24) == (period: daily, interval: 1)|
 | log.rotate.maxBytes       | integer   | use logging.RotatingFileHandler 'maxBytes'<br/> ex) 10mb == 10 * 1024 * 1024 |
 | log.rotate.backupCount    | integer   | limit log file count                                         |
 | service                   | didct     | T-Bears service setting                                       |
-| service.fee               | boolean   | true \| false. Charge a fee per transaction when enabled     |
-| service.audit             | boolean   | true \| false. Audit deploy transactions when enabled        |
-| service.deployerWhiteList | boolean   | true \| false. Limit SCORE deploy permission when enabled    |
+| service.fee               | boolean   | true &#124; false. Charge a fee per transaction when enabled     |
+| service.audit             | boolean   | true &#124; false. Audit deploy transactions when enabled        |
+| service.deployerWhiteList | boolean   | true &#124; false. Limit SCORE deploy permission when enabled    |
 | genesis                   | dict      | Genesis information of T-Bears node.                          |
 | genesis.nid               | string    | Network ID.                                                  |
 | genesis.accounts          | list      | List of accounts that holds initial coins. <br>(index 0) genesis: account that holds initial coins.<br>(index 1) fee_treasury: account that collects transaction fees.<br>(index 2~): test accounts that you can add. |
@@ -1368,7 +1368,7 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
 | amqpKey                   | string    | amqp key name interact with iconrpcserver and iconservice    |
 | amqpTarget                | string    | amqp target name interact with iconrpcserver and iconservice |
 | blockConfirmInterval      | integer   | Confirm block every N minute                                |
-| blockConfirmEmpty         | boolean   | true \| false. Confirm empty block when enabled              |
+| blockConfirmEmpty         | boolean   | true &#124; false. Confirm empty block when enabled              |
 
 #### tbears_cli_config.json
 
