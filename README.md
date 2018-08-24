@@ -1420,11 +1420,11 @@ Following CLI commands and options can be defined in the configuration file.
 | transfer | uri, nid, keyStore, from, to, stepLimit                      |
 
 ##  Reference
-[ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/docs/icon-json-rpc-v3.md)
-[earlgrey](https://github.com/icon-project/earlgrey-)
-[ICON Commons](https://github.com/icon-project/icon-commons)
-[ICON RPC Server](https://github.com/icon-project/icon-rpc-server)
-[ICON Service](https://github.com/icon-project/icon-service)
+- [ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md)
+- [earlgrey](https://github.com/icon-project/earlgrey)
+- [ICON Commons](https://github.com/icon-project/icon-commons)
+- [ICON RPC Server](https://github.com/icon-project/icon-rpc-server)
+- [ICON Service](https://github.com/icon-project/icon-service)
 
 
 ## License
