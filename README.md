@@ -29,8 +29,8 @@ LoopChain emulator for T-Bears Service. It does not have full 'consensus' and 'p
 Message queue is used for inter-component communication.
 
 
-## Building source code
- First, clone this project. Then go to the project folder, create a virtualenv environment, and run build script.
+## Building from source
+ First, clone this project. Then go to the project folder, create a virtualenv environment, and run build script. You can then install T-Brears with the .whl file.
 ```bash
 $ virtualenv -p python3 venv  # Create a virtual environment.
 $ source venv/bin/activate    # Enter the virtual environment.
