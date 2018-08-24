@@ -29,8 +29,8 @@ LoopChain emulator for T-Bears Service. It does not have full 'consensus' and 'p
 Message queue is used for inter-component communication.
 
 
-## Building source code
- First, clone this project. Then go to the project folder, create a virtualenv environment, and run build script.
+## Building from source
+ First, clone this project. Then go to the project folder, create a virtualenv environment, and run build script. You can then install T-Brears with the .whl file.
 ```bash
 $ virtualenv -p python3 venv  # Create a virtual environment.
 $ source venv/bin/activate    # Enter the virtual environment.
@@ -1420,11 +1420,11 @@ Following CLI commands and options can be defined in the configuration file.
 | transfer | uri, nid, keyStore, from, to, stepLimit                      |
 
 ##  Reference
-[ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/docs/icon-json-rpc-v3.md)
-[earlgrey](https://github.com/icon-project/earlgrey-)
-[ICON Commons](https://github.com/icon-project/icon-commons)
-[ICON RPC Server](https://github.com/icon-project/icon-rpc-server)
-[ICON Service](https://github.com/icon-project/icon-service)
+- [ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md)
+- [earlgrey](https://github.com/icon-project/earlgrey)
+- [ICON Commons](https://github.com/icon-project/icon-commons)
+- [ICON RPC Server](https://github.com/icon-project/icon-rpc-server)
+- [ICON Service](https://github.com/icon-project/icon-service)
 
 
 ## License
