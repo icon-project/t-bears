@@ -5,7 +5,7 @@ This tutorial is intended to give an introduction to using T-Bears. This guide w
 T-Bears is a suite of development tools for SCORE. T-Bears provides a project template for SCORE to help you start right away. You can code and test your smart contract locally in an emulated environment, and when ready, deploy SCORE onto the ICON network from command-line interface. 
 
 ## Components
-![Componets](images/components.png)
+![Componets](https://github.com/icon-project/t-bears/raw/master/images/components.png)
 
 ### ICON RPC Server
 A module that handles ICON JSON-RPC API request and sends response back to the client. 
