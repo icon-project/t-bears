@@ -44,7 +44,7 @@ class CommandServer(object):
 
     @staticmethod
     def _add_start_parser(subparsers) -> None:
-        parser = subparsers.add_parser('start', help='Start tbears serivce',
+        parser = subparsers.add_parser('start', help='Start tbears service',
                                        description='Start tbears service')
         parser.add_argument('-a', '--address', type=ip_address, help='Address to host on (default: 0.0.0.0)', dest='hostAddress')
         parser.add_argument('-p', '--port', type=port_type, help='Port to host on (default: 9000)')
