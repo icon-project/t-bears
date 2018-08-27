@@ -25,7 +25,7 @@ from secp256k1 import PrivateKey
 from tbears.libs.icx_signer import key_from_key_store, IcxSigner
 from tbears.libs.in_memory_zip import InMemoryZip
 from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
-from tbears.tbears_exception import ZipException, DeployPayloadException
+from tbears.tbears_exception import ZipException, DeployPayloadException, IconClientException
 
 
 class IconJsonrpc:
@@ -449,7 +449,11 @@ class IconClient(object):
         :return: response dictionary of request.
         """
         # if query doesn't change any state of iconservice or loopchain, use 'send' method
-        return requests.post(url=self.__uri, json=request).json()
+        response = requests.post(url=self.__uri, json=request)
+        if not response.ok:
+            raise IconClientException(f"Got error response. Response status_code: [{response.status_code}]")
+
+        return response.json()
 
     def send_transaction(self, request) -> dict:
         """Send request icx_sendTransaction to uri. If get success response, send icx_getTransactionResult request
