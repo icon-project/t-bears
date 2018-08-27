@@ -49,27 +49,27 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_blockbyhash_parser(subparsers):
-        parser = subparsers.add_parser('blockbyhash', help='Get block\'s info using given block hash',
-                                       description='Get block\'s info using given block hash')
+        parser = subparsers.add_parser('blockbyhash', help='Get block info using given block hash',
+                                       description='Get block info using given block hash')
         parser.add_argument('hash', type=hash_type, help='Hash of the block to be queried.')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_blockbyheight_parser(subparsers):
-        parser = subparsers.add_parser('blockbyheight', help='Get block\'s info using given block height',
-                                       description='Get block\'s info using given block height')
+        parser = subparsers.add_parser('blockbyheight', help='Get block info using given block height',
+                                       description='Get block info using given block height')
         parser.add_argument('height', help='height of the block to be queried.')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
     @staticmethod
     def _add_txresult_parser(subparsers):
         parser = subparsers.add_parser('txresult', help='Get transaction result by transaction hash',
@@ -78,7 +78,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_transfer_parser(subparsers):
@@ -113,7 +113,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_totalsupply_parser(subparsers):
@@ -122,7 +122,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_scoreapi_parser(subparsers):
@@ -132,7 +132,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath,
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_txbyhash_parser(subparsers):
@@ -142,7 +142,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_sendtx_parser(subparsers):
@@ -155,7 +155,7 @@ class CommandWallet:
                             dest='keyStore')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
         parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
 
     @staticmethod
@@ -166,7 +166,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri"(default: {FN_CLI_CONF})')
+                                 f'the "uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _check_transfer(conf: dict, password: str = None):
@@ -179,14 +179,14 @@ class CommandWallet:
 
         if conf.get('keyStore', None):
             if not password:
-                password = getpass.getpass("input your key store password: ")
+                password = getpass.getpass("input your keystore password: ")
 
         return password
 
     @staticmethod
     def _check_keystore(password: str):
         if not password:
-            password = getpass.getpass("input your key store password: ")
+            password = getpass.getpass("input your keystore password: ")
         if not validate_password(password):
             raise TBearsCommandException("Password must be at least 8 characters long including alphabet, number, "
                                          "and special character.")
@@ -198,7 +198,7 @@ class CommandWallet:
             if not os.path.exists(conf['keyStore']):
                 raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
             if not password:
-                password = getpass.getpass("input your key store password: ")
+                password = getpass.getpass("input your keystore password: ")
         else:
             if not is_icon_address_valid(conf['from']):
                 raise TBearsCommandException(f'invalid address: {conf["from"]}')
