@@ -450,10 +450,13 @@ class IconClient(object):
         """
         # if query doesn't change any state of iconservice or loopchain, use 'send' method
         response = requests.post(url=self.__uri, json=request)
-        if not response.ok:
-            raise IconClientException(f"Got error response. Response status_code: [{response.status_code}]")
-
-        return response.json()
+        try:
+            response_json = response.json()
+        except ValueError:
+            if not response.ok:
+                raise IconClientException(f"Got error response. Response status_code: [{response.status_code}]")
+        else:
+            return response_json
 
     def send_transaction(self, request) -> dict:
         """Send request icx_sendTransaction to uri. If get success response, send icx_getTransactionResult request
