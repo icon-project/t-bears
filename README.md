@@ -52,19 +52,29 @@ ICON SCORE development and execution requires following environments :
 * Python
     * Version: python 3.6+
     * IDE: Pycharm is recommended.
+    
+**Softwares**
+
+* RabbitMQ: 3.7 and above. [homepage](https://www.rabbitmq.com/)
 
 **Libraries**
 
 | name        | description                                                  | github                                                       |
 | ----------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | LevelDB     | ICON SCORE uses levelDB to store its states.                 | [LevelDB GitHub](https://github.com/google/leveldb)          |
-| libsecp256k | ICON SCORE uses secp256k to sign and validate a digital signature. | [secp256k GitHub](https://github.com/bitcoin-core/secp256k1) |
+| libsecp256k1 | ICON SCORE uses secp256k1 to sign and validate a digital signature. | [secp256k1 GitHub](https://github.com/bitcoin-core/secp256k1) |
 
 ### Setup on MacOS
 
 ```bash
-#install levelDB
+# install levelDB
 $ brew install leveldb
+
+# download and build libsecp256k1. check https://github.com/bitcoin-core/secp256k1
+
+# install RabbitMQ and start service
+$ brew install rabbitmq
+$ brew services start rabbitmq
 
 # Create a working directory
 $ mkdir work
@@ -85,6 +95,9 @@ $ source bin/activate
 $ sudo apt-get install libleveldb1 libleveldb-dev
 # Install libSecp256k
 $ sudo apt-get install libsecp256k1-dev
+
+# install RabbitMQ and start service
+$ sudo apt-get install rabbitmq-server
 
 # Create a working directory
 $ mkdir work
