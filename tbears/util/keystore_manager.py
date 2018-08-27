@@ -31,7 +31,7 @@ def make_key_store_content(password):
     private_key = private_key_obj.private_key
     public_key = private_key_obj.pubkey.serialize(compressed=False)
     address = f'hx{address_from_public_key(public_key).hex()}'
-    key_store_contents = create_keyfile_json(private_key, password.encode(), iterations=262144, kdf="scrypt")
+    key_store_contents = create_keyfile_json(private_key, password.encode(), iterations=16384, kdf="scrypt")
     key_store_contents['coinType'] = 'icx'
     key_store_contents['address'] = address
     return key_store_contents
