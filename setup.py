@@ -14,7 +14,7 @@ requires = [
     'iconrpcserver',
     'iconservice',
     'requests>=2.19.1',
-    'jsonrpcserver>=3.5.3',
+    'jsonrpcserver==3.5.3',
     'sanic>=0.7.0',
     'plyvel>=1.0.4',
     'secp256k1>=0.13.2',
