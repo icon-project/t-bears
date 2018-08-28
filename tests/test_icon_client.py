@@ -17,11 +17,12 @@ import unittest
 import os
 import socket
 
+from iconcommons.icon_config import IconConfig
 
 from tbears.command.command import Command
 from tbears.libs.icon_jsonrpc import IconClient
 from tbears.config.tbears_config import tbears_server_config
-from iconcommons.icon_config import IconConfig
+from tbears.tbears_exception import IconClientException
 from tests.test_util import TEST_UTIL_DIRECTORY
 
 
@@ -70,9 +71,15 @@ class TestIconClient(unittest.TestCase):
         # check get response correctly, don't check the response data
         self.assertRaises(Exception, client.send, payload)
 
-        # Incorrect request: invalid url
+        # Incorrect request: invalid url to working server
         payload = {"jsonrpc": "2.0", "method": "icx_getTotalSupply", "id": 111}
         client = IconClient('http://127.0.0.1:9000/api/invalidUrl')
+        # check get response correctly, don't check the response data
+        self.assertRaises(IconClientException, client.send, payload)
+
+        # Incorrect request: invalid url to not working service
+        payload = {"jsonrpc": "2.0", "method": "icx_getTotalSupply", "id": 111}
+        client = IconClient('http://127.0.0.1:19001/api/invalidUrl')
         # check get response correctly, don't check the response data
         self.assertRaises(Exception, client.send, payload)
 
