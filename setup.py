@@ -49,7 +49,6 @@ setup_options = {
         'Intended Audience :: System Administrators',
         'Natural Language :: English',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
         'Programming Language :: Python :: 3.6'
     ]
 }
