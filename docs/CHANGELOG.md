@@ -1,4 +1,9 @@
-# ChangeLog - tbears
+# ChangeLog - T-Bears
+
+## 1.0.4 - 2018-08-28
+* Change the encryption parameter 'N' of keystore
+* Improve IconClient error handling
+* Update README.md
 
 ## 1.0.3 - 2018-08-24
 * Add interactive mode. Activate with 'console' command
