@@ -6,7 +6,6 @@
     "to": "cx0000000000000000000000000000000000000000",
     "stepLimit": "0x300000_config_path",
     "deploy": {
-        "contentType": "tbears_config_path",
         "mode": "install_config_path",
         "scoreParams": {}
     },

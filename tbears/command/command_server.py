@@ -157,7 +157,7 @@ class CommandServer(object):
 
     @staticmethod
     def _start_iconservice(conf: dict, config_path: str):
-        cmd = f"iconservice start -tbears -c {config_path}"
+        cmd = f"iconservice start -c {config_path}"
 
         with open(os.devnull, 'w') as devnull:
             subprocess.run(cmd, shell=True, stdout=devnull)

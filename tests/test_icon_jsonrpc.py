@@ -88,7 +88,7 @@ class TestIconJsonrpcV3(unittest.TestCase):
 
     def test_gen_deploy_data(self):
         data = {
-            "contentType": "application/tbears",
+            "contentType": "contentType",
             "content": "content",
             "params": {
                 "initialSuppliy": 0x10000,
@@ -251,7 +251,7 @@ class TestIconJsonrpcV3(unittest.TestCase):
         """
         request_template["dataType"] = 'deploy'
         request_template["data"] = {
-            "contentType": "application/tbears",
+            "contentType": "application/zip",
             "content": "0xcontent",
             "params": {
                 "on_install": "need_param?",
