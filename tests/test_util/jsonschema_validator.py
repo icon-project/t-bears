@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from jsonrpcserver import status
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
