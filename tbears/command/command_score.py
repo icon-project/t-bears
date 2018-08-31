@@ -37,7 +37,7 @@ class CommandScore(object):
     def _add_deploy_parser(subparsers):
         parser = subparsers.add_parser('deploy', help='Deploy the SCORE', description='Deploy the SCORE')
         # IconPath's 'd' argument means directory
-        parser.add_argument('project', type=IconPath('d'), help='Project name')
+        parser.add_argument('project', type=IconPath(), help='Project directory path or zip file path')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-t', '--type', choices=['tbears', 'zip'], dest='contentType',
                             help='This option is deprecated since version 1.0.5. Deploy command supports zip type only')
@@ -158,9 +158,6 @@ class CommandScore(object):
         :param password: password for unit tests(optional)
         :return: password for keystore file
         """
-        if not os.path.isdir(conf['project']):
-            raise TBearsCommandException(f'There is no project directory.({conf["project"]})')
-
         # check if keystore exist. if exist, get password from user input
         if not conf['keyStore']:
             if not is_icon_address_valid(conf['from']):

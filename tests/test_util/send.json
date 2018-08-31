@@ -5,7 +5,7 @@
     "version": "0x3",
     "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
     "value": "0xde0b6b3a7640000",
-    "stepLimit": "0x2000",
+    "stepLimit": "0x3000000",
     "timestamp": "0x573117f1d6568",
     "nid": "0x3",
     "nonce": "0x1",

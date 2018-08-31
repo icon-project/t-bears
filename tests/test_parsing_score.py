@@ -50,7 +50,7 @@ class TestCommandScore(TestCommand):
         self.assertEqual(parsed.config, self.config_path)
         shutil.rmtree(self.project)
 
-        # No project directory
+        # No project directory or project zip file
         cmd = f'deploy {self.project}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
@@ -105,8 +105,6 @@ class TestCommandScore(TestCommand):
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         os.mkdir(self.project)
-
-        # # Deploy to zip
 
         # Keystore file does not exist
         no_keystore = './keystore_not_exist'

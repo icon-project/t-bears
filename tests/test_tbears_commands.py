@@ -38,6 +38,8 @@ class TestTBearsCommands(unittest.TestCase):
 
     def tearDown(self):
         try:
+            if os.path.exists(f'{self.project_name}.zip'):
+                os.remove(f'{self.project_name}.zip')
             if os.path.exists(FN_CLI_CONF):
                 os.remove(FN_CLI_CONF)
             if os.path.exists(FN_SERVER_CONF):
@@ -90,6 +92,9 @@ class TestTBearsCommands(unittest.TestCase):
         # init
         self.cmd.cmdUtil.init(conf)
 
+        # make project zip file
+        os.system(f'zip -r -X "{self.project_name}.zip" {self.project_name}/*')
+
         # start
         tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, f'test_tbears_server_config.json')
         start_conf = IconConfig(tbears_config_path, tbears_server_config)
@@ -105,11 +110,10 @@ class TestTBearsCommands(unittest.TestCase):
         total_supply_response = self.cmd.cmdWallet.totalsupply(conf)
         self.assertEqual(total_sup, total_supply_response['result'])
 
-        # sendtx
+        # sendtx - get step price from governance SCORE
         conf = self.cmd.cmdWallet.get_icon_conf('call', {"json_file": os.path.join(TEST_UTIL_DIRECTORY, 'call.json')})
         call_response_json = self.cmd.cmdWallet.call(conf)
         self.assertFalse(call_response_json.get('error', False))
-        self.assertEqual(call_response_json['result'], "0xe8d4a51000")
 
         # get balance - get balance of genesis address
         genesis_info = start_conf['genesis']['accounts'][0]
@@ -184,12 +188,13 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertFalse(transaction_result_response.get('error', False))
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
 
-        # deploy - f"-m update -k test_keystore --to scoreAddres_from_transactionResult
+        # deploy - update with zip fiel f"-m update -k test_keystore --to scoreAddres_from_transactionResult"
         scoreAddress = transaction_result_response['result']['scoreAddress']
         conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf['mode'] = 'update'
         conf['to'] = scoreAddress
+        conf['project'] = f'{self.project_name}.zip'
         deploy_response = self.deploy_cmd(conf=conf, password='qwer1234%')
         self.assertEqual(deploy_response.get('error', False), False)
 
