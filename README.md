@@ -67,10 +67,9 @@ ICON SCORE development and execution requires following environments :
 ### Setup on MacOS
 
 ```bash
-# install levelDB
+# install develop tools
 $ brew install leveldb
-
-# download and build libsecp256k1. check https://github.com/bitcoin-core/secp256k1
+$ brew install autoconf automake libtool pkg-config
 
 # install RabbitMQ and start service
 $ brew install rabbitmq
@@ -81,6 +80,7 @@ $ mkdir work
 $ cd work
 
 # setup the python virtualenv development environment
+$ pip3 install virtualenv
 $ virtualenv -p python3 .
 $ source bin/activate
 
@@ -463,7 +463,7 @@ optional arguments:
 | -h, --help                                      |                              | show this help message and exit                              |
 | -u, --node-uri                                  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
 | -m {install,update},<br>--mode {install,update} | install                      | Deploy mode ("install" or "update").                         |
-| -f, --from                                      |                              | From address. i.e. SCORE owner address. It is ignored if '-k' option is set |
+| -f, --from                                      |                              | From address. i.e. SCORE owner address. It is ignored if keystore is set |
 | -o, --to                                        |                              | To address. i.e. SCORE address <br>This parameter is required when updating SCORE. |
 | -k, --key-store                                 |                              | Keystore file path for SCORE owner                               |
 | -n, --nid                                       |                              | Network ID of node. <br>Each network has unique ID. If the Network ID does not match, node will reject the SCORE. Network ID will be announced when a network opens to public.<br>0x3 is reserved for T-Bears service. However, T-Bears service does not verify the Network ID. |
@@ -705,7 +705,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f FROM, --from FROM  From address. Must use with dummy type.
+  -f FROM, --from FROM  From address.
   -k KEYSTORE, --key-store KEYSTORE
                         Sender's keystore file
   -n NID, --nid NID     Network ID (default: 0x3)
@@ -724,7 +724,7 @@ optional arguments:
 | to              |                              | Recipient address.                                           |
 | value           |                              | Amount of ICX coin in loop to transfer to "to" address. (1 icx = 1e18 loop) |
 | -h, --help      |                              | show this help message and exit                              |
-| -f, --from      |                              | From address. It is ignored if '-k' option is set            |
+| -f, --from      |                              | From address. It is ignored if keystore is set            |
 | -k, --key-store |                              | Keystore file path. Used to generate "from" address and transaction signature. |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
 | -n, --nid       | 0x3                          | Network ID                                                   |

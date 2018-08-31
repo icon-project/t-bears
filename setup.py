@@ -11,7 +11,7 @@ if version is None:
 requires = [
     'earlgrey',
     'iconcommons',
-    'iconrpcserver',
+    'iconrpcserver>=1.0.3',
     'iconservice>=1.0.5',
     'requests>=2.19.1',
     'sanic>=0.7.0',
