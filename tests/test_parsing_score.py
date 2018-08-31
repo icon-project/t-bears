@@ -28,7 +28,6 @@ class TestCommandScore(TestCommand):
 
         self.project = 'proj_unittest'
         self.uri = 'http://127.0.0.1:9000/api/v3'
-        self.arg_type = 'tbears'
         self.mode = "install"
         self.arg_from = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         self.to = "cx0000000000000000000000000000000000000000"
@@ -39,13 +38,12 @@ class TestCommandScore(TestCommand):
     def test_deploy_args_parsing(self):
         # Parsing test
         os.mkdir(self.project)
-        cmd = f"deploy {self.project} -u {self.uri} -t {self.arg_type} -m {self.mode} -f {self.arg_from} " \
+        cmd = f"deploy {self.project} -u {self.uri} -m {self.mode} -f {self.arg_from} " \
               f"-o {self.to} -k {self.keystore} -c {self.config_path} "
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(parsed.command, 'deploy')
         self.assertEqual(parsed.project, self.project)
         self.assertEqual(parsed.uri, self.uri)
-        self.assertEqual(parsed.contentType, self.arg_type)
         self.assertEqual(parsed.mode, self.mode)
         self.assertEqual(parsed.to, self.to)
         self.assertEqual(parsed.keyStore, self.keystore)
@@ -75,14 +73,6 @@ class TestCommandScore(TestCommand):
         cmd = f'deploy {self.project} -w wrongoption'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-        # More then 2 arguments in -t option
-        cmd = f'deploy {self.project} -t icon tbears to_much -t option args'
-        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
-
-        # Not supported type (only icon, tbears are available)
-        cmd = f'deploy {self.project} -t not_supported_type'
-        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
-
         # Not supported mode (only install, update are available)
         cmd = f'deploy {self.project} -m not_supported_mode'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
@@ -93,7 +83,7 @@ class TestCommandScore(TestCommand):
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
         # Keystore file does not exist
-        cmd = f'deploy {self.project} -t zip -k ./keystore_not_exist'
+        cmd = f'deploy {self.project} -k ./keystore_not_exist'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
         # config file does not exist
@@ -118,14 +108,9 @@ class TestCommandScore(TestCommand):
 
         # # Deploy to zip
 
-        # Without keystore option
-        cmd = f'deploy {self.project} -t zip'
-        parsed = self.parser.parse_args(cmd.split())
-        self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
-
         # Keystore file does not exist
         no_keystore = './keystore_not_exist'
-        cmd = f'deploy {self.project} -t zip -k {no_keystore}'
+        cmd = f'deploy {self.project} -k {no_keystore}'
         self.touch(no_keystore)
         parsed = self.parser.parse_args(cmd.split())
         os.remove(no_keystore)
@@ -134,23 +119,11 @@ class TestCommandScore(TestCommand):
         # Invaild password value
         # Even though input invaild password, _check_deploy method should return password
         # (this method doesn't check password value)
-        cmd = f'deploy {self.project} -t zip -k {self.keystore}'
+        cmd = f'deploy {self.project} -k {self.keystore}'
         user_input_password = "1234"
         expected_password = "1234"
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(CommandScore._check_deploy(vars(parsed), user_input_password), expected_password)
-
-        # # Deploy to tbears
-
-        # Correct command (when deploy to tbears, return value from _check_deploy method should None)
-        cmd = f'deploy {self.project} -t tbears'
-        parsed = self.parser.parse_args(cmd.split())
-        self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
-
-        # Deploy tbears SCORE to remote(doesn't check actual -uri value)
-        cmd = f'deploy {self.project} -t tbears -u http://1.2.3.4:9000/api/v3'
-        parsed = self.parser.parse_args(cmd.split())
-        self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         # Insufficient argument
         cmd = f'deploy {self.project} -m update'

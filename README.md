@@ -425,26 +425,34 @@ Deploy the SCORE. You can deploy it on local T-Bears service or on ICON network.
 
 ```bash
 usage: tbears deploy [-h] [-u URI] [-t {tbears,zip}] [-m {install,update}]
-                     [-f FROM] [-o TO] [-k KEYSTORE] [-c CONFIG]
+                     [-f FROM] [-o TO] [-k KEYSTORE] [-n NID] [-c CONFIG]
+                     [-p PASSWORD]
                      project
 
-Deploy the SCORE in project
+Deploy the SCORE
 
 positional arguments:
   project               Project name
 
 optional arguments:
-  -h, --help                                   show this help message and exit
-  -u URI, --node-uri URI                       URI of node
-                                               (default: http://127.0.0.1:9000/api/v3)
-  -t {tbears,zip}, --type {tbears,zip}         Deploy SCORE type
-                                               (default: tbears)
-  -m {install,update}, --mode {install,update} Deploy mode (default: install)
-  -f FROM, --from FROM                         From address. i.e. SCORE owner address
-  -o TO, --to TO                               To address. i.e. SCORE address
-  -k KEYSTORE, --key-store KEYSTORE            Key store file for SCORE owner
-  -n NID, --nid NID                            Network ID of node
-  -c CONFIG, --config CONFIG                   deploy config path (default: ./tbears_cli_config.json)
+  -h, --help            show this help message and exit
+  -u URI, --node-uri URI
+                        URI of node (default: http://127.0.0.1:9000/api/v3)
+  -t {tbears,zip}, --type {tbears,zip}
+                        This option is deprecated since version 1.0.5. Deploy
+                        command supports zip type only
+  -m {install,update}, --mode {install,update}
+                        Deploy mode (default: install)
+  -f FROM, --from FROM  From address. i.e. SCORE owner address
+  -o TO, --to TO        To address. i.e. SCORE address
+  -k KEYSTORE, --key-store KEYSTORE
+                        Keystore file path. Used to generate "from" address
+                        and transaction signature
+  -n NID, --nid NID     Network ID
+  -c CONFIG, --config CONFIG
+                        deploy config path (default: ./tbears_cli_config.json)
+  -p PASSWORD, --password PASSWORD
+                        keystore file's password
 ```
 
 **Options**
@@ -454,7 +462,6 @@ optional arguments:
 | project                                         |                              | Project directory which contains the SCORE package.          |
 | -h, --help                                      |                              | show this help message and exit                              |
 | -u, --node-uri                                  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
-| -t {tbears,zip},<br> --type {tbears,zip}        | tbears                       | Deploy SCORE type ("tbears" or "zip" ).<br>Use "tbears" for local deploy.  When deploy to remote network, you must use "zip". |
 | -m {install,update},<br>--mode {install,update} | install                      | Deploy mode ("install" or "update").                         |
 | -f, --from                                      |                              | From address. i.e. SCORE owner address. It is ignored if '-k' option is set |
 | -o, --to                                        |                              | To address. i.e. SCORE address <br>This parameter is required when updating SCORE. |
@@ -465,12 +472,12 @@ optional arguments:
 **Examples**
 
 ```bash
-(Work)$ tbears deploy -t tbears abc
+(Work)$ tbears deploy abc
 
 (work)$ tbears deploy abc -c ./tbears_cli_config.json
 
-#when you deploy SCORE to icon, input keystore password
-(Work)$ tbears deploy -t zip -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -k keystore abc
+#when you deploy SCORE to ICON, input keystore password
+(Work)$ tbears deploy -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -k keystore abc
 input your keystore password:
 
 Send deploy request successfully.
@@ -935,8 +942,8 @@ Transaction: {
         "nonce": "0x1",
         "to": "cx0000000000000000000000000000000000000000",
         "data": {
-            "contentType": "application/tbears",
-            "content": "/Users/lp1709no01/Desktop/abc/abc",
+            "contentType": "application/zip",
+            "content": "0x32b34cfa39993fa093e",
             "params": {}
         },
         "dataType": "deploy",
@@ -1004,8 +1011,8 @@ block info : {
                 "nonce": "0x1",
                 "to": "cx0000000000000000000000000000000000000000",
                 "data": {
-                    "contentType": "application/tbears",
-                    "content": "/Users/lp1709no01/Desktop/abc/abc",
+                    "contentType": "application/zip",
+                    "content": "0x32b34cfa39993fa093e",
                     "params": {}
                 },
                 "dataType": "deploy",
@@ -1398,7 +1405,6 @@ In this configuration file, you can define default options values for some CLI c
     "to": "cx0000000000000000000000000000000000000000",
     "stepLimit": "0x2000",
     "deploy": {
-        "contentType": "tbears",
         "mode": "install",
         "scoreParams": {}
     },
@@ -1416,7 +1422,6 @@ In this configuration file, you can define default options values for some CLI c
 | to                 | string     | To address.                                                  |
 | stepLimit          | string     | (optional) stepLimit value. Default is 0x300000.             |
 | deploy             | dict       | Options for deploy command.                                  |
-| deploy.contentType | string     | SCORE type for the deployment. ("tbears" or "zip")           |
 | deploy.mode        | string     | Deploy mode.<br>install: new SCORE deployment.<br>update: update the SCORE that was previously deployed. |
 | deploy.scoreParams | dict       | Parameters to be passed to on_install() or on_update()       |
 | deploy.from        | string     | Address of the SCORE deployer<br>Optional. This value will override "from" value. If not given, "from" value will be used. |
@@ -1428,7 +1433,7 @@ Following CLI commands and options can be defined in the configuration file.
 
 | Command  | Options                                                      |
 | -------- | :----------------------------------------------------------- |
-| deploy   | uri, nid, keyStore, from, to, mode, contentType, scoreParams, stepLimit |
+| deploy   | uri, nid, keyStore, from, to, mode, scoreParams, stepLimit |
 | txresult | uri                                                          |
 | transfer | uri, nid, keyStore, from, to, stepLimit                      |
 

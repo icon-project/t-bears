@@ -49,10 +49,10 @@ class Command(object):
 
     def run(self, sys_args) -> Optional:
         # sys_args is list of commands splitted by space
-        # e.g. tbears deploy project -t tbears => ['deploy', 'project', '-t', 'tbears']
+        # e.g. tbears deploy project -k keystore => ['deploy', 'project', '-k', 'keystore']
         try:
             # parse_args return the populated namespace
-            # e.g. Namespace(command='deploy', config=None, contentType='tbears' ...)
+            # e.g. Namespace(command='deploy', config=None, keyStore='keystore' ...)
             args = self.parser.parse_args(args=sys_args)
             if self.cmdServer.check_command(args.command):
                 result = self.cmdServer.run(args)

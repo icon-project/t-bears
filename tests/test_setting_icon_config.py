@@ -195,7 +195,6 @@ class TestCliTestUtil(unittest.TestCase):
 
     def test_command_score_config_setting(self):
         u = ['-u http://127.0.0.1:9000/api/v3_user_input', '']
-        t = ['-t tbears', '-t zip', '']
         m = ['-m install', '-m update', '']
         f = ['-f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '']
         o = ['-o cx0000000000000000000000000000000000000000', '']
@@ -227,7 +226,7 @@ class TestCliTestUtil(unittest.TestCase):
             'command': 'deploy',
             'positional_files': ['test_project'],
             'positional_args': [],
-            'optional_args': [u, t, m, f, o, k, n],
+            'optional_args': [u, m, f, o, k, n],
             'get_config_func': CommandScore.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -237,7 +236,7 @@ class TestCliTestUtil(unittest.TestCase):
             'command': 'deploy',
             'positional_files': ['test_project'],
             'positional_args': [],
-            'optional_args': [u, t, m, f, o, k, n, c],
+            'optional_args': [u, m, f, o, k, n, c],
             'get_config_func': CommandScore.get_icon_conf,
             'description': 'config: O , user input: O'
         }

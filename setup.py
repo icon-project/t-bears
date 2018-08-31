@@ -12,7 +12,7 @@ requires = [
     'earlgrey',
     'iconcommons',
     'iconrpcserver',
-    'iconservice',
+    'iconservice>=1.0.5',
     'requests>=2.19.1',
     'sanic>=0.7.0',
     'plyvel>=1.0.4',

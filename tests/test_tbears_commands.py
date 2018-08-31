@@ -125,7 +125,7 @@ class TestTBearsCommands(unittest.TestCase):
         get_balance_response = self.cmd.cmdWallet.balance(conf)
         self.assertEqual(treasury_balance, get_balance_response['result'])
 
-        # deploy - f"-t tbears -m install"
+        # deploy - f"-m install"
         conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         deploy_response = self.deploy_cmd(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
@@ -144,7 +144,7 @@ class TestTBearsCommands(unittest.TestCase):
         score_api_response = self.cmd.cmdWallet.scoreapi(conf)
         self.assertFalse(score_api_response.get('error', False))
 
-        # deploy - f"-t tbears -m update --to socreAddress from_transactionResult -c tbears_cli_config.json"
+        # deploy - f"-m update --to socreAddress from_transactionResult -c tbears_cli_config.json"
         scoreAddress = transaction_result_response['result']['scoreAddress']
         conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         conf['mode'] = 'update'
@@ -153,7 +153,7 @@ class TestTBearsCommands(unittest.TestCase):
         deploy_response = self.deploy_cmd(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 
-        # deploy - f"-t tbears -m update --to invalid_scoreAddress -c tbears_cli_config.json"
+        # deploy - f"-m update --to invalid_scoreAddress -c tbears_cli_config.json"
         # when invalid scoreAddress, response data should contain error data
         invalid_score_address = 'cx02b13428a8aef265fbaeeb37394d3ae8727f7a19'
         invalid_conf = deepcopy(conf)
@@ -171,10 +171,9 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
-        # deploy - f"-t zip -m install -k test_keystore"
+        # deploy - f"-m install -k test_keystore"
         conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        conf['contentType'] = 'zip'
         deploy_response = self.deploy_cmd(conf=conf, password='qwer1234%')
         self.assertEqual(deploy_response.get('error', False), False)
 
@@ -185,11 +184,10 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertFalse(transaction_result_response.get('error', False))
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
 
-        # deploy - f"-t zip -m update -k test_keystore --to scoreAddres_from_transactionResult
+        # deploy - f"-m update -k test_keystore --to scoreAddres_from_transactionResult
         scoreAddress = transaction_result_response['result']['scoreAddress']
         conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        conf['contentType'] = 'zip'
         conf['mode'] = 'update'
         conf['to'] = scoreAddress
         deploy_response = self.deploy_cmd(conf=conf, password='qwer1234%')

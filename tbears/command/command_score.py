@@ -40,7 +40,7 @@ class CommandScore(object):
         parser.add_argument('project', type=IconPath('d'), help='Project name')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-t', '--type', choices=['tbears', 'zip'], dest='contentType',
-                            help='Deploy SCORE type (default: tbears)')
+                            help='This option is deprecated since version 1.0.5. Deploy command supports zip type only')
         parser.add_argument('-m', '--mode', choices=['install', 'update'], help='Deploy mode (default: install)')
         # --from option only accept eoa address('hx')
         parser.add_argument('-f', '--from', type=IconAddress('hx'), help='From address. i.e. SCORE owner address')
@@ -73,9 +73,6 @@ class CommandScore(object):
 
         :param conf: deploy command configuration
         """
-        if conf['contentType'] == 'tbears' and not CommandServer.is_service_running():
-            raise TBearsCommandException(f'Start tbears service first')
-
         # check keystore, and get password from user's terminal input
         password = conf.get('password', None)
         password = self._check_deploy(conf, password)
@@ -87,13 +84,9 @@ class CommandScore(object):
         else:
             score_address = conf['to']
 
-        if conf['contentType'] == 'zip':
-            content_type = "application/zip"
-            # make zip and convert to hexadecimal string data(start with 0x) and return
-            content = IconJsonrpc.gen_deploy_data_content(conf['project'])
-        else:
-            content_type = "application/tbears"
-            content = os.path.abspath(conf['project'])
+        content_type = "application/zip"
+        # make zip and convert to hexadecimal string data(start with 0x) and return
+        content = IconJsonrpc.gen_deploy_data_content(conf['project'])
 
         # make IconJsonrpc instance which is used for making request(with signature)
         if conf['keyStore']:
@@ -167,15 +160,6 @@ class CommandScore(object):
         """
         if not os.path.isdir(conf['project']):
             raise TBearsCommandException(f'There is no project directory.({conf["project"]})')
-
-        if conf['contentType'] == 'zip':
-            if conf.get('keyStore', None) is None:
-                raise TBearsCommandException(f'If you want to deploy SCORE to ICON node, set --key-store option or '
-                                             f'write "keyStore" value in configuration file.')
-        else:
-            uri: str = conf.get('uri', "")
-            if uri and uri.find('127.0.0.1') == -1:
-                raise TBearsCommandException(f"TBears does not support deploying tbears SCORE to remote")
 
         # check if keystore exist. if exist, get password from user input
         if not conf['keyStore']:
