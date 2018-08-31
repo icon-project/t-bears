@@ -32,7 +32,7 @@ from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, Co
 from tbears.block_manager.block_manager import TBEARS_BLOCK_MANAGER
 
 
-BLOCKMANAGER_MODULE_NAME = 'tbears.block_manager.block_manager'
+BLOCKMANAGER_MODULE_NAME = 'tbears.block_manager'
 TBEARS_CLI_ENV = '/tmp/.tbears.env'
 TBEARS_CLI_TAG = 'tbears_cli'
 
