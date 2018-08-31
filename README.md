@@ -1330,7 +1330,7 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
         "deployerWhiteList": false
     },
     "genesis": {
-        "nid": "0x03",
+        "nid": "0x3",
         "accounts": [
             {
                 "name": "genesis",
@@ -1410,7 +1410,7 @@ In this configuration file, you can define default options values for some CLI c
 | Field              | Data  type | Description                                                  |
 | ------------------ | :--------- | :----------------------------------------------------------- |
 | uri                | string     | URI to send the request.                                     |
-| nid                | string     | Network ID. 0x03 is reserved for T-Bears.                    |
+| nid                | string     | Network ID. 0x3 is reserved for T-Bears.                     |
 | keyStore           | string     | Keystore file path.                                          |
 | from               | string     | From address. It is ignored if 'keyStore' is set.            |
 | to                 | string     | To address.                                                  |

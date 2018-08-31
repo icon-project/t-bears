@@ -50,7 +50,7 @@ tbears_server_config = {
         "deployerWhiteList": False
     },
     "genesis": {
-        "nid": "0x03",
+        "nid": "0x3",
         "accounts": [
             {
                 "name": "genesis",
