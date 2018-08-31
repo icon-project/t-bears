@@ -83,7 +83,7 @@ class CommandWallet:
     @staticmethod
     def _add_transfer_parser(subparsers):
         parser = subparsers.add_parser('transfer', help='Transfer ICX coin.', description='Transfer ICX coin.')
-        parser.add_argument('-f', '--from', type=IconAddress(), help='From address. Must use with dummy type.')
+        parser.add_argument('-f', '--from', type=IconAddress(), help='From address.')
         parser.add_argument('to', type=IconAddress(), help='Recipient')
         parser.add_argument("value", type=float, help='Amount of ICX coin in loop to transfer (1 icx = 1e18 loop)')
         parser.add_argument('-k', '--key-store', type=IconPath(), dest='keyStore',
