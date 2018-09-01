@@ -250,7 +250,7 @@ class IconJsonrpc:
                         from_: str = None,
                         to: str = None,
                         value: str = '0x0',
-                        step_limit: str = '0x2000',
+                        step_limit: str = '0x3000000',
                         nid: str = '0x3',
                         nonce: str= '0x1',
                         timestamp: str = None,
@@ -409,13 +409,13 @@ class IconJsonrpc:
 
         :param path: The path of the directory to be zipped.
         """
-        if os.path.isdir(path) is False:
+        if os.path.isdir(path) is False and os.path.isfile(path) is False:
             raise ValueError(f"Invalid path {path}")
         try:
             memory_zip = InMemoryZip()
             memory_zip.zip_in_memory(path)
-        except ZipException:
-            raise DeployPayloadException(f"Can't zip SCORE contents")
+        except ZipException as e:
+            raise DeployPayloadException(f"Failed to generate zipped SCORE contents. {e}")
         else:
             return f'0x{memory_zip.data.hex()}'
 

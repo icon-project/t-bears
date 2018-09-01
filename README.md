@@ -432,7 +432,7 @@ usage: tbears deploy [-h] [-u URI] [-t {tbears,zip}] [-m {install,update}]
 Deploy the SCORE
 
 positional arguments:
-  project               Project name
+  project               Project directory path or zip file path
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -459,7 +459,7 @@ optional arguments:
 
 | shorthand, Name                                 | default                      | Description                                                  |
 | ----------------------------------------------- | :--------------------------- | ------------------------------------------------------------ |
-| project                                         |                              | Project directory which contains the SCORE package.          |
+| project                                         |                              | Project directory or zip file which contains the SCORE package. If you want to deploy with a zip file, zip the project directory |
 | -h, --help                                      |                              | show this help message and exit                              |
 | -u, --node-uri                                  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
 | -m {install,update},<br>--mode {install,update} | install                      | Deploy mode ("install" or "update").                         |
@@ -537,7 +537,7 @@ optional arguments:
     "version": "0x3",
     "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
     "value": "0x0",
-    "stepLimit": "0x2000",
+    "stepLimit": "0x3000000",
     "timestamp": "0x573117f1d6568",
     "nid": "0x3",
     "nonce": "0x1",
@@ -936,7 +936,7 @@ Transaction: {
         "version": "0x3",
         "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "value": "0x0",
-        "stepLimit": "0x300000",
+        "stepLimit": "0x3000000",
         "timestamp": "0x572e8fd95db26",
         "nid": "0x3",
         "nonce": "0x1",
@@ -1005,7 +1005,7 @@ block info : {
                 "version": "0x3",
                 "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 "value": "0x0",
-                "stepLimit": "0x300000",
+                "stepLimit": "0x3000000",
                 "timestamp": "0x572e8fd95db26",
                 "nid": "0x3",
                 "nonce": "0x1",
@@ -1403,7 +1403,7 @@ In this configuration file, you can define default options values for some CLI c
     "keyStore": null,
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
-    "stepLimit": "0x2000",
+    "stepLimit": "0x3000000",
     "deploy": {
         "mode": "install",
         "scoreParams": {}
@@ -1420,7 +1420,7 @@ In this configuration file, you can define default options values for some CLI c
 | keyStore           | string     | Keystore file path.                                          |
 | from               | string     | From address. It is ignored if 'keyStore' is set.            |
 | to                 | string     | To address.                                                  |
-| stepLimit          | string     | (optional) stepLimit value. Default is 0x300000.             |
+| stepLimit          | string     | (optional) stepLimit value. Default is 0x3000000.            |
 | deploy             | dict       | Options for deploy command.                                  |
 | deploy.mode        | string     | Deploy mode.<br>install: new SCORE deployment.<br>update: update the SCORE that was previously deployed. |
 | deploy.scoreParams | dict       | Parameters to be passed to on_install() or on_update()       |
