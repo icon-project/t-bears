@@ -1392,7 +1392,7 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
 
 #### tbears_cli_config.json
 
-For every T-Bears CLI commands except `start`, `stop`, `samples`, `clear` and `init`, this file is used to configure the default parameters and initial settings.  
+For every T-Bears CLI commands except `start`, `stop`, `samples`, `clear`, `init` and `keystore`, this file is used to configure the default parameters and initial settings.  
 
 In this configuration file, you can define default options values for some CLI commnds. For example, SCORE's  `on_install()` or  `on_update()`  method is called on deployment. In this config file, you can set the deploy "mode" and the parameters ("scoreParams") of `on_install()` or `on_update()` as shown in the following example.
 
@@ -1434,8 +1434,8 @@ Following CLI commands and options can be defined in the configuration file.
 | Command  | Options                                                      |
 | -------- | :----------------------------------------------------------- |
 | deploy   | uri, nid, keyStore, from, to, mode, scoreParams, stepLimit |
-| txresult | uri                                                          |
-| transfer | uri, nid, keyStore, from, to, stepLimit                      |
+| transfer | uri, nid, keyStore, from, stepLimit                      |
+| txresult<br>balance<br>totalsupply<br>scoreapi<br>txbyhash<br>lastblock<br>blockbyhash<br>blockbyheight<br>sendtx<br>call<br>| uri                                                          |
 
 ##  Reference
 - [ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md)
