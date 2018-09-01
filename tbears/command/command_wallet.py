@@ -313,7 +313,8 @@ class CommandWallet:
         # make JSON-RPC 2.0 request standard format(dict type)
         request = transfer.sendTransaction(to=conf['to'],
                                            value=hex(int(conf['value'])),
-                                           nid=conf['nid'])
+                                           nid=conf['nid'],
+                                           step_limit=conf['stepLimit'])
 
         # request to rpcserver
         icon_client = IconClient(conf['uri'])
