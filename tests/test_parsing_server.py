@@ -35,7 +35,7 @@ class TestCommandServer(TestCommand):
         self.assertEqual(int(parsed.port), port)
         self.assertEqual(parsed.config, config_path)
 
-        # Too much argument (start cli doesn't need argument)
+        # Too many arguments (start cli doesn't need argument)
         cmd = f'start wrongArgument'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 

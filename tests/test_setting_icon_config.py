@@ -151,7 +151,7 @@ class TestCliTestUtil(unittest.TestCase):
         for cli in whole_possible_cli:
             parsed = self.parser.parse_args(cli.split())
 
-            # should be refactoring, get_icon_conf methods has one more parameter(project param)
+            # should be refactoring, get_icon_conf methods has one more parameter (project param)
             actual_conf = test_opts['get_config_func'](parsed.command, args=vars(parsed))
 
             expected_conf = deepcopy(default_conf)

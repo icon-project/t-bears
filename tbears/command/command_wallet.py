@@ -93,7 +93,7 @@ class CommandWallet:
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default values for the properties '
                                  f'"keyStore", "uri" and "from". (default: {FN_CLI_CONF})')
-        parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
+        parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
 
     @staticmethod
     def _add_keystore_parser(subparsers):
@@ -101,8 +101,8 @@ class CommandWallet:
                                        help='Create keystore file in passed path.',
                                        description='Create keystore file in passed path. Generate privatekey, '
                                                    'publickey pair using secp256k1 library.')
-        parser.add_argument('path', type=IconPath('w'), help='path of keystore file.')
-        parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
+        parser.add_argument('path', type=IconPath('w'), help='Path of keystore file.')
+        parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
 
     @staticmethod
     def _add_balance_parser(subparsers):
@@ -156,7 +156,7 @@ class CommandWallet:
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
                                  f'the "uri" (default: {FN_CLI_CONF})')
-        parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
+        parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
 
     @staticmethod
     def _add_call_parser(subparsers):
@@ -300,7 +300,7 @@ class CommandWallet:
         :param conf: transfer command configuration.
         :return: response of transfer.
         """
-        # check value type(must be int), address and keystore file
+        # check value type (must be int), address and keystore file
         # if valid, return user input password
         password = conf.get('password', None)
         password = self._check_transfer(conf, password)
@@ -310,7 +310,7 @@ class CommandWallet:
         else:
             transfer = IconJsonrpc.from_string(conf['from'])
 
-        # make JSON-RPC 2.0 request standard format(dict type)
+        # make JSON-RPC 2.0 request standard format (dict type)
         request = transfer.sendTransaction(to=conf['to'],
                                            value=hex(int(conf['value'])),
                                            nid=conf['nid'],
@@ -335,7 +335,7 @@ class CommandWallet:
 
         :param conf: keystore command configuration
         """
-        # check if same keystore file already exist, and if user input valid password
+        # check if the given keystore file already exists, and if user input is a valid password
         password = conf.get('password', None)
         password = self._check_keystore(password)
 

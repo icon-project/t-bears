@@ -41,7 +41,7 @@ class IconAddress(str):
         self._prefix = prefix
 
     def __call__(self, string: str) -> str:
-        # check prefix of given address(string). if not 'cx' or 'hx', raise error
+        # check prefix of given address (string). if not 'cx' or 'hx', raise error
         if not is_icon_address_valid(string):
             raise ArgumentTypeError(f"Invalid address '{string}'")
 

@@ -65,7 +65,7 @@ class ChannelInnerTask(object):
         # append to transaction queue
         block_manager.add_tx(tx_hash=tx_hash, tx=kwargs)
 
-        Logger.debug(f'Resposne create_icx_tx!!', "create_icx_tx")
+        Logger.debug(f'Response create_icx_tx!!', "create_icx_tx")
         return message_code.Response.success, f"0x{tx_hash}"
 
     @message_queue_task

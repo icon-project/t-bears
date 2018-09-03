@@ -71,7 +71,7 @@ class CommandServer(object):
     def get_icon_conf(command: str, args: dict = None) -> dict:
         """Load config file using IconConfig instance
         config file is loaded as below priority
-        system config -> default config -> user config -> user input config(higher priority)
+        system config -> default config -> user config -> user input confi g(higher priority)
 
         :param command: command name (e.g. start)
         :param args: user input command (converted to dictionary type)
