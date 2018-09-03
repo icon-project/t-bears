@@ -14,6 +14,7 @@
 # limitations under the License.
 import json
 import os
+import zipfile
 
 from tbears.util import PROJECT_ROOT_PATH
 
@@ -32,3 +33,13 @@ def get_total_supply(path: str):
     total_supply = sum(balance_info)
 
     return hex(total_supply)
+
+
+def zip_dir(path: str):
+    zipf = zipfile.ZipFile(f'{path}.zip', 'w', zipfile.ZIP_DEFLATED)
+
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            zipf.write(os.path.join(root, file))
+
+    zipf.close()
