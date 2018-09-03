@@ -152,7 +152,7 @@ icx_getLastBlock_v2: dict = {
 icx_getTransactionByAddress_v2: dict = {
     "$schema": "http://json-schema.org/schema#",
     "title": "icx_getTransactionByAddress",
-    "id": "googledoc.icx_getTransactionByAddress",
+    "id": "googledoc.icx_getTransactionByAddress", # Fixme
     "type": "object",
     "properties": {
         "jsonrpc": {"type": "string", "enum": ["2.0"]},
@@ -175,7 +175,7 @@ icx_getTransactionByAddress_v2: dict = {
 icx_getTotalSupply_v2: dict = {
     "$schema": "http://json-schema.org/schema#",
     "title": "icx_getTotalSupply",
-    "id": "googledoc.icx_getTotalSupplu",
+    "id": "https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md#icx_gettotalsupply",
     "type": "object",
     "properties": {
         "jsonrpc": {"type": "string", "enum": ["2.0"]},
@@ -205,7 +205,7 @@ def validate_jsonschema_v2(request: object):
 icx_call_v3: dict = {
     "$schema": "http://json-schema.org/schema#",
     "title": "icx_call",
-    "id": "https://repo.theloop.co.kr/theloop/LoopChain/wikis/doc/loopchain-json-rpc-v3#icx_call",
+    "id": "https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md#icx_call",
     "type": "object",
     "properties": {
         "jsonrpc": {"type": "string", "enum": ["2.0"]},
@@ -238,7 +238,7 @@ icx_call_v3: dict = {
 icx_getBalance_v3: dict = {
     "$schema": "http://json-schema.org/schema#",
     "title": "icx_getBalance",
-    "id": "https://repo.theloop.co.kr/theloop/LoopChain/wikis/doc/loopchain-json-rpc-v3#icx_getbalance",
+    "id": "https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md#icx_getbalance",
     "type": "object",
     "properties": {
         "jsonrpc": {"type": "string", "enum": ["2.0"]},
@@ -260,7 +260,7 @@ icx_getBalance_v3: dict = {
 icx_getScoreApi_v3: dict = {
     "$schema": "http://json-schema.org/schema#",
     "title": "icx_getScoreApi",
-    "id": "https://repo.theloop.co.kr/theloop/LoopChain/wikis/doc/loopchain-json-rpc-v3#icx_getscoreapi",
+    "id": "https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md#icx_getscoreapi",
     "type": "object",
     "properties": {
         "jsonrpc": {"type": "string", "enum": ["2.0"]},
@@ -282,7 +282,7 @@ icx_getScoreApi_v3: dict = {
 icx_getTransactionResult_v3: dict = {
     "$schema": "http://json-schema.org/schema#",
     "title": "icx_getTransactionResult",
-    "id": "https://repo.theloop.co.kr/theloop/LoopChain/wikis/doc/loopchain-json-rpc-v3#icx_gettransactionresult",
+    "id": "https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md#icx_gettransactionresult",
     "type": "object",
     "properties": {
         "jsonrpc": {"type": "string", "enum": ["2.0"]},
@@ -304,7 +304,7 @@ icx_getTransactionResult_v3: dict = {
 icx_getTransactionByHash_v3: dict = {
     "$schema": "http://json-schema.org/schema#",
     "title": "icx_getTransactionByHash",
-    "id": "https://repo.theloop.co.kr/theloop/LoopChain/wikis/doc/loopchain-json-rpc-v3#icx_gettransactionbyhash",
+    "id": "https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md#icx_gettransactionbyhash",
     "type": "object",
     "properties": {
         "jsonrpc": {"type": "string", "enum": ["2.0"]},
@@ -326,7 +326,7 @@ icx_getTransactionByHash_v3: dict = {
 icx_sendTransaction_v3: dict = {
     "$schema": "http://json-schema.org/schema#",
     "title": "icx_sendTransaction",
-    "id": "https://repo.theloop.co.kr/theloop/LoopChain/wikis/doc/loopchain-json-rpc-v3#icx_sendtransaction",
+    "id": "https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md#icx_sendtransaction",
     "type": "object",
     "properties": {
         "jsonrpc": {"type": "string", "enum": ["2.0"]},
@@ -393,7 +393,7 @@ def validate_jsonschema(request: object, schemas: dict = SCHEMA_V3):
 
     refer to
     v2 : https://github.com/icon-project/icx_JSON_RPC
-    v3 : https://repo.theloop.co.kr/theloop/LoopChain/wikis/doc/loopchain-json-rpc-v3
+    v3 : https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md
 
     :param request: JSON-RPC request to validate
     :param schemas: The schema to validate with
