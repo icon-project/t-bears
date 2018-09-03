@@ -362,7 +362,7 @@ optional arguments:
 ```bash
 (work) $ tbears init abc ABCToken
 (work) $ ls abc
-abc.py  __init__.py package.json tests
+abc.py  __init__.py package.json
 ```
 
 **File description**
@@ -375,7 +375,6 @@ abc.py  __init__.py package.json tests
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project folder recognized as a python package. |
 | \<project>/package.json    | Contains the information needed when SCORE is loaded. <br> "main_file" and "main_class" is necessary. |
 | \<project>/\<project>.py   | SCORE main file. ABCToken class is defined.                  |
-| tests                      | Directory for SCORE unittest                                 |
 
 #### tbears samples
 
@@ -621,7 +620,7 @@ response : {
 
 **Description**
 
-Get list of APIs that the given SCORE provides. 
+Get list of APIs that the given SCORE provides. Please refer to icx_getScoreApi of [ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/blob/develop/docs/icon-json-rpc-v3.md#icx_getscoreapi) for details.
 
 **Usage**
 

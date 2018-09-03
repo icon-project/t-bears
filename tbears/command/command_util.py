@@ -144,8 +144,6 @@ class CommandUtil(object):
         write_file(project, f"{project}.py", py_contents)
         write_file(project, "package.json", package_json_contents)
         write_file(project, '__init__.py', '')
-        write_file(f'{project}/tests', f'test_{project}.py', '')
-        write_file(f'{project}/tests', f'__init__.py', '')
         write_file('./', f"{FN_SERVER_CONF}", json.dumps(server_config_json, indent=4))
         write_file('./', f"{FN_CLI_CONF}", json.dumps(tbears_cli_config, indent=4))
 
