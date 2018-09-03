@@ -26,7 +26,7 @@ from tbears.command.command_server import TBEARS_CLI_ENV
 from tbears.libs.icx_signer import key_from_key_store
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
 from iconcommons.icon_config import IconConfig
-from tests.test_util import TEST_UTIL_DIRECTORY, get_total_supply
+from tests.test_util import TEST_UTIL_DIRECTORY, get_total_supply, zip_dir
 
 
 class TestTBearsCommands(unittest.TestCase):
@@ -93,7 +93,7 @@ class TestTBearsCommands(unittest.TestCase):
         self.cmd.cmdUtil.init(conf)
 
         # make project zip file
-        os.system(f'zip -r -X "{self.project_name}.zip" {self.project_name}/*')
+        zip_dir(self.project_name)
 
         # start
         tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, f'test_tbears_server_config.json')
@@ -188,7 +188,7 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertFalse(transaction_result_response.get('error', False))
         self.assertEqual(transaction_result_response['result']['status'], "0x1")
 
-        # deploy - update with zip fiel f"-m update -k test_keystore --to scoreAddres_from_transactionResult"
+        # deploy - update with zip file f"-m update -k test_keystore --to scoreAddres_from_transactionResult"
         scoreAddress = transaction_result_response['result']['scoreAddress']
         conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
