@@ -65,7 +65,7 @@ class BlockManager(object):
                 # TODO how to notify process status to parent process or system
                 return
 
-            Logger.info(f'Start tbears block_manager serve!', TBEARS_BLOCK_MANAGER)
+            Logger.info(f'tbears block_manager service started!', TBEARS_BLOCK_MANAGER)
 
         channel = self._conf[ConfigKey.CHANNEL]
         amqp_key = self._conf[ConfigKey.AMQP_KEY]
@@ -238,7 +238,7 @@ class BlockManager(object):
 
     async def process_block_data(self):
         """
-        Process block data. Invoke block and save transactions , transaction results and block. Update block height and previous block hash.
+        Process block data. Invoke block and save transactions, transaction results and block. Update block height and previous block hash.
         :return:
         """
         Logger.debug(f'process_block_data started!!', TBEARS_BLOCK_MANAGER)
@@ -334,7 +334,7 @@ class BlockManager(object):
         precommit_request = {'blockHeight': hex(block_height),
                              'blockHash': block_hash}
 
-        # send write_prevommit_state message to iconservice
+        # send write_precommit_state message to iconservice
         await self._icon_stub.async_task().write_precommit_state(precommit_request)
 
         Logger.debug(f'confirm block done.', TBEARS_BLOCK_MANAGER)
@@ -350,7 +350,7 @@ def create_parser():
     parser.add_argument('-ch', dest=ConfigKey.CHANNEL, help='Message Queue channel')
     parser.add_argument('-at', dest=ConfigKey.AMQP_TARGET, help='AMQP traget info')
     parser.add_argument('-ak', dest=ConfigKey.AMQP_KEY,
-                        help="key sharing peer group using queue name. use it if one more peers connect one MQ")
+                        help="Key sharing peer group using queue name. Use it if more than one peer connect to a single MQ")
     parser.add_argument('-bi', '--block-confirm-interval', dest=ConfigKey.BLOCK_CONFIRM_INTERVAL, type=int,
                         help='Block confirm interval in second')
     parser.add_argument('-be', '--block-confirm-empty', dest=ConfigKey.BLOCK_CONFIRM_EMPTY, type=bool,

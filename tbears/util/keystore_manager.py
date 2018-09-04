@@ -23,8 +23,7 @@ def make_key_store_content(password):
     """ Make a content of key_store.
     :param password: Password including alphabet character, number, and special character.
     If the user doesn't give password with -p, then CLI will show the prompt and user need to type the password.
-    :return:
-    key_store_content(dict)
+    :return: key_store_content (dict)
     """
     # create PrivateKey object and using this, make public key, address
     private_key_obj = PrivateKey()

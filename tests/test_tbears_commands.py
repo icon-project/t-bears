@@ -135,7 +135,7 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(deploy_response.get('error', False), False)
 
         # result (query transaction result)
-        # response(after deploy) contains tx_hash.
+        # response (after deploy) contains tx_hash.
         # below is check if the tx_hash is valid using 'txresult' method
         tx_hash = deploy_response['result']
         conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})

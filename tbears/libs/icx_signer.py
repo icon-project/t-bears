@@ -41,7 +41,7 @@ def key_from_key_store(file_path: str, password: (bytes, str)) -> bytes:
 
 
 class IcxSigner:
-    """Class for make signature using private key."""
+    """Class for creating a recoverable ECDSA signature using a private key."""
 
     def __init__(self, private_key: bytes):
         self._private_key = private_key
@@ -55,7 +55,7 @@ class IcxSigner:
 
         :return:
         type(tuple)
-        type(bytes): 65 bytes data , type(int): recovery id
+        type(bytes): 65 bytes data, type(int): recovery id
         """
         private_key_object = self._private_key_object
         recoverable_signature = private_key_object.ecdsa_sign_recoverable(msg_hash, raw=True)
@@ -63,11 +63,11 @@ class IcxSigner:
 
     def sign(self, msg_hash) -> bytes:
         """Make base64-encoded string of recoverable signature data.
-        :param msg_hash:
+        :param msg_hash: Hash data of message. type(bytes)
 
         :return: base64-encoded string of recoverable signature data
         """
-        # 'msg_hash' argument must be 256bit bytes type data(made by hashlib.sha256() method)
+        # 'msg_hash' argument must be 256 bits (made by hashlib.sha256() method)
         signature, recovery_id = self.sign_recoverable(msg_hash)
         recoverable_sig = bytes(bytearray(signature) + recovery_id.to_bytes(1, 'big'))
         return base64.b64encode(recoverable_sig)

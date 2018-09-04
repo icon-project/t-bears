@@ -42,9 +42,9 @@ class CommandScore(object):
         parser.add_argument('-t', '--type', choices=['tbears', 'zip'], dest='contentType',
                             help='This option is deprecated since version 1.0.5. Deploy command supports zip type only')
         parser.add_argument('-m', '--mode', choices=['install', 'update'], help='Deploy mode (default: install)')
-        # --from option only accept eoa address('hx')
+        # --from option only accept eoa address ('hx')
         parser.add_argument('-f', '--from', type=IconAddress('hx'), help='From address. i.e. SCORE owner address')
-        # --to option is used only when update score, so eoa address('hx') need to be denied
+        # --to option is used only when update score, so eoa address ('hx') need to be denied
         parser.add_argument('-o', '--to', type=IconAddress('cx'), help='To address. i.e. SCORE address')
         # IconPath's 'r' argument means 'read file'
         parser.add_argument('-k', '--key-store', type=IconPath('r'), dest='keyStore',
@@ -85,10 +85,10 @@ class CommandScore(object):
             score_address = conf['to']
 
         content_type = "application/zip"
-        # make zip and convert to hexadecimal string data(start with 0x) and return
+        # make zip and convert to hexadecimal string data (start with 0x) and return
         content = IconJsonrpc.gen_deploy_data_content(conf['project'])
 
-        # make IconJsonrpc instance which is used for making request(with signature)
+        # make IconJsonrpc instance which is used for making request (with signature)
         if conf['keyStore']:
             deploy = IconJsonrpc.from_key_store(keystore=conf['keyStore'], password=password)
         else:
@@ -125,7 +125,7 @@ class CommandScore(object):
 
         :param _conf: clear command configuration
         """
-        # referenced data's path is /tmp/.tbears.env(temporary config data)
+        # referenced data's path is /tmp/.tbears.env (temporary config data)
         score_dir_info = CommandServer.get_server_conf()
 
         if score_dir_info is None:
@@ -144,18 +144,18 @@ class CommandScore(object):
         except (PermissionError, NotADirectoryError) as e:
             raise TBearsDeleteTreeException(f"Can't delete SCORE files. {e}")
 
-        # delete temporary config data(path: /tmp/.tbears.env)
+        # delete temporary config data (path: /tmp/.tbears.env)
         CommandServer._delete_server_conf()
 
         print(f"Cleared SCORE deployed on tbears successfully")
 
     @staticmethod
     def _check_deploy(conf: dict, password: str = None):
-        """Check keystore presence, and get password from user's terminal input(not validate password)
-        the reason why receive password as parameter is for unit tests
+        """Check keystore presence, and get password from user's terminal input (not validate password)
+        password is an optional parameter for unit tests purposes
 
         :param conf: command configuration
-        :param password: password for unit tests(optional)
+        :param password: password for unit tests (optional)
         :return: password for keystore file
         """
         # check if keystore exist. if exist, get password from user input
@@ -182,7 +182,7 @@ class CommandScore(object):
     def get_icon_conf(command: str, project: str = None, args: dict = None):
         """Load config file using IconConfig instance
         config file is loaded as below priority
-        system config -> default config -> user config -> user input config(higher priority)
+        system config -> default config -> user config -> user input config (higher priority)
 
         :param command: command name (e.g. deploy)
         :param project: project name (in case of deploy)

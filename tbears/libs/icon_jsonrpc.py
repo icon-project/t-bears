@@ -29,7 +29,7 @@ from tbears.tbears_exception import ZipException, DeployPayloadException, IconCl
 
 
 class IconJsonrpc:
-    # used for generate jsonrpc id
+    # used for generating jsonrpc id
     request_id = itertools.count(start=1)
 
     def __init__(self, signer: Union[IcxSigner, str]):
@@ -41,7 +41,7 @@ class IconJsonrpc:
             self.__signer = signer
             self.__address = f'hx{self.__signer.address.hex()}'
         else:
-            # in local environment, doesn't need signature. so just assign string
+            # Signature is not needed in a local environment. So just assign a string
             self.__signer = None
             self.__address = signer
 
@@ -215,7 +215,7 @@ class IconJsonrpc:
 
     @classmethod
     def getTransactionResult_v2(cls, tx_hash: str) -> dict:
-        """Make JSON-RPC request for icx_getTransactionResult for api version 2
+        """Make JSON-RPC request for icx_getTransactionResult for API version 2
 
         :param tx_hash: Hash string to query
         :return: JSON dictionary
@@ -405,7 +405,7 @@ class IconJsonrpc:
 
     @staticmethod
     def gen_deploy_data_content(path: str) -> str:
-        """Generate zip data(hex string) of SCORE.
+        """Generate zip data (hex string) of SCORE.
 
         :param path: The path of the directory to be zipped.
         """
@@ -438,12 +438,12 @@ class IconClient(object):
     def __init__(self, uri: str):
         """Constructor
 
-        :param uri: uri of destination
+        :param uri: URI of destination
         """
         self.__uri = uri
 
     def send(self, request) -> dict:
-        """Send request to uri
+        """Send request to URI
 
         :param request: JSON-RPC request
         :return: response dictionary of request.
@@ -459,7 +459,7 @@ class IconClient(object):
             return response_json
 
     def send_transaction(self, request) -> dict:
-        """Send request icx_sendTransaction to uri. If get success response, send icx_getTransactionResult request
+        """Send request icx_sendTransaction to URI. If get success response, send icx_getTransactionResult request
         and return response
 
         :param request: JSON-RPC request
