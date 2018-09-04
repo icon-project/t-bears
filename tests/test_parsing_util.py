@@ -103,7 +103,7 @@ class TestCommandUtil(TestCommand):
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(parsed.command, 'samples')
 
-        # Too much argument
+        # Too many arguments
         cmd = f'samples arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
@@ -113,6 +113,6 @@ class TestCommandUtil(TestCommand):
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(parsed.command, 'genconf')
 
-        # Too much argument
+        # Too many arguments
         cmd = f'genconf arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())

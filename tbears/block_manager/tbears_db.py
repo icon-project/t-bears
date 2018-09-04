@@ -42,7 +42,7 @@ class TbearsDB:
         """Put value into db using key.
 
         :param key: (bytes): db key
-        :param value: (bytes): db에 저장할 데이터
+        :param value: (bytes): data to be stored in db
         """
         self._db.put(key, value)
 

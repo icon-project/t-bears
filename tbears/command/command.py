@@ -52,7 +52,7 @@ class Command(object):
         # e.g. tbears deploy project -k keystore => ['deploy', 'project', '-k', 'keystore']
         try:
             # parse_args return the populated namespace
-            # e.g. Namespace(command='deploy', config=None, keyStore='keystore' ...)
+            # e.g. Namespace (command='deploy', config=None, keyStore='keystore' ...)
             args = self.parser.parse_args(args=sys_args)
             if self.cmdServer.check_command(args.command):
                 result = self.cmdServer.run(args)

@@ -133,12 +133,11 @@ class CommandUtil(object):
         package_json_dict = get_package_json_dict(project, score_class)
         package_json_contents = json.dumps(package_json_dict, indent=4)
 
-        # when command is init, make score templete.
+        # when command is init, make score template.
         # when command is samples, make standard_crowd_sale or standard_token
         py_contents = contents_func(score_class)
 
-        # contentes for tbears_server_config.json
-
+        # contents for tbears_server_config.json
         server_config_json = make_server_config(tbears_server_config)
 
         write_file(project, f"{project}.py", py_contents)

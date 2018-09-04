@@ -38,24 +38,24 @@ class TestWalletParsing(TestCommand):
         cmd = f'keystore'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-        # Too much argument
+        # Too many arguments
         cmd = f'keystore {self.keystore_path} too_much_args'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-        # File already exist
+        # File already exists
         self.touch(self.keystore_path)
         cmd = f'keystore {self.keystore_path}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
         os.remove(self.keystore_path)
 
     def test_keystore_check_argument(self):
-        # Correct command and environment(same file doesn't exists)
+        # Correct command and environment (same file doesn't exist)
         expected_password = self.keystore_password
         cmd = f'keystore {self.keystore_path}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(SystemExit, self.parser.parse_args, vars(parsed))
 
-        # File already exist
+        # File already exists
         cmd = f'keystore {self.keystore_path}'
         parsed = self.parser.parse_args(cmd.split())
         self.touch(self.keystore_path)
@@ -63,7 +63,7 @@ class TestWalletParsing(TestCommand):
         os.remove(self.keystore_path)
 
         # Invalid path: no directory exists
-        # 'keystore' command doesn't make directory. so only exist path valid
+        # 'keystore' command doesn't create a new directory, only an existing path is valid
         cmd = f'keystore ./no_exist_directory/{self.keystore_path}'
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(Exception, self.cmd.cmdWallet.keystore, vars(parsed), self.keystore_password)
@@ -190,7 +190,7 @@ class TestWalletParsing(TestCommand):
         self.assertEqual(parsed.uri, node_uri)
         self.assertEqual(parsed.config, config)
 
-        # 'from' opt and 'to' args should accept both contract address(cx) and eoa address(hx)
+        # 'from' opt and 'to' args should accept both contract address (cx) and eoa address (hx)
         self.assertEqual(parsed.to, addr_hx)
         self.assertEqual(vars(parsed)['from'], addr_hx)
 
@@ -210,7 +210,7 @@ class TestWalletParsing(TestCommand):
         cmd = f'transfer {invalid_to_addr} {value}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-        # Too much argument
+        # Too many arguments
         cmd = f'transfer {addr_cx} {value} arg3'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
@@ -239,7 +239,7 @@ class TestWalletParsing(TestCommand):
         cmd = 'transfer {to_addr_cx} {value} -c ./config_not_exist'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-        #check transfer return password or None(if str)
+        #check transfer return password or None (if str)
 
     #balance
     def test_balance_args_parsing(self):
@@ -255,7 +255,7 @@ class TestWalletParsing(TestCommand):
         self.assertEqual(parsed.command, 'balance')
         self.assertEqual(parsed.uri, node_uri)
 
-        # 'from' args should accept both contract address(cx) and eoa address(hx)
+        # 'from' args should accept both contract address (cx) and eoa address (hx)
         self.assertEqual(parsed.address, addr_hx)
 
         cmd = f'balance {addr_cx} -u {node_uri}'
@@ -310,7 +310,7 @@ class TestWalletParsing(TestCommand):
         self.assertEqual(parsed.uri, node_uri)
         self.assertEqual(parsed.address, addr_cx)
 
-        # should accept only score address(not eoa address)
+        # should accept only score address (not eoa address)
         cmd = f'scoreapi {addr_hx}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 

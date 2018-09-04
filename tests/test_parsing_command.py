@@ -35,7 +35,7 @@ class TestCommand(unittest.TestCase):
             os.utime(path, None)
 
     def tearDown(self):
-        # tear_down_params' key value(file or directory) is always relative path
+        # tear_down_params' key value (file or directory) is always relative path
         for path in self.tear_down_params:
             if os.path.isfile(path):
                 os.remove(path)

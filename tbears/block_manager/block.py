@@ -261,7 +261,7 @@ class Block(object):
         """
         Convert block data to output format
         :param block:
-        :return: conerted block information
+        :return: converted block information
         """
         tx_list = block.get('confirmed_transaction_list', None)
         if tx_list is not None and isinstance(tx_list, list):

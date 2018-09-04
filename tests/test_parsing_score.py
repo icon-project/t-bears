@@ -61,7 +61,7 @@ class TestCommandScore(TestCommand):
         cmd = f'deploy {self.project} -f {invalid_addr}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-        # Too much argument
+        # Too many arguments
         cmd = f'deploy arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
@@ -92,7 +92,7 @@ class TestCommandScore(TestCommand):
 
         shutil.rmtree(self.project)
 
-    # Deploy method(deploy, _check_deploy) test. before deploy score,
+    # Deploy method (deploy, _check_deploy) test. before deploy score,
     # Check if arguments satisfy requirements.
     # bug: when test this method in terminal, no error found, but in pycharm Run Test, it raise error
     def test_check_deploy_necessary_args(self):
@@ -114,8 +114,8 @@ class TestCommandScore(TestCommand):
         os.remove(no_keystore)
         self.assertRaises(SystemExit, self.parser.parse_args, vars(parsed))
 
-        # Invaild password value
-        # Even though input invaild password, _check_deploy method should return password
+        # Invalid password value
+        # Even though input invalid password, _check_deploy method should return password
         # (this method doesn't check password value)
         cmd = f'deploy {self.project} -k {self.keystore}'
         user_input_password = "1234"
@@ -136,7 +136,7 @@ class TestCommandScore(TestCommand):
         parsed = self.parser.parse_args(cmd.split())
         self.assertEqual(parsed.command, 'clear')
 
-        # Too much argument
+        # Too many arguments
         cmd = f'clear arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
