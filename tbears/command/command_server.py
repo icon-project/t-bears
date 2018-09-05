@@ -28,7 +28,7 @@ from iconcommons.logger import Logger
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
 from tbears.util import write_file
 from tbears.util.argparse_type import port_type, IconPath
-from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, ConfigKey, log_to_file_config
+from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, ConfigKey
 from tbears.block_manager.block_manager import TBEARS_BLOCK_MANAGER
 
 

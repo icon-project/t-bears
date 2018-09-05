@@ -296,12 +296,12 @@ Made keystore file successfully
 
 **Description**
 
-Generate T-Bears config files. ("tbears_cli_config.json" and "tbears_server_config.json")
+Generate T-Bears config files. ("tbears_cli_config.json", "tbears_server_config.json", "keystore_test1")
 
 ```bash
 usage: tbears genconf [-h]
 
-Generate T-Bears config files. (tbears_cli_config.json and tbears_cli_config.json)
+Generate T-Bears config files. (tbears_cli_config.json, tbears_cli_config.json, keystore_test1)
 
 optional arguments:
   -h, --help  show this help message and exit
@@ -318,7 +318,7 @@ optional arguments:
 ```bash
 (work) $ tbears genconf
 
-Made tbears_cli_config.json, tbears_server_config.json successfully
+Made tbears_cli_config.json, tbears_server_config.json, keystore_test1 successfully
 ```
 
 
@@ -369,9 +369,10 @@ abc.py  __init__.py package.json
 
 | **Item**                   | **Description**                                              |
 | :------------------------- | :----------------------------------------------------------- |
-| \<project>                 | SCORE project name. Project directory is created with the same name. |
 | tbears_server_config.json  | T-Bears default configuration file will be created on the working directory. |
 | tbears_cli_config.json     | Configuration file for CLI commands will be created on the working directory. |
+| keystore_test1             | Keystore file for test account will be created on the working directory. |
+| \<project>                 | SCORE project name. Project directory is created with the same name. |
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project folder recognized as a python package. |
 | \<project>/package.json    | Contains the information needed when SCORE is loaded. <br> "main_file" and "main_class" is necessary. |
 | \<project>/\<project>.py   | SCORE main file. ABCToken class is defined.                  |
@@ -476,16 +477,18 @@ optional arguments:
 (work)$ tbears deploy abc -c ./tbears_cli_config.json
 
 #when you deploy SCORE to ICON, input keystore password
-(Work)$ tbears deploy -f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -k keystore abc
+(Work)$ tbears deploy -k keystore abc
 input your keystore password:
 
 Send deploy request successfully.
+If you want to check SCORE deployed successfully, execute txresult command
 transaction hash: 0x9c294b9608d9575f735ec2e2bf52dc891d7cca6a2fa7e97aee4818325c8a9d41
 
 #update abc SCORE
 #append prefix 'cx' in front of SCORE address
-(Work)$ tbears deploy abc -m update -o cx6bd390bd855f086e3e9d525b46bfe24511431532
+(Work)$ tbears deploy abc -m update -o cx6bd390bd855f086e3e9d525b46bfe24511431532 -k keystore
 Send deploy request successfully.
+If you want to check SCORE deployed successfully, execute txresult command
 transaction hash: 0xad292b9608d9575f735ec2ebbf52dc891d7cca6a2fa7e97aee4818325c80934d
 ```
 
@@ -1347,6 +1350,11 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
                 "name": "fee_treasury",
                 "address": "hx1000000000000000000000000000000000000000",
                 "balance": "0x0"
+            },
+            {
+                "name": "test1",
+                "address": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
+                "balance": "0x2961fff8ca4a62327800000"
             }
         ]
     },
@@ -1400,7 +1408,7 @@ In this configuration file, you can define default options values for some CLI c
     "uri": "http://127.0.0.1:9000/api/v3",
     "nid": "0x3",
     "keyStore": null,
-    "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "from": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
     "to": "cx0000000000000000000000000000000000000000",
     "stepLimit": "0x3000000",
     "deploy": {
@@ -1435,6 +1443,37 @@ Following CLI commands and options can be defined in the configuration file.
 | deploy   | uri, nid, keyStore, from, to, mode, scoreParams, stepLimit |
 | transfer | uri, nid, keyStore, from, stepLimit                      |
 | txresult<br>balance<br>totalsupply<br>scoreapi<br>txbyhash<br>lastblock<br>blockbyhash<br>blockbyheight<br>sendtx<br>call<br>| uri                                                          |
+
+#### keystore_test1
+
+Keystore file for test account. Password of this keystore file is 'test1_Account'.<br>
+You can find the test account 'test1' in tbears_server_config.json and test account has enough balance to test.<br>
+**Do not transfer ICX or any token to 'test1' account.**
+
+```json
+{
+    "address": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
+    "crypto": {
+        "cipher": "aes-128-ctr",
+        "cipherparams": {
+            "iv": "dc0762c56ca56cd06038df5051c9e23e"
+        },
+        "ciphertext": "7cc40efac0b14eaf56f951c9c9620f9f34bac548175e85052aa9f753423dc984",
+        "kdf": "scrypt",
+        "kdfparams": {
+            "dklen": 32,
+            "n": 16384,
+            "r": 1,
+            "p": 8,
+            "salt": "380c00457be5fd1c244f5745c322b21f"
+        },
+        "mac": "157dda6fb7092df62ff93411bed54e5a64dbf06c1aae3b375d356061a9c3dfd1"
+    },
+    "id": "e2ca66c6-b8de-4413-82cb-52c2a2200b8d",
+    "version": 3,
+    "coinType": "icx"
+}
+```
 
 ##  Reference
 - [ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md)
