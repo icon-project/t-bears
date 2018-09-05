@@ -15,6 +15,9 @@
 
 import os
 
+from tbears.tbears_exception import TBearsCommandException
+from tbears.command.command_wallet import CommandWallet
+from tbears.config.tbears_config import keystore_test1
 from tests.test_parsing_command import TestCommand
 from tests.test_util import TEST_UTIL_DIRECTORY
 
@@ -238,6 +241,11 @@ class TestWalletParsing(TestCommand):
         # config file does not exist
         cmd = 'transfer {to_addr_cx} {value} -c ./config_not_exist'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # transfer to 'test1' account
+        cmd = f'transfer {keystore_test1["address"]} {value} -u https://127.0.0.123:9000/api/v3'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertRaises(TBearsCommandException, CommandWallet._check_transfer, vars(parsed))
 
         #check transfer return password or None (if str)
 

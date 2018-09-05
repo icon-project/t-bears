@@ -20,7 +20,7 @@ import os
 from iconservice.base.address import is_icon_address_valid
 from iconcommons import IconConfig
 
-from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
+from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1
 from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import jsonrpc_params_to_pep_style
@@ -172,6 +172,12 @@ class CommandWallet:
     def _check_transfer(conf: dict, password: str = None):
         if not is_icon_address_valid(conf['to']):
             raise TBearsCommandException(f'You entered invalid address')
+
+        if conf['to'] == keystore_test1['address']:
+            uri: str = conf['uri']
+            index = uri.find('127.0.0.1')
+            if index == -1 or uri[index + len('127.0.0.1')] != ':':
+                raise TBearsCommandException(f'Do not transfer to "test1" account')
 
         # value must be a integer value
         if conf['value'] != float(int(conf['value'])):

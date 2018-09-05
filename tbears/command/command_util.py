@@ -23,7 +23,7 @@ from tbears.util import (
     get_package_json_dict, write_file, PROJECT_ROOT_PATH
 )
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config,\
-    make_server_config
+    make_server_config, FN_KEYSTORE_TEST1, keystore_test1
 from tbears.util.argparse_type import IconPath
 
 
@@ -51,8 +51,10 @@ class CommandUtil(object):
 
     @staticmethod
     def _add_genconf_parser(subparser):
-        subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]})',
-                             description=f'Generate tbears config files. ({FN_CLI_CONF[2:]} and {FN_CLI_CONF[2:]})')
+        subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_CLI_CONF[2:]}, {FN_CLI_CONF[2:]} '
+                                             f'and {FN_KEYSTORE_TEST1[2:]})',
+                             description=f'Generate tbears config files. ({FN_CLI_CONF[2:]}, {FN_CLI_CONF[2:]} '
+                                         f'and {FN_KEYSTORE_TEST1[2:]})')
 
     @staticmethod
     def _add_console_parser(subparsers):
@@ -81,6 +83,9 @@ class CommandUtil(object):
                                   score_class=conf['score_class'],
                                   contents_func=get_score_main_template)
 
+        # generate configuration files
+        self.__gen_conf_file()
+
         print(f"Initialized tbears successfully")
 
     def samples(self, _conf: dict):
@@ -97,16 +102,8 @@ class CommandUtil(object):
         print(f"Made samples successfully")
 
     def genconf(self, _conf: dict):
-        """Generate tbears config files. (tbears_server_config.json, tbears_cli_config.json)"""
-        result = []
-
-        if os.path.exists(FN_CLI_CONF) is False:
-            result.append(FN_CLI_CONF[2:])
-            write_file('./', FN_CLI_CONF, json.dumps(tbears_cli_config, indent=4))
-        if os.path.exists(FN_SERVER_CONF) is False:
-            result.append(FN_SERVER_CONF[2:])
-            server_config_json = make_server_config(tbears_server_config)
-            write_file('./', FN_SERVER_CONF, json.dumps(server_config_json, indent=4))
+        """Generate tbears config files. (tbears_server_config.json, tbears_cli_config.json, keystore_test1)"""
+        result = self.__gen_conf_file()
 
         if result:
             print(f"Made {', '.join(result)} successfully")
@@ -137,14 +134,28 @@ class CommandUtil(object):
         # when command is samples, make standard_crowd_sale or standard_token
         py_contents = contents_func(score_class)
 
-        # contents for tbears_server_config.json
-        server_config_json = make_server_config(tbears_server_config)
-
         write_file(project, f"{project}.py", py_contents)
         write_file(project, "package.json", package_json_contents)
         write_file(project, '__init__.py', '')
-        write_file('./', f"{FN_SERVER_CONF}", json.dumps(server_config_json, indent=4))
-        write_file('./', f"{FN_CLI_CONF}", json.dumps(tbears_cli_config, indent=4))
+
+    @staticmethod
+    def __gen_conf_file() -> list:
+        result = []
+
+        if os.path.exists(FN_CLI_CONF) is False:
+            result.append(FN_CLI_CONF[2:])
+            write_file('./', FN_CLI_CONF, json.dumps(tbears_cli_config, indent=4))
+
+        if os.path.exists(FN_SERVER_CONF) is False:
+            result.append(FN_SERVER_CONF[2:])
+            server_config_json = make_server_config(tbears_server_config)
+            write_file('./', FN_SERVER_CONF, json.dumps(server_config_json, indent=4))
+
+        if os.path.exists(FN_KEYSTORE_TEST1) is False:
+            result.append(FN_KEYSTORE_TEST1[2:])
+            write_file('./', FN_KEYSTORE_TEST1, json.dumps(keystore_test1, indent=4))
+
+        return result
 
     @staticmethod
     def get_init_args(project: str, score_class: str):
