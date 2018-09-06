@@ -1,5 +1,13 @@
 # ChangeLog - T-Bears
 
+## 1.0.5 - 2018-09-06
+* '-t' option of the deploy command deprecated. Deploy command supports zip type only.
+* Remove runtime warning message of T-Bears block_manager.
+* Modify the deploy command. Deploy command can get directory and zip file as a project.
+* Fix the transfer command to read 'stepLimit' from the configuration file.
+* Add test account 'test1' in genesis block.
+* Modify the keystore command to receive the password twice to confirm it.
+
 ## 1.0.4 - 2018-08-28
 * Change the encryption parameter 'N' of keystore
 * Improve IconClient error handling
