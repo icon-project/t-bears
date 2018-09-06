@@ -164,7 +164,7 @@ class CommandScore(object):
                 raise TBearsCommandException(f"You entered invalid 'from' address '{conf['from']}")
         else:
             if not password:
-                password = getpass.getpass("input your keystore password: ")
+                password = getpass.getpass("Input your keystore password: ")
 
         # in case of update mode, validate -to option
         if conf['mode'] == 'update':

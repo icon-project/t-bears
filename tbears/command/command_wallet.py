@@ -185,14 +185,19 @@ class CommandWallet:
 
         if conf.get('keyStore', None):
             if not password:
-                password = getpass.getpass("input your keystore password: ")
+                password = getpass.getpass("Input your keystore password: ")
 
         return password
 
     @staticmethod
     def _check_keystore(password: str):
         if not password:
-            password = getpass.getpass("input your keystore password: ")
+            password = getpass.getpass("Input your keystore password: ")
+            password_retype = getpass.getpass("Retype your keystore password: ")
+
+            if password != password_retype:
+                raise TBearsCommandException("Sorry, passwords do not match. Failed to make keystore file")
+
         if not validate_password(password):
             raise TBearsCommandException("Password must be at least 8 characters long including alphabet, number, "
                                          "and special character.")
@@ -204,7 +209,7 @@ class CommandWallet:
             if not os.path.exists(conf['keyStore']):
                 raise TBearsCommandException(f'There is no keystore file {conf["keyStore"]}')
             if not password:
-                password = getpass.getpass("input your keystore password: ")
+                password = getpass.getpass("Input your keystore password: ")
         else:
             if not is_icon_address_valid(conf['from']):
                 raise TBearsCommandException(f'invalid address: {conf["from"]}')
