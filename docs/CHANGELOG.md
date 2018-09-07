@@ -1,5 +1,8 @@
 # ChangeLog - T-Bears
 
+## 1.0.5.1 - 2018-09-07
+* Remove sanic package from dependencies
+
 ## 1.0.5 - 2018-09-06
 * '-t' option of the deploy command deprecated. Deploy command supports zip type only.
 * Remove runtime warning message of T-Bears block_manager.
