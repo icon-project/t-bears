@@ -10,7 +10,6 @@ This document contains brief guidance on building T-Bears Docker image and runni
 * ubuntu:18.04
 
 ## Build T-Bears Docker image
-
 ```
 $ make build
 ```
@@ -23,10 +22,11 @@ $ docker build -t tbears .
 Successfully built 5db49a760f69
 Successfully tagged tbears:latest
 ```
+Note that you don't need to build Docker image. You can use the T-Bears Docker image on [Docker Hub](https://hub.docker.com/r/iconloop/tbears).
 
 ## Usage
 
-### Run T-Bears Server
+### Run T-Bears Docker container
 
 ```
 $ make run
@@ -35,7 +35,7 @@ $ make run
 or
 
 ```
-$ docker run -it --name tbears-container -p 9000:9000 tbears
+$ docker run -it --name tbears-container -p 9000:9000 iconloop/tbears
  * Starting RabbitMQ Messaging Server rabbitmq-server                         [ OK ]
 Made tbears_cli_config.json, tbears_server_config.json, keystore_test1 successfully
 Started tbears service successfully
@@ -47,12 +47,12 @@ This will start the T-Bears container, named tbears-container, that is listening
 If you want T-Bears container to listen on other port, run the following command.
 
 ```
-$ docker run -it -p ${LISTEN_PORT}:9000 tbears
+$ docker run -it -p ${LISTEN_PORT}:9000 iconloop/tbears
 ```
 
-### Test with T-Bears Client
+### Test with T-Bears Docker container
 
-#### In T-Bears container
+#### In T-Bears Docker container
 In same terminal, run the following T-Bears CLI command to see if the T-Bears service work correctly.
 ```bash
 root@c5a44cefb2dc:/tbears# tbears totalsupply
@@ -93,7 +93,7 @@ $ docker inspect --format '{{ range .Mounts }}{{ .Name }} {{ end }}' tbears-cont
 ```
 If you want to use host file system, mount host directory into the container when run T-Bears container.
 ```bash
-$ docker run -it --name tbears-container -v $MOUNT_PATH:/tbears -p 9000:9000 tbears
+$ docker run -it --name tbears-container -v $MOUNT_PATH:/tbears -p 9000:9000 iconloop/tbears
 ```
 
 ## Install T-Bears in Docker container

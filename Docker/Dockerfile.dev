@@ -1,5 +1,7 @@
 FROM ubuntu:18.04
 
+ARG branch=develop
+
 # Install required packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.6-dev \
@@ -15,7 +17,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     lsof \
     && locale-gen en_US.UTF-8 \
     && pip3 install wheel \
-    && pip3 install tbears \
     && apt-get autoremove -y && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /root/.cache/pip
@@ -30,6 +31,9 @@ ENV WORKING_DIR "/tbears"
 WORKDIR ${WORKING_DIR}
 VOLUME tbears_volume
 COPY entry.sh /usr/local/bin
+
+# install tbears
+RUN pip3 install git+https://github.com/icon-project/t-bears.git@$branch
 
 EXPOSE 9000
 
