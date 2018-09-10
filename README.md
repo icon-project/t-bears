@@ -29,6 +29,16 @@ LoopChain emulator for T-Bears Service. It does not have full 'consensus' and 'p
 Message queue is used for inter-component communication.
 
 
+## Quick start
+You can run T-Bears on your machine by using Docker.
+
+The below command will download T-Bears Docker image and run T-Bears Docker container.
+
+```bash
+docker run -it --name tbears-container -p 9000:9000 iconloop/tbears
+```
+Please check the following links for more information. [T-Bears Docker](https://github.com/icon-project/t-bears/tree/develop/Docker)
+
 ## Building from source
  First, clone this project. Then go to the project folder, create a virtualenv environment, and run build script. You can then install T-Bears with the .whl file.
 ```bash
