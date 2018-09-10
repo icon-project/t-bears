@@ -5,7 +5,7 @@ ifneq ($(branch),)
 	BUILD_ARG:= $(BUILD_ARG) --build-arg branch=$(branch)
 endif
 
-ifndef ($(tag),)
+ifneq ($(tag),)
 	IMAGE_TAG=:$(tag)
 	NAME_TAG=-$(tag)
 endif
@@ -13,7 +13,7 @@ endif
 build:
 	docker build -t $(IMAGE) .
 build_dev:
-	docker build -t $(IMAGE):dev -f Dockerfile.dev . $(BUILD_ARG)
+	docker build -t $(IMAGE):dev --no-cache -f Dockerfile.dev . $(BUILD_ARG)
 run:
 	docker run -it --name tbears-container$(NAME_TAG) -p $(LISTEN_PORT):9000 $(IMAGE)$(IMAGE_TAG)
 shell:
