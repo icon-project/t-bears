@@ -511,7 +511,8 @@ Request icx_sendTransaction with user input json file.
 ```bash
 usage: tbears sendtx [-h] [-u URI] [-k KEYSTORE] [-c CONFIG] json_file
 
-Request icx_sendTransaction with user input json file
+Request icx_sendTransaction with user input json file and keystore file. If
+keystore file is not given, tbears sends request as it is in the json file.
 
 positional arguments:
   json_file             File path containing icx_sendTransaction content
@@ -553,7 +554,7 @@ optional arguments:
     "timestamp": "0x573117f1d6568",
     "nid": "0x3",
     "nonce": "0x1",
-    "to": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
     "dataType": "call",
     "data": {
       "method": "setValue",
