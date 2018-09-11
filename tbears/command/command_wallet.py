@@ -429,7 +429,7 @@ class CommandWallet:
         if password:
             sendtx = IconJsonrpc.from_key_store(conf['keyStore'], password)
             params = payload['params']
-            params['from'], params['timestamp'] = None, None
+            params['from'] = None
             jsonrpc_params_to_pep_style(params)
             payload = sendtx.sendTransaction(**params)
 

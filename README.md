@@ -573,6 +573,8 @@ Send transaction request successfully.
 transaction hash: 0xc8a3e3f77f21f8f1177d829cbc4c0ded6fd064cc8e42ef309dacff5c0a952289
 ```
 
+In the above example, because there is a timestamp field, tbears make a request using the timestamp value. If you want to make a valid request, omit the timestamp field.
+
 #### tbears call
 
 **Description**
