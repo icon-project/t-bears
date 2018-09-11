@@ -146,8 +146,12 @@ class CommandWallet:
 
     @staticmethod
     def _add_sendtx_parser(subparsers):
-        parser = subparsers.add_parser('sendtx', help='Request icx_sendTransaction with user input json file',
-                                       description='Request icx_sendTransaction with user input json file')
+        parser = subparsers.add_parser('sendtx', help='Request icx_sendTransaction with user input json file and '
+                                                      'keystore file. If keystore file is not given, tbears sends'
+                                                      ' request as it is in the json file.',
+                                       description='Request icx_sendTransaction with user input json file and keystore'
+                                                   ' file. If keystore file is not given, tbears sends request as it is'
+                                                   ' in the json file.')
         parser.add_argument('json_file', type=IconPath(), help='File path containing icx_sendTransaction content')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-k', '--key-store', type=IconPath(), help='Keystore file path. Used to generate "from"'
@@ -425,6 +429,7 @@ class CommandWallet:
         if password:
             sendtx = IconJsonrpc.from_key_store(conf['keyStore'], password)
             params = payload['params']
+            params['from'] = None
             jsonrpc_params_to_pep_style(params)
             payload = sendtx.sendTransaction(**params)
 

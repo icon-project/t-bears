@@ -511,7 +511,8 @@ Request icx_sendTransaction with user input json file.
 ```bash
 usage: tbears sendtx [-h] [-u URI] [-k KEYSTORE] [-c CONFIG] json_file
 
-Request icx_sendTransaction with user input json file
+Request icx_sendTransaction with user input json file and keystore file. If
+keystore file is not given, tbears sends request as it is in the json file.
 
 positional arguments:
   json_file             File path containing icx_sendTransaction content
@@ -553,7 +554,7 @@ optional arguments:
     "timestamp": "0x573117f1d6568",
     "nid": "0x3",
     "nonce": "0x1",
-    "to": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "to": "cx4d5a79f329adcf00a3daa99539f0eeea2d43d239",
     "dataType": "call",
     "data": {
       "method": "setValue",
@@ -571,6 +572,8 @@ input your keystore password:
 Send transaction request successfully.
 transaction hash: 0xc8a3e3f77f21f8f1177d829cbc4c0ded6fd064cc8e42ef309dacff5c0a952289
 ```
+
+In the above example, because there is a timestamp field, tbears make a request using the timestamp value. If you want to make a valid request, omit the timestamp field.
 
 #### tbears call
 
