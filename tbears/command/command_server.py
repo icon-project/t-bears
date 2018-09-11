@@ -91,6 +91,11 @@ class CommandServer(object):
         if args:
             conf.update_conf(args)
 
+        # add default configuration file
+        if args.get('config', None) is None:
+            if os.path.exists(FN_SERVER_CONF):
+                conf['config'] = FN_SERVER_CONF
+
         return conf
 
     def start(self, conf: dict):
