@@ -17,6 +17,7 @@ import json
 import os
 import shutil
 import getpass
+import importlib
 
 from iconcommons.icon_config import IconConfig
 from iconservice.base.address import is_icon_address_valid
@@ -173,6 +174,9 @@ class CommandScore(object):
             elif not is_icon_address_valid(conf['to']):
                 raise TBearsCommandException(f"You entered invalid 'to' address '{conf['to']}")
 
+        # check project directory
+        check_project(conf.get('project', ""))
+
         return password
 
     def check_command(self, command):
@@ -208,3 +212,39 @@ class CommandScore(object):
             conf.update_conf(args)
 
         return conf
+
+
+def check_project(project_path: str) -> int:
+    if os.path.isdir(project_path):
+        # there is no __init__.py
+        if not os.path.exists(f"{project_path}/__init__.py"):
+            raise TBearsCommandException(f'There is no __init__.py in project directory')
+
+        # there is no package.json
+        if not os.path.exists(f"{project_path}/package.json"):
+            raise TBearsCommandException(f'There is no package.json in project directory')
+
+        with open(f"{project_path}/package.json", mode='r') as file:
+            try:
+                package: dict = json.load(file)
+            except Exception as e:
+                raise TBearsCommandException(f'package.json has wrong format. {e}')
+
+            # wrong package.json file
+            if 'version' not in package or 'main_file' not in package or 'main_score' not in package:
+                raise TBearsCommandException(f'package.json has wrong format.')
+
+            # there is no main_file
+            if not os.path.exists(f"{project_path}/{package['main_file']}.py"):
+                raise TBearsCommandException(f"There is no main_file '{project_path}/{package['main_file']}.py'")
+
+            try:
+                importlib.invalidate_caches()
+                mod = importlib.import_module(f".{package['main_file']}", project_path)
+                getattr(mod, package['main_score'])
+            except Exception:
+                # there is no main_class
+                raise TBearsCommandException(f"There is no main_class '{package['main_score']}'"
+                                             f" in {project_path}/{package['main_file']}.py.")
+
+    return 0

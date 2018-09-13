@@ -273,15 +273,18 @@ Create a keystore file in the given path. Generate a private and public key pair
 **Usage**
 
 ```bash
-usage: tbears keystore [-h] [-u URI] [-c CONFIG] path
+usage: tbears keystore [-h] [-p PASSWORD] path
 
-Create keystore file in passed path
+Create keystore file in passed path. Generate privatekey, publickey pair using
+secp256k1 library.
 
 positional arguments:
-  path                  Create keystore file in passed path
+  path                  Path of keystore file.
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -p PASSWORD, --password PASSWORD
+                        Keystore file's password
 ```
 
 **Options**
