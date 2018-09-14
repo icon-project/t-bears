@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import os
 import shutil
 
-from tbears.command.command_score import CommandScore
+from tbears.command.command_score import CommandScore, check_project
 from tbears.tbears_exception import TBearsCommandException
 from tests.test_parsing_command import TestCommand
 from tests.test_util import TEST_UTIL_DIRECTORY
@@ -27,6 +28,7 @@ class TestCommandScore(TestCommand):
         self.tear_down_params = ['proj_unittest']
 
         self.project = 'proj_unittest'
+        self.project_class = 'ProjUnittest'
         self.uri = 'http://127.0.0.1:9000/api/v3'
         self.mode = "install"
         self.arg_from = "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -98,21 +100,16 @@ class TestCommandScore(TestCommand):
     def test_check_deploy_necessary_args(self):
         # # Deploy essential check
         # No project directory
-        os.mkdir(self.project)
         cmd = f'deploy {self.project}'
-        parsed = self.parser.parse_args(cmd.split())
-        shutil.rmtree(self.project)
-        self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
-
-        os.mkdir(self.project)
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
         # Keystore file does not exist
         no_keystore = './keystore_not_exist'
         cmd = f'deploy {self.project} -k {no_keystore}'
-        self.touch(no_keystore)
-        parsed = self.parser.parse_args(cmd.split())
-        os.remove(no_keystore)
-        self.assertRaises(SystemExit, self.parser.parse_args, vars(parsed))
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project, score_class=self.project_class)
+        self.cmd.cmdUtil.init(conf)
 
         # Invalid password value
         # Even though input invalid password, _check_deploy method should return password
@@ -129,6 +126,46 @@ class TestCommandScore(TestCommand):
         self.assertRaises(TBearsCommandException, CommandScore._check_deploy, vars(parsed))
 
         shutil.rmtree(self.project)
+
+    def test_check_deploy_project(self):
+        conf = self.cmd.cmdUtil.get_init_args(project=self.project, score_class=self.project_class)
+        self.cmd.cmdUtil.init(conf)
+
+        project = f"{self.project}"
+
+        # remove imported modules
+        del sys.modules[project]
+        del sys.modules[f"{project}.{project}"]
+
+        # there is no __init__.py
+        os.rename(f"{project}/__init__.py", "__init__.py.bak")
+        self.assertRaises(TBearsCommandException, check_project, project)
+        os.rename("__init__.py.bak", f"{project}/__init__.py")
+
+        # there is no package.json
+        os.rename(f"{project}/package.json", "package.json.bak")
+        self.assertRaises(TBearsCommandException, check_project, project)
+
+        # wrong package.json file
+        self.touch(f"{project}/package.json")
+        self.assertRaises(TBearsCommandException, check_project, project)
+        os.rename("package.json.bak", f"{project}/package.json")
+
+        # there is no main_file
+        os.rename(f"{project}/{project}.py", f"{project}.py.bak")
+        self.assertRaises(TBearsCommandException, check_project, project)
+
+        # there is no main_class in main_file
+        self.touch(f"{project}/{project}.py")
+        self.assertRaises(TBearsCommandException, check_project, project)
+        os.rename(f"{project}.py.bak", f"{project}/{project}.py")
+
+        # remove imported modules
+        del sys.modules[project]
+        del sys.modules[f"{project}.{project}"]
+
+        # working good
+        self.assertEqual(check_project(project), 0)
 
     def test_clear_args_parsing(self):
         # Parsing test
