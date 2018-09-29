@@ -208,7 +208,7 @@ class CommandServer(object):
     def is_port_available(conf):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # if socket is connected, the result code is 0 (false).
-        result = sock.connect_ex(('127.0.0.1', conf['port']))
+        result = sock.connect_ex((conf['hostAddress'], conf['port']))
         sock.close()
         return result != 0
 
