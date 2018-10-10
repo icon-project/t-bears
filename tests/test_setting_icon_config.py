@@ -199,7 +199,7 @@ class TestCliTestUtil(unittest.TestCase):
         f = ['-f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '']
         o = ['-o cx0000000000000000000000000000000000000000', '']
         k = [f'-k {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_cli_config_keystore")}', '']
-        n = ['-n 0x3_user_input', '']
+        n = ['-n 0x3', '']
         c = [f'-c {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")}']
 
         # deploy
@@ -252,7 +252,7 @@ class TestCliTestUtil(unittest.TestCase):
         u = ['-u http://127.0.0.1:9000/api/v3_user_input', '']
         f = ['-f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '']
         k = [f'-k {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_cli_config_keystore")}', '']
-        n = ['-n 0x3_user_input', '']
+        n = ['-n 0x3', '']
         c = [f'-c {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")}']
 
         # lastblock
