@@ -24,7 +24,7 @@ from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore
 from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import jsonrpc_params_to_pep_style
-from tbears.util.argparse_type import IconAddress, IconPath, hash_type
+from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type
 from tbears.util.keystore_manager import validate_password, make_key_store_content
 
 
@@ -65,7 +65,7 @@ class CommandWallet:
     def _add_blockbyheight_parser(subparsers):
         parser = subparsers.add_parser('blockbyheight', help='Get block info using given block height',
                                        description='Get block info using given block height')
-        parser.add_argument('height', help='height of the block to be queried.')
+        parser.add_argument('height', type=non_negative_num_type, help='height of the block to be queried.')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '

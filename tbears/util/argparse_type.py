@@ -61,9 +61,31 @@ def hash_type(string: str) -> str:
 
 
 def port_type(string: str) -> int:
-    port = int(string, 10)
+    try:
+        port = int(string, 10)
+    except ValueError:
+        raise ArgumentTypeError(f"Invalid integer value '{string}'")
+    except TypeError as e:
+        raise ArgumentTypeError(f'Invalid type. {e}')
 
     if port < 0 or port > 65535:
-        raise ArgumentTypeError(f"Invalid port'{string}'. Port must be 0 < port < 65536")
+        raise ArgumentTypeError(f"Invalid port '{string}'. Port must be 0 < port < 65536")
 
     return port
+
+
+def non_negative_num_type(string: str) -> str:
+    try:
+        value = int(string, 10)
+    except ValueError:
+        try:
+            value = int(string, 16)
+        except ValueError:
+            raise ArgumentTypeError(f"Invalid integer value '{string}'. Hexadecimal and decimal values are allowed")
+    except TypeError as e:
+        raise ArgumentTypeError(f'Invalid type. {e}')
+
+    if value < 0:
+        raise ArgumentTypeError(f"Invalid non-negative number '{value}'")
+
+    return hex(value)

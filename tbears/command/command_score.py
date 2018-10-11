@@ -22,7 +22,7 @@ import importlib
 from iconcommons.icon_config import IconConfig
 from iconservice.base.address import is_icon_address_valid
 
-from tbears.util.argparse_type import IconAddress, IconPath
+from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
 from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
 from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
@@ -50,7 +50,7 @@ class CommandScore(object):
         # IconPath's 'r' argument means 'read file'
         parser.add_argument('-k', '--key-store', type=IconPath('r'), dest='keyStore',
                             help='Keystore file path. Used to generate "from" address and transaction signature')
-        parser.add_argument('-n', '--nid', help='Network ID')
+        parser.add_argument('-n', '--nid', type=non_negative_num_type, help='Network ID')
         parser.add_argument('-c', '--config', type=IconPath(), help=f'deploy config path (default: {FN_CLI_CONF})')
         parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
 
