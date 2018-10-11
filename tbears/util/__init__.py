@@ -50,6 +50,7 @@ def get_score_main_template(score_class: str) -> str:
     """
     template = """from iconservice import *
 
+TAG = 'SampleToken'
 
 class SampleToken(IconScoreBase):
 
@@ -64,7 +65,7 @@ class SampleToken(IconScoreBase):
     
     @external(readonly=True)
     def hello(self) -> str:
-        print(f'Hello, world!')
+        Logger.debug(f'Hello, world!', TAG)
         return "Hello"
 """
     return template.replace("SampleToken", score_class)
