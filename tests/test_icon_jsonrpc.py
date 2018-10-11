@@ -19,21 +19,17 @@ import time
 from secp256k1 import PrivateKey
 
 from tbears.libs.icon_jsonrpc import IconJsonrpc
-from tests.test_util.jsonschema_validator import validate_jsonschema_v3, validate_jsonschema_v2
+from tests.test_util.jsonschema_validator import validate_jsonschema_v3
 from tests.test_util import TEST_UTIL_DIRECTORY
 
 
 class TestIconJsonrpcV3(unittest.TestCase):
     def setUp(self):
         self.validator = validate_jsonschema_v3
-        self.validator_v2 = validate_jsonschema_v2
 
     def check_jsonschema_validation(self, request: dict, raised: bool = False, version: int=3):
         try:
-            if version is 2:
-                self.validator_v2(request=request)
-            else:
-                self.validator(request=request)
+            self.validator(request=request)
         except:
             exception_raised = True
         else:
@@ -192,11 +188,6 @@ class TestIconJsonrpcV3(unittest.TestCase):
         request = IconJsonrpc.getTransactionResult(txHash)
         self.check_jsonschema_validation(request=request)
 
-    def test_getTransactionResult_v2(self):
-        txHash = '43de4f25a41cb8cd09b0478300ce8da24191f1602e54b6db2ce6274311556164'
-        request = IconJsonrpc.getTransactionResult_v2(txHash)
-        self.check_jsonschema_validation(request=request, version=2)
-
     def test_getTransactionByHash(self):
         txHash = '0x43de4f25a41cb8cd09b0478300ce8da24191f1602e54b6db2ce6274311556164'
         request = IconJsonrpc.getTransactionByHash(txHash)
@@ -292,40 +283,3 @@ class TestIconJsonrpcV3(unittest.TestCase):
         self.check_jsonschema_validation(request=request)
         self.assertEqual(icon_jsonrpc.address, request['params']['from'])
         self.check_key_value(org_data, request['params'])
-
-    def test_sendTransaction_v2(self):
-        # IconJsonrpc object from string
-        addr = f'hx{"0"*40}'
-        from_str = IconJsonrpc.from_string(addr)
-
-        # IconJsonrpc object from keystore file
-        key_store = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        password = 'qwer1234%'
-        from_keystore = IconJsonrpc.from_key_store(keystore=key_store, password=password)
-
-        # IconJsonrpc object from private key
-        from_private_key = IconJsonrpc.from_private_key()
-
-        icon_jsonrpc_objs = [from_str, from_keystore, from_private_key]
-
-        request_template = {
-            "to": f'hx{"a"*40}',
-            "value": hex(int(1e10)),
-            "fee": hex(int(1e16)),
-            "nonce": hex(1),
-            "timestamp": hex(int(time.time() * 10 ** 6))
-        }
-        # test transfer
-        for obj in icon_jsonrpc_objs:
-            self.check_sendTransaction_v2(obj, request_template)
-
-    def check_sendTransaction_v2(self, icon_jsonrpc: 'IconJsonrpc', org_data: dict):
-        request = icon_jsonrpc.sendTransaction_v2(to=org_data['to'],
-                                                  value=org_data['value'],
-                                                  fee=org_data['fee'],
-                                                  nonce=org_data['nonce'],
-                                                  timestamp=org_data['timestamp'])
-        self.check_jsonschema_validation(request=request, version=2)
-        self.assertEqual(icon_jsonrpc.address, request['params']['from'])
-        self.check_key_value(org_data, request['params'])
-
