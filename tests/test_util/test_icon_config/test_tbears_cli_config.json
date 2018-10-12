@@ -1,14 +1,16 @@
 {
     "uri": "http://127.0.0.1:9000/api/v3_config_path",
-    "nid": "0x3_config_path",
+    "nid": "0x3",
     "keyStore": null,
     "from": "hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "to": "cx0000000000000000000000000000000000000000",
-    "stepLimit": "0x300000_config_path",
     "deploy": {
+        "stepLimit": "0x3000000",
         "mode": "install_config_path",
         "scoreParams": {}
     },
     "txresult": {},
-    "transfer": {}
+    "transfer": {
+        "stepLimit": "0xf4240"
+    }
 }

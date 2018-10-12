@@ -160,10 +160,10 @@ class TestCliTestUtil(unittest.TestCase):
             config_option_list = self.make_config_option_list(parsed_args=vars(parsed),
                                                               config_name=test_opts['config_type'])
 
-            #print('============================================cli=============================================')
-            #print('* cli: ', cli)
-            #print('* expected_conf: ', expected_conf)
-            #print('* actual_conf:   ', actual_conf)
+            # print('============================================cli=============================================')
+            # print('* cli: ', cli)
+            # print('* expected_conf: ', expected_conf)
+            # print('* actual_conf:   ', actual_conf)
 
             for key in config_option_list:
                 # actual_conf['command'] = 'raise_error'
@@ -200,6 +200,7 @@ class TestCliTestUtil(unittest.TestCase):
         o = ['-o cx0000000000000000000000000000000000000000', '']
         k = [f'-k {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_cli_config_keystore")}', '']
         n = ['-n 0x3', '']
+        s = ['-s 0x3000000', '']
         c = [f'-c {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")}']
 
         # deploy
@@ -226,7 +227,7 @@ class TestCliTestUtil(unittest.TestCase):
             'command': 'deploy',
             'positional_files': ['test_project'],
             'positional_args': [],
-            'optional_args': [u, m, f, o, k, n],
+            'optional_args': [u, m, f, o, k, n, s],
             'get_config_func': CommandScore.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -236,7 +237,7 @@ class TestCliTestUtil(unittest.TestCase):
             'command': 'deploy',
             'positional_files': ['test_project'],
             'positional_args': [],
-            'optional_args': [u, m, f, o, k, n, c],
+            'optional_args': [u, m, f, o, k, n, s, c],
             'get_config_func': CommandScore.get_icon_conf,
             'description': 'config: O , user input: O'
         }
@@ -253,6 +254,7 @@ class TestCliTestUtil(unittest.TestCase):
         f = ['-f hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '']
         k = [f'-k {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_cli_config_keystore")}', '']
         n = ['-n 0x3', '']
+        s = ['-s 0xf4240', '']
         c = [f'-c {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")}']
 
         # lastblock
@@ -460,7 +462,7 @@ class TestCliTestUtil(unittest.TestCase):
             'command': 'transfer',
             'positional_files': [],
             'positional_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", "1e18"],
-            'optional_args': [f, k, n, u],
+            'optional_args': [f, k, n, u, s],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: X , user input: O'
         }
@@ -470,7 +472,7 @@ class TestCliTestUtil(unittest.TestCase):
             'command': 'transfer',
             'positional_files': [],
             'positional_args': ["hxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", "1e18"],
-            'optional_args': [f, k, n, u, c],
+            'optional_args': [f, k, n, u, s, c],
             'get_config_func': CommandWallet.get_icon_conf,
             'description': 'config: O , user input: O'
         }

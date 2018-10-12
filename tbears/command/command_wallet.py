@@ -90,10 +90,11 @@ class CommandWallet:
                             help='Keystore file path. Used to generate "from" address and transaction signature')
         parser.add_argument('-n', '--nid', help='Network ID (default: 0x3)')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
+        parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
+        parser.add_argument('-s', '--step-limit', dest='stepLimit', type=non_negative_num_type, help='Step limit')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default values for the properties '
-                                 f'"keyStore", "uri" and "from". (default: {FN_CLI_CONF})')
-        parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
+                                 f'"keyStore", "uri", "from" and "stepLimit". (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_keystore_parser(subparsers):

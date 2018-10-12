@@ -438,8 +438,8 @@ Deploy the SCORE. You can deploy it on local T-Bears service or on ICON network.
 
 ```bash
 usage: tbears deploy [-h] [-u URI] [-t {tbears,zip}] [-m {install,update}]
-                     [-f FROM] [-o TO] [-k KEYSTORE] [-n NID] [-c CONFIG]
-                     [-p PASSWORD]
+                     [-f FROM] [-o TO] [-k KEYSTORE] [-n NID] [-p PASSWORD]
+                     [-s STEPLIMIT] [-c CONFIG]
                      project
 
 Deploy the SCORE
@@ -462,10 +462,12 @@ optional arguments:
                         Keystore file path. Used to generate "from" address
                         and transaction signature
   -n NID, --nid NID     Network ID
-  -c CONFIG, --config CONFIG
-                        deploy config path (default: ./tbears_cli_config.json)
   -p PASSWORD, --password PASSWORD
                         keystore file's password
+  -s STEPLIMIT, --step-limit STEPLIMIT
+                        Step limit
+  -c CONFIG, --config CONFIG
+                        deploy config path (default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -480,6 +482,8 @@ optional arguments:
 | -o, --to                                        |                              | To address. i.e. SCORE address <br>This parameter is required when updating SCORE. |
 | -k, --key-store                                 |                              | Keystore file path for SCORE owner                               |
 | -n, --nid                                       |                              | Network ID of node. <br>Each network has unique ID. If the Network ID does not match, node will reject the SCORE. Network ID will be announced when a network opens to public.<br>0x3 is reserved for T-Bears service. However, T-Bears service does not verify the Network ID. |
+| -p, --password                                  |                              | Password of keystor file |
+| -s, --step-limit                                | 0x3000000                    | Step limit of transaction |
 | -c, --config                                    | ./tbears_cli_config.json     | Configuration file path                                      |
 
 **Examples**
@@ -711,28 +715,33 @@ Transfer designated amount of ICX coins.
 
 ```bash
 usage: tbears transfer [-h] [-f FROM] [-k KEYSTORE] [-n NID] [-u URI]
-                       [-c CONFIG]
+                       [-p PASSWORD] [-s STEPLIMIT] [-c CONFIG]
                        to value
 
 Transfer ICX coin.
 
 positional arguments:
   to                    Recipient
-  value                 Amount of ICX coin to transfer in loop (1 icx = 1e18
+  value                 Amount of ICX coin in loop to transfer (1 icx = 1e18
                         loop)
 
 optional arguments:
   -h, --help            show this help message and exit
   -f FROM, --from FROM  From address.
   -k KEYSTORE, --key-store KEYSTORE
-                        Sender's keystore file
+                        Keystore file path. Used to generate "from" address
+                        and transaction signature
   -n NID, --nid NID     Network ID (default: 0x3)
   -u URI, --node-uri URI
                         URI of node (default: http://127.0.0.1:9000/api/v3)
+  -p PASSWORD, --password PASSWORD
+                        Keystore file's password
+  -s STEPLIMIT, --step-limit STEPLIMIT
+                        Step limit
   -c CONFIG, --config CONFIG
                         Configuration file path. This file defines the default
-                        values for the properties "keyStore", "uri" and
-                        "from". (default: ./tbears_cli_config.json)
+                        values for the properties "keyStore", "uri", "from"
+                        and "stepLimit". (default: ./tbears_cli_config.json)
 ```
 
 **Options**
@@ -746,6 +755,8 @@ optional arguments:
 | -k, --key-store |                              | Keystore file path. Used to generate "from" address and transaction signature. |
 | -u, --node-uri  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
 | -n, --nid       | 0x3                          | Network ID                                                   |
+| -p, --password  |                              | Password of keystor file |
+| -s, --step-limit| 0xf4240                      | Step limit of transaction |
 | -c, --config    | ./tbears_cli_config.json     | Configuration file path. This file defines the default values for the properties "keyStore", "uri" and "from". |
 
 **Examples**

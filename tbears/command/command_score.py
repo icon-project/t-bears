@@ -51,8 +51,9 @@ class CommandScore(object):
         parser.add_argument('-k', '--key-store', type=IconPath('r'), dest='keyStore',
                             help='Keystore file path. Used to generate "from" address and transaction signature')
         parser.add_argument('-n', '--nid', type=non_negative_num_type, help='Network ID')
-        parser.add_argument('-c', '--config', type=IconPath(), help=f'deploy config path (default: {FN_CLI_CONF})')
         parser.add_argument('-p', '--password', help='keystore file\'s password', dest='password')
+        parser.add_argument('-s', '--step-limit', dest='stepLimit', type=non_negative_num_type, help='Step limit')
+        parser.add_argument('-c', '--config', type=IconPath(), help=f'deploy config path (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_clear_parser(subparsers):
@@ -78,8 +79,6 @@ class CommandScore(object):
         password = conf.get('password', None)
         password = self._check_deploy(conf, password)
 
-        step_limit = conf.get('stepLimit', "0x1234000")
-
         if conf['mode'] == 'install':
             score_address = f'cx{"0"*40}'
         else:
@@ -98,7 +97,7 @@ class CommandScore(object):
         # make JSON-RPC 2.0 request standard format
         request = deploy.sendTransaction(to=score_address,
                                          nid=conf['nid'],
-                                         step_limit=step_limit,
+                                         step_limit=conf['stepLimit'],
                                          data_type="deploy",
                                          data=IconJsonrpc.gen_deploy_data(
                                              params=conf.get('scoreParams', {}),
