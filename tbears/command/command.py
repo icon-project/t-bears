@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import sys
 import argparse
 
 from typing import Optional
@@ -24,6 +25,13 @@ from tbears.command.command_util import CommandUtil
 from tbears.util import get_tbears_version
 
 
+class TbearsParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write(f'error: {message}\n\n')
+        self.print_help()
+        sys.exit(2)
+
+
 class Command(object):
     def __init__(self):
         self.version = get_tbears_version()
@@ -34,7 +42,7 @@ class Command(object):
         self.cmdWallet = CommandWallet(self.subparsers)
 
     def _create_parser(self):
-        parser = argparse.ArgumentParser(prog='tbears', description=f'tbears v{self.version} arguments')
+        parser = TbearsParser(prog='tbears', description=f'tbears v{self.version} arguments')
         parser.add_argument('-d', '--debug', help='Debug mode', action='store_true')
         subparsers = parser.add_subparsers(title='Available commands', metavar='command',
                                            description=f'If you want to see help message of commands, '
