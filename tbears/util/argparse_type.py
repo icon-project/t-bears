@@ -33,6 +33,9 @@ class IconPath(str):
         elif self._mode == 'd' and not os.path.isdir(string):
             raise ArgumentTypeError(f"There is no directory '{string}'")
 
+        if os.path.isdir(string) and string.endswith('/'):
+            return string[:-1]
+
         return string
 
 
