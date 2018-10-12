@@ -2,24 +2,14 @@
 import os
 from setuptools import setup, find_packages
 
+with open('requirements.txt') as requirements:
+    requires = list(requirements)
+
 version = os.environ.get('VERSION')
 
 if version is None:
 	with open(os.path.join('.', 'VERSION')) as version_file:
 		version = version_file.read().strip()
-
-requires = [
-    'earlgrey',
-    'iconcommons',
-    'iconrpcserver>=1.0.3',
-    'iconservice>=1.0.3',
-    'requests>=2.19.1',
-    'plyvel>=1.0.4',
-    'secp256k1>=0.13.2',
-    'eth-keyfile>=0.5.1',
-    'ipython>=6.4.0',
-]
-
 
 setup_options = {
     'name': 'tbears',
