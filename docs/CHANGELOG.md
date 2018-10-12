@@ -1,5 +1,10 @@
 # ChangeLog - T-Bears
 
+## 1.0.6 - 2018-10-12
+* Add '--step-limit' option to the 'deploy' and 'transfer' commands
+* Support docker image - iconloop/tbears
+* Fix minor bugs
+
 ## 1.0.5.1 - 2018-09-07
 * Remove sanic package from dependencies
 
