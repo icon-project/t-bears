@@ -53,4 +53,4 @@ def validate_password(password) -> bool:
     False: When the password is invalid format
     """
 
-    return bool(re.match(r'^(?=.*\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&*()_+{}:<>?]).{8,}$', password))
+    return bool(re.match(r'^(?=.*\d)(?=.*[a-zA-Z])(?=.*[?!:\.,%+-/*<>{}\(\)\[\]`"\'~_^\\|@#$&]).{8,}$', password))
