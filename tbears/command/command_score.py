@@ -17,7 +17,6 @@ import json
 import os
 import shutil
 import getpass
-import importlib
 
 from iconcommons.icon_config import IconConfig
 from iconservice.base.address import is_icon_address_valid
@@ -236,14 +235,5 @@ def check_project(project_path: str) -> int:
             # there is no main_file
             if not os.path.exists(f"{project_path}/{package['main_file']}.py"):
                 raise TBearsCommandException(f"There is no main_file '{project_path}/{package['main_file']}.py'")
-
-            try:
-                importlib.invalidate_caches()
-                mod = importlib.import_module(f".{package['main_file']}", project_path)
-                getattr(mod, package['main_score'])
-            except Exception:
-                # there is no main_class
-                raise TBearsCommandException(f"There is no main_class '{package['main_score']}'"
-                                             f" in {project_path}/{package['main_file']}.py.")
 
     return 0
