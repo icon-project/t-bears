@@ -133,10 +133,6 @@ class TestCommandScore(TestCommand):
 
         project = f"{self.project}"
 
-        # remove imported modules
-        del sys.modules[project]
-        del sys.modules[f"{project}.{project}"]
-
         # there is no __init__.py
         os.rename(f"{project}/__init__.py", "__init__.py.bak")
         self.assertRaises(TBearsCommandException, check_project, project)
@@ -155,16 +151,8 @@ class TestCommandScore(TestCommand):
         os.rename(f"{project}/{project}.py", f"{project}.py.bak")
         self.assertRaises(TBearsCommandException, check_project, project)
 
-        # there is no main_class in main_file
-        self.touch(f"{project}/{project}.py")
-        self.assertRaises(TBearsCommandException, check_project, project)
-        os.rename(f"{project}.py.bak", f"{project}/{project}.py")
-
-        # remove imported modules
-        del sys.modules[project]
-        del sys.modules[f"{project}.{project}"]
-
         # working good
+        os.rename(f"{project}.py.bak", f"{project}/{project}.py")
         self.assertEqual(check_project(project), 0)
 
     def test_clear_args_parsing(self):
