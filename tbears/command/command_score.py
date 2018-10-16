@@ -15,6 +15,7 @@
 import copy
 import json
 import os
+import sys
 import shutil
 import getpass
 import importlib
@@ -237,6 +238,7 @@ def check_project(project_path: str) -> int:
             if not os.path.exists(f"{project_path}/{package['main_file']}.py"):
                 raise TBearsCommandException(f"There is no main_file '{project_path}/{package['main_file']}.py'")
 
+            sys.path.append(os.getcwd())
             try:
                 importlib.invalidate_caches()
                 mod = importlib.import_module(f".{package['main_file']}", project_path)
