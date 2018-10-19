@@ -191,8 +191,12 @@ class CommandScore(object):
         :param args: user input command (converted to dictionary type)
         :return: command configuration
         """
-        # load configurations
+        # load default configurations
         conf = IconConfig(FN_CLI_CONF, copy.deepcopy(tbears_cli_config))
+        # move command config
+        if command in conf:
+            conf.update_conf(conf[command])
+            del conf[command]
 
         if project is not None:
             conf['project'] = project
