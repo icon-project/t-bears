@@ -1,5 +1,9 @@
 # ChangeLog - T-Bears
 
+## 1.0.6.2 - 2018-10-19
+* Fix configuration file loading bug
+* Modify python version requirements to 3.6.5+
+
 ## 1.0.6.1 - 2018-10-16
 * Fix deploy command bug
 
