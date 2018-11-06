@@ -40,7 +40,7 @@ docker run -it --name tbears-container -p 9000:9000 iconloop/tbears
 Please check the following links for more information. [T-Bears Docker](https://github.com/icon-project/t-bears/tree/develop/Docker)
 
 ## Building from source
- First, clone this project. Then go to the project folder, create a virtualenv environment, and run build script. You can then install T-Bears with the .whl file.
+ First, clone this project. Then go to the project directory, create a virtualenv environment, and run build script. You can then install T-Bears with the .whl file.
 ```bash
 $ virtualenv -p python3 venv  # Create a virtual environment.
 $ source venv/bin/activate    # Enter the virtual environment.
@@ -131,7 +131,7 @@ $ source bin/activate
 
 #### Overview
 
-T-Bears has 19 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, `genconf`, `transfer`, `txresult`, `balance`, `totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash`, `keystore`, `sendtx` and `call`.
+T-Bears has 20 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, `test`, `genconf`, `transfer`, `txresult`, `balance`, `totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash`, `keystore`, `sendtx` and `call`.
 
 
 
@@ -140,7 +140,7 @@ T-Bears has 19 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, 
 ```bash
 usage: tbears [-h] [-d] command ...
 
-tbears v1.0.0 arguments
+tbears v1.0.6.2 arguments
 
 optional arguments:
   -h, --help     show this help message and exit
@@ -154,23 +154,27 @@ Available commands:
     stop         Stop tbears service
     deploy       Deploy the SCORE
     clear        Clear all SCOREs deployed on tbears service
+    test         Run the unittest in the SCORE
     init         Initialize tbears project
     samples      Create two SCORE samples (standard_crowd_sale,
                  standard_token)
-    genconf      Generate tbears config files. (tbears_cli_config.json and
-                 tbears_cli_config.json)
+    genconf      Generate tbears config files. (tbears_cli_config.json,
+                 tbears_cli_config.json and keystore_test1)
+    console      Get into tbears interactive mode by embedding IPython
     txresult     Get transaction result by transaction hash
     transfer     Transfer ICX coin.
-    keystore     Create keystore file
-    balance      Get balance of given address
-    totalsupply  Query total supply of ICX
-    scoreapi     Get score's API using given score address
+    keystore     Create keystore file in passed path.
+    balance      Get balance of given address in loop unit
+    totalsupply  Query total supply of ICX in loop unit
+    scoreapi     Get score's api using given score address
     txbyhash     Get transaction by transaction hash
-    lastblock    Get last block info
+    lastblock    Get last block's info
     blockbyhash  Get block info using given block hash
     blockbyheight
                  Get block info using given block height
-    sendtx       Request icx_sendTransaction with user input json file
+    sendtx       Request icx_sendTransaction with user input json file and
+                 keystore file. If keystore file is not given, tbears sends
+                 request as it is in the json file.
     call         Request icx_call with user input json file.
 ```
 
@@ -348,18 +352,18 @@ These commands are related to SCORE development and execution.  `tbears init` an
 
 **Description**
 
-Initialize SCORE development environment. Generate <project\>.py and package.json in <project\> directory. The name of the SCORE class is \<scoreClass\>.  Default configuration files, "tbears_server_config.json" used when starting T-Bears and "tbears_cli_config.json" used when deploying SCORE, are also generated.
+Initialize SCORE development environment. Generate <project\>.py, package.json and test code in <project\> directory. The name of the SCORE class is \<scoreClass\>.  Default configuration files, "tbears_server_config.json" used when starting T-Bears and "tbears_cli_config.json" used when deploying SCORE, are also generated.
 
 **Usage**
 
 ```bash
 usage: tbears init [-h] project scoreClass
-Initialize SCORE development environment. Generate <project>.py and
-package.json in <project> directory. The name of the SCORE class is
+Initialize SCORE development environment. Generate <project>.py, package.json
+and test code in <project> directory. The name of the score class is
 <scoreClass>.
 
 positional arguments:
-  project      Project name
+  project     Project name
   scoreClass  SCORE class name
 
 optional arguments:
@@ -390,9 +394,12 @@ abc.py  __init__.py package.json
 | tbears_cli_config.json     | Configuration file for CLI commands will be created on the working directory. |
 | keystore_test1             | Keystore file for test account will be created on the working directory. |
 | \<project>                 | SCORE project name. Project directory is created with the same name. |
-| \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project folder recognized as a python package. |
+| \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project directory recognized as a python package. |
 | \<project>/package.json    | Contains the information needed when SCORE is loaded. <br> "main_file" and "main_class" is necessary. |
-| \<project>/\<project>.py   | SCORE main file. ABCToken class is defined.                  |
+| \<project>/<project>.py   | SCORE main file. ABCToken class is defined.                  |
+| \<project>/score_tests    | Test directory for SCORE tests.                              |
+| \<project>/score_tests/\_\_init\_\_.py | \_\_init\_\_.py file to make the test directory recognized as a python package. |
+| \<project>/score_tests/test\_<project>.py    | SCORE test main file.                              |
 
 #### tbears samples
 
@@ -511,6 +518,44 @@ transaction hash: 0x9c294b9608d9575f735ec2e2bf52dc891d7cca6a2fa7e97aee4818325c8a
 Send deploy request successfully.
 If you want to check SCORE deployed successfully, execute txresult command
 transaction hash: 0xad292b9608d9575f735ec2ebbf52dc891d7cca6a2fa7e97aee4818325c80934d
+```
+
+#### tbears test
+
+**Description**
+
+Run the unittest in the SCORE.
+
+**Usage**
+
+```bash
+usage: tbears test [-h] project
+
+Run the unittest in the SCORE
+
+positional arguments:
+  project     Project directory path
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+**Options**
+
+| shorthand, Name | default                      | Description                                                  |
+| --------------- | :--------------------------- | ------------------------------------------------------------ |
+| project         |                              | Project directory which contains the SCORE package and test code.|
+| -h, --help      |                              | show this help message and exit                              |
+
+**Examples**
+
+```bash
+(work) $ tbears test abc
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.172s
+
+OK
 ```
 
 #### tbears sendtx
@@ -1512,6 +1557,7 @@ You can find the test account 'test1' in tbears_server_config.json and test acco
 - [ICON Commons](https://github.com/icon-project/icon-commons)
 - [ICON RPC Server](https://github.com/icon-project/icon-rpc-server)
 - [ICON Service](https://github.com/icon-project/icon-service)
+- [SCORE integration Test](https://github.com/icon-project/t-bears/blob/master/docs/score_integration_test.md)
 
 
 ## License

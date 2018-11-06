@@ -17,6 +17,7 @@ import json
 import os
 import shutil
 import getpass
+import unittest
 
 from iconcommons.icon_config import IconConfig
 from iconservice.base.address import is_icon_address_valid
@@ -32,11 +33,11 @@ class CommandScore(object):
     def __init__(self, subparsers):
         self._add_deploy_parser(subparsers)
         self._add_clear_parser(subparsers)
+        self._add_test_parser(subparsers)
 
     @staticmethod
     def _add_deploy_parser(subparsers):
         parser = subparsers.add_parser('deploy', help='Deploy the SCORE', description='Deploy the SCORE')
-        # IconPath's 'd' argument means directory
         parser.add_argument('project', type=IconPath(), help='Project directory path or zip file path')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-t', '--type', choices=['tbears', 'zip'], dest='contentType',
@@ -58,6 +59,12 @@ class CommandScore(object):
     def _add_clear_parser(subparsers):
         subparsers.add_parser('clear', help='Clear all SCOREs deployed on tbears service',
                               description='Clear all SCOREs deployed on local tbears service')
+
+    @staticmethod
+    def _add_test_parser(subparsers):
+        parser = subparsers.add_parser('test', help='Run the unittest in the SCORE',
+                                       description='Run the unittest in the SCORE')
+        parser.add_argument('project', type=IconPath('d'), help='Project directory path')
 
     def run(self, args):
         if not hasattr(self, args.command):
@@ -147,6 +154,15 @@ class CommandScore(object):
         CommandServer._delete_server_conf()
 
         print(f"Cleared SCORE deployed on tbears successfully")
+
+    @staticmethod
+    def test(conf: dict):
+        loader = unittest.TestLoader()
+        start_dir = conf['project']
+        suite = loader.discover(start_dir)
+
+        runner = unittest.TextTestRunner()
+        runner.run(suite)
 
     @staticmethod
     def _check_deploy(conf: dict, password: str = None):

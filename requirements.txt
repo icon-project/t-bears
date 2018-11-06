@@ -2,6 +2,7 @@ earlgrey >= 0.0.4
 iconcommons >= 1.0.5
 iconrpcserver >= 1.1.2.1
 iconservice >= 1.1.1
+iconsdk >= 1.0.4
 setproctitle == 1.1.10
 requests == 2.20.0
 plyvel == 1.0.5
