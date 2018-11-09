@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""IconServiceEngine testcase
-"""
-
 import hashlib
 import random
 from shutil import rmtree
@@ -40,7 +37,7 @@ from iconservice.icon_service_engine import IconServiceEngine
 from iconservice.icon_inner_service import MakeResponse
 from iconservice.utils import to_camel_case
 from iconsdk.wallet.wallet import KeyWallet
-from tbears.config.tbears_config import TEST1_PRIVATE_KEY
+from tbears.config.tbears_config import TEST1_PRIVATE_KEY, tbears_server_config, ConfigKey as TbConf
 
 SCORE_INSTALL_ADDRESS = f"cx{'0'*40}"
 
@@ -201,7 +198,7 @@ class IconIntegrateTestBase(TestCase):
 
     def process_transaction(self, request: SignedTransaction,
                             network: IconService = None,
-                            block_confirm_interval: int = 2) -> dict:
+                            block_confirm_interval: int = tbears_server_config[TbConf.BLOCK_CONFIRM_INTERVAL]) -> dict:
         try:
             if network is not None:
                 # Send the transaction to network

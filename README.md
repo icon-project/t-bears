@@ -131,7 +131,7 @@ $ source bin/activate
 
 #### Overview
 
-T-Bears has 20 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, `test`, `genconf`, `transfer`, `txresult`, `balance`, `totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash`, `keystore`, `sendtx` and `call`.
+T-Bears has 21 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, `test`, `genconf`, `console`, `transfer`, `txresult`, `balance`, `totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash`, `keystore`, `sendtx` and `call`.
 
 
 
@@ -158,12 +158,12 @@ Available commands:
     init         Initialize tbears project
     samples      Create two SCORE samples (standard_crowd_sale,
                  standard_token)
-    genconf      Generate tbears config files. (tbears_cli_config.json,
+    genconf      Generate tbears config files. (tbears_server_config.json,
                  tbears_cli_config.json and keystore_test1)
     console      Get into tbears interactive mode by embedding IPython
     txresult     Get transaction result by transaction hash
     transfer     Transfer ICX coin.
-    keystore     Create keystore file in passed path.
+    keystore     Create a keystore file in the specified path
     balance      Get balance of given address in loop unit
     totalsupply  Query total supply of ICX in loop unit
     scoreapi     Get score's api using given score address
@@ -172,10 +172,10 @@ Available commands:
     blockbyhash  Get block info using given block hash
     blockbyheight
                  Get block info using given block height
-    sendtx       Request icx_sendTransaction with user input json file and
+    sendtx       Request icx_sendTransaction with the specified json file and
                  keystore file. If keystore file is not given, tbears sends
                  request as it is in the json file.
-    call         Request icx_call with user input json file.
+    call         Request icx_call with the specified json file.
 ```
 
 **Options**
@@ -396,10 +396,10 @@ abc.py  __init__.py package.json
 | \<project>                 | SCORE project name. Project directory is created with the same name. |
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project directory recognized as a python package. |
 | \<project>/package.json    | Contains the information needed when SCORE is loaded. <br> "main_file" and "main_class" is necessary. |
-| \<project>/<project>.py   | SCORE main file. ABCToken class is defined.                  |
-| \<project>/score_tests    | Test directory for SCORE tests.                              |
-| \<project>/score_tests/\_\_init\_\_.py | \_\_init\_\_.py file to make the test directory recognized as a python package. |
-| \<project>/score_tests/test\_<project>.py    | SCORE test main file.                              |
+| \<project>/<project>.py    | SCORE main file. ABCToken class is defined.                  |
+| \<project>/tests           | Directory for SCORE test code.                              |
+| \<project>/tests/\_\_init\_\_.py | \_\_init\_\_.py file to make the test directory recognized as a python package. |
+| \<project>/tests/test\_<project>.py    | SCORE test main file.                              |
 
 #### tbears samples
 
@@ -524,14 +524,14 @@ transaction hash: 0xad292b9608d9575f735ec2ebbf52dc891d7cca6a2fa7e97aee4818325c80
 
 **Description**
 
-Run the unittest in the SCORE.
+Run the unittest in the project.
 
 **Usage**
 
 ```bash
 usage: tbears test [-h] project
 
-Run the unittest in the SCORE
+Run the unittest in the project
 
 positional arguments:
   project     Project directory path
@@ -562,12 +562,12 @@ OK
 
 **Description**
 
-Request icx_sendTransaction with user input json file.
+Request icx_sendTransaction with the specified json file.
 
 ```bash
 usage: tbears sendtx [-h] [-u URI] [-k KEYSTORE] [-c CONFIG] json_file
 
-Request icx_sendTransaction with user input json file and keystore file. If
+Request icx_sendTransaction with the specified json file and keystore file. If
 keystore file is not given, tbears sends request as it is in the json file.
 
 positional arguments:
@@ -635,12 +635,12 @@ In the above example, because there is a timestamp field, tbears make a request 
 
 **Description**
 
-Request icx_call with user input json file.
+Request icx_call with the specified json file.
 
 ```bash
 usage: tbears call [-h] [-u URI] [-c CONFIG] json_file
 
-Request icx_call with user input json file.
+Request icx_call with the specified json file.
 
 positional arguments:
   json_file             File path containing icx_call content

@@ -19,12 +19,12 @@ $ python -m unittest discover <score_project_path>
 |\<project>                 | SCORE project name. Project directory is created with the same name. |
 |\<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project directory recognized as a python package. |
 |\<project>/package.json    | Contains the information needed when SCORE is loaded. <br> "main_file" and "main_class" is necessary. |
-|\<project>/<project>.py   | SCORE main file. ABCToken class is defined.                  |
-|\<project>/score_tests    | Test directory for SCORE tests.                              |
-|\<project>/score_tests/\_\_init\_\_.py | \_\_init\_\_.py file to make the test directory recognized as a python package. |
-|\<project>/score_tests/test\_<project>.py    | SCORE test main file.  |
+|\<project>/<project>.py    | SCORE main file.                  |
+|\<project>/tests           | Directory for SCORE test code.                              |
+|\<project>/tests/\_\_init\_\_.py | \_\_init\_\_.py file to make the test directory recognized as a python package. |
+|\<project>/tests/test\_<project>.py    | SCORE test main file.  |
 
-* If SCORE is  deployed with T-Bears, the score_tests directory will not be included
+* When T-Bears deploys SCORE, the `tests` directory is not included.
 
 ## How to write SCORE integration test code
 
@@ -77,6 +77,8 @@ IconIntegrateTestBase class provides three functions
 
    1. Initialize ICON service and confirm genesis block
    2. Create accounts for test
+      1. self._test1 : Account with 1,000,000 ICX
+      2. self._wallet_array[] : 10 empty accounts in list
 
 3. Provide API for SCORE integration test
 
@@ -206,4 +208,5 @@ OK
 ## References
 
 * [ICON python SDK] (https://repo.theloop.co.kr/icon/icon-sdk/icon-sdk-python)
+* [ICON SCORE samples] (https://github.com/icon-project/samples)
 

@@ -52,9 +52,9 @@ class CommandUtil(object):
 
     @staticmethod
     def _add_genconf_parser(subparser):
-        subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_CLI_CONF[2:]}, {FN_CLI_CONF[2:]} '
+        subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_SERVER_CONF[2:]}, {FN_CLI_CONF[2:]} '
                                              f'and {FN_KEYSTORE_TEST1[2:]})',
-                             description=f'Generate tbears config files. ({FN_CLI_CONF[2:]}, {FN_CLI_CONF[2:]} '
+                             description=f'Generate tbears config files. ({FN_SERVER_CONF[2:]}, {FN_CLI_CONF[2:]} '
                                          f'and {FN_KEYSTORE_TEST1[2:]})')
 
     @staticmethod
@@ -139,8 +139,8 @@ class CommandUtil(object):
         write_file(project, "package.json", package_json_contents)
         write_file(project, '__init__.py', '')
         if len(test_contents):
-            write_file(f'{project}/score_tests', f'test_{project}.py', test_contents)
-            write_file(f'{project}/score_tests', f'__init__.py', '')
+            write_file(f'{project}/tests', f'test_{project}.py', test_contents)
+            write_file(f'{project}/tests', f'__init__.py', '')
 
     @staticmethod
     def __gen_conf_file() -> list:

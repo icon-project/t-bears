@@ -73,7 +73,9 @@ class SampleScore(IconScoreBase):
 
 from iconsdk.builder.transaction_builder import DeployTransactionBuilder
 from iconsdk.builder.call_builder import CallBuilder
+from iconsdk.icon_service import IconService
 from iconsdk.libs.in_memory_zip import gen_deploy_data_content
+from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
 
 from tbears.libs.icon_integrate_test import IconIntegrateTestBase, SCORE_INSTALL_ADDRESS
@@ -111,7 +113,7 @@ class TestSampleScore(IconIntegrateTestBase):
         signed_transaction = SignedTransaction(transaction, self._test1)
 
         # process the transaction in local
-        tx_result = self.process_transaction(signed_transaction)
+        tx_result = self.process_transaction(signed_transaction, self.icon_service)
 
         self.assertTrue('status' in tx_result)
         self.assertEqual(1, tx_result['status'])

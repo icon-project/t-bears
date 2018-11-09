@@ -62,8 +62,8 @@ class CommandScore(object):
 
     @staticmethod
     def _add_test_parser(subparsers):
-        parser = subparsers.add_parser('test', help='Run the unittest in the SCORE',
-                                       description='Run the unittest in the SCORE')
+        parser = subparsers.add_parser('test', help='Run the unittest in the project',
+                                       description='Run the unittest in the project')
         parser.add_argument('project', type=IconPath('d'), help='Project directory path')
 
     def run(self, args):
