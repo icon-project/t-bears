@@ -180,7 +180,7 @@ class StandardCrowdSale(IconScoreBase):
         amount = self.msg.value
         self._balances[self.msg.sender] = self._balances[self.msg.sender] + amount
         self._amount_raised.set(self._amount_raised.get() + amount)
-        value = int(amount / self._price.get())
+        value = int(amount // self._price.get())
         data = b'called from CrowdSale'
         token_score = self.create_interface_score(self._addr_token_score.get(), TokenInterface)
         token_score.transfer(self.msg.sender, value, data)
