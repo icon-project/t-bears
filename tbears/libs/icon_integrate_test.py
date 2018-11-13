@@ -91,10 +91,6 @@ class IconIntegrateTestBase(TestCase):
         config = IconConfig("", default_icon_config)
         config.load()
         config.update_conf({ConfigKey.BUILTIN_SCORE_OWNER: self._test1.get_address()})
-        config.update_conf({ConfigKey.SERVICE: {ConfigKey.SERVICE_AUDIT: False,
-                                                ConfigKey.SERVICE_FEE: False,
-                                                ConfigKey.SERVICE_DEPLOYER_WHITELIST: False,
-                                                ConfigKey.SERVICE_SCORE_PACKAGE_VALIDATOR: False}})
         config.update_conf({ConfigKey.SCORE_ROOT_PATH: self._score_root_path,
                             ConfigKey.STATE_DB_ROOT_PATH: self._state_db_root_path})
         config.update_conf(self._make_init_config())
@@ -178,6 +174,12 @@ class IconIntegrateTestBase(TestCase):
 
     def _query(self, request: dict, method: str = 'icx_call') -> Any:
         response = self.icon_service_engine.query(method, request)
+
+        # convert response
+        if isinstance(response, int):
+            response = hex(response)
+        elif isinstance(response, Address):
+            response = str(response)
         return response
 
     def _process_transaction_in_local(self, request: dict) -> dict:
