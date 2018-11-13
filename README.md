@@ -46,7 +46,7 @@ $ virtualenv -p python3 venv  # Create a virtual environment.
 $ source venv/bin/activate    # Enter the virtual environment.
 (venv)$ ./build.sh            # run build script
 (venv)$ ls dist/              # check result wheel file
-tbears-1.0.1-py3-none-any.whl
+tbears-x.y.z-py3-none-any.whl
 ```
 
 ## Installation
@@ -140,7 +140,7 @@ T-Bears has 21 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, 
 ```bash
 usage: tbears [-h] [-d] command ...
 
-tbears v1.0.6.2 arguments
+tbears v1.1.0 arguments
 
 optional arguments:
   -h, --help     show this help message and exit
