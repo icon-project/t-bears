@@ -53,9 +53,10 @@ class InMemoryZip:
                         zf.write(path)
                     else:
                         for root, folders, files in os.walk(path):
-                            if root.find('__pycache__') != -1:
-                                continue
                             if root.find('/.') != -1:
+                                continue
+                            folder = os.path.basename(os.path.normpath(root))
+                            if folder == '__pycache__' or folder == 'tests':
                                 continue
                             for file in files:
                                 if file.startswith('.'):

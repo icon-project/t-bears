@@ -19,7 +19,7 @@ import IPython
 
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import (
-    get_score_main_template, get_sample_token_contents, get_sample_crowd_sale_contents,
+    get_score_template, get_sample_token_contents, get_sample_crowd_sale_contents,
     get_package_json_dict, write_file, PROJECT_ROOT_PATH
 )
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config,\
@@ -38,7 +38,8 @@ class CommandUtil(object):
     def _add_init_parser(subparsers) -> None:
         parser = subparsers.add_parser('init', help='Initialize tbears project',
                                        description='Initialize SCORE development environment.\n'
-                                                   'Generate <project>.py and package.json in <project> directory. '
+                                                   'Generate <project>.py, package.json and test code in <project>'
+                                                   ' directory. '
                                                    'The name of the score class is <scoreClass>.')
         parser.add_argument('project', type=IconPath('w'), help='Project name')
         parser.add_argument('score_class', help='SCORE class name', metavar='scoreClass')
@@ -51,9 +52,9 @@ class CommandUtil(object):
 
     @staticmethod
     def _add_genconf_parser(subparser):
-        subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_CLI_CONF[2:]}, {FN_CLI_CONF[2:]} '
+        subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_SERVER_CONF[2:]}, {FN_CLI_CONF[2:]} '
                                              f'and {FN_KEYSTORE_TEST1[2:]})',
-                             description=f'Generate tbears config files. ({FN_CLI_CONF[2:]}, {FN_CLI_CONF[2:]} '
+                             description=f'Generate tbears config files. ({FN_SERVER_CONF[2:]}, {FN_CLI_CONF[2:]} '
                                          f'and {FN_KEYSTORE_TEST1[2:]})')
 
     @staticmethod
@@ -81,7 +82,7 @@ class CommandUtil(object):
         # you can check main template at util/__init__/get_score_main_template method
         self.__initialize_project(project=conf['project'],
                                   score_class=conf['score_class'],
-                                  contents_func=get_score_main_template)
+                                  contents_func=get_score_template)
 
         # generate configuration files
         self.__gen_conf_file()
@@ -132,11 +133,14 @@ class CommandUtil(object):
 
         # when command is init, make score template.
         # when command is samples, make standard_crowd_sale or standard_token
-        py_contents = contents_func(score_class)
+        py_contents, test_contents = contents_func(score_class)
 
         write_file(project, f"{project}.py", py_contents)
         write_file(project, "package.json", package_json_contents)
         write_file(project, '__init__.py', '')
+        if len(test_contents):
+            write_file(f'{project}/tests', f'test_{project}.py', test_contents)
+            write_file(f'{project}/tests', f'__init__.py', '')
 
     @staticmethod
     def __gen_conf_file() -> list:

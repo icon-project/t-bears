@@ -43,16 +43,16 @@ def write_file(parent_directory: str, file_name: str, contents: str, overwrite: 
         raise TBearsWriteFileException(f"Can't write file {parent_directory}/{file_name}. {e}")
 
 
-def get_score_main_template(score_class: str) -> str:
+def get_score_template(score_class: str) -> tuple:
     """
     :param score_class: Your score class name.
     :return:
     """
-    template = """from iconservice import *
+    main_py = """from iconservice import *
 
-TAG = 'SampleToken'
+TAG = 'SampleScore'
 
-class SampleToken(IconScoreBase):
+class SampleScore(IconScoreBase):
 
     def __init__(self, db: IconScoreDatabase) -> None:
         super().__init__(db)
@@ -68,7 +68,78 @@ class SampleToken(IconScoreBase):
         Logger.debug(f'Hello, world!', TAG)
         return "Hello"
 """
-    return template.replace("SampleToken", score_class)
+
+    test_py = """import os
+
+from iconsdk.builder.transaction_builder import DeployTransactionBuilder
+from iconsdk.builder.call_builder import CallBuilder
+from iconsdk.icon_service import IconService
+from iconsdk.libs.in_memory_zip import gen_deploy_data_content
+from iconsdk.providers.http_provider import HTTPProvider
+from iconsdk.signed_transaction import SignedTransaction
+
+from tbears.libs.icon_integrate_test import IconIntegrateTestBase, SCORE_INSTALL_ADDRESS
+
+DIR_PATH = os.path.abspath(os.path.dirname(__file__))
+
+
+class TestSampleScore(IconIntegrateTestBase):
+    TEST_HTTP_ENDPOINT_URI_V3 = "http://127.0.0.1:9000/api/v3"
+    SCORE_PROJECT= os.path.abspath(os.path.join(DIR_PATH, '..'))
+
+    def setUp(self):
+        super().setUp()
+
+        self.icon_service = None
+        # if you want to send request to network, uncomment next line and set self.TEST_HTTP_ENDPOINT_URI_V3
+        # self.icon_service = IconService(HTTPProvider(self.TEST_HTTP_ENDPOINT_URI_V3))
+
+        # install SCORE
+        self._score_address = self._deploy_score()['scoreAddress']
+
+    def _deploy_score(self, to: str = SCORE_INSTALL_ADDRESS) -> dict:
+        # Generates an instance of transaction for deploying SCORE.
+        transaction = DeployTransactionBuilder() \\
+            .from_(self._test1.get_address()) \\
+            .to(to) \\
+            .step_limit(100_000_000_000) \\
+            .nid(3) \\
+            .nonce(100) \\
+            .content_type("application/zip") \\
+            .content(gen_deploy_data_content(self.SCORE_PROJECT)) \\
+            .build()
+
+        # Returns the signed transaction object having a signature
+        signed_transaction = SignedTransaction(transaction, self._test1)
+
+        # process the transaction in local
+        tx_result = self.process_transaction(signed_transaction, self.icon_service)
+
+        self.assertTrue('status' in tx_result)
+        self.assertEqual(1, tx_result['status'])
+        self.assertTrue('scoreAddress' in tx_result)
+
+        return tx_result
+
+    def test_score_update(self):
+        # update SCORE
+        tx_result = self._deploy_score(self._score_address)
+
+        self.assertEqual(self._score_address, tx_result['scoreAddress'])
+
+    def test_call_hello(self):
+        # Generates a call instance using the CallBuilder
+        call = CallBuilder().from_(self._test1.get_address()) \\
+            .to(self._score_address) \\
+            .method("hello") \\
+            .build()
+
+        # Sends the call request
+        response = self.process_call(call, self.icon_service)
+
+        self.assertEqual("Hello", response)
+"""
+    return main_py.replace("SampleScore", score_class), test_py.replace("SampleScore", score_class)
 
 
 def get_package_json_dict(project: str, score_class: str) -> dict:
@@ -87,7 +158,7 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
     return package_json_dict
 
 
-def get_sample_crowd_sale_contents(score_class: str):
+def get_sample_crowd_sale_contents(score_class: str) -> tuple:
     """
     :param score_class: Your score class name.
     :return:
@@ -233,10 +304,10 @@ class StandardCrowdSale(IconScoreBase):
                     Logger.debug(f'Failed to send to beneficiary!', TAG)
                     self._funding_goal_reached.set(False)
 """
-    return template.replace("MyCrowdSale", score_class)
+    return template.replace("MyCrowdSale", score_class), ""
 
 
-def get_sample_token_contents(score_class: str):
+def get_sample_token_contents(score_class: str) -> tuple:
     template = """from iconservice import *
 
 TAG = 'SampleToken'
@@ -315,7 +386,7 @@ class StandardToken(IconScoreBase):
         self.Transfer(_from, _to, _value, _data)
         Logger.debug(f'Transfer({_from}, {_to}, {_value}, {_data})', TAG)
 """
-    return template.replace("MySampleToken", score_class)
+    return template.replace("MySampleToken", score_class), ""
 
 
 def is_lowercase_hex_string(value: str) -> bool:

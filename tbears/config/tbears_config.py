@@ -93,7 +93,7 @@ tbears_cli_config = {
     "from": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
     "to": "cx0000000000000000000000000000000000000000",
     "deploy": {
-        "stepLimit": "0x3000000",
+        "stepLimit": "0x10000000",
         "mode": "install",
         "scoreParams": {}
     },
@@ -105,6 +105,7 @@ tbears_cli_config = {
 
 
 FN_KEYSTORE_TEST1 = './keystore_test1'
+TEST1_PRIVATE_KEY = '592eb276d534e2c41a2d9356c0ab262dc233d87e4dd71ce705ec130a8d27ff0c'
 
 keystore_test1 = {
     "address": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
