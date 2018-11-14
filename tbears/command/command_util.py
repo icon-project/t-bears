@@ -46,9 +46,8 @@ class CommandUtil(object):
 
     @staticmethod
     def _add_samples_parser(subparsers):
-        subparsers.add_parser('samples',
-                              help='Create two SCORE samples (standard_crowd_sale, standard_token)',
-                              description='Create two SCORE samples (standard_crowd_sale, standard_token)')
+        subparsers.add_parser('samples', help='Show the information about the sample SCORE',
+                              description='Show the information about the sample SCORE')
 
     @staticmethod
     def _add_genconf_parser(subparser):
@@ -90,17 +89,10 @@ class CommandUtil(object):
         print(f"Initialized tbears successfully")
 
     def samples(self, _conf: dict):
-        """Generate two SCORE samples (standard_crowd_sale, standard_token)
+        """ Show the information about the sample SCORE
         :param _conf: samples command configuration
         """
-        # initialize standard_token project package.
-        self.__initialize_project(project="standard_token", score_class="StandardToken",
-                                  contents_func=get_sample_token_contents)
-        # initialize standard_crowd_sale project package.
-        self.__initialize_project(project="standard_crowd_sale", score_class="StandardCrowdSale",
-                                  contents_func=get_sample_crowd_sale_contents)
-
-        print(f"Made samples successfully")
+        print("You can check out and download the sample SCORE at https://github.com/icon-project/samples")
 
     def genconf(self, _conf: dict):
         """Generate tbears config files. (tbears_server_config.json, tbears_cli_config.json, keystore_test1)"""

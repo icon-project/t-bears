@@ -156,8 +156,7 @@ Available commands:
     clear        Clear all SCOREs deployed on tbears service
     test         Run the unittest in the SCORE
     init         Initialize tbears project
-    samples      Create two SCORE samples (standard_crowd_sale,
-                 standard_token)
+    samples      Show the information about the sample SCORE
     genconf      Generate tbears config files. (tbears_server_config.json,
                  tbears_cli_config.json and keystore_test1)
     console      Get into tbears interactive mode by embedding IPython
@@ -346,7 +345,7 @@ Made tbears_cli_config.json, tbears_server_config.json, keystore_test1 successfu
 
 ### T-Bears SCORE commands
 
-These commands are related to SCORE development and execution.  `tbears init` and `tbears samples` generate SCORE projects. `tbears deploy`,  `tbears sendtx` and `tbears call` commands are used to deploy the SCORE, send a transaction, and call a function. 
+These commands are related to SCORE development and execution.  `tbears init` generate SCORE projects. `tbears deploy`,  `tbears sendtx` and `tbears call` commands are used to deploy the SCORE, send a transaction, and call a function. 
 
 #### tbears init
 
@@ -405,14 +404,14 @@ abc.py  __init__.py package.json
 
 **Description**
 
-Create two SCORE samples ("standard_crowd_sale" and "standard_token").
+Show the information about the sample SCORE
 
 **usage**
 
 ```bash
 usage: tbears samples [-h]
 
-Create two SCORE samples (standard_crowd_sale, standard_token)
+Show the information about the sample SCORE
 
 optional arguments:
   -h, --help  show this help message and exit
@@ -428,13 +427,7 @@ optional arguments:
 
 ```bash
 (work) $ tbears samples
-
-(work) $ ls standard*
-standard_crowd_sale:
-__init__.py  package.json  standard_crowd_sale.py
-
-standard_token:
-__init__.py  package.json  standard_token.py
+You can check out and download the sample SCORE at https://github.com/icon-project/samples
 ```
 
 #### tbears deploy
