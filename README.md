@@ -345,7 +345,7 @@ Made tbears_cli_config.json, tbears_server_config.json, keystore_test1 successfu
 
 ### T-Bears SCORE commands
 
-These commands are related to SCORE development and execution.  `tbears init` generate SCORE projects. `tbears deploy`,  `tbears sendtx` and `tbears call` commands are used to deploy the SCORE, send a transaction, and call a function. 
+These commands are related to SCORE development and execution.  `tbears init` generates SCORE projects. `tbears deploy`,  `tbears sendtx` and `tbears call` commands are used to deploy the SCORE, send a transaction, and call a function.
 
 #### tbears init
 

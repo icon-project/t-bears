@@ -19,8 +19,7 @@ import IPython
 
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import (
-    get_score_template, get_sample_token_contents, get_sample_crowd_sale_contents,
-    get_package_json_dict, write_file, PROJECT_ROOT_PATH
+    get_score_template, get_package_json_dict, write_file, PROJECT_ROOT_PATH
 )
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config,\
     make_server_config, FN_KEYSTORE_TEST1, keystore_test1
@@ -46,8 +45,8 @@ class CommandUtil(object):
 
     @staticmethod
     def _add_samples_parser(subparsers):
-        subparsers.add_parser('samples', help='Show the information about the sample SCORE',
-                              description='Show the information about the sample SCORE')
+        subparsers.add_parser('samples', help='This command has been deprecated since v1.1.0',
+                              description='This command has been deprecated since v1.1.0')
 
     @staticmethod
     def _add_genconf_parser(subparser):
@@ -92,6 +91,7 @@ class CommandUtil(object):
         """ Show the information about the sample SCORE
         :param _conf: samples command configuration
         """
+        print("The samples command has been deprecated since v1.1.0")
         print("You can check out and download the sample SCORE at https://github.com/icon-project/samples")
 
     def genconf(self, _conf: dict):
