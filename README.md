@@ -131,7 +131,7 @@ $ source bin/activate
 
 #### Overview
 
-T-Bears has 21 commands, `init`, `start`, `stop`, `deploy`, `clear`, `samples`, `test`, `genconf`, `console`, `transfer`, `txresult`, `balance`, `totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash`, `keystore`, `sendtx` and `call`.
+T-Bears has 20 commands, `init`, `start`, `stop`, `deploy`, `clear`, `test`, `genconf`, `console`, `transfer`, `txresult`, `balance`, `totalsupply`, `scoreapi`, `txbyhash`, `lastblock`, `blockbyheight`, `blockbyhash`, `keystore`, `sendtx` and `call`.
 
 
 
@@ -156,7 +156,7 @@ Available commands:
     clear        Clear all SCOREs deployed on tbears service
     test         Run the unittest in the SCORE
     init         Initialize tbears project
-    samples      Show the information about the sample SCORE
+    samples      This command has been deprecated since v1.1.0
     genconf      Generate tbears config files. (tbears_server_config.json,
                  tbears_cli_config.json and keystore_test1)
     console      Get into tbears interactive mode by embedding IPython
@@ -321,7 +321,7 @@ Generate T-Bears config files. ("tbears_cli_config.json", "tbears_server_config.
 ```bash
 usage: tbears genconf [-h]
 
-Generate T-Bears config files. (tbears_cli_config.json, tbears_cli_config.json, keystore_test1)
+Generate T-Bears config files. (tbears_server_config.json, tbears_cli_config.json, keystore_test1)
 
 optional arguments:
   -h, --help  show this help message and exit
@@ -399,36 +399,6 @@ abc.py  __init__.py package.json
 | \<project>/tests           | Directory for SCORE test code.                              |
 | \<project>/tests/\_\_init\_\_.py | \_\_init\_\_.py file to make the test directory recognized as a python package. |
 | \<project>/tests/test\_<project>.py    | SCORE test main file.                              |
-
-#### tbears samples
-
-**Description**
-
-Show the information about the sample SCORE
-
-**usage**
-
-```bash
-usage: tbears samples [-h]
-
-Show the information about the sample SCORE
-
-optional arguments:
-  -h, --help  show this help message and exit
-```
-
-**Options**
-
-| shorthand, Name | default | Description                     |
-| --------------- | :------ | ------------------------------- |
-| -h, --help      |         | show this help message and exit |
-
-**Examples**
-
-```bash
-(work) $ tbears samples
-You can check out and download the sample SCORE at https://github.com/icon-project/samples
-```
 
 #### tbears deploy
 
@@ -1468,7 +1438,7 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
 
 #### tbears_cli_config.json
 
-For every T-Bears CLI commands except `start`, `stop`, `samples`, `clear`, `init` and `keystore`, this file is used to configure the default parameters and initial settings.  
+For every T-Bears CLI commands except `start`, `stop`, `clear`, `init` and `keystore`, this file is used to configure the default parameters and initial settings.
 
 In this configuration file, you can define default options values for some CLI commnds. For example, SCORE's  `on_install()` or  `on_update()`  method is called on deployment. In this config file, you can set the deploy "mode" and the parameters ("scoreParams") of `on_install()` or `on_update()` as shown in the following example.
 
