@@ -41,7 +41,7 @@ class CommandScore(object):
         parser.add_argument('project', type=IconPath(), help='Project directory path or zip file path')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-t', '--type', choices=['tbears', 'zip'], dest='contentType',
-                            help='This option is deprecated since version 1.0.5. Deploy command supports zip type only')
+                            help='This option has been deprecated since v1.0.5. Deploy command supports zip type only')
         parser.add_argument('-m', '--mode', choices=['install', 'update'], help='Deploy mode (default: install)')
         # --from option only accept eoa address ('hx')
         parser.add_argument('-f', '--from', type=IconAddress('hx'), help='From address. i.e. SCORE owner address')
