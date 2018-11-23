@@ -19,8 +19,9 @@ import os
 
 from iconservice.base.address import is_icon_address_valid
 from iconcommons import IconConfig
+from iconcommons.logger.logger import Logger
 
-from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1
+from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1, TBEARS_CLI_TAG
 from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import jsonrpc_params_to_pep_style
@@ -476,6 +477,8 @@ class CommandWallet:
 
         user_input = vars(args)
         conf = self.get_icon_conf(args.command, args= user_input)
+
+        Logger.info(f"run the '{args.command}' command with config: {conf}", TBEARS_CLI_TAG)
 
         # run command
         return getattr(self, args.command)(conf)

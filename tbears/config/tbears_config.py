@@ -18,6 +18,8 @@ from copy import deepcopy
 FN_SERVER_CONF = './tbears_server_config.json'
 FN_CLI_CONF = './tbears_cli_config.json'
 
+TBEARS_CLI_TAG = 'tbears_cli'
+
 
 class ConfigKey:
     CHANNEL = 'channel'
