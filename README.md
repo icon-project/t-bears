@@ -357,6 +357,7 @@ Initialize SCORE development environment. Generate <project\>.py, package.json a
 
 ```bash
 usage: tbears init [-h] project scoreClass
+
 Initialize SCORE development environment. Generate <project>.py, package.json
 and test code in <project> directory. The name of the score class is
 <scoreClass>.
@@ -366,7 +367,7 @@ positional arguments:
   scoreClass  SCORE class name
 
 optional arguments:
-  -h, --help   show this help message and exit
+  -h, --help  show this help message and exit
 ```
 
 **Options**
@@ -374,7 +375,7 @@ optional arguments:
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | project         |         | Project name                    |
-| scoreClass     |         | SCORE class name                |
+| scoreClass      |         | SCORE class name                |
 | -h, --help      |         | show this help message and exit |
 
 **Examples**
@@ -382,7 +383,7 @@ optional arguments:
 ```bash
 (work) $ tbears init abc ABCToken
 (work) $ ls abc
-abc.py  __init__.py package.json
+__init__.py  abc.py  package.json  tests
 ```
 
 **File description**

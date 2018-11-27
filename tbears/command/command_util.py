@@ -90,7 +90,7 @@ class CommandUtil(object):
         # generate configuration files
         self.__gen_conf_file()
 
-        print(f"Initialized tbears successfully")
+        print(f"Initialized {conf['project']} successfully")
 
     def samples(self, _conf: dict):
         """ Show the information about the sample SCORE
