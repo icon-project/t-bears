@@ -28,13 +28,12 @@ from iconcommons.logger import Logger
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
 from tbears.util import write_file
 from tbears.util.argparse_type import port_type, IconPath
-from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, ConfigKey
+from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, ConfigKey, TBEARS_CLI_TAG
 from tbears.block_manager.block_manager import TBEARS_BLOCK_MANAGER
 
 
 BLOCKMANAGER_MODULE_NAME = 'tbears.block_manager'
 TBEARS_CLI_ENV = '/tmp/.tbears.env'
-TBEARS_CLI_TAG = 'tbears_cli'
 
 
 class CommandServer(object):
@@ -63,6 +62,8 @@ class CommandServer(object):
         # load configurations
         user_input = vars(args)
         conf = self.get_icon_conf(args.command, args=user_input)
+
+        Logger.info(f"Run '{args.command}' command with config: {conf}", TBEARS_CLI_TAG)
 
         # run command
         return getattr(self, args.command)(conf)

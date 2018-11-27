@@ -20,11 +20,12 @@ import getpass
 import unittest
 
 from iconcommons.icon_config import IconConfig
+from iconcommons.logger import Logger
 from iconservice.base.address import is_icon_address_valid
 
 from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
 from tbears.command.command_server import CommandServer
-from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config
+from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, TBEARS_CLI_TAG
 from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
 from tbears.tbears_exception import TBearsDeleteTreeException, TBearsCommandException
 
@@ -72,6 +73,8 @@ class CommandScore(object):
 
         # load configurations
         conf = self.get_icon_conf(args.command, args=vars(args))
+
+        Logger.info(f"Run '{args.command}' command with config: {conf}", TBEARS_CLI_TAG)
 
         # run command
         return getattr(self, args.command)(conf)

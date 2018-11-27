@@ -16,13 +16,16 @@ import json
 import os
 
 import IPython
+from iconcommons.logger.logger import Logger
 
+from tbears.config.tbears_config import (
+    FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config, make_server_config, FN_KEYSTORE_TEST1,
+    keystore_test1, TBEARS_CLI_TAG
+)
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import (
     get_score_template, get_package_json_dict, write_file, PROJECT_ROOT_PATH
 )
-from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config,\
-    make_server_config, FN_KEYSTORE_TEST1, keystore_test1
 from tbears.util.argparse_type import IconPath
 
 
@@ -65,6 +68,8 @@ class CommandUtil(object):
         if not hasattr(self, args.command):
             print(f"Wrong command {args.command}")
             return
+
+        Logger.info(f"Run '{args.command}' command", TBEARS_CLI_TAG)
 
         # run command
         return getattr(self, args.command)(vars(args))

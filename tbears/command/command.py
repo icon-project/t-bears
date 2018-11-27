@@ -17,11 +17,14 @@ import argparse
 
 from typing import Optional
 
+from iconcommons.logger import Logger
+
 from tbears.command.command_wallet import CommandWallet
-from tbears.tbears_exception import TBearsBaseException, TBearsExceptionCode
 from tbears.command.command_server import CommandServer
 from tbears.command.command_score import CommandScore
 from tbears.command.command_util import CommandUtil
+from tbears.config.tbears_config import tbears_server_config
+from tbears.tbears_exception import TBearsBaseException, TBearsExceptionCode
 from tbears.util import get_tbears_version
 
 
@@ -43,7 +46,7 @@ class Command(object):
 
     def _create_parser(self):
         parser = TbearsParser(prog='tbears', description=f'tbears v{self.version} arguments')
-        parser.add_argument('-d', '--debug', help='Debug mode', action='store_true')
+        parser.add_argument('-v', '--verbose', help='Verbose mode', action='store_true')
         subparsers = parser.add_subparsers(title='Available commands', metavar='command',
                                            description=f'If you want to see help message of commands, '
                                                        f'use "tbears command -h"')
@@ -62,6 +65,7 @@ class Command(object):
             # parse_args return the populated namespace
             # e.g. Namespace (command='deploy', config=None, keyStore='keystore' ...)
             args = self.parser.parse_args(args=sys_args)
+            self._init_logger(args=args)
             if self.cmdServer.check_command(args.command):
                 result = self.cmdServer.run(args)
             elif self.cmdScore.check_command(args.command):
@@ -78,3 +82,13 @@ class Command(object):
             return TBearsExceptionCode.COMMAND_ERROR.value
         else:
             return result
+
+    def _init_logger(self, args):
+        from iconcommons.icon_config import IconConfig
+
+        if args.verbose:
+            conf = IconConfig(None, tbears_server_config)
+            conf.load()
+            if 'console' not in conf['log']['outputType']:
+                conf['log']['outputType'] = conf['log']['outputType'] + "|console"
+            Logger.load_config(conf)

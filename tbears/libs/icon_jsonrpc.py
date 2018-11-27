@@ -21,7 +21,9 @@ import itertools
 import hashlib
 
 from secp256k1 import PrivateKey
+from iconcommons.logger.logger import Logger
 
+from tbears.config.tbears_config import TBEARS_CLI_TAG
 from tbears.libs.icx_signer import key_from_key_store, IcxSigner
 from tbears.libs.in_memory_zip import InMemoryZip
 from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
@@ -448,6 +450,8 @@ class IconClient(object):
         :param request: JSON-RPC request
         :return: response dictionary of request.
         """
+        Logger.info(f"Send request to {self.__uri}. Request body: {request}", TBEARS_CLI_TAG)
+
         # if query doesn't change any state of iconservice or loopchain, use 'send' method
         response = requests.post(url=self.__uri, json=request)
         try:

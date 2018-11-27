@@ -138,13 +138,13 @@ T-Bears has 20 commands, `init`, `start`, `stop`, `deploy`, `clear`, `test`, `ge
 **Usage**
 
 ```bash
-usage: tbears [-h] [-d] command ...
+usage: tbears [-h] [-v] command ...
 
 tbears v1.1.0 arguments
 
 optional arguments:
   -h, --help     show this help message and exit
-  -d, --debug    Debug mode
+  -v, --verbose  Verbose mode
 
 Available commands:
   If you want to see help message of commands, use "tbears command -h"
@@ -181,8 +181,8 @@ Available commands:
 
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
-| -h, --help      |         | show this help message and exit |
-| -d, --debug     |         | Debug mode                      |
+| -h, --help      |         | Show this help message and exit |
+| -v, --verbose   |         | Verbose mode. Print debugging messages about its progress. |
 
 
 
