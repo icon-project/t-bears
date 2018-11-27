@@ -69,7 +69,7 @@ class CommandUtil(object):
             print(f"Wrong command {args.command}")
             return
 
-        Logger.info(f"run the '{args.command}' command", TBEARS_CLI_TAG)
+        Logger.info(f"Run '{args.command}' command", TBEARS_CLI_TAG)
 
         # run command
         return getattr(self, args.command)(vars(args))

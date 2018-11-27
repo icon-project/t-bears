@@ -182,7 +182,7 @@ Available commands:
 | shorthand, Name | default | Description                     |
 | --------------- | :------ | ------------------------------- |
 | -h, --help      |         | Show this help message and exit |
-| -v, --verbose   |         | Produce verbose output. For example, running command, configuration and ICON JSON-RPC API request body are printed|
+| -v, --verbose   |         | Verbose mode. Print debugging messages about its progress. |
 
 
 

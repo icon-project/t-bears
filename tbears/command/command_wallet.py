@@ -478,7 +478,7 @@ class CommandWallet:
         user_input = vars(args)
         conf = self.get_icon_conf(args.command, args= user_input)
 
-        Logger.info(f"run the '{args.command}' command with config: {conf}", TBEARS_CLI_TAG)
+        Logger.info(f"Run '{args.command}' command with config: {conf}", TBEARS_CLI_TAG)
 
         # run command
         return getattr(self, args.command)(conf)

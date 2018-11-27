@@ -74,7 +74,7 @@ class CommandScore(object):
         # load configurations
         conf = self.get_icon_conf(args.command, args=vars(args))
 
-        Logger.info(f"run the '{args.command}' command with config: {conf}", TBEARS_CLI_TAG)
+        Logger.info(f"Run '{args.command}' command with config: {conf}", TBEARS_CLI_TAG)
 
         # run command
         return getattr(self, args.command)(conf)
