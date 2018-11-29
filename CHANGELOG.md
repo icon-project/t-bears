@@ -1,5 +1,12 @@
 # ChangeLog - T-Bears
 
+## 1.1.0 - 2018-11-29
+* Add test command
+* Add SCORE integration test library
+* Add -v, --verbose option
+* Modify init command to generate test code
+* Deprecate samples command
+
 ## 1.0.6.2 - 2018-10-19
 * Fix configuration file loading bug
 * Modify python version requirements to 3.6.5+
