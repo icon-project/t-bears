@@ -1434,7 +1434,7 @@ When starting T-Bears (`tbears start`), "tbears_server_config.json" is used t
 | channel                   | string    | channel name interact with iconrpcserver and iconservice     |
 | amqpKey                   | string    | amqp key name interact with iconrpcserver and iconservice    |
 | amqpTarget                | string    | amqp target name interact with iconrpcserver and iconservice |
-| blockConfirmInterval      | integer   | Confirm block every N minute                                |
+| blockConfirmInterval      | integer   | Confirm block every N seconds |
 | blockConfirmEmpty         | boolean   | true &#124; false. Confirm empty block when enabled              |
 
 #### tbears_cli_config.json
