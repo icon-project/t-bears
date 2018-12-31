@@ -244,40 +244,17 @@ class Block(object):
         :return: block information
         """
         try:
-            # get block dataa from DB
+            # get block data from DB
             block: bytes = self.db.get(DbPrefix.BLOCK + block_hash)
             if block is None:
                 return None
-            # do formatting
-            block_json = self._convert_block_data(json.loads(block))
+            block_json = json.loads(block)
         except Exception as e:
             Logger.debug(f'_get_block_by_hash: exception with ({e})', LOG_BLOCK)
             return None
         else:
             Logger.debug(f'_get_block_by_hash: get {block_json}', LOG_BLOCK)
             return block_json
-
-    def _convert_block_data(self, block: dict) -> dict:
-        """
-        Convert block data to output format
-        :param block:
-        :return: converted block information
-        """
-        tx_list = block.get('confirmed_transaction_list', None)
-        if tx_list is not None and isinstance(tx_list, list):
-            result_list = []
-            for tx in tx_list:
-                if isinstance(tx, dict):
-                    # genesis block
-                    result_list.append(tx)
-                    break
-                # get transaction data from DB by transaction hash
-                tx_result = self.get_transaction(tx_hash=tx)
-                result_list.append(tx_result['transaction'])
-
-            block['confirmed_transaction_list'] = result_list
-
-        return block
 
     def get_transaction(self, tx_hash: str) -> Optional[dict]:
         """
