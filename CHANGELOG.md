@@ -1,5 +1,9 @@
 # ChangeLog - T-Bears
 
+## 1.1.0.1 - 2019-01-03
+* Fix wrong description of blockConfirmInterval in README.md
+* Fix block query error
+
 ## 1.1.0 - 2018-11-29
 * Add test command
 * Add SCORE integration test library
