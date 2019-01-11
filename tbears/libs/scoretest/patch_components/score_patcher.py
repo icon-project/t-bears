@@ -28,7 +28,7 @@ from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFl
 from iconservice.iconscore.icon_score_context import ContextContainer
 from iconservice.iconscore.internal_call import InternalCall
 
-from .context_manager import ContextManager
+from .context_manager import ContextManager, add_tx
 from ..mock_components.mock_db import MockKeyValueDatabase
 from ..mock_components.mock_icx_engine import MockIcxEngine
 from ...icon_integrate_test import create_tx_hash
@@ -76,16 +76,21 @@ def patch_score_method(method):
             if context.msg.value > 0:
                 raise PayableException(f"This method is not payable", method_name, score_class)
             if context.msg.sender is not None and not context.msg.sender.is_contract:
-                ContextManager.set_transaction(context.tx.timestamp, context.tx.index,
+                ContextManager.set_transaction(method_name, context.tx.timestamp, context.tx.index,
                                                context.tx.nonce, (args, kwargs))
                 ContextManager.set_context(IconScoreContextType.INVOKE)
+                add_tx(context.tx.hash)
         elif method_flag & ConstBitFlag.Payable:
-            ContextManager.set_transaction(context.tx.timestamp, context.tx.index, context.tx.nonce, (args, kwargs))
+            ContextManager.set_transaction(method_name, context.tx.timestamp, context.tx.index,
+                                           context.tx.nonce, (args, kwargs))
             ContextManager.set_context(IconScoreContextType.INVOKE)
             MockIcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
+            add_tx(context.tx.hash)
         elif method_name in ('on_install', 'on_update'):
-            ContextManager.set_transaction(context.tx.timestamp, context.tx.index, context.tx.nonce), (args, kwargs)
+            ContextManager.set_transaction(method_name, context.tx.timestamp, context.tx.index,
+                                           context.tx.nonce, (args, kwargs))
             ContextManager.set_context(IconScoreContextType.INVOKE)
+            add_tx(context.tx.hash)
 
         patched_method = _patch_score_method(method, context)
         result = patched_method(*args, **kwargs)
@@ -142,7 +147,6 @@ class SCOREPatcher:
             ContextManager.set_context(context_type)
         else:
             ContextManager.strict = False
-
 
     @staticmethod
     def get_custom_methods(score):

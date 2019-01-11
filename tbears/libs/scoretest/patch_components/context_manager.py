@@ -93,58 +93,59 @@ class ContextManager:
             context.block._height = height
 
     @classmethod
-    def set_message_sender(cls, sender: Optional['Address']):
+    def _set_message_sender(cls, sender: Optional['Address']):
         cls.context.msg.sender = sender
 
     @classmethod
-    def set_message_value(cls, value: int=0):
+    def _set_message_value(cls, value: int=0):
         cls.context.msg.value = value
 
     @classmethod
     def set_message(cls, sender: Optional['Address'], value: int=0):
-        cls.set_message_sender(sender)
-        cls.set_message_value(value)
+        cls._set_message_sender(sender)
+        cls._set_message_value(value)
 
     @classmethod
-    def set_invoke_context(cls):
+    def _set_invoke_context(cls):
         cls.context.type = IconScoreContextType.INVOKE
         cls.context.event_logs = []
         cls.context.func_type = IconScoreFuncType.WRITABLE
 
     @classmethod
-    def set_query_context(cls):
+    def _set_query_context(cls):
         cls.context.type = IconScoreContextType.QUERY
         cls.context.func_type = IconScoreFuncType.READONLY
 
     @classmethod
     def set_context(cls, context_type: Optional[IconScoreContextType]):
         if cls.strict is False:
-            cls.set_context_using_type(context_type)
+            cls._set_context_using_type(context_type)
 
     @classmethod
-    def set_context_using_type(cls, context_type: Optional[IconScoreContextType]=None):
+    def _set_context_using_type(cls, context_type: Optional[IconScoreContextType]=None):
         if context_type == IconScoreContextType.QUERY:
-            cls.set_query_context()
+            cls._set_query_context()
         else:
-            cls.set_invoke_context()
+            cls._set_invoke_context()
 
     @classmethod
-    def set_transaction(cls, timestamp: Optional[int]=None, index: Optional[int]=None, nonce: Optional[int]=None,
-                        arguments: Optional[tuple]=None):
+    def set_transaction(cls, method: str=None, timestamp: Optional[int]=None, index: Optional[int]=None,
+                        nonce: Optional[int]=None, arguments: Optional[tuple]=None):
         tx = cls.context.tx
         tx._timestamp = cls.context.block.timestamp if timestamp is None else timestamp
         tx._origin = cls.context.msg.sender
         tx._index = tx._index if index is None else index
+        tx._nonce = nonce
         if nonce is None:
             tx._nonce = tx._nonce if tx._nonce is not None else 0
-        tx_data = cls.get_tx_data(arguments)
+        tx_data = cls._get_tx_data(method, arguments)
         tx._hash = create_tx_hash(tx_data)
 
     @classmethod
-    def get_tx_data(cls, arguments: Optional[tuple]=None):
+    def _get_tx_data(cls, method: str="", arguments: Optional[tuple]=None):
         tx = cls.context.tx
         tx_data = f"{tx.origin}{tx.nonce}{cls.context.current_address}{cls.context.msg.value}" \
-                  f"{tx.timestamp}{arguments}".encode()
+                  f"{tx.timestamp}{method}{arguments}".encode()
         return tx_data
 
     @classmethod
