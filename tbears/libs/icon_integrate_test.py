@@ -21,6 +21,8 @@ import sys
 from time import time, sleep
 from typing import Any
 from unittest import TestCase
+from collections import namedtuple
+from typing import List
 
 from iconcommons import IconConfig
 from iconsdk.converter import convert_transaction_result
@@ -40,6 +42,7 @@ from iconsdk.wallet.wallet import KeyWallet
 from tbears.config.tbears_config import TEST1_PRIVATE_KEY, tbears_server_config, ConfigKey as TbConf
 
 SCORE_INSTALL_ADDRESS = f"cx{'0'*40}"
+Account = namedtuple('Account', 'name address balance')
 
 
 def create_hash_256(data: bytes=None) -> bytes:
@@ -82,7 +85,7 @@ class IconIntegrateTestBase(TestCase):
 
         cls._wallet_array = [KeyWallet.create() for _ in range(10)]
 
-    def setUp(self):
+    def setUp(self, genesis_accounts: List[Account] = None):
         root_clear(self._score_root_path, self._state_db_root_path)
 
         self._block_height = 0
@@ -98,7 +101,7 @@ class IconIntegrateTestBase(TestCase):
         self.icon_service_engine = IconServiceEngine()
         self.icon_service_engine.open(config)
 
-        self._genesis_invoke()
+        self._genesis_invoke(genesis_accounts)
 
     def tearDown(self):
         self.icon_service_engine.close()
@@ -107,7 +110,22 @@ class IconIntegrateTestBase(TestCase):
     def _make_init_config(self) -> dict:
         return {}
 
-    def _genesis_invoke(self) -> dict:
+    @staticmethod
+    def _append_list(tx: dict, genesis_accounts: List[Account]) -> None:
+        """Appends additional genesis account list to genesisData
+
+        :param genesis_accounts: additional genesis account list consisted of namedtuple named Account
+        of which keys are name, address and balance
+        :return: None
+        """
+        for account_as_namedtuple in genesis_accounts:
+            tmp_account_as_dict = dict()
+            tmp_account_as_dict["name"] = account_as_namedtuple.name
+            tmp_account_as_dict["address"] = account_as_namedtuple.address
+            tmp_account_as_dict["balance"] = account_as_namedtuple.balance
+            tx["genesisData"]['accounts'].append(tmp_account_as_dict)
+
+    def _genesis_invoke(self, genesis_accounts: List[Account]) -> dict:
         tx_hash = create_tx_hash()
         timestamp_us = create_timestamp()
         request_params = {
@@ -139,6 +157,9 @@ class IconIntegrateTestBase(TestCase):
                 ]
             },
         }
+
+        if genesis_accounts:
+            self._append_list(tx, genesis_accounts)
 
         block_hash = create_block_hash()
         block = Block(self._block_height, block_hash, timestamp_us, None)
