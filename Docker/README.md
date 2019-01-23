@@ -96,6 +96,17 @@ If you want to use host file system, mount host directory into the container whe
 $ docker run -it --name tbears-container -v $MOUNT_PATH:/tbears -p 9000:9000 iconloop/tbears
 ```
 
+## Deploy your SCORE from docker container. 
+The best way is mountint your SCORE project. For example, If you made ```YOUR_SCORE``` project then you can run docker container like folowing. 
+```bash
+# Mount ${YOUR_SCORE} project on host to /${YOUR_SCORE} on docker container. 
+$ docker run -it --name tbears-container -p 9000:9000 \
+--mount type=bind,src=${PWD}/${YOUR_SCORE},dst=/${YOUR_SCORE} iconloop/tbears 
+$ cd /${YOUR_SCORE}
+$ tbears deploy ..... ${YOUR_SCORE}
+```
+
+
 ## Install T-Bears in Docker container
 You can install T-Bears which you want in Docker container via pip3. Select T-Bears package from PYPI or GitHub.
 ```bash
