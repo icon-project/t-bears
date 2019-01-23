@@ -97,13 +97,13 @@ $ docker run -it --name tbears-container -v $MOUNT_PATH:/tbears -p 9000:9000 ico
 ```
 
 ## Deploy your SCORE from docker container. 
-The best way is mountint your SCORE project. For example, If you made ```YOUR_SCORE``` project then you can run docker container like folowing. 
+The best way is mounting your SCORE project folder with the tbears container. For example, If you made ```YOUR_SCORE``` project then you can run docker container like following,
 ```bash
 # Mount ${YOUR_SCORE} project on host to /${YOUR_SCORE} on docker container. 
 $ docker run -it --name tbears-container -p 9000:9000 \
 --mount type=bind,src=${PWD}/${YOUR_SCORE},dst=/${YOUR_SCORE} iconloop/tbears 
-$ cd /${YOUR_SCORE}
-$ tbears deploy ..... ${YOUR_SCORE}
+$ ......
+$ tbears deploy ..... /${YOUR_SCORE}
 ```
 
 
