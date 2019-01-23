@@ -41,11 +41,11 @@ from iconservice.utils import to_camel_case
 from iconsdk.wallet.wallet import KeyWallet
 from tbears.config.tbears_config import TEST1_PRIVATE_KEY, tbears_server_config, ConfigKey as TbConf
 
-SCORE_INSTALL_ADDRESS = f"cx{'0'*40}"
+SCORE_INSTALL_ADDRESS = f"cx{'0' * 40}"
 Account = namedtuple('Account', 'name address balance')
 
 
-def create_hash_256(data: bytes=None) -> bytes:
+def create_hash_256(data: bytes = None) -> bytes:
     if data is None:
         max_int = sys.maxsize
         length = (max_int.bit_length() + 7) // 8
@@ -54,11 +54,11 @@ def create_hash_256(data: bytes=None) -> bytes:
     return hashlib.sha3_256(data).digest()
 
 
-def create_tx_hash(data: bytes=None) -> bytes:
+def create_tx_hash(data: bytes = None) -> bytes:
     return create_hash_256(data)
 
 
-def create_block_hash(data: bytes=None) -> bytes:
+def create_block_hash(data: bytes = None) -> bytes:
     return create_tx_hash(data)
 
 
@@ -119,11 +119,11 @@ class IconIntegrateTestBase(TestCase):
         :return: None
         """
         for account_as_namedtuple in genesis_accounts:
-            tmp_account_as_dict = dict()
-            tmp_account_as_dict["name"] = account_as_namedtuple.name
-            tmp_account_as_dict["address"] = account_as_namedtuple.address
-            tmp_account_as_dict["balance"] = account_as_namedtuple.balance
-            tx["genesisData"]['accounts'].append(tmp_account_as_dict)
+            tx["genesisData"]['accounts'].append({
+                "name": account_as_namedtuple.name,
+                "address": account_as_namedtuple.address,
+                "balance": account_as_namedtuple.balance
+            })
 
     def _genesis_invoke(self, genesis_accounts: List[Account]) -> dict:
         tx_hash = create_tx_hash()
