@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TypeVar, Type
+from typing import TypeVar, Type, Optional
 from unittest import TestCase
 
 from iconservice import IconScoreBase
@@ -40,6 +40,10 @@ class SCOREUnitTestBase(TestCase):
                         self.test_account2: 10**21}
         SCOREUnitTestBase.initialize_accounts(account_info)
 
+    def tearDown(self):
+        ContextUtil.reset_context()
+        SCOREPatcher.stop_patches()
+
     @staticmethod
     def transfer(_from: 'Address', to: 'Address', amount: int):
         if to.is_contract:
@@ -65,14 +69,24 @@ class SCOREUnitTestBase(TestCase):
 
     @staticmethod
     def set_context(context: 'IconScoreContext'):
-        SCOREPatcher.set_context(context)
+        SCOREPatcher._set_mock_context(context)
+
+    @staticmethod
+    def set_sender(sender: Optional['Address']=None):
+        ContextUtil.set_sender(sender)
+
+    @staticmethod
+    def set_value(value: Optional[int]=0):
+        ContextUtil.set_value(value)
+
+    @staticmethod
+    def set_block_height(height: int=0):
+        ContextUtil.set_block_height(height)
 
     @staticmethod
     def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict={}) -> T:
         score_db = SCOREPatcher.get_score_db()
         score = SCOREPatcher.initialize_score(score_class, score_db, owner)
-        context = ContextUtil.get_context()
-        SCOREPatcher.set_context(context)
         score.on_install(**on_install_params)
         return score
 
@@ -80,8 +94,6 @@ class SCOREUnitTestBase(TestCase):
     def update_score(prev_score: 'IconScoreBase', score_class: Type[T], on_update_params: dict={})->T:
         score_db = SCOREPatcher.get_score_db(prev_score.address)
         score = SCOREPatcher.initialize_score(score_class, score_db, prev_score.owner)
-        context = ContextUtil.get_context()
-        SCOREPatcher.set_context(context)
         score.on_update(**on_update_params)
         return score
 
@@ -104,5 +116,3 @@ class SCOREUnitTestBase(TestCase):
 
         assert match is True
 
-    def tearDown(self):
-        SCOREPatcher.stop_patches()

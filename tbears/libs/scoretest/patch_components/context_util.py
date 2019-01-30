@@ -24,9 +24,9 @@ from iconservice.icon_constant import IconScoreContextType, IconScoreFuncType
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
 from iconservice.iconscore.internal_call import InternalCall
 
-from tbears.libs.icon_integrate_test import create_tx_hash
-from tbears.libs.scoretest.mock_components.mock_icx_engine import MockIcxEngine
 from ..mock_components.mock_block import MockBlock
+from ....libs.icon_integrate_test import create_tx_hash
+from ....libs.scoretest.mock_components.mock_icx_engine import MockIcxEngine
 
 if TYPE_CHECKING:
     from iconservice.base.address import Address
@@ -73,7 +73,7 @@ class ContextUtil:
     context = get_default_context(IconScoreContext())
 
     @classmethod
-    def set_context(cls, sender: 'Address'=None, value: int=0, tx_timestamp: Optional[int]=None,
+    def set_context(cls, sender: Optional['Address']=None, value: int=0, tx_timestamp: Optional[int]=None,
                     block_height: int=0, func_type: 'IconScoreFuncType'=IconScoreFuncType.READONLY,
                     context_type: 'IconScoreContextType'=IconScoreContextType.QUERY):
         cls._set_block(cls.context, block_height)
@@ -85,6 +85,10 @@ class ContextUtil:
     @classmethod
     def get_context(cls):
         return cls.context
+
+    @classmethod
+    def reset_context(cls):
+        cls.context = get_default_context(IconScoreContext())
 
     @staticmethod
     def _set_invoke_context(context):
@@ -104,15 +108,12 @@ class ContextUtil:
         tx = context.tx
         msg.sender = sender
         tx._origin = sender
-        context.configure_mock(msg=msg)
-        context.configure_mock(tx=tx)
 
     @classmethod
     def set_value(cls, value):
         context = cls.context = ContextGetter._context
         msg = context.msg
         msg.value = value
-        context.configure_mock(msg=msg)
 
     @classmethod
     def set_block_height(cls, height):

@@ -49,7 +49,7 @@ def patch_score_method(method):
         context = ContextGetter._context
         method_flag = getattr(method, CONST_BIT_FLAG, 0)
         score_class, method_name = method.__qualname__.split('.')
-        context.configure_mock(current_address=method.__self__.address)
+        context.current_address=method.__self__.address
 
         if method_name == 'fallback':
             if not (method_flag & ConstBitFlag.Payable) and context.msg.value > 0:
@@ -90,15 +90,11 @@ class SCOREPatcher:
         IconScoreBase.get_owner = original_get_owner
         ContextUtil.set_context(owner, 0)
         context = ContextUtil.get_context()
-        SCOREPatcher.set_context(context)
+        SCOREPatcher._set_mock_context(context)
         SCOREPatcher.patch_score_methods(score)
         SCOREPatcher.patch_score_event_logs(score)
         score_mapper[score.address] = score
         return score
-
-    @staticmethod
-    def set_context(context: 'IconScoreContext'):
-        SCOREPatcher._set_mock_context(context)
 
     @staticmethod
     def _set_mock_context(context: 'IconScoreContext'):
