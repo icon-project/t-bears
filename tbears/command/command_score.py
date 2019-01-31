@@ -256,7 +256,8 @@ def check_project(project_path: str) -> int:
                 raise TBearsCommandException(f'package.json has wrong format.')
 
             # there is no main_file
-            if not os.path.exists(f"{project_path}/{package['main_file']}.py"):
-                raise TBearsCommandException(f"There is no main_file '{project_path}/{package['main_file']}.py'")
+            main_file_path = '/'.join(package['main_file'].split('.'))
+            if not os.path.exists(f"{project_path}/{main_file_path}.py"):
+                raise TBearsCommandException(f"There is no main_file '{project_path}/{main_file_path}.py'")
 
     return 0
