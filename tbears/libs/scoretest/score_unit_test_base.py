@@ -16,45 +16,41 @@
 from typing import TypeVar, Type, Optional
 from unittest import TestCase
 
-from iconservice import IconScoreBase
 from iconservice.base.address import Address
-from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
-from iconservice.iconscore.internal_call import InternalCall
+from iconservice.iconscore.icon_score_context import ContextGetter
 
 from .mock_components.mock_icx_engine import MockIcxEngine
-from .patch_components.context_util import ContextUtil, get_icon_score
-from .patch_components.score_patcher import SCOREPatcher, create_address
+from .patch_components.context_util import Context, get_icon_score
+from .patch_components.score_patcher import ScorePatcher, create_address, get_interface_score
 
 T = TypeVar('T')
 
 
-class SCOREUnitTestBase(TestCase):
+class ScoreTestCase(TestCase):
 
     def setUp(self):
-        SCOREPatcher.start_patches()
-        self.genesis_address = create_address(0)
-        self.test_account1 = create_address(0)
-        self.test_account2 = create_address(0)
+        ScorePatcher.start_patches()
+        self.genesis_address = create_address()
+        self.test_account1 = create_address()
+        self.test_account2 = create_address()
         account_info = {self.genesis_address: 10**30,
                         self.test_account1: 10**21,
                         self.test_account2: 10**21}
-        SCOREUnitTestBase.initialize_accounts(account_info)
+        ScoreTestCase.initialize_accounts(account_info)
 
     def tearDown(self):
-        ContextUtil.reset_context()
-        SCOREPatcher.stop_patches()
+        Context.reset_context()
+        ScorePatcher.stop_patches()
 
     @staticmethod
     def transfer(_from: 'Address', to: 'Address', amount: int):
         if to.is_contract:
             sender = ContextGetter._context.msg.sender
             value = ContextGetter._context.msg.value
-            ContextUtil.set_sender(_from)
-            ContextUtil.set_value(amount)
+            Context.set_msg(_from, amount)
             score = get_icon_score(to)
             score.fallback()
-            ContextUtil.set_sender(sender)
-            ContextUtil.set_value(value)
+            Context.set_msg(sender, value)
         else:
             MockIcxEngine.transfer(None, _from, to, amount)
 
@@ -68,51 +64,44 @@ class SCOREUnitTestBase(TestCase):
             MockIcxEngine.db.put(None, account.to_bytes(), amount)
 
     @staticmethod
-    def set_context(context: 'IconScoreContext'):
-        SCOREPatcher._set_mock_context(context)
+    def set_msg(sender: Optional['Address']=None, value: int=0):
+        Context.set_msg(sender, value)
 
     @staticmethod
-    def set_sender(sender: Optional['Address']=None):
-        ContextUtil.set_sender(sender)
+    def set_tx(origin: Optional['Address']=None, timestamp: Optional[int]=None, _hash: bytes=None,
+               index: int=0, nonce: int=0):
+        Context.set_tx(origin, timestamp, _hash, index, nonce)
 
     @staticmethod
-    def set_value(value: Optional[int]=0):
-        ContextUtil.set_value(value)
-
-    @staticmethod
-    def set_block_height(height: int=0):
-        ContextUtil.set_block_height(height)
+    def set_block(height: int=0, timestamp: Optional[int]=None):
+        Context.set_block(height, timestamp)
 
     @staticmethod
     def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict={}) -> T:
-        score_db = SCOREPatcher.get_score_db()
-        score = SCOREPatcher.initialize_score(score_class, score_db, owner)
+        score_db = ScorePatcher.get_score_db()
+        score = ScorePatcher.initialize_score(score_class, score_db, owner)
         score.on_install(**on_install_params)
         return score
 
     @staticmethod
-    def update_score(prev_score: 'IconScoreBase', score_class: Type[T], on_update_params: dict={})->T:
-        score_db = SCOREPatcher.get_score_db(prev_score.address)
-        score = SCOREPatcher.initialize_score(score_class, score_db, prev_score.owner)
+    def update_score(prev_score_address: 'Address', score_class: Type[T], on_update_params: dict={})->T:
+        prev_score = get_icon_score(prev_score_address)
+        score_db = ScorePatcher.get_score_db(prev_score.address)
+        score = ScorePatcher.initialize_score(score_class, score_db, prev_score.owner)
         score.on_update(**on_update_params)
         return score
 
     @staticmethod
-    def assert_internal_call(from_score, to_score, function_name, params):
-        external_call = InternalCall.other_external_call
-        external_call.assert_called()
+    def register_interface_score(internal_score_address):
+        ScorePatcher.register_interface_score(internal_score_address)
 
-        match = False
-        for call_args in external_call.call_args_list:
-            if call_args[0][0] == from_score and call_args[0][1] == to_score and call_args[0][2] == function_name:
-                param_match = True
-                for index, param in enumerate(params):
-                    if call_args[0][3][index] != param:
-                        param_match = False
-                        break
-                if param_match:
-                    match = True
-                    break
+    @staticmethod
+    def patch_internal_method(score_address, method, new_method=lambda: None):
+        ScorePatcher.register_interface_score(score_address)
+        ScorePatcher.patch_internal_method(score_address, method, new_method)
 
-        assert match is True
-
+    @staticmethod
+    def assert_internal_call(internal_score_address, method, *params):
+        interface_score = get_interface_score(internal_score_address)
+        internal_method = getattr(interface_score, method)
+        internal_method.assert_called_with(*params)

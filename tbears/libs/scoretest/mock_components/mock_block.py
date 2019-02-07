@@ -17,21 +17,19 @@ from time import time
 
 
 TIMESTAMP_FACT = 2 * 10 ** 6
-START_TIME = int(time()*10**6)
 
 
 class MockBlock:
     def __init__(self, height: int=0):
+        self.start_time = int(time()*10**6)
         self.height = height
-        self.timestamp = START_TIME + height * TIMESTAMP_FACT
+        self.timestamp = self.start_time + height * TIMESTAMP_FACT
 
     @property
     def _height(self):
         return self.height
 
     @_height.setter
-    def _height(self, height: int=0):
+    def _height(self, height):
         self.height = height
-        self.timestamp = START_TIME + height * TIMESTAMP_FACT
-
-
+        self.timestamp = self.start_time + self.height * TIMESTAMP_FACT
