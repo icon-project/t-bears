@@ -27,7 +27,7 @@ from iconservice.iconscore.icon_score_base import IconScoreBase
 from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFlag, FORMAT_IS_NOT_DERIVED_OF_OBJECT
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
 
-from .context_util import Context, score_mapper, interface_score_mapper
+from .context import Context, score_mapper, interface_score_mapper
 from ..mock_components.mock_db import MockKeyValueDatabase
 from ..mock_components.mock_icx_engine import MockIcxEngine
 
@@ -40,6 +40,12 @@ def create_address(prefix: AddressPrefix=AddressPrefix.EOA) -> 'Address':
 
 
 def patch_score_method(method):
+    """Patch SCORE method.
+    Refer to the decorator and patch the method to have the appropriate context
+
+    :param method: method to patch
+    :return: patched method
+    """
 
     @wraps(method)
     def patched(*args, **kwargs):
@@ -78,6 +84,12 @@ def get_interface_score(score_address):
 
 
 def new_create_interface_score(score_address, interface_score):
+    """This method called when SCORE call a 'create_interface_score' method while test using SCORE unit-test framework.
+
+    :param score_address: address of internal call SCORE
+    :param interface_score:
+    :return: mock instance
+    """
     return get_interface_score(score_address)
 
 
@@ -85,6 +97,12 @@ class ScorePatcher:
 
     @staticmethod
     def get_score_db(score_address: Optional['Address']=None):
+        """Get db of SCORE that having score_address.
+        create cx prefixed address and set it as SCORE's address if score_address is None
+
+        :param score_address: address of score.
+        :return: db SCORE use
+        """
         if not score_address:
             score_address = create_address(AddressPrefix.CONTRACT)
         score_db = IconScoreDatabase(score_address, context_db)
@@ -92,6 +110,13 @@ class ScorePatcher:
 
     @staticmethod
     def initialize_score(score_class, score_db, owner: 'Address'):
+        """Get an instance of the SCORE class passed as an score_class arguments
+
+        :param score_class: SCORE class to instantiate
+        :param score_db: database the SCORE use
+        :param owner: owner of SCORE
+        :return: Instantiated SCORE
+        """
         original_get_owner = IconScoreBase.get_owner
         IconScoreBase.get_owner = Mock(return_value=owner)
         score = score_class(score_db)
@@ -126,6 +151,10 @@ class ScorePatcher:
 
     @staticmethod
     def patch_score_methods(score):
+        """Patch all SCORE method by calling patch_score_method function
+
+        :param score: SCORE to be patched
+        """
         custom_methods = ScorePatcher.get_custom_methods(score.__class__)
         for custom_method in custom_methods:
             name = custom_method.__qualname__.split('.')[1]
@@ -134,6 +163,11 @@ class ScorePatcher:
 
     @staticmethod
     def get_custom_methods(score):
+        """Get user defined methods inside SCORE
+
+        :param score:
+        :return: user defined methods inside SCORE
+        """
         custom_methods = ScorePatcher._get_custom_methods(score)
         methods = set()
         for method in custom_methods:
@@ -151,21 +185,38 @@ class ScorePatcher:
 
     @staticmethod
     def register_interface_score(internal_score_address: Address):
+        """Register interface SCORE. This method must be called before testing internal call(Calling other SCORE method)
+
+        :param internal_score_address: address of internal call SCORE
+        """
         if not internal_score_address.is_contract:
             raise InvalidRequestException(f"{internal_score_address} is not SCORE")
         interface_score_mapper[internal_score_address] = Mock()
 
     @staticmethod
     def patch_interface_scores(score):
+        """Patch internal call SCORE with mock instance
+
+        """
         setattr(score, 'create_interface_score', new_create_interface_score)
 
     @staticmethod
     def patch_internal_method(internal_score_address, method, new_method):
+        """Patch internal method with given 'new_method'
+
+        :param internal_score_address: address of the SCORE having method to be called
+        :param method: method to be patched
+        :param new_method: method to patch
+        """
         interface_score = get_interface_score(internal_score_address)
         setattr(interface_score, method, Mock(side_effect=new_method))
 
     @staticmethod
     def patch_score_event_logs(score):
+        """Patch all event_logs inside SCORE
+
+        :param score: SCORE to be patched
+        """
         custom_methods = ScorePatcher._get_custom_methods(score.__class__)
         for method in custom_methods:
             if getattr(method, CONST_BIT_FLAG, 0) == ConstBitFlag.EventLog:
@@ -173,6 +224,8 @@ class ScorePatcher:
 
     @staticmethod
     def start_patches():
+        """Patch SCORE to use dictionary DB instance of LEVEL DB"""
+
         global context_db
         context_db = MockKeyValueDatabase.create_db()
         MockIcxEngine.db = context_db
@@ -180,6 +233,8 @@ class ScorePatcher:
 
     @staticmethod
     def stop_patches():
+        """Stop patching and clear db"""
+
         CONTEXT_PATCHER.stop()
         MockIcxEngine.db.close()
         score_mapper.clear()

@@ -24,7 +24,7 @@ from iconservice.icon_constant import IconScoreContextType, IconScoreFuncType
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
 from iconservice.iconscore.internal_call import InternalCall
 
-from ..mock_components.mock_block import MockBlock
+from ..mock_components.block import Block
 from ....libs.icon_integrate_test import create_tx_hash
 from ....libs.scoretest.mock_components.mock_icx_engine import MockIcxEngine
 
@@ -36,6 +36,11 @@ interface_score_mapper = {}
 
 
 def get_icon_score(address: 'Address'):
+    """This method will be called when SCORE call get_icon_score method while test using score-unittest-framework
+
+    :param address: address of SCORE
+    :return: SCORE
+    """
     if address.is_contract is False:
         raise InvalidParamsException(f"{address} is not SCORE")
     elif isinstance(score_mapper.get(address, None), IconScoreBase) is False:
@@ -53,7 +58,7 @@ def transfer(self: 'InternalCall', _from: 'Address', _to: 'Address', amount: int
 
 def get_default_context():
     context = IconScoreContext()
-    block = MockBlock()
+    block = Block()
     context.block = block
     context.icon_score_mapper = score_mapper
     context.traces = []
@@ -136,7 +141,7 @@ class Context:
 
     @staticmethod
     def _set_block(context, height: int = 0, timestamp: Optional[int] = None):
-        block: MockBlock = context.block
+        block: Block = context.block
         block._height = height
         if timestamp:
             block.timestamp = timestamp

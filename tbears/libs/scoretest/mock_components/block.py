@@ -19,7 +19,7 @@ from time import time
 TIMESTAMP_FACT = 2 * 10 ** 6
 
 
-class MockBlock:
+class Block:
     def __init__(self, height: int=0):
         self.start_time = int(time()*10**6)
         self.height = height
