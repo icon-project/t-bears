@@ -130,14 +130,16 @@ class CommandUtil(object):
 
         # when command is init, make score template.
         # when command is samples, make standard_crowd_sale or standard_token
-        py_contents, test_contents = contents_func(score_class)
+        py_contents, test_contents, unit_test_content = contents_func(project, score_class)
 
         write_file(project, f"{project}.py", py_contents)
         write_file(project, "package.json", package_json_contents)
         write_file(project, '__init__.py', '')
         if len(test_contents):
-            write_file(f'{project}/tests', f'test_{project}.py', test_contents)
+            write_file(f'{project}/tests', f'test_integrate_{project}.py', test_contents)
             write_file(f'{project}/tests', f'__init__.py', '')
+        if len(unit_test_content):
+            write_file(f"{project}/tests", f'test_unit_{project}.py', unit_test_content)
 
     @staticmethod
     def __gen_conf_file() -> list:
