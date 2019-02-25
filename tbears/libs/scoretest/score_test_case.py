@@ -43,40 +43,33 @@ class ScoreTestCase(TestCase):
         ScorePatcher.stop_patches()
 
     @staticmethod
-    def transfer(_from: 'Address', to: 'Address', amount: int):
-        """Transfer icx to given 'to' address
+    def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict={}) -> T:
+        """Get an instance of the SCORE class passed as an score_class arguments
 
-        :param _from: address of sender
-        :param to: address of receiver
-        :param amount: amount to transfer
+        :param score_class: SCORE class to instantiate
+        :param owner: owner of SCORE
+        :param on_install_params: parameters of on_install method
+        :return: Initialized SCORE
         """
-        if to.is_contract:
-            sender = ContextGetter._context.msg.sender
-            value = ContextGetter._context.msg.value
-            Context.set_msg(_from, amount)
-            score = get_icon_score(to)
-            score.fallback()
-            Context.set_msg(sender, value)
-        else:
-            MockIcxEngine.transfer(None, _from, to, amount)
+        score_db = ScorePatcher.get_score_db()
+        score = ScorePatcher.initialize_score(score_class, score_db, owner)
+        score.on_install(**on_install_params)
+        return score
 
     @staticmethod
-    def get_balance(address: 'Address'):
-        """Query icx balance of given address
+    def update_score(prev_score_address: 'Address', score_class: Type[T], on_update_params: dict={})->T:
+        """Update SCORE at 'prev_score_address' with 'score_class' instance and get updated SCORE
 
-        :param address: address to query for icx balance
-        :return: icx balance of given address
+        :param prev_score_address: address of SCORE to update
+        :param score_class: SCORE class to update
+        :param on_update_params: parameters of on_update method
+        :return: Updated SCORE
         """
-        return MockIcxEngine.get_balance(None, address)
-
-    @staticmethod
-    def initialize_accounts(accounts_info: dict):
-        """Initialize accounts using given dictionary info
-
-        :param accounts_info: dictionary with address as key and balance as value
-        """
-        for account, amount in accounts_info.items():
-            MockIcxEngine.db.put(None, account.to_bytes(), amount)
+        prev_score = get_icon_score(prev_score_address)
+        score_db = ScorePatcher.get_score_db(prev_score.address)
+        score = ScorePatcher.initialize_score(score_class, score_db, prev_score.owner)
+        score.on_update(**on_update_params)
+        return score
 
     @staticmethod
     def set_msg(sender: Optional['Address']=None, value: int=0):
@@ -108,35 +101,6 @@ class ScoreTestCase(TestCase):
         :param timestamp: Set timestamp attribute of block to given timestamp argument
         """
         Context.set_block(height, timestamp)
-
-    @staticmethod
-    def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict={}) -> T:
-        """Get an instance of the SCORE class passed as an score_class arguments
-
-        :param score_class: SCORE class to instantiate
-        :param owner: owner of SCORE
-        :param on_install_params: parameters of on_install method
-        :return: Initialized SCORE
-        """
-        score_db = ScorePatcher.get_score_db()
-        score = ScorePatcher.initialize_score(score_class, score_db, owner)
-        score.on_install(**on_install_params)
-        return score
-
-    @staticmethod
-    def update_score(prev_score_address: 'Address', score_class: Type[T], on_update_params: dict={})->T:
-        """Update SCORE at 'prev_score_address' with 'score_class' instance and get updated SCORE
-
-        :param prev_score_address: address of SCORE to update
-        :param score_class: SCORE class to update
-        :param on_update_params: parameters of on_update method
-        :return: Updated SCORE
-        """
-        prev_score = get_icon_score(prev_score_address)
-        score_db = ScorePatcher.get_score_db(prev_score.address)
-        score = ScorePatcher.initialize_score(score_class, score_db, prev_score.owner)
-        score.on_update(**on_update_params)
-        return score
 
     @staticmethod
     def register_interface_score(internal_score_address):
@@ -172,3 +136,39 @@ class ScoreTestCase(TestCase):
         interface_score = get_interface_score(internal_score_address)
         internal_method = getattr(interface_score, method)
         internal_method.assert_called_with(*params)
+
+    @staticmethod
+    def transfer(_from: 'Address', to: 'Address', amount: int):
+        """Transfer icx to given 'to' address
+
+        :param _from: address of sender
+        :param to: address of receiver
+        :param amount: amount to transfer
+        """
+        if to.is_contract:
+            sender = ContextGetter._context.msg.sender
+            value = ContextGetter._context.msg.value
+            Context.set_msg(_from, amount)
+            score = get_icon_score(to)
+            score.fallback()
+            Context.set_msg(sender, value)
+        else:
+            MockIcxEngine.transfer(None, _from, to, amount)
+
+    @staticmethod
+    def get_balance(address: 'Address'):
+        """Query icx balance of given address
+
+        :param address: address to query for icx balance
+        :return: icx balance of given address
+        """
+        return MockIcxEngine.get_balance(None, address)
+
+    @staticmethod
+    def initialize_accounts(accounts_info: dict):
+        """Initialize accounts using given dictionary info
+
+        :param accounts_info: dictionary with address as key and balance as value
+        """
+        for account, amount in accounts_info.items():
+            MockIcxEngine.db.put(None, account.to_bytes(), amount)

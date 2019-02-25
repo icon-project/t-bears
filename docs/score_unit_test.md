@@ -39,51 +39,46 @@ The SCORE unit test code works as follows
 
 Every SCORE unit test class must inherit `ScoreTestCase`.
 
-ScoreTestCase class provides three functions
+#### methods
 
-1. Support python unittest
+ScoreTestCase has 11 main methods. Inside setUp method and tearDown method, ScoreTestCase sets environment for SCORE unit-test and clear them.
+So, if you want to override setUp or tearDown, you should call `super()` top of the overriden method.
 
-   1. You can write and run the test method with prefix 'test_'
-   2. You can initialize and finalize the test by override setUp and tearDown method
+1. get_score_instance(score_class, owner, on_install_params)
+Get an instance of the SCORE class passed as an `score_class` argument
 
-2. Set properties used inside SCOREs.
+2. update_score(prev_score_address, score_class, on_update_params)
+Update SCORE at `prev_score_address` with `score_class` instance and get updated SCORE
 
-   1. set_msg(sender, value)
+3. set_msg(sender, value)
+Set msg property in SCORE
 
-      Set msg property in SCORE
+4. set_tx(origin, timestamp, _hash, index, nonce)
+Set tx property in SCORE
 
-   2. set_tx(origin, timestamp, _hash, index, nonce)
+5. set_block(height, timestamp)
+Set tx property in SCORE
 
-      Set tx property in SCORE
-      
-   3. set_block(height, timestamp)
+6. register_interface_score(internal_score_address)
+This method should be called before testing the internal_call that calls the SCORE method with an `internal_score_address` address.
+If you call this method, you can use the `assert_internal_call` method to evaluate whether internal_call is called properly with specified arguments.
 
-      Set block property in SCORE
-      
-3. Get instantiated SCORE
+7. patch_internal_method(score_address, method, new_method)
+You will use this method for patching query method to set return value.
+Since this function internally calls `register_interface_score`, you don't need to call `register_interface_score` when calling this function.
+The third argument, the new method, must be a function with the same number of arguments as the actual method.
 
-   1. get_score_instance(score_class, owner, on_install_params)
-      Get an instance of the SCORE class passed as an score_class arguments
-      
-   2. update_score(prev_score_address, score_class, on_update_params)
-      Update SCORE at `prev_score_address` with `score_class` instance and get updated SCORE
+8. assert_internal_call(internal_score_address, method, *params)
+assert that internal call(mock) was called with the specified arguments. Raises an AssertionError if the params passed in are different to the last call to the mock.
 
-After this method is called, the msg property is set to sender is owner, and value is set to 0.
+9. transfer(_from, to, amount)
+Transfer icx to given 'to' address. this method may used for testing `payable` method
 
-4. Mock Internal Call(Calling other SCORE method)
+10. get_balance(address)
+Query icx balance of given address.
 
-   1. register_interface_score(internal_score_address)
-      
-      This method should be called before testing the internal_call that calls the SCORE method with an `internal_score_address` address.
-      If you call this method, you can use the `assert_internal_call` method to evaluate whether internal_call is called properly with specified arguments.
-      
-   
-   2. patch_internal_method(score_address, method, new_method)
-   
-      You will use this method for patching query method to set return value.
-      Since this function internally calls `register_interface_score`, you don't need to call `register_interface_score` when calling this function.
-      The third argument, the new method, must be a function with the same number of arguments as the actual method.
-      
+11. initialize_accounts(accounts_info)
+Initialize accounts using given dictionary info.
 
 ### examples
 
