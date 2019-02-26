@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
+import json
 import os
 import shutil
 
@@ -154,6 +154,27 @@ class TestCommandScore(TestCommand):
         # working good
         os.rename(f"{project}.py.bak", f"{project}/{project}.py")
         self.assertEqual(check_project(project), 0)
+
+        # package.json > main_file has path value '/'
+        os.mkdir(f"{project}/modify")
+        os.rename(f"{project}/{project}.py", f"{project}/modify/{project}.py")
+        with open(f"{project}/package.json", mode='r+') as file:
+            package: dict = json.load(file)
+            package['main_file'] = f"modify/{project}"
+            file.seek(0)
+            file.truncate()
+            json.dump(package, file)
+        self.assertEqual(check_project(project), 0)
+
+        # package.json > main_file has path value with '.'
+        with open(f"{project}/package.json", mode='r+') as file:
+            package: dict = json.load(file)
+            package['main_file'] = f"modify.{project}"
+            file.seek(0)
+            file.truncate()
+            json.dump(package, file)
+        self.assertEqual(check_project(project), 0)
+
 
     def test_clear_args_parsing(self):
         # Parsing test

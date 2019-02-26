@@ -255,8 +255,12 @@ def check_project(project_path: str) -> int:
             if 'version' not in package or 'main_file' not in package or 'main_score' not in package:
                 raise TBearsCommandException(f'package.json has wrong format.')
 
+            # modify main_file. '.' -> '/'
+            main_file: str = package['main_file']
+            main_file = main_file.replace('.', '/')
+
             # there is no main_file
-            if not os.path.exists(f"{project_path}/{package['main_file']}.py"):
-                raise TBearsCommandException(f"There is no main_file '{project_path}/{package['main_file']}.py'")
+            if not os.path.exists(f"{project_path}/{main_file}.py"):
+                raise TBearsCommandException(f"There is no main_file '{project_path}/{main_file}.py'")
 
     return 0
