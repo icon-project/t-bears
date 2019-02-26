@@ -257,9 +257,10 @@ def check_project(project_path: str) -> int:
 
             # modify main_file. '.' -> '/'
             main_file: str = package['main_file']
+            main_file = main_file.replace('.', '/')
 
             # there is no main_file
-            if not os.path.exists(f"{project_path}/{main_file.replace('.', '/')}.py"):
-                raise TBearsCommandException(f"There is no main_file '{project_path}/{package['main_file']}.py'")
+            if not os.path.exists(f"{project_path}/{main_file}.py"):
+                raise TBearsCommandException(f"There is no main_file '{project_path}/{main_file}.py'")
 
     return 0
