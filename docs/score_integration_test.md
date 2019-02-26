@@ -138,13 +138,14 @@ class TestScoreTest(IconIntegrateTestBase):
     SCORE_PROJECT= os.path.abspath(os.path.join(DIR_PATH, '..'))
 
     def setUp(self):
+        # Initialize IconIntegrateTestBase
         super().setUp()
 
         self.icon_service = None
         # If you want to send request to network, uncomment next line and set self.TEST_HTTP_ENDPOINT_URI_V3
         # self.icon_service = IconService(HTTPProvider(self.TEST_HTTP_ENDPOINT_URI_V3))
 
-        # deploy SCORE
+        # 1. deploy SCORE
         self._score_address = self._deploy_score()['scoreAddress']
 
     def _deploy_score(self, to: str = SCORE_INSTALL_ADDRESS) -> dict:
@@ -179,16 +180,19 @@ class TestScoreTest(IconIntegrateTestBase):
         self.assertEqual(self._score_address, tx_result['scoreAddress'])
 
     def test_call_hello(self):
-        # Generates a call instance using the CallBuilder
+        # 2. Create a ICON JSON-RPC API call reques
         call = CallBuilder().from_(self._test1.get_address()) \
             .to(self._score_address) \
             .method("hello") \
             .build()
 
-        # Sends the call request
+        # 3. If neccessary, sign a ICON JSON-RPC API request
+        # call request needs no signing
+
+        # 4. Invoke a ICON JSON-RPC API request and get the result
         response = self._process_call(call, self.icon_service)
 
-        # check call result
+        # 5. check the call result
         self.assertEqual("Hello", response)
 ```
 
