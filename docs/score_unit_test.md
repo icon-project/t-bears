@@ -29,56 +29,72 @@ $ python -m unittest discover <score_project_path>
 
 ## How to write SCORE unit test code
 
-The SCORE unit test code works as follows
+SCORE unittest should inherit `ScoreTestCase`. The SCORE unit test code works as follows
 
 1. get SCORE instance to be tested
 2. Call SCORE method
 3. Check the result
 
-#### ScoreTestCase in T-Bears
+## Functions provided by ScoreTestCase
 
-Every SCORE unit test class must inherit `ScoreTestCase`.
+1. Initialize the DB(Store information on dict) to be used in the unit test.
+2. Supports the ability to set the `property` in SCORE to the value that the user wants.
+3. Mocking the event log (It is sufficient to check that the event log has been called.)
+4. internalCall(to call external other SCORE functions) mocking. The operation on the other SCORE is considered to be reliable, and it is checked that the internalCall is called with the specified arguments.
 
-#### methods
+### methods
 
 ScoreTestCase has 11 main methods. Inside setUp method and tearDown method, ScoreTestCase sets environment for SCORE unit-test and clear them.
 So, if you want to override setUp or tearDown, you should call `super()` top of the overriden method.
 
-1. get_score_instance(score_class, owner, on_install_params)
-Get an instance of the SCORE class passed as an `score_class` argument
+- get_score_instance(score_class, owner, on_install_params)<br>
+Get an instance of the SCORE class passed as an `score_class` argument<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `setUp` method
 
-2. update_score(prev_score_address, score_class, on_update_params)
-Update SCORE at `prev_score_address` with `score_class` instance and get updated SCORE
+- update_score(prev_score_address, score_class, on_update_params)<br>
+Update SCORE at `prev_score_address` with `score_class` instance and get updated SCORE<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `test_update` method
 
-3. set_msg(sender, value)
-Set msg property in SCORE
+- set_msg(sender, value)<br>
+Set msg property in SCORE<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `test_msg` method
 
-4. set_tx(origin, timestamp, _hash, index, nonce)
-Set tx property in SCORE
+- set_tx(origin, timestamp, _hash, index, nonce)<br>
+Set tx property in SCORE<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `test_tx` method
 
-5. set_block(height, timestamp)
-Set tx property in SCORE
+- set_block(height, timestamp)<br>
+Set the block property inside SCORE. If you pass only height, the value of block.timestamp is set to height * 2 seconds.<br>
+When this method is called, the block_height inside the SCORE associated with the block is set to height, and the return value of the now () method is set to timestamp.<br>
+It should be called if you use the value associated with the block information in the SCORE method you are calling.<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `test_block` method
 
-6. register_interface_score(internal_score_address)
+- register_interface_score(internal_score_address)<br>
 This method should be called before testing the internal_call that calls the SCORE method with an `internal_score_address` address.
-If you call this method, you can use the `assert_internal_call` method to evaluate whether internal_call is called properly with specified arguments.
+If you call this method, you can use the `assert_internal_call` method to evaluate whether internal_call is called properly with specified arguments.<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `test_internal2` method
 
-7. patch_internal_method(score_address, method, new_method)
+- patch_internal_method(score_address, method, new_method)<br>
 You will use this method for patching query method to set return value.
 Since this function internally calls `register_interface_score`, you don't need to call `register_interface_score` when calling this function.
-The third argument, the new method, must be a function with the same number of arguments as the actual method.
+The third argument, the new method, must be a function with the same number of arguments as the actual method.<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `test_interanl` method
 
-8. assert_internal_call(internal_score_address, method, *params)
-assert that internal call(mock) was called with the specified arguments. Raises an AssertionError if the params passed in are different to the last call to the mock.
+- assert_internal_call(internal_score_address, method, *params)<br>
+assert that internal call(mock) was called with the specified arguments. Raises an AssertionError if the params passed in are different to the last call to the mock.<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `test_internal` method
 
-9. transfer(_from, to, amount)
-Transfer icx to given 'to' address. this method may used for testing `payable` method
+- transfer(_from, to, amount)<br>
+Transfer icx to given 'to' address. If you pass a SCORE address to the `to` argument, this method calls the SCORE fallback method.<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `test_transfer` method
 
-10. get_balance(address)
-Query icx balance of given address.
+- get_balance(address)<br>
+Query icx balance of given address.<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `test_get_balance` method
 
-11. initialize_accounts(accounts_info)
-Initialize accounts using given dictionary info.
+- initialize_accounts(accounts_info)<br>
+Initialize accounts using given dictionary info.<br>
+Refer [example](#simple_score2/tests/test_unit_simple_score2.py) `setUp` method
 
 ### examples
 
@@ -153,8 +169,9 @@ class SimpleScore2(IconScoreBase):
         super().on_install()
         self.score_address.set(score_address)
 
-    def on_update(self) -> None:
+    def on_update(self, value: str) -> None:
         super().on_update()
+        self.value.set(value)
     
     @external(readonly=True)
     def getValue(self) -> str:
@@ -183,6 +200,22 @@ class SimpleScore2(IconScoreBase):
     def write_on_readonly(self) ->str:
         self.value.set('3')
         return 'd'
+        
+    # This method is for understanding the ScoreTestCase.set_msg method.
+    def t_msg(self):
+        assert self.msg.sender == Address.from_string(f"hx{'1234'*10}")
+        assert self.msg.value == 3
+    
+    # This method is for understanding the ScoreTestCase.set_tx method.
+    def t_tx(self):
+        assert self.tx.origin == Address.from_string(f"hx{'1234'*10}")
+    
+    # This method is for understanding the ScoreTestCase.set_block method.
+    def t_block(self):
+        assert self.block.height == 3
+        assert self.block.timestamp == 30
+        assert self.block_height ==3
+        assert self.now() == 30
 
 ```
 
@@ -201,9 +234,13 @@ class TestSimple(ScoreTestCase):
         self.mock_score_address = Address.from_string(f"cx{'1234'*10}")
         self.score2 = self.get_score_instance(SimpleScore2, self.test_account1,
                                               on_install_params={'score_address': self.mock_score_address})
-
-    def tearDown(self):
-        super().tearDown()
+                                              
+        self.test_account3 = Address.from_string(f"hx{'12345'*8}")
+        self.test_account4 = Address.from_string(f"hx{'1234'*10}")
+        account_info = {
+                        self.test_account3: 10 ** 21,
+                        self.test_account4: 10 ** 21}
+        self.initialize_accounts(account_info)
 
     def test_set_value(self):
         str_value = 'string_value'
@@ -228,15 +265,13 @@ class TestSimple(ScoreTestCase):
 
     # internal call
     def test_internal_call(self):
-        # Patch the getValue function of SCORE at self.mock_score_address address with a function that takes no argument and returns 150
-        self.patch_internal_method(self.mock_score_address, 'getValue', lambda: 150)
+        self.patch_internal_method(self.mock_score_address, 'getValue', lambda: 150) # Patch the getValue function of SCORE at self.mock_score_address address with a function that takes no argument and returns 150
         value = self.score2.getSCOREValue()
         self.assertEqual(value, 150)
-        self.assert_internal_call(self.mock_score_address, 'getValue')
+        self.assert_internal_call(self.mock_score_address, 'getValue') # assert getValue in self.mock_score_address is called.
         
-        # You only need to call patch_internal_method or register_interface_score called once.
         self.score2.setSCOREValue('asdf')
-        self.assert_internal_call(self.mock_score_address, 'setValue', 'asdf')
+        self.assert_internal_call(self.mock_score_address, 'setValue', 'asdf') # assert setValue in self.mock_score_address is called with 'asdf'
 
     # internal call
     def test_internal_call2(self):
@@ -244,15 +279,59 @@ class TestSimple(ScoreTestCase):
         self.register_interface_score(self.mock_score_address)
         self.score2.setSCOREValue('asdf')
         self.assert_internal_call(self.mock_score_address, 'setValue', 'asdf')
+        
+    def test_msg(self):
+        self.set_msg(Address.from_string(f"hx{'1234'*10}"), 3)
+        self.score2.t_msg() # On the upper line, set the msg property to pass the assert statement so that no exception is raised.
+
+        self.set_msg(Address.from_string(f"hx{'12'*20}"), 3)
+        self.assertRaises(AssertionError, self.score2.t_msg) # On the upper line, set the msg property not to pass the assert statement, and raise an exception.
+
+    def test_tx(self):
+        self.set_tx(Address.from_string(f"hx{'1234'*10}"))
+        self.score2.t_tx() # On the upper line, set the tx property to pass the assert statement so that no exception is raised.
+
+        self.set_tx(Address.from_string(f"hx{'12'*20}"))
+        self.assertRaises(AssertionError, self.score2.t_tx) # On the upper line, set the tx property not to pass the assert statement, and raise an exception.
+
+    def test_block(self):
+        self.set_block(3, 30)
+        self.score2.t_block() # On the upper line, set the block property to pass the assert statement so that no exception is raised.
+
+        self.set_block(3)
+        self.assertRaises(AssertionError, self.score2.t_block) # On the upper line, set the block property not to pass the assert statement, and raise an exception.
+        
+    def test_update(self):
+        self.score2 = self.update_score(self.score2.address, SimpleScore2, on_update_params={"value": "updated_value"})
+        self.assertEqual(self.score2.value.get(), "updated_value") # In the on_update method of SimpleScore2, set the value of the value to "updated_value".
+
+    def test_get_balance(self):
+        balance = self.get_balance(self.test_account3)
+        self.assertEqual(balance, 10**21)
+
+    def test_transfer(self):
+        # before calling transfer method, check balance of test_account3 and test_account4
+        amount = 10**21
+        balance_3 = self.get_balance(self.test_account3)
+        self.assertEqual(balance_3, amount)
+        balance_4 = self.get_balance(self.test_account4)
+        self.assertEqual(balance_4, amount)
+
+        self.transfer(self.test_account3, self.test_account4, amount)
+        # after calling transfer method, check balance of test_account3 and test_account4
+        balance_3 = self.get_balance(self.test_account3)
+        self.assertEqual(balance_3, 0)
+        balance_4 = self.get_balance(self.test_account4)
+        self.assertEqual(balance_4, amount*2)
 ```
 
 #### Run test code
 
 ```bash
 $ tbears test simple_score2
-....
+........
 ----------------------------------------------------------------------
-Ran 5 tests in 0.006s
+Ran 11 tests in 0.027s
 
 OK
 ```
