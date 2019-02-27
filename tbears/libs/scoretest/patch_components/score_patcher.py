@@ -121,9 +121,9 @@ class ScorePatcher:
         IconScoreBase.get_owner = Mock(return_value=owner)
         score = score_class(score_db)
         IconScoreBase.get_owner = original_get_owner
-        Context.initialize_variables(owner, 0)
         context = Context.get_context()
         ScorePatcher._set_mock_context(context)
+        Context.set_msg(owner, 0)
         ScorePatcher.patch_score_methods(score)
         ScorePatcher.patch_score_event_logs(score)
         ScorePatcher.patch_interface_scores(score)

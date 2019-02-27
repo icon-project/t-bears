@@ -16,7 +16,9 @@
 from typing import TypeVar, Type, Optional
 from unittest import TestCase
 
+from iconservice import IconScoreBase
 from iconservice.base.address import Address
+from iconservice.base.exception import InvalidRequestException
 from iconservice.iconscore.icon_score_context import ContextGetter
 
 from .mock_components.mock_icx_engine import MockIcxEngine
@@ -24,6 +26,11 @@ from .patch_components.context import Context, get_icon_score
 from .patch_components.score_patcher import ScorePatcher, create_address, get_interface_score
 
 T = TypeVar('T')
+
+
+def validate_score(score):
+    if issubclass(score, IconScoreBase) is False:
+        raise InvalidRequestException(f"{score.__name__} is invalid SCORE class")
 
 
 class ScoreTestCase(TestCase):
@@ -37,6 +44,7 @@ class ScoreTestCase(TestCase):
                         self.test_account1: 10**21,
                         self.test_account2: 10**21}
         ScoreTestCase.initialize_accounts(account_info)
+        Context.initialize_variables()
 
     def tearDown(self):
         Context.reset_context()
@@ -51,9 +59,11 @@ class ScoreTestCase(TestCase):
         :param on_install_params: parameters of on_install method
         :return: Initialized SCORE
         """
+        validate_score(score_class)
         score_db = ScorePatcher.get_score_db()
         score = ScorePatcher.initialize_score(score_class, score_db, owner)
         score.on_install(**on_install_params)
+        ScoreTestCase.set_msg(None, None)
         return score
 
     @staticmethod
@@ -65,10 +75,12 @@ class ScoreTestCase(TestCase):
         :param on_update_params: parameters of on_update method
         :return: Updated SCORE
         """
+        validate_score(score_class)
         prev_score = get_icon_score(prev_score_address)
         score_db = ScorePatcher.get_score_db(prev_score.address)
         score = ScorePatcher.initialize_score(score_class, score_db, prev_score.owner)
         score.on_update(**on_update_params)
+        ScoreTestCase.set_msg(None, None)
         return score
 
     @staticmethod
