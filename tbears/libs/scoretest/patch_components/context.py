@@ -48,11 +48,11 @@ def get_icon_score(address: 'Address'):
     return score_mapper[address]
 
 
-def get_balance(self: InternalCall, address: 'Address'):
+def internal_get_balance(self: InternalCall, address: 'Address'):
     return MockIcxEngine.get_balance(None, address)
 
 
-def transfer(self: 'InternalCall', _from: 'Address', _to: 'Address', amount: int):
+def internal_transfer(self: 'InternalCall', _from: 'Address', _to: 'Address', amount: int):
     MockIcxEngine.transfer(ContextGetter._context, _from, _to, amount)
 
 
@@ -71,8 +71,8 @@ def get_default_context():
     return context
 
 
-InternalCall.get_icx_balance = get_balance
-InternalCall.icx_transfer_call = transfer
+InternalCall.get_icx_balance = internal_get_balance
+InternalCall.icx_transfer_call = internal_transfer
 
 
 class Context:

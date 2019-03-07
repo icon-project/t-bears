@@ -123,17 +123,17 @@ class ScoreTestCase(TestCase):
         ScorePatcher.register_interface_score(internal_score_address)
 
     @staticmethod
-    def patch_internal_method(score_address, method, new_method=lambda: None):
+    def patch_internal_method(internal_score_address, method, new_method=lambda: None):
         """Patch internal method with given 'new_method'
         This method call register_interface_score method. so, don't need to call register_interface_score method
         if this method called.
 
-        :param score_address: address of the SCORE having method to be called
+        :param internal_score_address: address of the SCORE having method to be called
         :param method: method to be patched
         :param new_method: method to patch
         """
-        ScorePatcher.register_interface_score(score_address)
-        ScorePatcher.patch_internal_method(score_address, method, new_method)
+        ScorePatcher.register_interface_score(internal_score_address)
+        ScorePatcher.patch_internal_method(internal_score_address, method, new_method)
 
     @staticmethod
     def assert_internal_call(internal_score_address, method, *params):
