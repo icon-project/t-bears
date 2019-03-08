@@ -24,9 +24,9 @@ from iconservice.icon_constant import IconScoreContextType, IconScoreFuncType
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
 from iconservice.iconscore.internal_call import InternalCall
 
-from ..mock_components.block import Block
+from ..mock.block import Block
 from ....libs.icon_integrate_test import create_tx_hash
-from ....libs.scoretest.mock_components.icx_engine import IcxEngine
+from ....libs.scoretest.mock.icx_engine import IcxEngine
 
 if TYPE_CHECKING:
     from iconservice.base.address import Address

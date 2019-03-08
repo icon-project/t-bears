@@ -21,9 +21,9 @@ from iconservice.base.address import Address
 from iconservice.base.exception import InvalidRequestException
 from iconservice.iconscore.icon_score_context import ContextGetter
 
-from .mock_components.icx_engine import IcxEngine
-from .patch_components.context import Context, get_icon_score
-from .patch_components.score_patcher import ScorePatcher, create_address, get_interface_score
+from .mock.icx_engine import IcxEngine
+from .patch.context import Context, get_icon_score
+from .patch.score_patcher import ScorePatcher, create_address, get_interface_score
 
 T = TypeVar('T')
 

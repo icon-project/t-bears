@@ -28,8 +28,8 @@ from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFl
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
 
 from .context import Context, score_mapper, interface_score_mapper
-from ..mock_components.db import MockKeyValueDatabase
-from ..mock_components.icx_engine import IcxEngine
+from ..mock.db import MockKeyValueDatabase
+from ..mock.icx_engine import IcxEngine
 
 context_db = None
 CONTEXT_PATCHER = patch('iconservice.iconscore.icon_score_context.ContextGetter._context')
