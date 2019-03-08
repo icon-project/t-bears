@@ -46,7 +46,7 @@ SCORE unittest should inherit `ScoreTestCase`. The SCORE unit test code works as
 - Mock event log
   - It is sufficient to check that the event log has been called
 - Mock internalCall(call external function in SCORE).
-  - The operation on the other SCORE is considered to be reliable, and it is checked that the internalCall is called with the specified arguments.
+  - The operation on the other SCORE is considered to be reliable. so, what you need is InternalCall called with specified arguments.
 
 ### methods
 
@@ -58,7 +58,7 @@ So, if you want to override setUp or tearDown, you should call `super()` top of 
     - Get an instance of the SCORE class passed as an `score_class` argument<br>
     - **parameters**
       - **score_class** : SCORE  to instantiate
-      - **owner** : owner address of SCORE.
+      - **owner** : Address to set as owner of SCORE
       - **on_install_params** : parameters of on_install_method
     - Refer `setUp` method in [example](#simple_score2/tests/test_unit_simple_score2.py)
   - update_score(prev_score_address, score_class, on_update_params)<br>

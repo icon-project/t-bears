@@ -165,7 +165,7 @@ class ScorePatcher:
     def get_custom_methods(score):
         """Get user defined methods inside SCORE
 
-        :param score:
+        :param score: SCORE to get the custom method
         :return: user defined methods inside SCORE
         """
         custom_methods = ScorePatcher._get_custom_methods(score)
@@ -195,9 +195,7 @@ class ScorePatcher:
 
     @staticmethod
     def patch_interface_scores(score):
-        """Patch internal call SCORE with mock instance
-
-        """
+        """Patch internal call SCORE with mock instance"""
         setattr(score, 'create_interface_score', new_create_interface_score)
 
     @staticmethod

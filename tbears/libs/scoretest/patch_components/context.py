@@ -49,10 +49,12 @@ def get_icon_score(address: 'Address'):
 
 
 def internal_get_balance(self: InternalCall, address: 'Address'):
+    """This function will be called when calling `get_icx_balance` method inside SCORE"""
     return MockIcxEngine.get_balance(None, address)
 
 
 def internal_transfer(self: 'InternalCall', _from: 'Address', _to: 'Address', amount: int):
+    """This function will be called when calling `icx_transfer_call` method inside SCORE"""
     MockIcxEngine.transfer(ContextGetter._context, _from, _to, amount)
 
 

@@ -55,8 +55,8 @@ class ScoreTestCase(TestCase):
         """Get an instance of the SCORE class passed as an score_class arguments
 
         :param score_class: SCORE class to instantiate
-        :param owner: owner of SCORE
-        :param on_install_params: parameters of on_install method
+        :param owner: Address to set as owner of SCORE
+        :param on_install_params: To be passed to the SCORE on_install method
         :return: Initialized SCORE
         """
         validate_score(score_class)
@@ -72,7 +72,7 @@ class ScoreTestCase(TestCase):
 
         :param prev_score_address: address of SCORE to update
         :param score_class: SCORE class to update
-        :param on_update_params: parameters of on_update method
+        :param on_update_params: To be passed to the SCORE on_update method
         :return: Updated SCORE
         """
         validate_score(score_class)
@@ -85,23 +85,23 @@ class ScoreTestCase(TestCase):
 
     @staticmethod
     def set_msg(sender: Optional['Address']=None, value: int=0):
-        """Sets msg property used inside SCORE
+        """Set msg property used inside SCORE
 
-        :param sender: Set sender attribute of msg to given sender argument
-        :param value: Set value attribute of msg to given value argument
+        :param sender: Set sender attribute of msg to this param
+        :param value: Set value attribute of msg to this param
         """
         Context.set_msg(sender, value)
 
     @staticmethod
     def set_tx(origin: Optional['Address']=None, timestamp: Optional[int]=None, _hash: bytes=None,
                index: int=0, nonce: int=0):
-        """Sets tx property used inside SCORE
+        """Set tx property used inside SCORE
 
-        :param origin: Set origin attribute of tx to given origin argument
-        :param timestamp: Set timestamp attribute of tx to given timestamp argument
-        :param _hash: Set hash attribute of tx to given _hash argument
-        :param index: Set index attribute of tx to given index argument
-        :param nonce: Set nonce attribute of tx to given nonce argument
+        :param origin: Set origin attribute of tx to this param
+        :param timestamp: Set timestamp attribute of tx to this param
+        :param _hash: Set hash attribute of tx to this param
+        :param index: Set index attribute of tx to this param
+        :param nonce: Set nonce attribute of tx to this param
         """
         Context.set_tx(origin, timestamp, _hash, index, nonce)
 
@@ -109,8 +109,8 @@ class ScoreTestCase(TestCase):
     def set_block(height: int=0, timestamp: Optional[int]=None):
         """Sets block property used inside SCORE
 
-        :param height: Set height attribute of block to given height argument
-        :param timestamp: Set timestamp attribute of block to given timestamp argument
+        :param height: Set height attribute of block to this param
+        :param timestamp: Set timestamp attribute of block to this param
         """
         Context.set_block(height, timestamp)
 
@@ -137,7 +137,7 @@ class ScoreTestCase(TestCase):
 
     @staticmethod
     def assert_internal_call(internal_score_address, method, *params):
-        """assert that internal call(mock) was called with the specified arguments.
+        """Assert internal call(mock) was called with the specified arguments.
         Raises an AssertionError if the params passed in are
         different to the last call to the mock.
 
