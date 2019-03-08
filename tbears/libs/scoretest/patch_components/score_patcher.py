@@ -28,8 +28,8 @@ from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFl
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
 
 from .context import Context, score_mapper, interface_score_mapper
-from ..mock_components.mock_db import MockKeyValueDatabase
-from ..mock_components.mock_icx_engine import MockIcxEngine
+from ..mock_components.db import MockKeyValueDatabase
+from ..mock_components.icx_engine import IcxEngine
 
 context_db = None
 CONTEXT_PATCHER = patch('iconservice.iconscore.icon_score_context.ContextGetter._context')
@@ -64,7 +64,7 @@ def patch_score_method(method):
             Context._set_invoke_context(context)
         elif method_flag & ConstBitFlag.Payable:
             Context._set_invoke_context(context)
-            MockIcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
+            IcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
         elif method_name in ('on_install', 'on_update'):
             Context._set_invoke_context(context)
 
@@ -84,7 +84,7 @@ def get_interface_score(score_address):
 
 
 def new_create_interface_score(score_address, interface_score):
-    """This method called when SCORE call a 'create_interface_score' method while test using SCORE unit-test framework.
+    """Hooking method for SCORE.create_interface_score
 
     :param score_address: address of internal call SCORE
     :param interface_score:
@@ -226,7 +226,7 @@ class ScorePatcher:
 
         global context_db
         context_db = MockKeyValueDatabase.create_db()
-        MockIcxEngine.db = context_db
+        IcxEngine.db = context_db
         CONTEXT_PATCHER.start()
 
     @staticmethod
@@ -234,6 +234,6 @@ class ScorePatcher:
         """Stop patching and clear db"""
 
         CONTEXT_PATCHER.stop()
-        MockIcxEngine.db.close()
+        IcxEngine.db.close()
         score_mapper.clear()
         interface_score_mapper.clear()

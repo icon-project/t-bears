@@ -25,12 +25,12 @@ class MockKeyValueDatabase(KeyValueDatabase):
     """plyvel database wrapper"""
 
     @staticmethod
-    def create_db() -> 'MockPlyvelDB':
-        db = MockPlyvelDB(MockPlyvelDB.make_db())
+    def create_db() -> 'PlyvelDB':
+        db = PlyvelDB(PlyvelDB.make_db())
         return db
 
 
-class MockPlyvelDB(object):
+class PlyvelDB(object):
     """plyvel database wrapper"""
 
     @staticmethod
@@ -60,10 +60,10 @@ class MockPlyvelDB(object):
         self._db = None
 
     def get_sub_db(self, key: bytes):
-        return MockPlyvelDB(self.make_db())
+        return PlyvelDB(self.make_db())
 
     def iterator(self) -> iter:
         return iter(self._db)
 
-    def prefixed_db(self, bytes_prefix) -> 'MockPlyvelDB':
-        return MockPlyvelDB(MockPlyvelDB.make_db())
+    def prefixed_db(self, bytes_prefix) -> 'PlyvelDB':
+        return PlyvelDB(PlyvelDB.make_db())

@@ -17,15 +17,15 @@ from typing import TYPE_CHECKING
 
 from iconservice.base.exception import InvalidRequestException
 
-from .mock_db import MockPlyvelDB
+from .db import PlyvelDB
 
 if TYPE_CHECKING:
     from iconservice.base.address import Address
     from iconservice.iconscore.icon_score_context import IconScoreContext
 
 
-class MockIcxEngine:
-    db: MockPlyvelDB = None
+class IcxEngine:
+    db: PlyvelDB = None
 
     @classmethod
     def get_balance(cls, context: 'IconScoreContext', address: 'Address') -> int:
@@ -34,11 +34,11 @@ class MockIcxEngine:
 
     @classmethod
     def transfer(cls, context: 'IconScoreContext', _from: 'Address', _to: 'Address', amount: int):
-        _sender_address = _from.to_bytes()
-        _receiver_address = _to.to_bytes()
+        sender_address = _from.to_bytes()
+        receiver_address = _to.to_bytes()
 
-        sender_balance = none_to_zero(cls.db.get(context, _sender_address))
-        receiver_balance = none_to_zero(cls.db.get(context, _receiver_address))
+        sender_balance = none_to_zero(cls.db.get(context, sender_address))
+        receiver_balance = none_to_zero(cls.db.get(context, receiver_address))
 
         if sender_balance < amount:
             raise InvalidRequestException('out of balance')
@@ -46,8 +46,8 @@ class MockIcxEngine:
         sender_balance -= amount
         receiver_balance += amount
 
-        cls.db._db[_sender_address] = sender_balance
-        cls.db._db[_receiver_address] = receiver_balance
+        cls.db._db[sender_address] = sender_balance
+        cls.db._db[receiver_address] = receiver_balance
 
 
 def none_to_zero(balance) -> int:

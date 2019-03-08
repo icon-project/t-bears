@@ -26,7 +26,7 @@ from iconservice.iconscore.internal_call import InternalCall
 
 from ..mock_components.block import Block
 from ....libs.icon_integrate_test import create_tx_hash
-from ....libs.scoretest.mock_components.mock_icx_engine import MockIcxEngine
+from ....libs.scoretest.mock_components.icx_engine import IcxEngine
 
 if TYPE_CHECKING:
     from iconservice.base.address import Address
@@ -49,13 +49,17 @@ def get_icon_score(address: 'Address'):
 
 
 def internal_get_balance(self: InternalCall, address: 'Address'):
-    """This function will be called when calling `get_icx_balance` method inside SCORE"""
-    return MockIcxEngine.get_balance(None, address)
+    """Hooking method for InternalCall.get_icx_balance"""
+    return IcxEngine.get_balance(None, address)
 
 
 def internal_transfer(self: 'InternalCall', _from: 'Address', _to: 'Address', amount: int):
-    """This function will be called when calling `icx_transfer_call` method inside SCORE"""
-    MockIcxEngine.transfer(ContextGetter._context, _from, _to, amount)
+    """Hooking method for InternalCal.icx_transfer_call"""
+    IcxEngine.transfer(ContextGetter._context, _from, _to, amount)
+
+
+InternalCall.get_icx_balance = internal_get_balance
+InternalCall.icx_transfer_call = internal_transfer
 
 
 def get_default_context():
@@ -67,14 +71,10 @@ def get_default_context():
     context.validate_score_blacklist = Mock(return_value=True)
     context.tx = Transaction()
     context.msg = Message()
-    context.get_icon_score = Mock(side_effect=get_icon_score)
+    context.get_icon_score = get_icon_score
     context.block_batch = None
     context.tx_batch = None
     return context
-
-
-InternalCall.get_icx_balance = internal_get_balance
-InternalCall.icx_transfer_call = internal_transfer
 
 
 class Context:

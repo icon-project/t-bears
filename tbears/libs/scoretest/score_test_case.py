@@ -21,7 +21,7 @@ from iconservice.base.address import Address
 from iconservice.base.exception import InvalidRequestException
 from iconservice.iconscore.icon_score_context import ContextGetter
 
-from .mock_components.mock_icx_engine import MockIcxEngine
+from .mock_components.icx_engine import IcxEngine
 from .patch_components.context import Context, get_icon_score
 from .patch_components.score_patcher import ScorePatcher, create_address, get_interface_score
 
@@ -87,8 +87,8 @@ class ScoreTestCase(TestCase):
     def set_msg(sender: Optional['Address']=None, value: int=0):
         """Set msg property used inside SCORE
 
-        :param sender: Set sender attribute of msg to this param
-        :param value: Set value attribute of msg to this param
+        :param sender: sender attribute of msg
+        :param value: value attribute of msg
         """
         Context.set_msg(sender, value)
 
@@ -97,11 +97,11 @@ class ScoreTestCase(TestCase):
                index: int=0, nonce: int=0):
         """Set tx property used inside SCORE
 
-        :param origin: Set origin attribute of tx to this param
-        :param timestamp: Set timestamp attribute of tx to this param
-        :param _hash: Set hash attribute of tx to this param
-        :param index: Set index attribute of tx to this param
-        :param nonce: Set nonce attribute of tx to this param
+        :param origin: origin attribute of tx
+        :param timestamp: timestamp attribute of tx
+        :param _hash: hash attribute of tx
+        :param index: index attribute of tx
+        :param nonce: nonce attribute of tx
         """
         Context.set_tx(origin, timestamp, _hash, index, nonce)
 
@@ -109,14 +109,14 @@ class ScoreTestCase(TestCase):
     def set_block(height: int=0, timestamp: Optional[int]=None):
         """Sets block property used inside SCORE
 
-        :param height: Set height attribute of block to this param
-        :param timestamp: Set timestamp attribute of block to this param
+        :param height: height attribute of block
+        :param timestamp: timestamp attribute of block
         """
         Context.set_block(height, timestamp)
 
     @staticmethod
     def register_interface_score(internal_score_address):
-        """Register interface SCORE. This method must be called before testing internal call(Calling other SCORE method)
+        """Register interface SCORE. This method must be called before testing internal call
 
         :param internal_score_address: address of interface SCORE
         """
@@ -124,7 +124,8 @@ class ScoreTestCase(TestCase):
 
     @staticmethod
     def patch_internal_method(internal_score_address, method, new_method=lambda: None):
-        """Patch internal method with given 'new_method'
+        """Patch method of SCORE on internal_score_address with given method
+
         This method call register_interface_score method. so, don't need to call register_interface_score method
         if this method called.
 
@@ -137,7 +138,8 @@ class ScoreTestCase(TestCase):
 
     @staticmethod
     def assert_internal_call(internal_score_address, method, *params):
-        """Assert internal call(mock) was called with the specified arguments.
+        """Assert internal call was called with the specified arguments.
+
         Raises an AssertionError if the params passed in are
         different to the last call to the mock.
 
@@ -165,7 +167,7 @@ class ScoreTestCase(TestCase):
             score.fallback()
             Context.set_msg(sender, value)
         else:
-            MockIcxEngine.transfer(None, _from, to, amount)
+            IcxEngine.transfer(None, _from, to, amount)
 
     @staticmethod
     def get_balance(address: 'Address'):
@@ -174,7 +176,7 @@ class ScoreTestCase(TestCase):
         :param address: address to query for icx balance
         :return: icx balance of given address
         """
-        return MockIcxEngine.get_balance(None, address)
+        return IcxEngine.get_balance(None, address)
 
     @staticmethod
     def initialize_accounts(accounts_info: dict):
@@ -183,4 +185,4 @@ class ScoreTestCase(TestCase):
         :param accounts_info: dictionary with address as key and balance as value
         """
         for account, amount in accounts_info.items():
-            MockIcxEngine.db.put(None, account.to_bytes(), amount)
+            IcxEngine.db.put(None, account.to_bytes(), amount)
