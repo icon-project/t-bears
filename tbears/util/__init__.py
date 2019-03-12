@@ -140,7 +140,7 @@ class TestSampleScore(IconIntegrateTestBase):
         self.assertEqual("Hello", response)
 """
     test_unit_py = """from ..sample_score import SampleScore
-from tbears.libs.scoretest.score_unit_test_base import ScoreTestCase
+from tbears.libs.scoretest.score_test_case import ScoreTestCase
 
 
 class TestSampleScore(ScoreTestCase):
