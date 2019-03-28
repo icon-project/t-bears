@@ -11,40 +11,42 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys
-import argparse
-import time
-from copy import deepcopy
-from asyncio import get_event_loop
 
+import argparse
 import setproctitle
+import sys
+import time
+from asyncio import get_event_loop
+from copy import deepcopy
+
 from earlgrey import MessageQueueService
-from iconcommons.logger import Logger
 from iconcommons.icon_config import IconConfig
+from iconcommons.logger import Logger
 from iconservice.icon_constant import DATA_BYTE_ORDER, DEFAULT_BYTE_SIZE
 
-from tbears.config.tbears_config import ConfigKey, tbears_server_config
-from tbears.block_manager.channel_service import ChannelService
 from tbears.block_manager.block import Block
+from tbears.block_manager.channel_service import ChannelService, ChannelTxCreatorService
 from tbears.block_manager.icon_service import IconStub
 from tbears.block_manager.periodic import Periodic
+from tbears.config.tbears_config import ConfigKey, tbears_server_config
 from tbears.util import create_hash, get_tbears_version
-
 
 TBEARS_BLOCK_MANAGER = 'tbears_block_manager'
 
-
-CHANNEL_QUEUE_NAME_FORMAT = "Channel.{channel_name}.{amqp_key}"
 ICON_SCORE_QUEUE_NAME_FORMAT = "IconScore.{channel_name}.{amqp_key}"
+CHANNEL_QUEUE_NAME_FORMAT = "Channel.{channel_name}.{amqp_key}"
+CHANNEL_TX_CREATOR_QUEUE_NAME_FORMAT = "ChannelTxCreator.{channel_name}.{amqp_key}"
 
 
 class BlockManager(object):
     def __init__(self, conf: 'IconConfig'):
         self._conf = conf
         self._channel_mq_name = None
+        self._tx_creator_mq_name = None
         self._icon_mq_name = None
         self._amqp_target = None
         self._channel_service = None
+        self._tx_creator_service = None
         self._icon_stub = None
         self._block: 'Block' = Block(f'{conf["stateDbRootPath"]}/tbears')
         self._tx_queue = []
@@ -71,14 +73,16 @@ class BlockManager(object):
         amqp_key = self._conf[ConfigKey.AMQP_KEY]
         amqp_target = self._conf[ConfigKey.AMQP_TARGET]
 
-        self._icon_mq_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel, amqp_key=amqp_key)
         self._channel_mq_name = CHANNEL_QUEUE_NAME_FORMAT.format(channel_name=channel, amqp_key=amqp_key)
+        self._tx_creator_mq_name = CHANNEL_TX_CREATOR_QUEUE_NAME_FORMAT.format(channel_name=channel, amqp_key=amqp_key)
+        self._icon_mq_name = ICON_SCORE_QUEUE_NAME_FORMAT.format(channel_name=channel, amqp_key=amqp_key)
         self._amqp_target = amqp_target
 
         Logger.info(f'==========tbears block_manager params==========', TBEARS_BLOCK_MANAGER)
-        Logger.info(f'amqp_target  : {amqp_target}', TBEARS_BLOCK_MANAGER)
-        Logger.info(f'amqp_key  :  {amqp_key}', TBEARS_BLOCK_MANAGER)
+        Logger.info(f'amqp_target : {amqp_target}', TBEARS_BLOCK_MANAGER)
+        Logger.info(f'amqp_key    : {amqp_key}', TBEARS_BLOCK_MANAGER)
         Logger.info(f'queue_name  : {self._channel_mq_name}', TBEARS_BLOCK_MANAGER)
+        Logger.info(f'            : {self._tx_creator_mq_name}', TBEARS_BLOCK_MANAGER)
         Logger.info(f'            : {self._icon_mq_name}', TBEARS_BLOCK_MANAGER)
         Logger.info(f'==========tbears block_manager params==========', TBEARS_BLOCK_MANAGER)
 
@@ -95,31 +99,43 @@ class BlockManager(object):
         Logger.debug(f'Initialize started!!', TBEARS_BLOCK_MANAGER)
 
         await self._init_channel()
-
+        await self._init_tx_creator()
         await self._init_icon()
-
         await self._init_periodic()
 
         Logger.debug(f'Initialize done!!', TBEARS_BLOCK_MANAGER)
 
     async def _init_channel(self):
         """
-        Initialize 'channel' message queue
+        Initialize 'Channel' message queue
         :return:
         """
         Logger.debug(f'Initialize channel started!!', TBEARS_BLOCK_MANAGER)
 
         self._channel_service = ChannelService(self._amqp_target, self._channel_mq_name,
-                                               conf=self._conf,
                                                block_manager=self)
 
         await self._channel_service.connect(exclusive=True)
 
         Logger.debug(f'Initialize channel done!!', TBEARS_BLOCK_MANAGER)
 
+    async def _init_tx_creator(self):
+        """
+        Initialize 'ChannelTxCreator' message queue
+        :return:
+        """
+        Logger.debug(f'Initialize tx creator started!!', TBEARS_BLOCK_MANAGER)
+
+        self._tx_creator_service = ChannelTxCreatorService(self._amqp_target, self._tx_creator_mq_name,
+                                                           block_manager=self)
+
+        await self._tx_creator_service.connect(exclusive=True)
+
+        Logger.debug(f'Initialize tx creator done!!', TBEARS_BLOCK_MANAGER)
+
     async def _init_icon(self):
         """
-        Initialize 'ICON' message queue and load genesis block if need
+        Initialize 'IconScore' message queue and load genesis block if needed
         :return:
         """
         Logger.debug(f'Initialize ICON started!!', TBEARS_BLOCK_MANAGER)
@@ -348,7 +364,7 @@ def create_parser():
     parser = argparse.ArgumentParser(prog=TBEARS_BLOCK_MANAGER,
                                      description=f'{TBEARS_BLOCK_MANAGER} v{get_tbears_version()} arguments')
     parser.add_argument('-ch', dest=ConfigKey.CHANNEL, help='Message Queue channel')
-    parser.add_argument('-at', dest=ConfigKey.AMQP_TARGET, help='AMQP traget info')
+    parser.add_argument('-at', dest=ConfigKey.AMQP_TARGET, help='AMQP target info')
     parser.add_argument('-ak', dest=ConfigKey.AMQP_KEY,
                         help="Key sharing peer group using queue name. Use it if more than one peer connect to a single MQ")
     parser.add_argument('-bi', '--block-confirm-interval', dest=ConfigKey.BLOCK_CONFIRM_INTERVAL, type=int,
