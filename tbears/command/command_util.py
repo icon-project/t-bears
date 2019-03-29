@@ -129,7 +129,6 @@ class CommandUtil(object):
         package_json_contents = json.dumps(package_json_dict, indent=4)
 
         # when command is init, make score template.
-        # when command is samples, make standard_crowd_sale or standard_token
         py_contents, test_contents, unit_test_content = contents_func(project, score_class)
 
         write_file(project, f"{project}.py", py_contents)

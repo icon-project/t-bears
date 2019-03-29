@@ -45,6 +45,7 @@ def write_file(parent_directory: str, file_name: str, contents: str, overwrite: 
 
 def get_score_template(score_project: str, score_class: str) -> tuple:
     """
+    :param score_project: Your project name.
     :param score_class: Your score class name.
     :return:
     """
