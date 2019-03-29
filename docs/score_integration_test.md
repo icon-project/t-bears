@@ -22,7 +22,8 @@ $ python -m unittest discover <score_project_path>
 |\<project>/<project>.py    | SCORE main file.                  |
 |\<project>/tests           | Directory for SCORE test code.                              |
 |\<project>/tests/\_\_init\_\_.py | \_\_init\_\_.py file to make the test directory recognized as a python package. |
-|\<project>/tests/test\_<project>.py    | SCORE test main file.  |
+|\<project>/tests/test\_integrate\_\<project>.py    | SCORE integrate test file.  |
+|\<project>/tests/test\_unit\_\<project>.py    | SCORE unit test file.  |
 
 * When T-Bears deploys SCORE, the `tests` directory is not included.
 

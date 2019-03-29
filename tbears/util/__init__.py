@@ -43,7 +43,7 @@ def write_file(parent_directory: str, file_name: str, contents: str, overwrite: 
         raise TBearsWriteFileException(f"Can't write file {parent_directory}/{file_name}. {e}")
 
 
-def get_score_template(score_class: str) -> tuple:
+def get_score_template(score_project: str, score_class: str) -> tuple:
     """
     :param score_class: Your score class name.
     :return:
@@ -139,7 +139,21 @@ class TestSampleScore(IconIntegrateTestBase):
 
         self.assertEqual("Hello", response)
 """
-    return main_py.replace("SampleScore", score_class), test_py.replace("SampleScore", score_class)
+    test_unit_py = """from ..sample_score import SampleScore
+from tbears.libs.scoretest.score_test_case import ScoreTestCase
+
+
+class TestSampleScore(ScoreTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.score = self.get_score_instance(SampleScore, self.test_account1)
+
+    def test_hello(self):
+        self.assertEqual(self.score.hello(), "Hello")
+"""
+    return main_py.replace("SampleScore", score_class), test_py.replace("SampleScore", score_class), test_unit_py.\
+        replace("sample_score", score_project).replace("SampleScore", score_class)
 
 
 def get_package_json_dict(project: str, score_class: str) -> dict:

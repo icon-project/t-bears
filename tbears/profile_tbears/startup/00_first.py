@@ -137,6 +137,10 @@ class TbearsCommands(Magics):
     def call(self, line):
         return self.run_command(f"call {line}")
 
+    @line_magic
+    def test(self, line):
+        return self.run_command(f"test {line}")
+
 
 class MyPrompt(Prompts):
     def in_prompt_tokens(self, cli=None):

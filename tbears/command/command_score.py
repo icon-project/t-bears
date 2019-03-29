@@ -17,6 +17,7 @@ import json
 import os
 import shutil
 import getpass
+import sys
 import unittest
 
 from iconcommons.icon_config import IconConfig
@@ -162,7 +163,8 @@ class CommandScore(object):
     def test(conf: dict):
         loader = unittest.TestLoader()
         start_dir = conf['project']
-        suite = loader.discover(start_dir)
+        top_dir = os.path.abspath(os.path.join(start_dir, '..'))
+        suite = loader.discover(start_dir, top_level_dir=top_dir)
 
         runner = unittest.TextTestRunner()
         runner.run(suite)
