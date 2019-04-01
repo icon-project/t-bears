@@ -87,9 +87,6 @@ class CommandUtil(object):
                                   score_class=conf['score_class'],
                                   contents_func=get_score_template)
 
-        # generate configuration files
-        self.__gen_conf_file()
-
         print(f"Initialized {conf['project']} successfully")
 
     def samples(self, _conf: dict):
