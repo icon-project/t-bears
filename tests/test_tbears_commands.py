@@ -13,19 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import time
-import unittest
 import json
+import os
 import shutil
 import socket
+import time
+import unittest
+
 from copy import deepcopy
+from iconcommons.icon_config import IconConfig
 
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
-from tbears.libs.icx_signer import key_from_key_store
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
-from iconcommons.icon_config import IconConfig
+from tbears.libs.icx_signer import key_from_key_store
 from tests.test_util import TEST_UTIL_DIRECTORY, get_total_supply, zip_dir
 
 
@@ -81,7 +82,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         with open(f'{self.project_name}/package.json', mode='r') as package_contents:
             package_json = json.loads(package_contents.read())
-        main = package_json['main_file']
+        main = package_json['main_module']
         self.assertEqual(self.project_name, main)
         shutil.rmtree(self.project_name)
 

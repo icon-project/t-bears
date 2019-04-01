@@ -12,23 +12,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import copy
+import getpass
 import json
 import os
 import shutil
-import getpass
-import sys
 import unittest
 
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 from iconservice.base.address import is_icon_address_valid
 
-from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
 from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, TBEARS_CLI_TAG
 from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
 from tbears.tbears_exception import TBearsDeleteTreeException, TBearsCommandException
+from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
 
 
 class CommandScore(object):
@@ -254,15 +254,23 @@ def check_project(project_path: str) -> int:
                 raise TBearsCommandException(f'package.json has wrong format. {e}')
 
             # wrong package.json file
-            if 'version' not in package or 'main_file' not in package or 'main_score' not in package:
+            if 'version' not in package or 'main_score' not in package:
                 raise TBearsCommandException(f'package.json has wrong format.')
 
-            # modify main_file. '.' -> '/'
-            main_file: str = package['main_file']
-            main_file = main_file.replace('.', '/')
+            # check the validity of main_module
+            main_module: str = package.get('main_module')
+            if not isinstance(main_module, str):
+                try:
+                    # this will be deprecated soon
+                    main_module: str = package['main_file']
+                except KeyError:
+                    raise TBearsCommandException(f'package.json should have main_module field.')
 
-            # there is no main_file
-            if not os.path.exists(f"{project_path}/{main_file}.py"):
-                raise TBearsCommandException(f"There is no main_file '{project_path}/{main_file}.py'")
+            if main_module.startswith('.') or main_module.find('/') != -1:
+                raise TBearsCommandException(f'Invalid main_module field: {main_module}')
+
+            main_file = main_module.replace('.', '/') + '.py'
+            if not os.path.exists(f"{project_path}/{main_file}"):
+                raise TBearsCommandException(f"There is no '{project_path}/{main_file}'")
 
     return 0

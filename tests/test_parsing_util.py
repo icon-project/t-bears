@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import json
+import os
 import shutil
 
 from tbears.command.command_util import CommandUtil
 from tbears.config.tbears_config import FN_CLI_CONF, FN_SERVER_CONF
 from tbears.tbears_exception import TBearsCommandException
-
 from tests.test_parsing_command import TestCommand
 
 
@@ -41,7 +40,7 @@ class TestCommandUtil(TestCommand):
         except:
             pass
 
-    # Test if cli arguments are parced correctly.
+    # Test if cli arguments are parsed correctly.
     def test_init_args_parsing(self):
         # Parsing test
         cmd = f'init {self.project} {self.score_class}'
@@ -87,13 +86,13 @@ class TestCommandUtil(TestCommand):
         self.assertRaises(SystemExit, self.parser.parse_args, vars(parsed))
         shutil.rmtree(project_dir)
 
-        # Input right path (path should equal to ./{project name}/package.json "main_file" property)
+        # check the value of "main_module" field
         cmd = f'init {self.project} {self.score_class}'
         parsed = self.parser.parse_args(cmd.split())
         self.cmd.cmdUtil.init(conf=vars(parsed))
         with open(f'{self.project}/package.json', mode='r') as package_contents:
             package_json = json.loads(package_contents.read())
-        main = package_json['main_file']
+        main = package_json['main_module']
         self.assertEqual(self.project, main)
         shutil.rmtree(self.project)
 

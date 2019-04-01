@@ -147,7 +147,7 @@ class TestCommandScore(TestCommand):
         self.assertRaises(TBearsCommandException, check_project, project)
         os.rename("package.json.bak", f"{project}/package.json")
 
-        # there is no main_file
+        # there is no main_module file
         os.rename(f"{project}/{project}.py", f"{project}.py.bak")
         self.assertRaises(TBearsCommandException, check_project, project)
 
@@ -155,21 +155,21 @@ class TestCommandScore(TestCommand):
         os.rename(f"{project}.py.bak", f"{project}/{project}.py")
         self.assertEqual(check_project(project), 0)
 
-        # package.json > main_file has path value '/'
+        # do not allow '/' in main_module field
         os.mkdir(f"{project}/modify")
         os.rename(f"{project}/{project}.py", f"{project}/modify/{project}.py")
         with open(f"{project}/package.json", mode='r+') as file:
             package: dict = json.load(file)
-            package['main_file'] = f"modify/{project}"
+            package['main_module'] = f"modify/{project}"
             file.seek(0)
             file.truncate()
             json.dump(package, file)
-        self.assertEqual(check_project(project), 0)
+        self.assertRaises(TBearsCommandException, check_project, project)
 
-        # package.json > main_file has path value with '.'
+        # allow '.' in main_module field
         with open(f"{project}/package.json", mode='r+') as file:
             package: dict = json.load(file)
-            package['main_file'] = f"modify.{project}"
+            package['main_module'] = f"modify.{project}"
             file.seek(0)
             file.truncate()
             json.dump(package, file)

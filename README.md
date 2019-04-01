@@ -395,7 +395,7 @@ __init__.py  abc.py  package.json  tests
 | keystore_test1             | Keystore file for test account will be created on the working directory. |
 | \<project>                 | SCORE project name. Project directory is created with the same name. |
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project directory recognized as a python package. |
-| \<project>/package.json    | Contains the information needed when SCORE is loaded. <br> "main_file" and "main_class" is necessary. |
+| \<project>/package.json    | Contains the information needed when SCORE is loaded. <br> "main_module" and "main_class" should be specified. |
 | \<project>/<project>.py    | SCORE main file. ABCToken class is defined.                  |
 | \<project>/tests           | Directory for SCORE test code.                              |
 | \<project>/tests/\_\_init\_\_.py | \_\_init\_\_.py file to make the test directory recognized as a python package. |

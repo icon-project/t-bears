@@ -158,7 +158,7 @@ class TestSampleScore(ScoreTestCase):
 
 
 def get_package_json_dict(project: str, score_class: str) -> dict:
-    """Returns packs.json's template.
+    """Returns the template of package.json
 
     :param project: SCORE's name.
     :param score_class: SCORE's main class name.
@@ -167,7 +167,7 @@ def get_package_json_dict(project: str, score_class: str) -> dict:
     """
     package_json_dict = {
         "version": "0.0.1",
-        "main_file": f"{project}",
+        "main_module": f"{project}",
         "main_score": f"{score_class}"
     }
     return package_json_dict
