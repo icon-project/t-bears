@@ -12,25 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import copy
 import json
 import os
 import socket
-import sys
 import subprocess
+import sys
 import time
-from typing import Optional
 from ipaddress import ip_address
+from typing import Optional
 
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 
+from tbears.block_manager.block_manager import TBEARS_BLOCK_MANAGER
+from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, ConfigKey, TBEARS_CLI_TAG
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
 from tbears.util import write_file
 from tbears.util.argparse_type import port_type, IconPath
-from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, ConfigKey, TBEARS_CLI_TAG
-from tbears.block_manager.block_manager import TBEARS_BLOCK_MANAGER
-
 
 BLOCKMANAGER_MODULE_NAME = 'tbears.block_manager'
 TBEARS_CLI_ENV = '/tmp/.tbears.env'
@@ -144,17 +144,16 @@ class CommandServer(object):
             print(f'tbears service is not running')
             return
 
-        with open(os.devnull, 'w') as devnull:
-            # stop iconrpcserver
-            subprocess.run('iconrpcserver stop', shell=True, stdout=devnull)
+        # stop iconrpcserver
+        subprocess.run(['iconrpcserver', 'stop'], stdout=subprocess.DEVNULL)
 
-            # stop tbears_block_manager
-            subprocess.run(f'pkill -f tbears_block_manager', shell=True)
+        # stop tbears_block_manager
+        subprocess.run(['pkill', '-f', TBEARS_BLOCK_MANAGER], stdout=subprocess.DEVNULL)
 
-            # stop iconservice
-            subprocess.run(f'iconservice stop -c {TBEARS_CLI_ENV}', shell=True, stdout=devnull)
+        # stop iconservice
+        subprocess.run(['iconservice', 'stop', '-c', f'{TBEARS_CLI_ENV}'], stdout=subprocess.DEVNULL)
 
-            time.sleep(2)
+        time.sleep(2)
 
         print(f'Stopped tbears service successfully')
 
@@ -163,17 +162,11 @@ class CommandServer(object):
 
     @staticmethod
     def _start_iconservice(conf: dict, config_path: str):
-        cmd = f"iconservice start -c {config_path}"
-
-        with open(os.devnull, 'w') as devnull:
-            subprocess.run(cmd, shell=True, stdout=devnull)
+        subprocess.run(['iconservice', 'start', '-c', f'{config_path}'], stdout=subprocess.DEVNULL)
 
     @staticmethod
     def _start_iconrpcserver(conf: dict, config_path: str):
-        cmd = f"iconrpcserver start -tbears -c {config_path}"
-
-        with open(os.devnull, 'w') as devnull:
-            subprocess.run(cmd, shell=True, stdout=devnull)
+        subprocess.run(['iconrpcserver', 'start', '-tbears', '-c', f'{config_path}'], stdout=subprocess.DEVNULL)
 
     @staticmethod
     def _start_blockmanager(conf: dict):
@@ -181,8 +174,7 @@ class CommandServer(object):
         params = {'-ch': conf.get(ConfigKey.CHANNEL, None),
                   '-at': conf.get(ConfigKey.AMQP_TARGET, None),
                   '-ak': conf.get(ConfigKey.AMQP_KEY, None),
-                  '-c': conf.get('config', None)
-                  }
+                  '-c': conf.get('config', None)}
 
         custom_argv = []
         for k, v in params.items():
@@ -190,7 +182,7 @@ class CommandServer(object):
                 custom_argv.append(k)
                 custom_argv.append(v)
 
-        # Run block_manager background mode
+        # Run block_manager in background mode
         subprocess.Popen([sys.executable, '-m', BLOCKMANAGER_MODULE_NAME, *custom_argv], close_fds=True)
 
     @staticmethod
@@ -198,12 +190,31 @@ class CommandServer(object):
         """ Check if server is running.
         :return: True or False
         """
-        # Return a list of processes matching 'name'.
-        command = f"ps -ef | grep {name} | grep -v grep"
-        result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
-        if result.returncode == 1:
-            return False
-        return True
+        cmdlines = CommandServer._get_process_command_list(name.encode('utf-8'))
+        if cmdlines:
+            return True
+        return False
+
+    @staticmethod
+    def _get_process_command_list(prefix: bytes) -> list:
+        if os.path.exists('/proc'):
+            cmd_lines = []
+            pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
+            for pid in pids:
+                try:
+                    cmdpath = os.path.join('/proc', pid, 'cmdline')
+                    with open(cmdpath, 'rb') as fd:
+                        cmdline = fd.read().rstrip(b'\x00')
+                        if cmdline.startswith(prefix):
+                            cmd_lines.append(cmdline.decode())
+                except IOError:
+                    continue
+        else:
+            result = subprocess.run(['ps', '-eo', 'command'], stdout=subprocess.PIPE)
+            cmd_lines = [cmdline.decode().rstrip()
+                         for cmdline in result.stdout.split(b'\n')
+                         if cmdline.startswith(prefix)]
+        return cmd_lines
 
     @staticmethod
     def is_port_available(conf):
