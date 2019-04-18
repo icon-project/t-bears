@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import argparse
+from typing import Optional
+
 import setproctitle
 import sys
 import time
@@ -38,6 +40,22 @@ CHANNEL_QUEUE_NAME_FORMAT = "Channel.{channel_name}.{amqp_key}"
 CHANNEL_TX_CREATOR_QUEUE_NAME_FORMAT = "ChannelTxCreator.{channel_name}.{amqp_key}"
 
 
+class PRepManager(object):
+    def __init__(self, is_generator_rotation: bool, prep_list: list):
+        self._is_generator_rotation: bool = is_generator_rotation
+        self._prep_list: list = prep_list
+
+    def create_prev_block_contributors_format(self):
+        prev_block_contributors_format = \
+            {"prevBlockContributors": {
+                "generator": self._prep_list[0],
+                "validators": self._prep_list[1:]
+            }}
+        if self._is_generator_rotation:
+            self._prep_list.append(self._prep_list.pop(0))
+        return prev_block_contributors_format
+
+
 class BlockManager(object):
     def __init__(self, conf: 'IconConfig'):
         self._conf = conf
@@ -50,6 +68,8 @@ class BlockManager(object):
         self._icon_stub = None
         self._block: 'Block' = Block(f'{conf["stateDbRootPath"]}/tbears')
         self._tx_queue = []
+        self._icon_is_issuable_version = False
+        self._prep_manager: Optional['PRepManager'] = None
         
     @property
     def block(self) -> 'Block':
@@ -144,7 +164,18 @@ class BlockManager(object):
         self._icon_stub = IconStub(amqp_target=self._amqp_target, route_key=self._icon_mq_name)
 
         await self._icon_stub.connect()
-        await self._icon_stub.async_task().hello()
+        hello_response = await self._icon_stub.async_task().hello()
+        if hello_response:
+            icon_is_issuable_version = bool(int(hello_response['isIssuable'], 16))
+            # todo: modify naming: icon_is_issuable_version
+            self._icon_is_issuable_version = icon_is_issuable_version
+            if icon_is_issuable_version:
+                # todo: getting prep list using hello API is temporary
+                #  solution, after define API, should change the code
+                prep_list = hello_response['pRepList']
+                self._prep_manager = PRepManager(
+                    is_generator_rotation=self._conf[ConfigKey.BLOCK_GENERATOR_ROTATION],
+                    prep_list=prep_list)
 
         # send genesis block
         if self.block.block_height != -1:
@@ -252,6 +283,21 @@ class BlockManager(object):
 
         return tx_queue
 
+    @staticmethod
+    def _generate_issue_tx(data: dict) -> dict:
+        tx_timestamp = int(time.time() * 10 ** 6)
+        hex(int(time.time() * 10 ** 6))
+        issue_tx = {
+            "version": hex(3),
+            "nid": hex(1),
+            "timestamp": hex(tx_timestamp),
+            "dataType": "issue",
+            "data": data,
+            # txHash is not not official
+            'txHash': create_hash(tx_timestamp.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
+        }
+        return issue_tx
+
     async def process_block_data(self):
         """
         Process block data. Invoke block and save transactions, transaction results and block. Update block height and previous block hash.
@@ -269,6 +315,13 @@ class BlockManager(object):
                 Logger.debug(f'There are no transactions for block confirm. Bye~', TBEARS_BLOCK_MANAGER)
                 return
 
+        if self._icon_is_issuable_version and not len(tx_list) == 0:
+            issue_info = await self._icon_stub.async_task().get_issue_info()
+            if not issue_info["prep"]["value"] == hex(0):
+                issue_tx = self._generate_issue_tx(issue_info)
+                tx_list.insert(0, issue_tx)
+                Logger.debug(f'Create issue transaction:{issue_tx}', TBEARS_BLOCK_MANAGER)
+
         # make block hash. tbears block_manager is dev util
         block_timestamp_us = int(time.time() * 10 ** 6)
         block_hash = create_hash(block_timestamp_us.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
@@ -280,7 +333,8 @@ class BlockManager(object):
             return
 
         # send write precommit message and confirm block
-        await self._confirm_block(tx_list= tx_list, tx_result= response, block_hash=block_hash, timestamp=block_timestamp_us)
+        await self._confirm_block(tx_list=tx_list, tx_result=response, block_hash=block_hash,
+                                  timestamp=block_timestamp_us)
         Logger.debug(f'process_block_data done!!', TBEARS_BLOCK_MANAGER)
 
     async def _invoke_block(self, tx_list: list, block_hash: str, block_timestamp) -> dict:
@@ -310,8 +364,13 @@ class BlockManager(object):
                 'prevBlockHash': prev_block_hash,
                 'timestamp': hex(block_timestamp)
             },
-            'transactions': transactions
+            'transactions': transactions,
         }
+        if self._icon_is_issuable_version:
+            prev_block_contributors_format = self._prep_manager.create_prev_block_contributors_format()
+            request.update(prev_block_contributors_format)
+            Logger.debug(f'Insert preBlockContributors in invoke requests: {prev_block_contributors_format}',
+                         TBEARS_BLOCK_MANAGER)
 
         # send invoke message to iconservice
         response = await self._icon_stub.async_task().invoke(request)

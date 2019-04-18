@@ -27,6 +27,7 @@ class ConfigKey:
     AMQP_TARGET = 'amqpTarget'
     BLOCK_CONFIRM_INTERVAL = 'blockConfirmInterval'
     BLOCK_CONFIRM_EMPTY = 'blockConfirmEmpty'
+    BLOCK_GENERATOR_ROTATION = 'blockGeneratorRotation'
 
 
 tbears_server_config = {
@@ -75,7 +76,9 @@ tbears_server_config = {
     ConfigKey.AMQP_KEY: "7100",
     ConfigKey.AMQP_TARGET: "127.0.0.1",
     ConfigKey.BLOCK_CONFIRM_INTERVAL: 10,
-    ConfigKey.BLOCK_CONFIRM_EMPTY: True
+    ConfigKey.BLOCK_CONFIRM_EMPTY: True,
+    # todo: tests fail as this key is set, should correct tests if this field is finally approved
+    ConfigKey.BLOCK_GENERATOR_ROTATION: False
 }
 
 

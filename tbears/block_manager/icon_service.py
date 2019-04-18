@@ -27,7 +27,7 @@ class IconScoreInnerTask(object):
     Send request to 'iconscore' message queue
     """
     @message_queue_task
-    async def hello(self):
+    async def hello(self) -> dict:
         pass
 
     @message_queue_task
@@ -44,6 +44,10 @@ class IconScoreInnerTask(object):
 
     @message_queue_task
     async def remove_precommit_state(self, request: dict) -> dict:
+        pass
+
+    @message_queue_task
+    async def get_issue_info(self) -> dict:
         pass
 
 
