@@ -45,14 +45,26 @@ class PRepManager(object):
         self._is_generator_rotation: bool = is_generator_rotation
         self._prep_list: list = prep_list
 
-    def create_prev_block_contributors_format(self):
+    @staticmethod
+    def _create_prev_block_contributors_format(generator: str, validators: list) -> dict:
         prev_block_contributors_format = \
             {"prevBlockContributors": {
-                "generator": self._prep_list[0],
-                "validators": self._prep_list[1:]
+                "generator": generator,
+                "validators": validators
             }}
+        return prev_block_contributors_format
+
+    def get_prev_block_contributors_info(self):
+        if len(self._prep_list) == 0:
+            prev_block_contributors_format = self._create_prev_block_contributors_format("", [])
+            return prev_block_contributors_format
+
+        prev_block_contributors_format = self._create_prev_block_contributors_format(self._prep_list[0],
+                                                                                     self._prep_list[1:])
+        Logger.debug(f"set block contributors format {prev_block_contributors_format}", TBEARS_BLOCK_MANAGER)
         if self._is_generator_rotation:
             self._prep_list.append(self._prep_list.pop(0))
+            Logger.debug(f"generator rotated. generator: {self._prep_list[0]}", TBEARS_BLOCK_MANAGER)
         return prev_block_contributors_format
 
 
@@ -165,14 +177,22 @@ class BlockManager(object):
 
         await self._icon_stub.connect()
         hello_response = await self._icon_stub.async_task().hello()
-        if hello_response:
-            icon_is_issuable_version = bool(int(hello_response['isIssuable'], 16))
+        Logger.debug(f'hello response with {hello_response}')
+
+        if hello_response and hello_response.get('isIssuable') is not None:
+            self._icon_is_issuable_version = bool(int(hello_response['isIssuable'], 16))
             # todo: modify naming: icon_is_issuable_version
-            self._icon_is_issuable_version = icon_is_issuable_version
-            if icon_is_issuable_version:
+            if self._icon_is_issuable_version:
                 # todo: getting prep list using hello API is temporary
                 #  solution, after define API, should change the code
-                prep_list = hello_response['pRepList']
+                prep_list = hello_response.get('pRepList', [])
+                Logger.debug(f'ICON service is issuable', TBEARS_BLOCK_MANAGER)
+                Logger.debug(f'Prep list: {prep_list}', TBEARS_BLOCK_MANAGER)
+                if len(prep_list) == 0:
+                    Logger.warning(
+                        "There is no prep to set even though icon service is issuable version. "
+                        "insert prep using icon service config otherwise, icon service will not run properly",
+                        TBEARS_BLOCK_MANAGER)
                 self._prep_manager = PRepManager(
                     is_generator_rotation=self._conf[ConfigKey.BLOCK_GENERATOR_ROTATION],
                     prep_list=prep_list)
@@ -321,6 +341,10 @@ class BlockManager(object):
                 issue_tx = self._generate_issue_tx(issue_info)
                 tx_list.insert(0, issue_tx)
                 Logger.debug(f'Create issue transaction:{issue_tx}', TBEARS_BLOCK_MANAGER)
+            else:
+                Logger.debug(
+                    f'Do not create issue transaction as current icon service revision is not issuable version',
+                    TBEARS_BLOCK_MANAGER)
 
         # make block hash. tbears block_manager is dev util
         block_timestamp_us = int(time.time() * 10 ** 6)
@@ -367,9 +391,9 @@ class BlockManager(object):
             'transactions': transactions,
         }
         if self._icon_is_issuable_version:
-            prev_block_contributors_format = self._prep_manager.create_prev_block_contributors_format()
-            request.update(prev_block_contributors_format)
-            Logger.debug(f'Insert preBlockContributors in invoke requests: {prev_block_contributors_format}',
+            prev_block_contributors = self._prep_manager.get_prev_block_contributors_info()
+            request.update(prev_block_contributors)
+            Logger.debug(f'Insert preBlockContributors in invoke requests: {prev_block_contributors}',
                          TBEARS_BLOCK_MANAGER)
 
         # send invoke message to iconservice
