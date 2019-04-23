@@ -335,7 +335,8 @@ class BlockManager(object):
                 Logger.debug(f'There are no transactions for block confirm. Bye~', TBEARS_BLOCK_MANAGER)
                 return
 
-        if self._icon_is_issuable_version and not len(tx_list) == 0:
+        # todo: 빈 블럭에도 이슈 tx 넣는걸로 수정
+        if self._icon_is_issuable_version:
             issue_info = await self._icon_stub.async_task().get_issue_info()
             if not issue_info["prep"]["value"] == hex(0):
                 issue_tx = self._generate_issue_tx(issue_info)
