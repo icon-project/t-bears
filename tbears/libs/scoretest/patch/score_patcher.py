@@ -17,12 +17,13 @@ import os
 from functools import wraps
 from inspect import getmembers, isfunction
 from typing import Optional
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, PropertyMock
 
 from iconservice import InterfaceScore
 from iconservice.base.address import Address, AddressPrefix
-from iconservice.base.exception import PayableException, InterfaceException, InvalidRequestException
+from iconservice.base.exception import InvalidPayableException, InvalidInterfaceException, InvalidRequestException
 from iconservice.database.db import IconScoreDatabase
+from iconservice.icon_constant import IconScoreFuncType, IconScoreContextType
 from iconservice.iconscore.icon_score_base import IconScoreBase
 from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFlag, FORMAT_IS_NOT_DERIVED_OF_OBJECT
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
@@ -56,17 +57,17 @@ def patch_score_method(method):
 
         if method_name == 'fallback':
             if not (method_flag & ConstBitFlag.Payable) and context.msg.value > 0:
-                raise PayableException(f"This method is not payable", method_name, score_class)
+                raise InvalidPayableException(f"This method is not payable")
 
         if method_flag & ConstBitFlag.ReadOnly == ConstBitFlag.ReadOnly:
             Context._set_query_context(context)
-        elif (method_flag & ConstBitFlag.External) == ConstBitFlag.External:
+        else:
             Context._set_invoke_context(context)
-        elif method_flag & ConstBitFlag.Payable:
-            Context._set_invoke_context(context)
+        if method_flag & ConstBitFlag.Payable:
             IcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
-        elif method_name in ('on_install', 'on_update'):
-            Context._set_invoke_context(context)
+
+        type(context).readonly = PropertyMock(return_value=context.type == IconScoreContextType.QUERY or
+                                              context.func_type == IconScoreFuncType.READONLY)
 
         result = method(*args, **kwargs)
         return result
@@ -78,7 +79,7 @@ def get_interface_score(score_address):
     try:
         interface_score = interface_score_mapper[score_address]
     except KeyError:
-        raise InterfaceException(FORMAT_IS_NOT_DERIVED_OF_OBJECT.format(InterfaceScore.__name__))
+        raise InvalidInterfaceException(FORMAT_IS_NOT_DERIVED_OF_OBJECT.format(InterfaceScore.__name__))
     else:
         return interface_score
 
@@ -146,8 +147,6 @@ class ScorePatcher:
         mock_context.configure_mock(event_log_stack=context.event_log_stack)
         mock_context.configure_mock(traces=context.traces)
         mock_context.configure_mock(icon_score_mapper=context.icon_score_mapper)
-        mock_context.configure_mock(internal_call=context.internal_call)
-        ContextGetter._context = mock_context
 
     @staticmethod
     def patch_score_methods(score):
