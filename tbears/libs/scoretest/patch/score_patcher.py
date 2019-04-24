@@ -147,6 +147,7 @@ class ScorePatcher:
         mock_context.configure_mock(event_log_stack=context.event_log_stack)
         mock_context.configure_mock(traces=context.traces)
         mock_context.configure_mock(icon_score_mapper=context.icon_score_mapper)
+        ContextGetter._context = mock_context
 
     @staticmethod
     def patch_score_methods(score):
