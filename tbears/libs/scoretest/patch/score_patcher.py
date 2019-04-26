@@ -17,7 +17,7 @@ import os
 from functools import wraps
 from inspect import getmembers, isfunction
 from typing import Optional
-from unittest.mock import Mock, patch, PropertyMock
+from unittest.mock import Mock, patch
 
 from iconservice import InterfaceScore
 from iconservice.base.address import Address, AddressPrefix
@@ -50,10 +50,10 @@ def patch_score_method(method):
 
     @wraps(method)
     def patched(*args, **kwargs):
-        context = ContextGetter._context
+        context: 'Mock' = ContextGetter._context
         method_flag = getattr(method, CONST_BIT_FLAG, 0)
         score_class, method_name = method.__qualname__.split('.')
-        context.current_address=method.__self__.address
+        context.current_address = method.__self__.address
 
         if method_name == 'fallback':
             if not (method_flag & ConstBitFlag.Payable) and context.msg.value > 0:
@@ -66,8 +66,7 @@ def patch_score_method(method):
         if method_flag & ConstBitFlag.Payable:
             IcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
 
-        type(context).readonly = PropertyMock(return_value=context.type == IconScoreContextType.QUERY or
-                                              context.func_type == IconScoreFuncType.READONLY)
+        context.readonly = context.type == IconScoreContextType.QUERY or context.func_type == IconScoreFuncType.READONLY
 
         result = method(*args, **kwargs)
         return result
@@ -104,6 +103,7 @@ class ScorePatcher:
         :param score_address: address of score.
         :return: db SCORE use
         """
+        global context_db
         if not score_address:
             score_address = create_address(AddressPrefix.CONTRACT)
         score_db = IconScoreDatabase(score_address, context_db)
