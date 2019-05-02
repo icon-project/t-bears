@@ -1,0 +1,20 @@
+{
+    "jsonrpc": "2.0",
+    "id": 100,
+    "method": "icx_sendTransaction",
+    "params": {
+        "version": "0x3",
+        "from": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
+        "to": "cx0000000000000000000000000000000000000001",
+        "stepLimit": "0x30d40",
+        "nid": "0x3",
+        "dataType": "call",
+        "data": {
+            "method": "setStepCost",
+            "params": {
+                "stepType": "apiCall",
+                "cost": "0x2710"
+            }
+        }
+    }
+}
