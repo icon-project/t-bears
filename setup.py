@@ -6,10 +6,9 @@ with open('requirements.txt') as requirements:
     requires = list(requirements)
 
 version = os.environ.get('VERSION')
-
 if version is None:
-	with open(os.path.join('.', 'VERSION')) as version_file:
-		version = version_file.read().strip()
+    with open(os.path.join('.', 'VERSION')) as version_file:
+        version = version_file.read().strip()
 
 setup_options = {
     'name': 'tbears',
