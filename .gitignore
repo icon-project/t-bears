@@ -233,7 +233,6 @@ dist/
 #tbears
 .statedb
 .score
-tbears_server_config.json
 tbears_cli_config.json
 
 # patch
