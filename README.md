@@ -51,22 +51,23 @@ tbears-x.y.z-py3-none-any.whl
 
 ## Installation
 
-This chapter will explain how to install T-Bears on your system. 
+This chapter will explain how to install T-Bears on your system.
 
 ### Requirements
 
 ICON SCORE development and execution requires following environments :
 
-* OS: MacOS, Linux
-    * Windows are not supported yet.
+* OS: MacOS or Linux
+  
+  * Windows is not supported.
 * Python
-  * Make Virtual Env for Python 3.6.5+ (recommended version, 3.7 is not supported)
-  * check your python version
+  * Make Virtual Env for Python 3.6.5+
+  * Check your Python version
     ```bash
     $ python3 -V
     ```
   * IDE: Pycharm is recommended.
-    
+
 **Softwares**
 
 * RabbitMQ: 3.7 and above. [homepage](https://www.rabbitmq.com/)

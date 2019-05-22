@@ -1,5 +1,11 @@
 # ChangeLog - T-Bears
 
+## 1.2.0 - 2019-05-22
+* Improve Docker image generation
+* Refactor sub processes management
+* Migrate `package.json` format
+* Add SCORE unittest framework
+
 ## 1.1.0.1 - 2019-01-03
 * Fix wrong description of blockConfirmInterval in README.md
 * Fix block query error
