@@ -1,4 +1,4 @@
-# Dockerfile for T-Bears Service
+# Dockerfile for T-Bears Container
 
 This document describes how to build a T-Bears Docker image and run the image as a Docker container.
 
@@ -14,19 +14,15 @@ This document describes how to build a T-Bears Docker image and run the image as
 $ make build
 ```
 
-or
-
-```
-$ docker build -t iconloop/tbears .
-```
-
 Note that you don't need to build the Docker image by yourself.
 The official Docker images for T-Bears are available from the Docker Hub: [https://hub.docker.com/r/iconloop/tbears](https://hub.docker.com/r/iconloop/tbears).
 You can download the T-Bears Docker image by using the `docker pull` command.
 
 ```
-$ docker pull iconloop/tbears
+$ docker pull iconloop/tbears:mainnet
 ```
+
+The `mainnet` tag has been attached to the Docker image that is same with the ICON Mainnet environment.
 
 ## Usage
 
@@ -39,14 +35,14 @@ $ make run
 or
 
 ```
-$ docker run -it -p 9000:9000 iconloop/tbears
+$ docker run -it -p 9000:9000 iconloop/tbears:mainnet
 ```
 
 This will start the T-Bears container that is listening on port 9000 for incoming requests.
 If you want the T-Bears container to listen on a different port, replace `${LISTEN_PORT}` with your desired port number.
 
 ```
-$ docker run -it -p ${LISTEN_PORT}:9000 iconloop/tbears
+$ docker run -it -p ${LISTEN_PORT}:9000 iconloop/tbears:mainnet
 ```
 
 ### Test with T-Bears Docker Container

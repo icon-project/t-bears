@@ -35,9 +35,9 @@ You can run T-Bears on your machine by using Docker.
 The below command will download T-Bears Docker image and run T-Bears Docker container.
 
 ```bash
-docker run -it --name tbears-container -p 9000:9000 iconloop/tbears
+docker run -it -p 9000:9000 iconloop/tbears:mainnet
 ```
-Please check the following links for more information. [T-Bears Docker](https://github.com/icon-project/t-bears/tree/develop/Docker)
+Please check the following links for more information. [T-Bears Docker](https://github.com/icon-project/t-bears/tree/master/Docker)
 
 ## Building from source
  First, clone this project. Then go to the project directory, create a virtualenv environment, and run build script. You can then install T-Bears with the .whl file.
@@ -657,7 +657,7 @@ response : {
 
 **Description**
 
-Get list of APIs that the given SCORE provides. Please refer to icx_getScoreApi of [ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/blob/develop/docs/icon-json-rpc-v3.md#icx_getscoreapi) for details.
+Get list of APIs that the given SCORE provides. Please refer to icx_getScoreApi of [ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md#icx_getscoreapi) for details.
 
 **Usage**
 
