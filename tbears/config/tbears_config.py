@@ -95,7 +95,7 @@ tbears_cli_config = {
     "from": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
     "to": "cx0000000000000000000000000000000000000000",
     "deploy": {
-        "stepLimit": "0x10000000",
+        "stepLimit": "0x1000000000",
         "mode": "install",
         "scoreParams": {}
     },

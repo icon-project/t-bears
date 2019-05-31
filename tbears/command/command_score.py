@@ -26,7 +26,7 @@ from iconservice.base.address import is_icon_address_valid
 
 from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, TBEARS_CLI_TAG
-from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
+from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient, get_enough_step
 from tbears.tbears_exception import TBearsDeleteTreeException, TBearsCommandException
 from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
 
@@ -113,9 +113,15 @@ class CommandScore(object):
                                              params=conf.get('scoreParams', {}),
                                              content_type=content_type,
                                              content=content))
+        step_limit = conf['stepLimit']
+        uri = conf['uri']
 
         # send request to rpcserver
-        icon_client = IconClient(conf['uri'])
+        icon_client = IconClient(uri)
+        if step_limit is None:
+            step_limit = get_enough_step(request, uri)
+            request['params']['stepLimit'] = hex(step_limit)
+
         response = icon_client.send(request)
 
         if 'error' in response:
@@ -229,6 +235,9 @@ class CommandScore(object):
         if command in conf:
             conf.update_conf(conf[command])
             del conf[command]
+
+        if args.get("stepLimit") is None:
+            conf["stepLimit"] = None
 
         # load user argument
         if args:

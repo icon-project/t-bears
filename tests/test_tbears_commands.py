@@ -19,8 +19,8 @@ import shutil
 import socket
 import time
 import unittest
-
 from copy import deepcopy
+
 from iconcommons.icon_config import IconConfig
 
 from tbears.command.command import Command
@@ -131,7 +131,7 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(treasury_balance, get_balance_response['result'])
 
         # deploy - f"-m install"
-        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=conf)
         deploy_response = self.deploy_cmd(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 
@@ -151,7 +151,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         # deploy - f"-m update --to socreAddress from_transactionResult -c tbears_cli_config.json"
         scoreAddress = transaction_result_response['result']['scoreAddress']
-        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=conf)
         conf['mode'] = 'update'
         conf['to'] = scoreAddress
         conf['conf'] = './tbears_cli_config.json'
@@ -177,7 +177,7 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(transaction_result_response['result']['scoreAddress'], scoreAddress)
 
         # deploy - f"-m install -k test_keystore"
-        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=conf)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         deploy_response = self.deploy_cmd(conf=conf, password='qwer1234%')
         self.assertEqual(deploy_response.get('error', False), False)
@@ -191,7 +191,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         # deploy - update with zip file f"-m update -k test_keystore --to scoreAddres_from_transactionResult"
         scoreAddress = transaction_result_response['result']['scoreAddress']
-        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=conf)
         conf['keyStore'] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
         conf['mode'] = 'update'
         conf['to'] = scoreAddress

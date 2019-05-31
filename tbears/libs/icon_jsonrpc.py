@@ -11,23 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import copy
+import hashlib
+import itertools
 import os
 import time
+from typing import Optional, Union
 
 import requests
-from typing import Optional, Union
-import itertools
-import hashlib
-
-from secp256k1 import PrivateKey
 from iconcommons.logger.logger import Logger
+from secp256k1 import PrivateKey
 
 from tbears.config.tbears_config import TBEARS_CLI_TAG
+from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
 from tbears.libs.icx_signer import key_from_key_store, IcxSigner
 from tbears.libs.in_memory_zip import InMemoryZip
-from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
-from tbears.tbears_exception import ZipException, DeployPayloadException, IconClientException
+from tbears.tbears_exception import ZipException, DeployPayloadException, IconClientException, TBearsEstimateException
 
 
 class IconJsonrpc:
@@ -374,7 +373,6 @@ class IconJsonrpc:
         }
 
 
-
     @staticmethod
     def gen_call_data(method: str, params: dict = {}) -> dict:
         """Generate data dictionary for icx_call and icx_sendTransaction which dataType is 'call'
@@ -489,3 +487,30 @@ def put_signature_to_params(signer: 'IcxSigner', params: dict) -> None:
     msg_hash = hashlib.sha3_256(phrase.encode()).digest()
     signature = signer.sign(msg_hash)
     params['signature'] = signature.decode()
+
+
+def convert_tx_request_to_estimate(request: dict):
+    """Convert Transaction request data to estimate request data.
+
+    :param request: Request to convert
+    :return: Converted data
+    """
+
+    data = copy.deepcopy(request)
+    data['method'] = "debug_estimateStep"
+    del data['params']['signature']
+    del data['params']['stepLimit']
+    return data
+
+
+def get_enough_step(request: dict, uri: str) -> int:
+    estimate_request = convert_tx_request_to_estimate(request)
+    debug_uri = uri.replace('api/v3', 'api/debug/v3')
+    debug_client = IconClient(debug_uri)
+    estimate_response = debug_client.send(estimate_request)
+    if "error" in estimate_response:
+        raise TBearsEstimateException(f"Got error response while estimating step. error message "
+                                      f": {estimate_response['error']['message']}")
+    estimated_step = int(estimate_response['result'], 16)
+    step_limit = int(estimated_step*1.1)
+    return step_limit
