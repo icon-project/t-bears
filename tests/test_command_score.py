@@ -85,16 +85,54 @@ class TestTBearsCommands(unittest.TestCase):
         self.cmd.cmdServer.start(start_conf)
         self.assertTrue(self.cmd.cmdServer.is_service_running())
 
-        # deploy - install case
+        # deploy - install case1(not using stepLimit config)
         conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
         deploy_response = self.deploy_cmd(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
-
         # check result
         tx_hash = deploy_response['result']
         conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        score_address = transaction_result_response['result']['scoreAddress']
         self.assertFalse(transaction_result_response.get('error', False))
+
+        # deploy - install case2(using stepLimit config with command line argument)
+        args = {"stepLimit": "0x1"}
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=args)
+        deploy_response = self.deploy_cmd(conf=conf)
+        self.assertIsInstance(deploy_response.get('error', False), dict)
+
+        # deploy - install case3(using stepLimit config with config file)
+        tbears_cli_config_step_set_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config_step_set.json')
+        args = {"config": tbears_cli_config_step_set_path}
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=args)
+        deploy_response = self.deploy_cmd(conf=conf)
+        self.assertIsInstance(deploy_response.get('error', False), dict)
+
+        # deploy - update case1(not using stepLimit config)
+        args = {"to": score_address}
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=args)
+        deploy_response = self.deploy_cmd(conf=conf)
+        self.assertEqual(deploy_response.get('error', False), False)
+        # check result
+        tx_hash = deploy_response['result']
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
+        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        score_address = transaction_result_response['result']['scoreAddress']
+        self.assertFalse(transaction_result_response.get('error', False))
+
+        # deploy - update case2(using stepLimit config with command line argument)
+        args = {"stepLimit": "0x1", "to": score_address}
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=args)
+        deploy_response = self.deploy_cmd(conf=conf)
+        self.assertIsInstance(deploy_response.get('error', False), dict)
+
+        # deploy - update case3(using stepLimit config with config file)
+        tbears_cli_config_step_set_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config_step_set.json')
+        args = {"config": tbears_cli_config_step_set_path, "to": score_address}
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=args)
+        deploy_response = self.deploy_cmd(conf=conf)
+        self.assertIsInstance(deploy_response.get('error', False), dict)
 
         # stop
         self.cmd.cmdServer.stop(None)

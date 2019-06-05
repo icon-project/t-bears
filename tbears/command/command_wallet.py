@@ -71,6 +71,7 @@ class CommandWallet:
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
                                  f'the "uri" (default: {FN_CLI_CONF})')
+
     @staticmethod
     def _add_txresult_parser(subparsers):
         parser = subparsers.add_parser('txresult', help='Get transaction result by transaction hash',

@@ -156,9 +156,6 @@ class TestCliTestUtil(unittest.TestCase):
             expected_conf = deepcopy(default_conf)
             expected_conf.update({k: v for k, v in vars(parsed).items() if v is not None})
 
-            if actual_conf.get('stepLimit') is None:
-                expected_conf['stepLimit'] = None
-
             config_option_list = self.make_config_option_list(parsed_args=vars(parsed),
                                                               config_name=test_opts['config_type'])
 
