@@ -512,5 +512,5 @@ def get_enough_step(request: dict, uri: str) -> int:
         raise TBearsEstimateException(f"Got error response while estimating step. error message "
                                       f": {estimate_response['error']['message']}")
     estimated_step = int(estimate_response['result'], 16)
-    step_limit = int(estimated_step*1.1)
+    step_limit = int(estimated_step * 1.1)
     return step_limit

@@ -328,22 +328,21 @@ class CommandWallet:
         else:
             transfer = IconJsonrpc.from_string(conf['from'])
 
+        uri = conf['uri']
+        step_limit = conf.get('stepLimit', None)
+
         # make JSON-RPC 2.0 request standard format (dict type)
         request = transfer.sendTransaction(to=conf['to'],
                                            value=hex(int(conf['value'])),
                                            nid=conf['nid'],
-                                           step_limit=conf['stepLimit'])
+                                           step_limit=step_limit)
 
-        # request to rpcserver
-        uri = conf['uri']
-        step_limit = conf['stepLimit']
-
-        # request to rpcserver
-        icon_client = IconClient(uri)
         if step_limit is None:
             step_limit = get_enough_step(request, uri)
             request['params']['stepLimit'] = hex(step_limit)
 
+        # send request to the rpc server
+        icon_client = IconClient(uri)
         response = icon_client.send(request=request)
 
         if 'result' in response:
@@ -445,15 +444,16 @@ class CommandWallet:
             payload = sendtx.sendTransaction(**params)
 
         uri = conf['uri']
-        step_limit = conf['stepLimit']
-        # request to rpcserver
-        icon_client = IconClient(uri)
+        step_limit = conf.get('stepLimit', None)
+
         if step_limit is None:
             step_limit = get_enough_step(payload, uri)
         else:
             step_limit = int(step_limit, 16)
         payload['params']['stepLimit'] = hex(step_limit)
 
+        # send request to the rpc server
+        icon_client = IconClient(uri)
         response = icon_client.send(request=payload)
 
         if 'result' in response:
@@ -524,8 +524,5 @@ class CommandWallet:
         # load user argument
         if args:
             conf.update_conf(args)
-
-        if args.get("stepLimit") is None:
-            conf["stepLimit"] = None
 
         return conf
