@@ -82,7 +82,7 @@ class TestTBearsService(unittest.TestCase):
         timestamp = hex(int(time.time() * 10 ** 6))
 
         # send transaction
-        request = icon_jsonrpc.sendTransaction(to=to_addr, timestamp=timestamp)
+        request = icon_jsonrpc.sendTransaction(to=to_addr, timestamp=timestamp, step_limit='0x100000')
         response = icon_client.send(request)
         self.assertTrue('result' in response)
 

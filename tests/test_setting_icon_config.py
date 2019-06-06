@@ -13,21 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
+import itertools
 import json
 import os
-import shutil
-import itertools
 import re
+import shutil
+import unittest
 from copy import deepcopy
 
+from tbears.command.command import Command
+from tbears.command.command_score import CommandScore
 from tbears.command.command_server import CommandServer
 from tbears.command.command_wallet import CommandWallet
-from tbears.command.command_score import CommandScore
-from tbears.command.command import Command
 from tbears.config.tbears_config import FN_CLI_CONF, FN_SERVER_CONF, tbears_cli_config, tbears_server_config
 from tests.test_util import TEST_UTIL_DIRECTORY
-
 
 IN_ICON_CONFIG_TEST_DIRECTORY = os.path.join(TEST_UTIL_DIRECTORY, 'test_icon_config')
 
@@ -151,7 +150,7 @@ class TestCliTestUtil(unittest.TestCase):
         for cli in whole_possible_cli:
             parsed = self.parser.parse_args(cli.split())
 
-            # should be refactoring, get_icon_conf methods has one more parameter (project param)
+            # should be refactor, get_icon_conf methods has one more parameter (project param)
             actual_conf = test_opts['get_config_func'](parsed.command, args=vars(parsed))
 
             expected_conf = deepcopy(default_conf)

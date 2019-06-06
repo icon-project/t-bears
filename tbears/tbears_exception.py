@@ -12,8 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 from enum import IntEnum, unique
+from typing import Optional
 
 
 @unique
@@ -30,6 +30,7 @@ class TBearsExceptionCode(IntEnum):
     DEPLOY_PAYLOAD_ERROR = 6
     ICON_CLIENT_ERROR = 7
     ZIP_MEMORY = 8
+    ESTIMATE = 9
 
     def __str__(self) -> str:
         return str(self.name).capitalize().replace('_', ' ')
@@ -99,5 +100,11 @@ class JsonContentsException(TBearsBaseException):
 
 class TBearsCommandException(TBearsBaseException):
     """Error when tbears cli options are wrong"""
+    def __init__(self, message: Optional[str]):
+        super().__init__(message, TBearsExceptionCode.COMMAND_ERROR)
+
+
+class TBearsEstimateException(TBearsBaseException):
+    """Error while estimating step"""
     def __init__(self, message: Optional[str]):
         super().__init__(message, TBearsExceptionCode.COMMAND_ERROR)
