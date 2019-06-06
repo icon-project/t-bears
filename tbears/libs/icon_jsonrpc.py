@@ -251,7 +251,7 @@ class IconJsonrpc:
                         from_: str = None,
                         to: str = None,
                         value: str = '0x0',
-                        step_limit: str = '0x3000000',
+                        step_limit: str = None,
                         nid: str = '0x3',
                         nonce: str= '0x1',
                         timestamp: str = None,

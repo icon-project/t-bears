@@ -4,7 +4,6 @@
     "keyStore": null,
     "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
     "to": "cx0000000000000000000000000000000000000000",
-    "stepLimit": "0x300000",
     "deploy": {
         "mode": "install",
         "scoreParams": {},

@@ -439,14 +439,18 @@ class CommandWallet:
 
         if password:
             sendtx = IconJsonrpc.from_key_store(conf['keyStore'], password)
-            params = payload['params']
-            params['from'] = None
-            jsonrpc_params_to_pep_style(params)
-            payload = sendtx.sendTransaction(**params)
+        else:
+            sendtx = IconJsonrpc.from_string(payload['params']['from'])
+
+        params = payload['params']
+        params['from'] = None
+        jsonrpc_params_to_pep_style(params)
+        payload = sendtx.sendTransaction(**params)
 
         uri = conf['uri']
-        step_limit = conf.get('stepLimit', None)
-
+        step_limit = payload['params']['stepLimit']
+        if step_limit is None:
+            step_limit = conf.get('stepLimit', None)
         if step_limit is None:
             step_limit = get_enough_step(payload, uri)
         else:
