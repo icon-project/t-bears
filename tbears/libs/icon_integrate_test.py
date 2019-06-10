@@ -15,30 +15,32 @@
 # limitations under the License.
 
 import hashlib
+import inspect
 import random
-from shutil import rmtree
 import sys
+from collections import namedtuple
+from shutil import rmtree
 from time import time, sleep
 from typing import Any
-from unittest import TestCase
-from collections import namedtuple
 from typing import List
+from unittest import TestCase
 
 from iconcommons import IconConfig
+from iconsdk.builder.call_builder import Call
 from iconsdk.converter import convert_transaction_result
 from iconsdk.exception import IconServiceBaseException
 from iconsdk.icon_service import IconService
-from iconsdk.builder.call_builder import Call
 from iconsdk.signed_transaction import SignedTransaction
+from iconsdk.wallet.wallet import KeyWallet
 from iconservice.base.address import Address
 from iconservice.base.block import Block
 from iconservice.base.type_converter import TypeConverter, ParamType
 from iconservice.icon_config import default_icon_config
 from iconservice.icon_constant import ConfigKey, DATA_BYTE_ORDER
-from iconservice.icon_service_engine import IconServiceEngine
 from iconservice.icon_inner_service import MakeResponse
+from iconservice.icon_service_engine import IconServiceEngine
 from iconservice.utils import to_camel_case
-from iconsdk.wallet.wallet import KeyWallet
+
 from tbears.config.tbears_config import TEST1_PRIVATE_KEY, tbears_server_config, ConfigKey as TbConf
 
 SCORE_INSTALL_ADDRESS = f"cx{'0' * 40}"
@@ -97,7 +99,6 @@ class IconIntegrateTestBase(TestCase):
         config.update_conf({ConfigKey.SCORE_ROOT_PATH: self._score_root_path,
                             ConfigKey.STATE_DB_ROOT_PATH: self._state_db_root_path})
         config.update_conf(self._make_init_config())
-
         self.icon_service_engine = IconServiceEngine()
         self.icon_service_engine.open(config)
 
@@ -167,7 +168,11 @@ class IconIntegrateTestBase(TestCase):
             block,
             [tx]
         )
-        self.icon_service_engine.commit(block)
+        if 'block' in inspect.signature(self.icon_service_engine.commit).parameters:
+            self.icon_service_engine.commit(block)
+        else:
+            self.icon_service_engine.commit(block.height, block.hash, block.hash)
+
         self._block_height += 1
         self._prev_block_hash = block_hash
 
@@ -189,7 +194,10 @@ class IconIntegrateTestBase(TestCase):
         return block, response
 
     def _write_precommit_state(self, block: 'Block') -> None:
-        self.icon_service_engine.commit(block)
+        if 'block' in inspect.signature(self.icon_service_engine.commit).parameters:
+            self.icon_service_engine.commit(block)
+        else:
+            self.icon_service_engine.commit(block.height, block.hash, block.hash)
         self._block_height += 1
         self._prev_block_hash = block.hash
 
