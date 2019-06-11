@@ -126,7 +126,7 @@ class IconIntegrateTestBase(TestCase):
                 "balance": account_as_namedtuple.balance
             })
 
-    def _genesis_invoke(self, genesis_accounts: List[Account]) -> dict:
+    def _genesis_invoke(self, genesis_accounts: List[Account]) -> list:
         tx_hash = create_tx_hash()
         timestamp_us = create_timestamp()
         request_params = {
@@ -164,7 +164,7 @@ class IconIntegrateTestBase(TestCase):
 
         block_hash = create_block_hash()
         block = Block(self._block_height, block_hash, timestamp_us, None)
-        invoke_response: dict = self.icon_service_engine.invoke(
+        tx_results, _ = self.icon_service_engine.invoke(
             block,
             [tx]
         )
@@ -176,7 +176,7 @@ class IconIntegrateTestBase(TestCase):
         self._block_height += 1
         self._prev_block_hash = block_hash
 
-        return invoke_response
+        return tx_results
 
     def _make_and_req_block(self, tx_list: list, block_height: int = None) -> tuple:
         if block_height is None:

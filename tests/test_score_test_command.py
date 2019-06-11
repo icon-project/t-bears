@@ -43,6 +43,7 @@ class TestScoreTestCommand(unittest.TestCase):
                               timestamp=create_timestamp(),
                               prev_hash=create_block_hash())
         icon_integrate_test_base._write_precommit_state(instant_block)
+        icon_integrate_test_base.tearDown()
 
         # success case: when icon service version is 1.3.0 and more
         # (these versions get instant block hash and new block hash)
@@ -64,3 +65,4 @@ class TestScoreTestCommand(unittest.TestCase):
                               timestamp=create_timestamp(),
                               prev_hash=create_block_hash())
         icon_integrate_test_base._write_precommit_state(instant_block)
+        icon_integrate_test_base.tearDown()
