@@ -1,5 +1,9 @@
 # ChangeLog - T-Bears
 
+## 1.2.1 - 2019-06-12
+* Add `stepLimit` estimate logic to `deploy`, `sendtx`, and `transfer` commands
+* Apply block hash compatibility to test module
+
 ## 1.2.0 - 2019-05-22
 * Improve Docker image generation
 * Refactor sub processes management
