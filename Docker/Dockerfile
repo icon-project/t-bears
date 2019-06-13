@@ -2,7 +2,7 @@
 FROM golang:1.12-alpine as builder
 
 RUN apk add --no-cache git make
-RUN git clone -b docker-build https://github.com/icon-project/rewardcalculator.git /rewardcalculator
+RUN git clone https://github.com/icon-project/rewardcalculator.git /rewardcalculator
 
 RUN cd /rewardcalculator && make linux
 
