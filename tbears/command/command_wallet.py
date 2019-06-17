@@ -50,7 +50,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_blockbyhash_parser(subparsers):
@@ -60,7 +60,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_blockbyheight_parser(subparsers):
@@ -70,7 +70,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_txresult_parser(subparsers):
@@ -80,7 +80,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_transfer_parser(subparsers):
@@ -95,7 +95,7 @@ class CommandWallet:
         parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
         parser.add_argument('-s', '--step-limit', dest='stepLimit', type=non_negative_num_type, help='Step limit')
         parser.add_argument('-c', '--config', type=IconPath(),
-                            help=f'Configuration file path. This file defines the default values for the properties '
+                            help=f'Configuration file path. This file defines the default values for '
                                  f'"keyStore", "uri", "from" and "stepLimit". (default: {FN_CLI_CONF})')
 
     @staticmethod
@@ -116,7 +116,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_totalsupply_parser(subparsers):
@@ -125,17 +125,17 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_scoreapi_parser(subparsers):
-        parser = subparsers.add_parser('scoreapi', help='Get score\'s api using given score address',
-                                       description='Get score\'s api using given score address')
-        parser.add_argument('address', type=IconAddress('cx'), help='Score address to query score api')
+        parser = subparsers.add_parser('scoreapi', help='Get SCORE\'s API using given SCORE address',
+                                       description='Get SCORE\'s API using given SCORE address')
+        parser.add_argument('address', type=IconAddress('cx'), help='SCORE address to query the API')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath,
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_txbyhash_parser(subparsers):
@@ -145,26 +145,25 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_sendtx_parser(subparsers):
         parser = subparsers.add_parser('sendtx', help='Request icx_sendTransaction with the specified json file and '
-                                                      'keystore file. If keystore file is not given, tbears sends'
-                                                      ' request as it is in the json file.',
+                                                      'keystore file. If keystore file is not given, tbears sends a '
+                                                      'request as it is in the json file.',
                                        description='Request icx_sendTransaction with the specified json file and '
-                                                   'keystore file. If keystore file is not given, tbears sends request'
-                                                   ' as it is in the json file.')
+                                                   'keystore file. If keystore file is not given, tbears sends a '
+                                                   'request as it is in the json file.')
         parser.add_argument('json_file', type=IconPath(), help='File path containing icx_sendTransaction content')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
-        parser.add_argument('-k', '--key-store', type=IconPath(), help='Keystore file path. Used to generate "from"'
-                                                                       'address and transaction signature',
-                            dest='keyStore')
-        parser.add_argument('-c', '--config', type=IconPath(),
-                            help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+        parser.add_argument('-k', '--key-store', dest='keyStore', type=IconPath(),
+                            help='Keystore file path. Used to generate "from" address and transaction signature')
         parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
         parser.add_argument('-s', '--step-limit', dest='stepLimit', type=non_negative_num_type, help='Step limit')
+        parser.add_argument('-c', '--config', type=IconPath(),
+                            help=f'Configuration file path. This file defines the default values for '
+                            f'"keyStore", "uri", "from" and "stepLimit". (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _add_call_parser(subparsers):
@@ -174,7 +173,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'the "uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF})')
 
     @staticmethod
     def _check_transfer(conf: dict, password: str = None):
