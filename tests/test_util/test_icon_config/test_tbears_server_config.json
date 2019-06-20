@@ -39,6 +39,7 @@
     "amqpKey": "7100_config_path",
     "amqpTarget": "127.0.0.1_config_path",
     "blockConfirmInterval": 10,
-    "blockConfirmEmpty": true
-
+    "blockConfirmEmpty": true,
+    "blockGeneratorRotation": true,
+    "blockGenerateCountPerLeader": 10
 }

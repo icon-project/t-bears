@@ -164,7 +164,7 @@ class IconIntegrateTestBase(TestCase):
 
         block_hash = create_block_hash()
         block = Block(self._block_height, block_hash, timestamp_us, None)
-        tx_results, _ = self.icon_service_engine.invoke(
+        tx_results, _, _ = self.icon_service_engine.invoke(
             block,
             [tx]
         )

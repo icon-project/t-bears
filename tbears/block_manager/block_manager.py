@@ -28,7 +28,7 @@ from tbears.block_manager.block import Block
 from tbears.block_manager.channel_service import ChannelService, ChannelTxCreatorService
 from tbears.block_manager.icon_service import IconStub
 from tbears.block_manager.periodic import Periodic
-from tbears.config.tbears_config import ConfigKey, tbears_server_config
+from tbears.config.tbears_config import ConfigKey, tbears_server_config, keystore_test1
 from tbears.util import create_hash, get_tbears_version
 
 TBEARS_BLOCK_MANAGER = 'tbears_block_manager'
@@ -36,6 +36,55 @@ TBEARS_BLOCK_MANAGER = 'tbears_block_manager'
 ICON_SCORE_QUEUE_NAME_FORMAT = "IconScore.{channel_name}.{amqp_key}"
 CHANNEL_QUEUE_NAME_FORMAT = "Channel.{channel_name}.{amqp_key}"
 CHANNEL_TX_CREATOR_QUEUE_NAME_FORMAT = "ChannelTxCreator.{channel_name}.{amqp_key}"
+
+
+class PRepManager(object):
+    def __init__(self, is_generator_rotation: bool, gen_count_per_leader: int, prep_list: list = None):
+        self._prep_list: list = deepcopy(prep_list)
+        self._is_generator_rotation: bool = is_generator_rotation
+        self._gen_count_per_leader: int = gen_count_per_leader
+        self._gen_count: int = 0
+
+    def register_preps(self, data: dict):
+        if data is None:
+            return
+
+        self._prep_list = data.get('preps', None)
+        self._gen_count = 0
+
+    @staticmethod
+    def _create_prev_block_contributors_format(generator: str, validators: list = []) -> dict:
+        validator_id_list = []
+        for v in validators:
+            if isinstance(v, dict) and 'id' in v:
+                validator_id_list.append(v['id'])
+
+        prev_block_contributors_format = \
+            {
+                "prevBlockGenerator": generator,
+                "prevBlockValidators": validator_id_list
+            }
+
+        Logger.debug(f'prev_block_contributors_format: {prev_block_contributors_format}')
+        return prev_block_contributors_format
+
+    def get_prev_block_contributors_info(self) -> dict:
+        if self._prep_list is None or len(self._prep_list) == 0:
+            # set generator with test1 and validators with empty list
+            prev_block_contributors_format = self._create_prev_block_contributors_format(keystore_test1['address'])
+            return prev_block_contributors_format
+
+        prev_block_contributors_format = self._create_prev_block_contributors_format(self._prep_list[0].get('id'),
+                                                                                     self._prep_list[1:])
+        # rotate leader after generate block 10 times
+        if self._is_generator_rotation:
+            self._gen_count += 1
+            if self._gen_count == self._gen_count_per_leader:
+                self._gen_count = 0
+                self._prep_list.append(self._prep_list.pop(0))
+                Logger.debug(f"generator rotated. generator: {self._prep_list[0]}", TBEARS_BLOCK_MANAGER)
+
+        return prev_block_contributors_format
 
 
 class BlockManager(object):
@@ -50,7 +99,10 @@ class BlockManager(object):
         self._icon_stub = None
         self._block: 'Block' = Block(f'{conf["stateDbRootPath"]}/tbears')
         self._tx_queue = []
-        
+        self._prep_manager = PRepManager(
+            is_generator_rotation=self._conf[ConfigKey.BLOCK_GENERATOR_ROTATION],
+            gen_count_per_leader=self._conf[ConfigKey.BLOCK_GENERATE_COUNT_PER_LEADER])
+
     @property
     def block(self) -> 'Block':
         return self._block
@@ -145,6 +197,11 @@ class BlockManager(object):
 
         await self._icon_stub.connect()
         await self._icon_stub.async_task().hello()
+
+        # query and set P-Rep list
+        response = await self._icon_stub.async_task().call({"method": "ise_getPRepList"})
+        if "result" in response:
+            self._prep_manager.register_preps(response["result"])
 
         # send genesis block
         if self.block.block_height != -1:
@@ -280,7 +337,8 @@ class BlockManager(object):
             return
 
         # send write precommit message and confirm block
-        await self._confirm_block(tx_list= tx_list, tx_result= response, block_hash=block_hash, timestamp=block_timestamp_us)
+        await self._confirm_block(tx_list=tx_list, invoke_response=response, block_hash=block_hash,
+                                  timestamp=block_timestamp_us)
         Logger.debug(f'process_block_data done!!', TBEARS_BLOCK_MANAGER)
 
     async def _invoke_block(self, tx_list: list, block_hash: str, block_timestamp) -> dict:
@@ -310,8 +368,13 @@ class BlockManager(object):
                 'prevBlockHash': prev_block_hash,
                 'timestamp': hex(block_timestamp)
             },
-            'transactions': transactions
+            'transactions': transactions,
+            'isBlockEditable': "0x1"
         }
+
+        # add prev block contributor Info.
+        prev_block_contributors = self._prep_manager.get_prev_block_contributors_info()
+        request.update(prev_block_contributors)
 
         # send invoke message to iconservice
         response = await self._icon_stub.async_task().invoke(request)
@@ -320,35 +383,61 @@ class BlockManager(object):
             Logger.debug(f'Get error response from iconservice: {response}!!', TBEARS_BLOCK_MANAGER)
             return None
 
-        Logger.debug(f'invoke block done. txResults: {response["txResults"]}!!', TBEARS_BLOCK_MANAGER)
-        return response["txResults"]
+        Logger.debug(f'invoke block done. response: {response}!!', TBEARS_BLOCK_MANAGER)
+        return response
 
-    async def _confirm_block(self, tx_list: list, tx_result: dict, block_hash: str, timestamp: int):
+    async def _confirm_block(self, tx_list: list, invoke_response: dict, block_hash: str, timestamp: int):
         """
         Confirm block. Send 'write_precommit_state' message and save transaction, transaction result and block data
         :param tx_list: transaction list
-        :param tx_result: transaction result
-        :param block_hash: block hash
+        :param invoke_response: invoke response
+        :param block_hash: old block hash
         :param timestamp: block timestamp
         :return:
         """
-        Logger.debug(f'confirm block start!!', TBEARS_BLOCK_MANAGER)
+        Logger.debug(f'confirm block start. tx_list:{tx_list}, invoke_response:{invoke_response}', TBEARS_BLOCK_MANAGER)
+
+        # Set new P-Rep list
+        self._prep_manager.register_preps(invoke_response.get('prep'))
+
+        # remake tx_list with addedTransactions in invoke_response
+        added_transactions: dict = invoke_response.get('addedTransactions')
+        if added_transactions is not None:
+            for tx_hash, tx in added_transactions.items():
+                tx['txHash'] = tx_hash
+                index: int = -1
+                # find txResult and index
+                for i, tx_result in invoke_response.get('txResults'):
+                    if tx_result.get('txHash') == tx_hash:
+                        index = i
+                        break
+
+                # insert addedTransaction to tx_list
+                if index != -1:
+                    tx_list.insert(index, tx)
+                else:
+                    Logger.error(f"Can't find txResult of addedTransaction({tx_hash}: {tx})")
+
+        # recalculate block_hash. tbears block_manager is dev util
+        block_timestamp_us = int(time.time() * 10 ** 6)
+        new_block_hash = create_hash(block_timestamp_us.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
 
         # save transaction result
-        self.block.save_txresults(tx_list=tx_list, results=tx_result)
+        self.block.save_txresults(tx_list=tx_list, results=invoke_response.get('txResults'))
 
         # save transactions
-        self.block.save_transactions(tx_list=tx_list, block_hash=block_hash)
+        self.block.save_transactions(tx_list=tx_list, block_hash=new_block_hash)
 
         # save block
-        self.block.save_block(block_hash=block_hash, tx=tx_list, timestamp=timestamp)
+        self.block.save_block(block_hash=new_block_hash, tx=tx_list, timestamp=timestamp)
 
         # update block information
-        self.block.commit_block(prev_block_hash=block_hash)
+        self.block.commit_block(prev_block_hash=new_block_hash)
 
         block_height = self.block.block_height + 1
         precommit_request = {'blockHeight': hex(block_height),
-                             'blockHash': block_hash}
+                             'oldBlockHash': block_hash,
+                             'newBlockHash': new_block_hash}
 
         # send write_precommit_state message to iconservice
         await self._icon_stub.async_task().write_precommit_state(precommit_request)
