@@ -82,41 +82,67 @@ class TestCommandWallet(unittest.TestCase):
         return response
 
     def test_transfer_command(self):
-        # transfer case1 (not using stepLimit config)
+        # transfer success #1 (without stepLimit)
         args = {"to": f"hx{'a'*40}", "value": 1, "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6"}
         conf = self.cmd.cmdWallet.get_icon_conf(command='transfer', args=args)
-        transfer_response = self.tx_command("transfer", conf=conf)
-        self.assertEqual(transfer_response.get('error', False), False)
+        response = self.tx_command("transfer", conf=conf)
+        self.assertEqual(response.get('error', False), False)
         # check result
-        tx_hash = transfer_response['result']
+        tx_hash = response['result']
         conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
         self.assertFalse(transaction_result_response.get('error', False))
 
-        # transfer case2 (using stepLimit config with command line argument)
+        # transfer success #2 (without stepLimit, with keystore)
+        args = {"to": f"hx{'a'*40}", "value": 1, "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+                "keyStore": os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')}
+        conf = self.cmd.cmdWallet.get_icon_conf(command='transfer', args=args)
+        response = self.tx_command("transfer", conf=conf, password='qwer1234%')
+        self.assertEqual(response.get('error', False), False)
+        # check result
+        tx_hash = response['result']
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
+        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        self.assertFalse(transaction_result_response.get('error', False))
+
+        # transfer fail #1 (apply stepLimit config with command line argument)
         args = {"stepLimit": "0x1", "to": f"hx{'a'*40}", "value": 1,
                 "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6"}
         conf = self.cmd.cmdScore.get_icon_conf(command='transfer', args=args)
-        transfer_response = self.tx_command("transfer", conf=conf)
-        self.assertIsInstance(transfer_response.get('error', False), dict)
+        response = self.tx_command("transfer", conf=conf)
+        self.assertIsInstance(response.get('error', False), dict)
 
-        # transfer case3 (using stepLimit config with config file)
+        # transfer fail #2 (apply stepLimit config with config file)
         tbears_cli_config_step_set_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config_step_set.json')
         args = {"config": tbears_cli_config_step_set_path, "to": f"hx{'a'*40}", "value": 1,
                 "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6"}
         conf = self.cmd.cmdScore.get_icon_conf(command='transfer', args=args)
-        transfer_response = self.tx_command("transfer", conf=conf)
-        self.assertIsInstance(transfer_response.get('error', False), dict)
+        response = self.tx_command("transfer", conf=conf)
+        self.assertIsInstance(response.get('error', False), dict)
 
     def test_sendtx_command(self):
         # use the stepLimit in the json file
         send_json_path = os.path.join(TEST_UTIL_DIRECTORY, 'send.json')
         args = {"json_file": send_json_path}
         conf = self.cmd.cmdWallet.get_icon_conf(command='sendtx', args=args)
-        transfer_response = self.tx_command("sendtx", conf=conf)
-        self.assertEqual(transfer_response.get('error', False), False)
+        response = self.tx_command("sendtx", conf=conf)
+        self.assertEqual(response.get('error', False), False)
         # check result
-        tx_hash = transfer_response['result']
+        tx_hash = response['result']
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
+        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        self.assertFalse(transaction_result_response.get('error', False))
+        # check the stepLimit in the confirmed tx
+        confirmed_transaction = self.cmd.cmdWallet.txbyhash(conf)
+        self.assertTrue(confirmed_transaction['result']['stepLimit'], '0x3000000')
+
+        # use the stepLimit in the json file, with keystore
+        args["keyStore"] = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
+        conf = self.cmd.cmdWallet.get_icon_conf(command='sendtx', args=args)
+        response = self.tx_command("sendtx", conf=conf, password='qwer1234%')
+        self.assertEqual(response.get('error', False), False)
+        # check result
+        tx_hash = response['result']
         conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
         self.assertFalse(transaction_result_response.get('error', False))
@@ -128,10 +154,23 @@ class TestCommandWallet(unittest.TestCase):
         send_json_path = os.path.join(TEST_UTIL_DIRECTORY, 'send_wo_steplimit.json')
         args = {"json_file": send_json_path}
         conf = self.cmd.cmdWallet.get_icon_conf(command='sendtx', args=args)
-        transfer_response = self.tx_command("sendtx", conf=conf)
-        self.assertEqual(transfer_response.get('error', False), False)
+        response = self.tx_command("sendtx", conf=conf)
+        self.assertEqual(response.get('error', False), False)
         # check result
-        tx_hash = transfer_response['result']
+        tx_hash = response['result']
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
+        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        self.assertFalse(transaction_result_response.get('error', False))
+
+        # no stepLimit, with keystore
+        send_json_path = os.path.join(TEST_UTIL_DIRECTORY, 'send_wo_steplimit.json')
+        args = {"json_file": send_json_path,
+                "keyStore": os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')}
+        conf = self.cmd.cmdWallet.get_icon_conf(command='sendtx', args=args)
+        response = self.tx_command("sendtx", conf=conf, password='qwer1234%')
+        self.assertEqual(response.get('error', False), False)
+        # check result
+        tx_hash = response['result']
         conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
         transaction_result_response = self.cmd.cmdWallet.txresult(conf)
         self.assertFalse(transaction_result_response.get('error', False))
@@ -139,12 +178,12 @@ class TestCommandWallet(unittest.TestCase):
         # use the stepLimit specified in the command line argument
         args = {"stepLimit": "0x1", "json_file": send_json_path}
         conf = self.cmd.cmdScore.get_icon_conf(command='sendtx', args=args)
-        transfer_response = self.tx_command("sendtx", conf=conf)
-        self.assertIsInstance(transfer_response.get('error', False), dict)
+        response = self.tx_command("sendtx", conf=conf)
+        self.assertIsInstance(response.get('error', False), dict)
 
         # use the stepLimit in the config file
         tbears_cli_config_step_set_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config_step_set.json')
         args = {"config": tbears_cli_config_step_set_path, "json_file": send_json_path}
         conf = self.cmd.cmdScore.get_icon_conf(command='sendtx', args=args)
-        transfer_response = self.tx_command("sendtx", conf=conf)
-        self.assertIsInstance(transfer_response.get('error', False), dict)
+        response = self.tx_command("sendtx", conf=conf)
+        self.assertIsInstance(response.get('error', False), dict)

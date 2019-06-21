@@ -22,7 +22,7 @@ from iconcommons.logger.logger import Logger
 from iconservice.base.address import is_icon_address_valid
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1, TBEARS_CLI_TAG
-from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc, get_enough_step
+from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc, get_enough_step, get_default_step
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import jsonrpc_params_to_pep_style
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type
@@ -330,16 +330,14 @@ class CommandWallet:
 
         uri = conf['uri']
         step_limit = conf.get('stepLimit', None)
+        if step_limit is None:
+            step_limit = hex(get_default_step(uri))
 
         # make JSON-RPC 2.0 request standard format (dict type)
         request = transfer.sendTransaction(to=conf['to'],
                                            value=hex(int(conf['value'])),
                                            nid=conf['nid'],
                                            step_limit=step_limit)
-
-        if step_limit is None:
-            step_limit = get_enough_step(request, uri)
-            request['params']['stepLimit'] = hex(step_limit)
 
         # send request to the rpc server
         icon_client = IconClient(uri)
@@ -450,11 +448,12 @@ class CommandWallet:
         step_limit = payload['params']['stepLimit']
         if step_limit is None:
             step_limit = conf.get('stepLimit', None)
-        if step_limit is None:
-            step_limit = get_enough_step(payload, uri)
-        else:
-            step_limit = int(step_limit, 16)
-        payload['params']['stepLimit'] = hex(step_limit)
+            if step_limit is None:
+                step_limit = get_enough_step(payload, uri)
+            else:
+                step_limit = int(step_limit, 16)
+            payload['params']['stepLimit'] = hex(step_limit)
+            sendtx.put_signature(payload['params'])
 
         # send request to the rpc server
         icon_client = IconClient(uri)

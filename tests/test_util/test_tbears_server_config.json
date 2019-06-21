@@ -15,7 +15,7 @@
         }
     },
     "service": {
-        "fee": false,
+        "fee": true,
         "audit": false,
         "deployerWhiteList": false
     },

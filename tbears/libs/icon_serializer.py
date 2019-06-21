@@ -12,8 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import copy
-import hashlib
 
 translator = str.maketrans({
     "\\": "\\\\",
@@ -94,4 +94,3 @@ def generate_origin_for_icx_send_tx_hash(icx_origin_data):
 
     origin = generate_origin_for_hash(copy_tx)
     return f"icx_sendTransaction.{origin}"
-
