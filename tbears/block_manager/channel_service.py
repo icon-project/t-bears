@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import hashlib
 import json
 from typing import Tuple, TYPE_CHECKING, Optional
 
 from earlgrey import MessageQueueService, message_queue_task
 from iconcommons.logger import Logger
 
-from tbears.block_manager import message_code
-from tbears.util import create_hash
+from . import message_code
+from .tx_verifier import verify_signature
+from ..libs.icon_serializer import generate_origin_for_icx_send_tx_hash
+from ..util import create_hash
 
 if TYPE_CHECKING:
     from earlgrey import RobustConnection
@@ -136,18 +140,27 @@ class ChannelTxCreatorInnerTask(object):
         block_manager = self._block_manager
 
         # generate tx hash
-        tx_hash = create_hash(json.dumps(kwargs).encode())
+        serialized_data = generate_origin_for_icx_send_tx_hash(kwargs)
+        tx_hash = create_hash(serialized_data.encode())
 
         # check duplication
         duplicated_tx = False
         for tx in block_manager.tx_queue:
-            if tx_hash == tx ['txHash']:
+            if tx_hash == tx['txHash']:
                 duplicated_tx = True
         if duplicated_tx is False and block_manager._block.get_transaction(tx_hash=tx_hash):
             duplicated_tx = True
 
         if duplicated_tx:
             return message_code.Response.fail_tx_invalid_duplicated_hash, None
+
+        # check signature validity
+        signature = kwargs['signature']
+        if signature != 'sig':
+            msg_hash = hashlib.sha3_256(serialized_data.encode()).digest()
+            sig_byte = base64.b64decode(signature)
+            if not verify_signature(msg_hash, sig_byte, kwargs['from']):
+                return message_code.Response.fail_tx_invalid_signature, None
 
         # append to transaction queue
         block_manager.add_tx(tx_hash=tx_hash, tx=kwargs)
