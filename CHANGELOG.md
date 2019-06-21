@@ -1,5 +1,9 @@
 # ChangeLog - T-Bears
 
+## 1.2.2 - 2019-06-21
+* Add the transaction signature verifier
+* Fix the bug of generating invalid signature after estimating Step
+
 ## 1.2.1 - 2019-06-12
 * Add `stepLimit` estimate logic to `deploy`, `sendtx`, and `transfer` commands
 * Apply block hash compatibility to test module
