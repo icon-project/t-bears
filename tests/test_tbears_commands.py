@@ -131,7 +131,8 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertEqual(treasury_balance, get_balance_response['result'])
 
         # deploy - f"-m install"
-        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
+        args = {"from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6"}
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=args)
         deploy_response = self.deploy_cmd(conf=conf)
         self.assertEqual(deploy_response.get('error', False), False)
 
@@ -151,7 +152,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         # deploy - f"-m update --to socreAddress from_transactionResult -c tbears_cli_config.json"
         scoreAddress = transaction_result_response['result']['scoreAddress']
-        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name)
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=self.project_name, args=args)
         conf['mode'] = 'update'
         conf['to'] = scoreAddress
         conf['conf'] = './tbears_cli_config.json'

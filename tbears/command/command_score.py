@@ -120,6 +120,7 @@ class CommandScore(object):
         if step_limit is None:
             step_limit = get_enough_step(request, uri)
             request['params']['stepLimit'] = hex(step_limit)
+            deploy.put_signature(request['params'])
 
         # send request to the rpc server
         icon_client = IconClient(uri)
