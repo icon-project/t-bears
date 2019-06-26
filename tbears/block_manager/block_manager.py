@@ -231,13 +231,13 @@ class BlockManager(object):
 
         response = await self._icon_stub.async_task().invoke(request)
 
-        response = response['txResults']
+        tx_results = response['txResults']
 
         precommit_request = {'blockHeight': hex(block_height),
                              'blockHash': block_hash}
         await self._icon_stub.async_task().write_precommit_state(precommit_request)
 
-        tx_result = response[tx_hash]
+        tx_result = tx_results[0]
         tx_result['from'] = request_params.get('from', '')
         # tx_result['txHash'] must start with '0x'
         # tx_hash must not start with '0x'

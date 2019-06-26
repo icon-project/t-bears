@@ -137,27 +137,21 @@ class Block(object):
         """
         self.db.put(DbPrefix.TXRESULT + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
 
-    def save_txresults(self, tx_list: list, results: dict):
+    def save_txresults(self, tx_results: list):
         """
         Save transaction results to DB
-        :param tx_list: transaction list
         :param results: transaction result dictionary
         :return:
         """
-        Logger.debug(f'save_txresult:{results}', LOG_BLOCK)
-        if len(tx_list) == 0:
-            return
+        Logger.debug(f'save_txresults:{tx_results}', LOG_BLOCK)
 
         # write transaction result with batch
         with self.db.create_write_batch() as wb:
-            for tx in tx_list:
-                tx_hash = tx['txHash']
+            for tx_result in tx_results:
                 # key from transaction hash
-                key = DbPrefix.TXRESULT + bytes.fromhex(tx_hash)
+                key = DbPrefix.TXRESULT + bytes.fromhex(tx_result.get('txHash'))
 
-                # get value from transaction result dict by tx hash
-                tx_result = results.get(tx_hash, "")
-                tx_result['txHash'] = f'0x{tx_hash}'
+                # get value from transaction result
                 value = json.dumps(tx_result).encode()
 
                 self.db.write_batch(write_batch=wb, key=key, value=value)
