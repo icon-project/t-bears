@@ -140,7 +140,7 @@ class Block(object):
     def save_txresults(self, tx_results: list):
         """
         Save transaction results to DB
-        :param results: transaction result dictionary
+        :param tx_results: transaction result dictionary
         :return:
         """
         Logger.debug(f'save_txresults:{tx_results}', LOG_BLOCK)

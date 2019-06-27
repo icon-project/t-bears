@@ -423,7 +423,7 @@ class BlockManager(object):
         new_block_hash = create_hash(block_timestamp_us.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
 
         # save transaction result
-        self.block.save_txresults(tx_list=tx_list, results=invoke_response.get('txResults'))
+        self.block.save_txresults(tx_results=invoke_response.get('txResults'))
 
         # save transactions
         self.block.save_transactions(tx_list=tx_list, block_hash=new_block_hash)
