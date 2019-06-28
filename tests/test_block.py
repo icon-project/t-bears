@@ -88,18 +88,18 @@ class TestTBearsBlock(unittest.TestCase):
             {'txHash': '02'},
             {'txHash': '03'}
         ]
-        tx_results = {
-            '01': {'key': 'value1'},
-            '02': {'key': 'value2'},
-            '03': {'key': 'value3'},
-        }
+        tx_results = [
+            {'txHash': '01', 'value': 1},
+            {'txHash': '02', 'value': 2},
+            {'txHash': '03', 'value': 3},
+        ]
 
-        self.block.save_txresults(tx_list, tx_results)
+        self.block.save_txresults(tx_results)
         for i, v in enumerate(tx_list):
             result = self.block.get_txresult(v.get('txHash'))
             result_dict = json.loads(result)
-            self.assertEqual(f"0x{v.get('txHash')}", result_dict.get('txHash'))
-            self.assertEqual(tx_results.get(v.get('txHash')).get('key'), result_dict.get('key'))
+            self.assertEqual(v.get('txHash'), result_dict.get('txHash'))
+            self.assertEqual(tx_results[i].get('value'), result_dict.get('value'))
 
     def test_block(self):
         # genesis block

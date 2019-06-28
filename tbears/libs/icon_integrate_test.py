@@ -163,8 +163,8 @@ class IconIntegrateTestBase(TestCase):
             self._append_list(tx, genesis_accounts)
 
         block_hash = create_block_hash()
-        block = Block(self._block_height, block_hash, timestamp_us, None)
-        tx_results, _, _ = self.icon_service_engine.invoke(
+        block = Block(self._block_height, block_hash, timestamp_us, None, 0)
+        tx_results, _, _, _ = self.icon_service_engine.invoke(
             block,
             [tx]
         )
@@ -186,10 +186,18 @@ class IconIntegrateTestBase(TestCase):
 
         block = Block(block_height, block_hash, timestamp_us, self._prev_block_hash)
 
-        tx_results, state_root_hash = self.icon_service_engine.invoke(block, tx_list)
+        tx_results, state_root_hash, added_transactions, main_preps = self.icon_service_engine.invoke(block, tx_list)
 
         convert_tx_results = [tx_result.to_dict(to_camel_case) for tx_result in tx_results]
-        response = MakeResponse.make_response(convert_tx_results)
+        results = {
+            'txResults': convert_tx_results,
+            'stateRootHash': bytes.hex(state_root_hash),
+            'addedTransactions': added_transactions
+        }
+        if main_preps:
+            results['prep'] = main_preps
+
+        response = MakeResponse.make_response(results)
 
         return block, response
 
