@@ -14,6 +14,7 @@
 import copy
 import hashlib
 import itertools
+import json
 import os
 import time
 from typing import Optional, Union
@@ -514,3 +515,26 @@ def get_enough_step(request: dict, uri: str) -> int:
     estimated_step = int(estimate_response['result'], 16)
     step_limit = int(estimated_step * 1.1)
     return step_limit
+
+
+def get_default_step(uri: str) -> int:
+    client = IconClient(uri)
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "icx_call",
+        "params": {
+            "to": "cx0000000000000000000000000000000000000001",
+            "dataType": "call",
+            "data": {
+                "method": "getStepCosts"
+            }
+        }
+    }
+    response = client.send(request=payload)
+    if 'result' in response:
+        default_step = int(response['result']['default'], 16)
+    else:
+        print(json.dumps(response, indent=4))
+        default_step = 100000
+    return default_step
