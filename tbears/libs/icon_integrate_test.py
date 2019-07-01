@@ -372,6 +372,43 @@ class IconIntegrateTestBase(TestCase):
 
         return tx_result
 
+    def process_transaction_bulk(self,
+                                 requests: list,
+                                 network: IconService = None,
+                                 block_confirm_interval: int = 0) -> list:
+        if self._network_only and network is None:
+            raise URLException("Set network URL")
+
+        if block_confirm_interval == 0:
+            block_confirm_interval = self._block_confirm_interval
+
+        tx_results: list = []
+
+        try:
+            if network is not None:
+                tx_hashes: list = []
+                for req in requests:
+                    # Send the transaction to network
+                    tx_hash = network.send_transaction(req)
+                    tx_hashes.append(tx_hash)
+
+                sleep(block_confirm_interval)
+
+                # Get transaction result
+                for h in tx_hashes:
+                    tx_result = network.get_transaction_result(h)
+                    tx_results.append(tx_result)
+            else:
+                for req in requests:
+                    # process the transaction in local
+                    tx_result = self._process_transaction_in_local(req.signed_transaction_dict)
+                    tx_results.append(tx_result)
+        except IconServiceBaseException as e:
+            tx_result = e.message
+            tx_results.append(tx_result)
+
+        return tx_results
+
     def process_call(self, call: Call, network: IconService = None):
         if self._network_only and network is None:
             raise URLException("Set network URL")
@@ -399,8 +436,8 @@ class IconIntegrateTestBase(TestCase):
         return response
 
     def process_message_tx(self, network: IconService = None,
-                         msg: str = "dummy",
-                         block_confirm_interval: int = 0) -> dict:
+                           msg: str = "dummy",
+                           block_confirm_interval: int = 0) -> dict:
         if self._network_only and network is None:
             raise URLException("Set network URL")
 
