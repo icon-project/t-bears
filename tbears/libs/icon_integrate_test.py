@@ -305,7 +305,7 @@ class IconIntegrateTestBase(TestCase):
               block_confirm_interval: int = tbears_server_config[TbConf.BLOCK_CONFIRM_INTERVAL],
               network_only: bool = False):
 
-        self._block_height = 0
+        self._block_height = -1
         self._prev_block_hash = None
         self._block_confirm_interval = block_confirm_interval
         self._network_only: bool = network_only
@@ -386,7 +386,7 @@ class IconIntegrateTestBase(TestCase):
             self._append_list(tx, genesis_accounts)
 
         block_hash = create_block_hash()
-        block = Block(self._block_height, block_hash, timestamp_us, None, 0)
+        block = Block(self._block_height + 1, block_hash, timestamp_us, None, 0)
         tx_results, _, _, _ = self.icon_service_engine.invoke(
             block,
             [tx]
