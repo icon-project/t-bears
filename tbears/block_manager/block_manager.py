@@ -237,7 +237,7 @@ class BlockManager(object):
                              'blockHash': block_hash}
         await self._icon_stub.async_task().write_precommit_state(precommit_request)
 
-        tx_result = tx_results[0]
+        tx_result = tx_results[tx_hash]
         tx_result['from'] = request_params.get('from', '')
         # tx_result['txHash'] must start with '0x'
         # tx_hash must not start with '0x'
@@ -422,8 +422,13 @@ class BlockManager(object):
         block_timestamp_us = int(time.time() * 10 ** 6)
         new_block_hash = create_hash(block_timestamp_us.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
 
+        block_height = self.block.block_height + 1
+
         # save transaction result
-        self.block.save_txresults(tx_results=invoke_response.get('txResults'))
+        if block_height == 0:
+            self.block.save_txresults_legacy(tx_list=tx_list, results=invoke_response)
+        else:
+            self.block.save_txresults(tx_results=invoke_response.get('txResults'))
 
         # save transactions
         self.block.save_transactions(tx_list=tx_list, block_hash=new_block_hash)
@@ -434,7 +439,6 @@ class BlockManager(object):
         # update block information
         self.block.commit_block(prev_block_hash=new_block_hash)
 
-        block_height = self.block.block_height + 1
         precommit_request = {'blockHeight': hex(block_height),
                              'oldBlockHash': block_hash,
                              'newBlockHash': new_block_hash}
