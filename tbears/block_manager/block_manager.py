@@ -407,7 +407,7 @@ class BlockManager(object):
                 tx['txHash'] = tx_hash
                 index: int = -1
                 # find txResult and index
-                for i, tx_result in invoke_response.get('txResults'):
+                for i, tx_result in enumerate(invoke_response.get('txResults')):
                     if tx_result.get('txHash') == tx_hash:
                         index = i
                         break
@@ -442,8 +442,8 @@ class BlockManager(object):
         precommit_request = {'blockHeight': hex(block_height),
                              'oldBlockHash': block_hash,
                              'newBlockHash': new_block_hash}
-
         # send write_precommit_state message to iconservice
+
         await self._icon_stub.async_task().write_precommit_state(precommit_request)
 
         Logger.debug(f'confirm block done.', TBEARS_BLOCK_MANAGER)
