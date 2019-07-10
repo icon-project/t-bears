@@ -23,6 +23,10 @@ import requests
 from iconcommons.logger.logger import Logger
 from secp256k1 import PrivateKey
 
+from iconsdk.builder.call_builder import CallBuilder
+from iconsdk.icon_service import IconService
+from iconsdk.utils.convert_type import convert_hex_str_to_int
+
 from tbears.config.tbears_config import TBEARS_CLI_TAG
 from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
 from tbears.libs.icx_signer import key_from_key_store, IcxSigner
@@ -515,6 +519,21 @@ def get_enough_step(request: dict, uri: str) -> int:
     estimated_step = int(estimate_response['result'], 16)
     step_limit = int(estimated_step * 1.1)
     return step_limit
+
+
+# Returns the max step limit
+def get_max_step_limit(from_address: str, icon_service: IconService) -> int:
+    _param = {
+        "contextType": "invoke"
+    }
+    _call = CallBuilder()\
+        .from_(from_address)\
+        .to(f'cx{"0"*39+"1"}')\
+        .method("getMaxStepLimit")\
+        .params(_param)\
+        .build()
+    _result = icon_service.call(_call)
+    return convert_hex_str_to_int(_result)
 
 
 def get_default_step(uri: str) -> int:
