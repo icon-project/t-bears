@@ -20,6 +20,7 @@ FN_CLI_CONF = './tbears_cli_config.json'
 
 TBEARS_CLI_TAG = 'tbears_cli'
 
+GOVERNANCE_ADDRESS = f'cx{"0"*39+"1"}'
 
 class ConfigKey:
     CHANNEL = 'channel'

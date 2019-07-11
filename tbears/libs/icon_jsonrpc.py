@@ -27,7 +27,7 @@ from iconsdk.builder.call_builder import CallBuilder
 from iconsdk.icon_service import IconService
 from iconsdk.utils.convert_type import convert_hex_str_to_int
 
-from tbears.config.tbears_config import TBEARS_CLI_TAG
+from tbears.config.tbears_config import TBEARS_CLI_TAG, GOVERNANCE_ADDRESS
 from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
 from tbears.libs.icx_signer import key_from_key_store, IcxSigner
 from tbears.libs.in_memory_zip import InMemoryZip
@@ -528,7 +528,7 @@ def get_max_step_limit(from_address: str, icon_service: IconService) -> int:
     }
     _call = CallBuilder()\
         .from_(from_address)\
-        .to(f'cx{"0"*39+"1"}')\
+        .to(GOVERNANCE_ADDRESS)\
         .method("getMaxStepLimit")\
         .params(_param)\
         .build()
@@ -557,3 +557,16 @@ def get_default_step(uri: str) -> int:
         print(json.dumps(response, indent=4))
         default_step = 100000
     return default_step
+
+
+# Returns a step cost. You can use it for getting the recommended value of 'step limit'.
+def get_default_step_cost(from_address: str, icon_service: IconService) -> int:
+    _call = CallBuilder()\
+        .from_(from_address)\
+        .to(GOVERNANCE_ADDRESS)\
+        .method("getStepCosts")\
+        .build()
+    _result = icon_service.call(_call)
+    default_step_cost = convert_hex_str_to_int(_result["default"])
+    return default_step_cost
+

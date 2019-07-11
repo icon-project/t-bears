@@ -16,17 +16,31 @@ import copy
 import getpass
 import json
 import os
+import re
 
 from iconcommons import IconConfig
 from iconcommons.logger.logger import Logger
 from iconservice.base.address import is_icon_address_valid
+from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder
+from iconsdk.builder.call_builder import CallBuilder
+from iconsdk.exception import JSONRPCException
+from iconsdk.icon_service import IconService
+from iconsdk.providers.http_provider import HTTPProvider
+from iconsdk.signed_transaction import SignedTransaction
+from iconsdk.utils.convert_type import convert_hex_str_to_int
+from iconsdk.wallet.wallet import KeyWallet
+
+from pprint import pprint
+from time import time
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1, TBEARS_CLI_TAG
-from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc, get_enough_step, get_default_step
+from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc, get_enough_step, get_default_step, get_default_step_cost
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import jsonrpc_params_to_pep_style
+from tbears.util.arg_parser import uri_parser, tx_json_parser
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type
 from tbears.util.keystore_manager import validate_password, make_key_store_content
+from tbears.util.repeater import retry
 
 
 class CommandWallet:
@@ -229,9 +243,10 @@ class CommandWallet:
         :param conf: lastblock command configuration
         :return: result of query
         """
-        icon_client = IconClient(conf['uri'])
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
 
-        response = icon_client.send(IconJsonrpc.getLastBlock())
+        response = icon_service.get_block("lastest")
 
         if "error" in response:
             print(json.dumps(response, indent=4))
@@ -246,9 +261,10 @@ class CommandWallet:
         :param conf: blockbyheight command configuration
         :return: result of query
         """
-        icon_client = IconClient(conf['uri'])
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
 
-        response = icon_client.send(IconJsonrpc.getBlockByHeight(conf['height']))
+        response = icon_service.get_block(convert_hex_str_to_int(conf['height']))
 
         if "error" in response:
             print('Got an error response')
@@ -264,9 +280,10 @@ class CommandWallet:
         :param conf: blockbyhash command configuration
         :return: result of query
         """
-        icon_client = IconClient(conf['uri'])
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
 
-        response = icon_client.send(IconJsonrpc.getBlockByHash(conf['hash']))
+        response = icon_service.get_block(conf['hash'])
 
         if "error" in response:
             print('Got an error response')
@@ -282,9 +299,10 @@ class CommandWallet:
         :param conf: txbyhash command configuration.
         :return: result of query.
         """
-        icon_client = IconClient(conf['uri'])
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
 
-        response = icon_client.send(IconJsonrpc.getTransactionByHash(conf['hash']))
+        response = icon_service.get_transaction(conf['hash'])
 
         if "error" in response:
             print('Got an error response')
@@ -300,9 +318,10 @@ class CommandWallet:
         :param conf: txresult command configuration.
         :return: result of query.
         """
-        icon_client = IconClient(conf['uri'])
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
 
-        response = icon_client.send(IconJsonrpc.getTransactionResult(conf['hash']))
+        response = icon_service.get_transaction_result(conf['hash'])
 
         if "error" in response:
             print('Got an error response')
@@ -312,7 +331,7 @@ class CommandWallet:
 
         return response
 
-    def transfer(self, conf: dict):
+    def transfer(self, conf: dict) -> dict:
         """Transfer ICX Coin.
 
         :param conf: transfer command configuration.
@@ -324,14 +343,59 @@ class CommandWallet:
         password = self._check_transfer(conf, password)
 
         if password:
-            transfer = IconJsonrpc.from_key_store(conf['keyStore'], password)
+            return self.transfer_with_wallet(conf, password)
         else:
-            transfer = IconJsonrpc.from_string(conf['from'])
+            return self.transfer_without_wallet(conf, password)
 
-        uri = conf['uri']
-        step_limit = conf.get('stepLimit', None)
-        if step_limit is None:
-            step_limit = hex(get_default_step(uri))
+    def transfer_with_wallet(self, conf: dict, password: str) -> dict:
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
+
+        wallet = KeyWallet.load(conf['keyStore'], password)
+
+        if conf['step_limit'] is None:
+            step_limit = get_default_step_cost(wallet.get_address(), icon_service)
+        else:
+            step_limit = conf['step_limit']
+
+        transaction = TransactionBuilder()\
+            .from_(wallet.get_address())\
+            .to(conf['to'])\
+            .value(int(conf['value']))\
+            .step_limit(step_limit) \
+            .nid(convert_hex_str_to_int(conf['nid'])) \
+            .version(version)\
+            .timestamp(int(time() * 10 ** 6))\
+            .build()
+
+        # Returns the signed transaction object having a signature
+        signed_transaction = SignedTransaction(transaction, wallet)
+
+        # Reads params to transfer to nodes
+        print("\nparams: ")
+        pprint(signed_transaction.signed_transaction_dict)
+
+        # Sends the transaction
+        tx_hash = icon_service.send_transaction(signed_transaction)
+        print("txHash: ", tx_hash)
+
+        @retry(JSONRPCException, tries=10, delay=1, back_off=2)
+        def get_tx_result():
+            # Returns the result of a transaction by transaction hash
+            tx_result = icon_service.get_transaction_result(tx_hash)
+            print("\ntransaction status(1:success, 0:failure): ", tx_result["status"])
+
+            # Gets balance
+            balance = icon_service.get_balance(wallet.get_address())
+            print("balance: ", balance, "\n")
+
+        return get_tx_result()
+
+    def transfer_without_wallet(self, conf: dict) -> dict:
+        if conf['step_limit'] is None:
+            step_limit = hex(get_default_step(conf['uri']))
+
+        transfer = IconJsonrpc.from_string(conf['from'])
 
         # make JSON-RPC 2.0 request standard format (dict type)
         request = transfer.sendTransaction(to=conf['to'],
@@ -340,7 +404,7 @@ class CommandWallet:
                                            step_limit=step_limit)
 
         # send request to the rpc server
-        icon_client = IconClient(uri)
+        icon_client = IconClient(conf['uri'])
         response = icon_client.send(request=request)
 
         if 'result' in response:
@@ -374,16 +438,18 @@ class CommandWallet:
 
         :param conf: balance command configuration.
         """
-        icon_client = IconClient(conf['uri'])
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
 
-        response = icon_client.send(IconJsonrpc.getBalance(conf['address']))
+        response = icon_service.get_balance(conf['address'])
 
-        if "error" in response:
-            print('Got an error response')
-            print(json.dumps(response, indent=4))
-        else:
-            print(f"balance in hex: {response['result']}")
-            print(f"balance in decimal: {int(response['result'], 16)}")
+        print(f"balance in decimal: {response}")
+        # if "error" in response:
+        #     print('Got an error response')
+        #     print(json.dumps(response, indent=4))
+        # else:
+        #     print(f"balance in hex: {response['result']}")
+        #     print(f"balance in decimal: {int(response['result'], 16)}")
         return response
 
     @staticmethod
@@ -392,16 +458,18 @@ class CommandWallet:
 
         :param conf: totalsupply command configuration
         """
-        icon_client = IconClient(conf['uri'])
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
 
-        response = icon_client.send(IconJsonrpc.getTotalSupply())
+        response = icon_service.get_total_supply()
 
-        if "error" in response:
-            print('Got an error response')
-            print(json.dumps(response, indent=4))
-        else:
-            print(f'Total supply of ICX in hex: {response["result"]}')
-            print(f'Total supply of ICX in decimal: {int(response["result"], 16)}')
+        print(f"Total supply of ICX in deciamal {response}")
+        # if "error" in response:
+        #     print('Got an error response')
+        #     print(json.dumps(response, indent=4))
+        # else:
+        #     print(f'Total supply of ICX in hex: {response["result"]}')
+        #     print(f'Total supply of ICX in decimal: {int(response["result"], 16)}')
 
         return response
 
@@ -411,8 +479,10 @@ class CommandWallet:
         :param conf: scoreapi command configuration.
         :return: result of query.
         """
-        icon_client = IconClient(conf['uri'])
-        response = icon_client.send(IconJsonrpc.getScoreApi(conf['address']))
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
+
+        response = icon_service.get_score_api(conf['address'])
 
         if "error" in response:
             print('Got an error response')
@@ -433,14 +503,55 @@ class CommandWallet:
 
         password = conf.get('password', None)
         password = self._check_sendtx(conf, password)
+        params = payload['params']
 
         if password:
+            return self.sendtx_with_keystore(conf, password, params)
             sendtx = IconJsonrpc.from_key_store(conf['keyStore'], password)
         else:
-            sendtx = IconJsonrpc.from_string(payload['params']['from'])
+            return self.sendtx_without_keystore(conf, password, params)
 
-        params = payload['params']
+    def sendtx_with_keystore(self, conf: dict, password: str, params: dict) -> dict:
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
+
+        wallet = KeyWallet.load(conf['keyStore'], password)
+
+        if conf.get('step_limit', None) is None:
+            step_limit = get_default_step_cost(wallet.get_address(), icon_service) * 2
+        else:
+            step_limit = conf['step_limit']
+
+        params = tx_json_parser(params)
+
+        transaction = CallTransactionBuilder()\
+            .from_(wallet.get_address())\
+            .to(params['to'])\
+            .step_limit(step_limit)\
+            .nid(convert_hex_str_to_int(conf['nid']))\
+            .method(params['method'])\
+            .params(params['params'])\
+            .build()
+
+        signed_transaction = SignedTransaction(transaction, wallet)
+
+        # Sends transaction
+        tx_hash = icon_service.send_transaction(signed_transaction)
+        print("txHash: ", tx_hash)
+
+        @retry(JSONRPCException, tries=10, delay=1, back_off=2)
+        def get_tx_result():
+            # Returns the result of a transaction by transaction hash
+            tx_result = icon_service.get_transaction_result(tx_hash)
+            print("transaction status(1:success, 0:failure): ", tx_result["status"])
+            return tx_result
+
+        return get_tx_result()
+
+    def sendtx_without_keystore(self, conf: dict, params: dict) -> dict:
+        sendtx = IconJsonrpc.from_string(params['from'])
         params['from'] = None
+
         jsonrpc_params_to_pep_style(params)
         payload = sendtx.sendTransaction(**params)
 
@@ -476,11 +587,22 @@ class CommandWallet:
         :param conf: call command configuration.
         :return: response of icx_call
         """
-        icon_client = IconClient(conf['uri'])
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
+
         with open(conf['json_file'], 'r') as jf:
             payload = json.load(jf)
 
-        response = icon_client.send(request=payload)
+        payload = tx_json_parser(payload['params'])
+
+        call = CallBuilder()\
+            .from_(conf['from'])\
+            .to(payload['to'])\
+            .method(payload['method'])\
+            .params(payload['params'])\
+            .build()
+
+        response = icon_service.call(call)
 
         if 'error' in response:
             print(json.dumps(response, indent=4))
