@@ -42,5 +42,5 @@
         ]
     },
     "blockConfirmInterval": 2,
-    "blockConfirmEmpty": false
+    "blockConfirmEmpty": true
 }
