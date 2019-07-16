@@ -1,5 +1,8 @@
 # ChangeLog - T-Bears
 
+## 1.3.0 - 2019-07-16
+* Update Docker image files for Fee 2.0
+
 ## 1.2.2 - 2019-06-21
 * Add the transaction signature verifier
 * Fix the bug of generating invalid signature after estimating Step
