@@ -27,7 +27,7 @@ from iconservice.icon_constant import DATA_BYTE_ORDER, DEFAULT_BYTE_SIZE
 from tbears.block_manager.block import Block
 from tbears.block_manager.channel_service import ChannelService, ChannelTxCreatorService
 from tbears.block_manager.icon_service import IconStub
-from tbears.block_manager.periodic import Periodic
+from tbears.block_manager.task import Periodic, Immediate
 from tbears.config.tbears_config import ConfigKey, tbears_server_config, keystore_test1
 from tbears.util import create_hash, get_tbears_version
 
@@ -102,6 +102,8 @@ class BlockManager(object):
         self._prep_manager = PRepManager(
             is_generator_rotation=self._conf[ConfigKey.BLOCK_GENERATOR_ROTATION],
             gen_count_per_leader=self._conf[ConfigKey.BLOCK_GENERATE_COUNT_PER_LEADER])
+        self._genesis_addr: str = self._conf["genesis"]["accounts"][0]["address"]
+        self._test1_addr: str = self._conf["genesis"]["accounts"][2]["address"]
 
     @property
     def block(self) -> 'Block':
@@ -153,7 +155,10 @@ class BlockManager(object):
         await self._init_channel()
         await self._init_tx_creator()
         await self._init_icon()
-        await self._init_periodic()
+        if self._conf[ConfigKey.BLOCK_MANUAL_CONFIRM]:
+            await self._init_immediate()
+        else:
+            await self._init_periodic()
 
         Logger.debug(f'Initialize done!!', TBEARS_BLOCK_MANAGER)
 
@@ -272,6 +277,18 @@ class BlockManager(object):
 
         Logger.debug(f'Initialize periodic task done!!', TBEARS_BLOCK_MANAGER)
 
+    async def _init_immediate(self):
+        """
+        Initialize immediate task.
+        :return:
+        """
+        Logger.debug(f'Initialize immediate task started!!', TBEARS_BLOCK_MANAGER)
+
+        self.immediate = Immediate()
+        await self.immediate.start()
+
+        Logger.debug(f'Initialize periodic task done!!', TBEARS_BLOCK_MANAGER)
+
     def close(self):
         Logger.debug(f'close {TBEARS_BLOCK_MANAGER}', TBEARS_BLOCK_MANAGER)
         get_event_loop().stop()
@@ -283,13 +300,25 @@ class BlockManager(object):
         :param tx: transaction
         :return:
         """
-        tx_copy = deepcopy(tx)
+        if self._conf[ConfigKey.BLOCK_MANUAL_CONFIRM] and self._check_debug_tx(tx):
+            self.immediate.add_func(func=self.process_block_data)
+        else:
+            tx_copy = deepcopy(tx)
 
-        # add txHash
-        tx_copy['txHash'] = tx_hash
+            # add txHash
+            tx_copy['txHash'] = tx_hash
 
-        self._tx_queue.append(tx_copy)
-        Logger.debug(f'Append tx to tx_queue: {self._tx_queue}', TBEARS_BLOCK_MANAGER)
+            self._tx_queue.append(tx_copy)
+            Logger.debug(f'Append tx to tx_queue: {self._tx_queue}', TBEARS_BLOCK_MANAGER)
+
+    def _check_debug_tx(self, tx: dict) -> bool:
+        if tx['from'] != self._test1_addr:
+            return False
+
+        if tx['to'] != self._genesis_addr:
+            return False
+
+        return True
 
     @property
     def tx_queue(self) -> list:

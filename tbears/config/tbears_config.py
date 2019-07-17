@@ -55,6 +55,7 @@ class ConfigKey:
     BLOCK_CONFIRM_EMPTY = 'blockConfirmEmpty'
     BLOCK_GENERATOR_ROTATION = 'blockGeneratorRotation'
     BLOCK_GENERATE_COUNT_PER_LEADER = 'blockGenerateCountPerLeader'
+    BLOCK_MANUAL_CONFIRM = 'blockManualConfirm'
 
 
 tbears_server_config = {
@@ -106,7 +107,8 @@ tbears_server_config = {
     ConfigKey.BLOCK_CONFIRM_INTERVAL: 10,
     ConfigKey.BLOCK_CONFIRM_EMPTY: True,
     ConfigKey.BLOCK_GENERATOR_ROTATION: True,
-    ConfigKey.BLOCK_GENERATE_COUNT_PER_LEADER: 10
+    ConfigKey.BLOCK_GENERATE_COUNT_PER_LEADER: 10,
+    ConfigKey.BLOCK_MANUAL_CONFIRM: False
 }
 
 

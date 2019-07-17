@@ -21,13 +21,12 @@ import sys
 from collections import namedtuple
 from shutil import rmtree
 from time import time, sleep
-from typing import Any
-from typing import List
+from typing import Any, Union, List
 from unittest import TestCase
 
 from iconcommons import IconConfig
 from iconsdk.builder.call_builder import Call
-from iconsdk.builder.transaction_builder import MessageTransactionBuilder
+from iconsdk.builder.transaction_builder import MessageTransactionBuilder, TransactionBuilder
 from iconsdk.converter import convert_transaction_result
 from iconsdk.exception import IconServiceBaseException, URLException
 from iconsdk.icon_service import IconService
@@ -460,11 +459,11 @@ class IconIntegrateTestBase(TestCase):
 
     def process_transaction(self, request: SignedTransaction,
                             network: IconService = None,
-                            block_confirm_interval: int = 0) -> dict:
+                            block_confirm_interval: int = -1) -> dict:
         if self._network_only and network is None:
             raise URLException("Set network URL")
 
-        if block_confirm_interval == 0:
+        if block_confirm_interval == -1:
             block_confirm_interval = self._block_confirm_interval
 
         try:
@@ -485,11 +484,11 @@ class IconIntegrateTestBase(TestCase):
     def process_transaction_bulk(self,
                                  requests: list,
                                  network: IconService = None,
-                                 block_confirm_interval: int = 0) -> list:
+                                 block_confirm_interval: int = -1) -> list:
         if self._network_only and network is None:
             raise URLException("Set network URL")
 
-        if block_confirm_interval == 0:
+        if block_confirm_interval == -1:
             block_confirm_interval = self._block_confirm_interval
 
         tx_results: list = []
@@ -547,11 +546,11 @@ class IconIntegrateTestBase(TestCase):
 
     def process_message_tx(self, network: IconService = None,
                            msg: str = "dummy",
-                           block_confirm_interval: int = 0) -> dict:
+                           block_confirm_interval: int = -1) -> dict:
         if self._network_only and network is None:
             raise URLException("Set network URL")
 
-        if block_confirm_interval == 0:
+        if block_confirm_interval == -1:
             block_confirm_interval = self._block_confirm_interval
 
         msg_byte = msg.encode('utf-8')
@@ -583,3 +582,82 @@ class IconIntegrateTestBase(TestCase):
             tx_result = e.message
 
         return tx_result
+
+    def process_confirm_block_tx(self, network: IconService):
+        # build message tx
+        transaction = TransactionBuilder() \
+            .from_(self._test1.get_address()) \
+            .to("hx0000000000000000000000000000000000000000") \
+            .value(0) \
+            .step_limit(10_000_000_000) \
+            .nonce(0) \
+            .build()
+
+        # signing message tx
+        request = SignedTransaction(transaction, self._test1)
+
+        network.send_transaction(request)
+        if self._block_confirm_interval > 0:
+            sleep(self._block_confirm_interval)
+
+    def process_transaction_without_txresult(self,
+                                             request: SignedTransaction,
+                                             network: IconService) -> list:
+        tx_hashes: list = []
+        tx_hashes.append(network.send_transaction(request))
+        if self._block_confirm_interval > 0:
+            sleep(self._block_confirm_interval)
+        return tx_hashes
+
+    def process_transaction_bulk_without_txresult(self,
+                                                  requests: list,
+                                                  network: IconService) -> list:
+        tx_hashes: list = []
+        for req in requests:
+            # Send the transaction to network
+            tx_hashes.append(network.send_transaction(req))
+        if self._block_confirm_interval > 0:
+            sleep(self._block_confirm_interval)
+        return tx_hashes
+
+    def process_message_tx_without_txresult(self,
+                                            network: IconService,
+                                            from_: 'KeyWallet',
+                                            to_: Union['KeyWallet', str],
+                                            step_limit: int = 10_000_000_000,
+                                            msg: str = "dummy") -> list:
+
+        if isinstance(to_, KeyWallet):
+            to_ = to_.get_address()
+
+        msg_byte = msg.encode('utf-8')
+
+        # build message tx
+        transaction = MessageTransactionBuilder() \
+            .from_(from_.get_address()) \
+            .to(to_) \
+            .step_limit(step_limit) \
+            .nid(3) \
+            .nonce(100) \
+            .data(f"0x{msg_byte.hex()}") \
+            .build()
+
+        # signing message tx
+        request = SignedTransaction(transaction, from_)
+        tx_hashes: list = []
+        tx_hashes.append(network.send_transaction(request))
+        sleep(self._block_confirm_interval)
+        return tx_hashes
+
+    def get_txresults(self,
+                      network: IconService,
+                      tx_hashes: list) -> list:
+        tx_results: list = []
+
+        if self._block_confirm_interval == 0:
+            sleep(0.2)
+
+        for h in tx_hashes:
+            tx_result = network.get_transaction_result(h)
+            tx_results.append(tx_result)
+        return tx_results
