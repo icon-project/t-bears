@@ -1,18 +1,13 @@
 import re
+from urllib import parse
 
 
-def uri_parser(uri : str) -> (str, int):
-    uri = "http://127.0.0.1:9000"
-    version = 3
+def uri_parser(uri: str) -> (str, int):
 
-    return uri, version
+    uri = parse.urlparse(uri)
+    _uri = uri.scheme + '://' + uri.netloc
+    _version = re.search(r'(?<=\bv)\d+', uri.path).group(0)
+
+    return _uri, int(_version)
 
 
-def tx_json_parser(conf: dict) -> dict:
-    params = dict()
-
-    params['to'] = conf['to']
-    params['method'] = conf['data']['method']
-    params['params'] = conf['data'].get('params', None)
-
-    return params

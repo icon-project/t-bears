@@ -25,7 +25,6 @@ from iconcommons.logger import Logger
 from iconservice.base.address import is_icon_address_valid
 
 from iconsdk.builder.transaction_builder import DeployTransactionBuilder
-from iconsdk.exception import JSONRPCException
 from iconsdk.icon_service import IconService
 from iconsdk.libs.in_memory_zip import gen_deploy_data_content
 from iconsdk.providers.http_provider import HTTPProvider
@@ -34,12 +33,11 @@ from iconsdk.utils.convert_type import convert_hex_str_to_int
 from iconsdk.wallet.wallet import KeyWallet
 
 from tbears.command.command_server import CommandServer
-from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, TBEARS_CLI_TAG, RPC_VERSION
-from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient, get_max_step_limit, get_enough_step
+from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, TBEARS_CLI_TAG
+from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient, get_enough_step
 from tbears.tbears_exception import TBearsDeleteTreeException, TBearsCommandException
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
-from tbears.util.repeater import retry
 
 
 class CommandScore(object):
@@ -104,23 +102,27 @@ class CommandScore(object):
         else:
             score_address = conf['to']
 
-        if conf['keyStore']:
-            return self.deploy_with_keystore(conf, password, score_address)
+        if password:
+            response = self.deploy_with_keystore(conf, password, score_address)
         else:
-            return self.deploy_without_keystore(conf, score_address)
+            response = self.deploy_without_keystore(conf, score_address)
 
-    def deploy_with_keystore(self, conf: dict, password: str, score_address : str) -> dict:
-        if conf.get('keyStore', None) is None:
-            return self.deploy_without_keystore(conf, score_address)
+        if 'error' in response:
+            print('Got an error response')
+            print(json.dumps(response, indent=4))
+        else:
+            print('Send deploy request successfully.')
+            tx_hash = response['result']
+            print(f'If you want to check SCORE deployed successfully, execute txresult command')
+            print(f"transaction hash: {tx_hash}")
+
+        return response
+
+    def deploy_with_keystore(self, conf: dict, password: str, score_address: str) -> dict:
 
         uri, version = uri_parser(conf['uri'])
         icon_service = IconService(HTTPProvider(uri, version))
         wallet = KeyWallet.load(conf['keyStore'], password)
-
-        if conf.get('step_limit', None) is None:
-            step_limit = get_max_step_limit(wallet.get_address(), icon_service)
-        else:
-            step_limit = conf['step_limit']
 
         # make zip and convert to hexadecimal string data (start with 0x) and return
         content = gen_deploy_data_content(conf['project'])
@@ -128,28 +130,23 @@ class CommandScore(object):
         deploy_transaction = DeployTransactionBuilder() \
             .from_(wallet.get_address()) \
             .to(score_address) \
-            .step_limit(step_limit) \
             .nid(convert_hex_str_to_int(conf['nid']))\
             .content_type("application/zip") \
             .content(content) \
             .build()
 
+        if 'stepLimit' not in conf:
+            step_limit = icon_service.estimate_step(deploy_transaction)
+        else:
+            step_limit = convert_hex_str_to_int(conf['stepLimit'])
+
+        deploy_transaction.step_limit = step_limit
+
         # Returns the signed transaction object having a signature
-        signed_transaction_dict = SignedTransaction(deploy_transaction, wallet)
+        signed_transaction = SignedTransaction(deploy_transaction, wallet)
 
-        # Sends the transaction
-        tx_hash = icon_service.send_transaction(signed_transaction_dict)
-
-        @retry(JSONRPCException, tries=10, delay=2, back_off=2)
-        def get_tx_result(tx_hash):
-            # Returns the result of a transaction by transaction hash
-            tx_result = icon_service.get_transaction_result(tx_hash)
-            print("transaction status(1:success, 0:failure): ", tx_result["status"])
-            print("score address: ", tx_result["scoreAddress"])
-
-            return tx_result
-
-        return get_tx_result(tx_hash)
+        # Sends transaction and return response
+        return icon_service.send_transaction(signed_transaction, True)
 
     def deploy_without_keystore(self, conf: dict, score_address: str) -> dict:
 
@@ -162,32 +159,23 @@ class CommandScore(object):
         # make JSON-RPC 2.0 request standard format
         request = deploy.sendTransaction(to=score_address,
                                          nid=conf['nid'],
-                                         step_limit=conf.get('step_limit', None),
+                                         step_limit=conf.get('stepLimit', None),
                                          data_type="deploy",
                                          data=IconJsonrpc.gen_deploy_data(
                                              params=conf.get('scoreParams', {}),
                                              content_type="application/zip",
                                              content=content))
 
-        if conf.get('step_limit', None) is None:
+        if 'stepLimit' not in conf:
             step_limit = get_enough_step(request, conf['uri'])
             request['params']['stepLimit'] = hex(step_limit)
             deploy.put_signature(request['params'])
 
         # send request to the rpc server
         icon_client = IconClient(conf['uri'])
-        response = icon_client.send(request)
 
-        if 'error' in response:
-            print('Got an error response')
-            print(json.dumps(response, indent=4))
-        else:
-            print('Send deploy request successfully.')
-            tx_hash = response['result']
-            print(f'If you want to check SCORE deployed successfully, execute txresult command')
-            print(f"transaction hash: {tx_hash}")
-
-        return response
+        # return response
+        return icon_client.send(request)
 
     @staticmethod
     def clear(_conf: dict):
@@ -296,7 +284,6 @@ class CommandScore(object):
 
         return conf
 
-
 def check_project(project_path: str) -> int:
     if os.path.isdir(project_path):
         # there is no __init__.py
@@ -334,3 +321,4 @@ def check_project(project_path: str) -> int:
                 raise TBearsCommandException(f"There is no '{project_path}/{main_file}'")
 
     return 0
+
