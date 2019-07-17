@@ -283,8 +283,6 @@ class CommandWallet:
 
         response = icon_service.get_block(conf['hash'], True)
 
-        self.convert_bytes_to_hex_str_in_tx_list(response['result']['confirmed_transaction_list'])
-
         if "error" in response:
             print('Got an error response')
             print(json.dumps(response, indent=4))
@@ -292,11 +290,6 @@ class CommandWallet:
             print(f"block info : {json.dumps(response, indent=4)}")
 
         return response
-
-    def convert_bytes_to_hex_str_in_tx_list(self, tx_list: list):
-        for tx in tx_list:
-            if tx['dataType'] is 'deploy':
-                tx['data']['content'] = convert_bytes_to_hex_str(tx['data']['content'])
 
 
     def txbyhash(self, conf):
