@@ -602,6 +602,8 @@ class IconIntegrateTestBase(TestCase):
         network.send_transaction(request)
         if self._block_confirm_interval > 0:
             sleep(self._block_confirm_interval)
+        else:
+            sleep(self._network_delay_ms)
 
     def process_transaction_without_txresult(self,
                                              request: SignedTransaction,
@@ -654,9 +656,6 @@ class IconIntegrateTestBase(TestCase):
                       network: IconService,
                       tx_hashes: list) -> list:
         tx_results: list = []
-
-        if self._block_confirm_interval == 0:
-            sleep(self._network_delay_ms)
 
         for h in tx_hashes:
             tx_result = network.get_transaction_result(h)
