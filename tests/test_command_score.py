@@ -157,3 +157,4 @@ class TestCommandScore(unittest.TestCase):
         self.assertFalse(os.path.exists(start_conf['scoreRootPath']))
         self.assertFalse(os.path.exists(start_conf['stateDbRootPath']))
         self.assertFalse(os.path.exists(TBEARS_CLI_ENV))
+

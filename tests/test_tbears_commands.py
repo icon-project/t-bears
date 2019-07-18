@@ -219,7 +219,6 @@ class TestTBearsCommands(unittest.TestCase):
         txbyhash_response_result = txbyhash_response['result']
         self.assertIn('from', txbyhash_response_result)
         self.assertIn('to', txbyhash_response_result)
-        self.assertIn('value', txbyhash_response_result)
 
         # lastblock
         response = self.cmd.cmdWallet.lastblock(conf)

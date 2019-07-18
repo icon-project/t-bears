@@ -38,6 +38,7 @@ from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient, get_enough_step
 from tbears.tbears_exception import TBearsDeleteTreeException, TBearsCommandException
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
+from tbears.util.transaction_decorator import tx_logger_deco
 
 
 class CommandScore(object):
@@ -146,7 +147,10 @@ class CommandScore(object):
         signed_transaction = SignedTransaction(deploy_transaction, wallet)
 
         # Sends transaction and return response
-        return icon_service.send_transaction(signed_transaction, True)
+        send_transaction = tx_logger_deco(icon_service.send_transaction,
+                                          uri,
+                                          signed_transaction.signed_transaction_dict)
+        return send_transaction(signed_transaction, True)
 
     def deploy_without_keystore(self, conf: dict, score_address: str) -> dict:
 

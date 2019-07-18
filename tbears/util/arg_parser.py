@@ -9,5 +9,3 @@ def uri_parser(uri: str) -> (str, int):
     _version = re.search(r'(?<=\bv)\d+', uri.path).group(0)
 
     return _uri, int(_version)
-
-
