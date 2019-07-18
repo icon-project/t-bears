@@ -300,14 +300,17 @@ class IconIntegrateTestBase(TestCase):
 
         cls._wallet_array = [KeyWallet.load(v) for v in TEST_ACCOUNTS]
 
-    def setUp(self, genesis_accounts: List[Account] = None,
+    def setUp(self,
+              genesis_accounts: List[Account] = None,
               block_confirm_interval: int = tbears_server_config[TbConf.BLOCK_CONFIRM_INTERVAL],
-              network_only: bool = False):
+              network_only: bool = False,
+              network_delay_ms: int = tbears_server_config[TbConf.NETWORK_DELAY_MS]):
 
         self._block_height = -1
         self._prev_block_hash = None
         self._block_confirm_interval = block_confirm_interval
         self._network_only: bool = network_only
+        self._network_delay_ms: float = network_delay_ms / 1000
 
         if self._network_only:
             return
@@ -603,8 +606,7 @@ class IconIntegrateTestBase(TestCase):
     def process_transaction_without_txresult(self,
                                              request: SignedTransaction,
                                              network: IconService) -> list:
-        tx_hashes: list = []
-        tx_hashes.append(network.send_transaction(request))
+        tx_hashes: list = [network.send_transaction(request)]
         if self._block_confirm_interval > 0:
             sleep(self._block_confirm_interval)
         return tx_hashes
@@ -644,8 +646,7 @@ class IconIntegrateTestBase(TestCase):
 
         # signing message tx
         request = SignedTransaction(transaction, from_)
-        tx_hashes: list = []
-        tx_hashes.append(network.send_transaction(request))
+        tx_hashes: list = [network.send_transaction(request)]
         sleep(self._block_confirm_interval)
         return tx_hashes
 
@@ -655,7 +656,7 @@ class IconIntegrateTestBase(TestCase):
         tx_results: list = []
 
         if self._block_confirm_interval == 0:
-            sleep(0.2)
+            sleep(self._network_delay_ms)
 
         for h in tx_hashes:
             tx_result = network.get_transaction_result(h)

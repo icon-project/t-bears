@@ -56,6 +56,7 @@ class ConfigKey:
     BLOCK_GENERATOR_ROTATION = 'blockGeneratorRotation'
     BLOCK_GENERATE_COUNT_PER_LEADER = 'blockGenerateCountPerLeader'
     BLOCK_MANUAL_CONFIRM = 'blockManualConfirm'
+    NETWORK_DELAY_MS = 'networkDelayMs'
 
 
 tbears_server_config = {
@@ -108,7 +109,8 @@ tbears_server_config = {
     ConfigKey.BLOCK_CONFIRM_EMPTY: True,
     ConfigKey.BLOCK_GENERATOR_ROTATION: True,
     ConfigKey.BLOCK_GENERATE_COUNT_PER_LEADER: 10,
-    ConfigKey.BLOCK_MANUAL_CONFIRM: False
+    ConfigKey.BLOCK_MANUAL_CONFIRM: False,
+    ConfigKey.NETWORK_DELAY_MS: 500
 }
 
 
