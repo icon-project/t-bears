@@ -124,29 +124,27 @@ class ScoreTest(IconScoreBase):
 ```python
 import os
 
-from iconsdk.builder.transaction_builder import DeployTransactionBuilder
 from iconsdk.builder.call_builder import CallBuilder
+from iconsdk.builder.transaction_builder import DeployTransactionBuilder
 from iconsdk.libs.in_memory_zip import gen_deploy_data_content
 from iconsdk.signed_transaction import SignedTransaction
-
 from tbears.libs.icon_integrate_test import IconIntegrateTestBase, SCORE_INSTALL_ADDRESS
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
-class TestScoreTest(IconIntegrateTestBase):
+class TestTest(IconIntegrateTestBase):
     TEST_HTTP_ENDPOINT_URI_V3 = "http://127.0.0.1:9000/api/v3"
     SCORE_PROJECT= os.path.abspath(os.path.join(DIR_PATH, '..'))
 
     def setUp(self):
-        # Initialize IconIntegrateTestBase
         super().setUp()
 
         self.icon_service = None
-        # If you want to send request to network, uncomment next line and set self.TEST_HTTP_ENDPOINT_URI_V3
+        # if you want to send request to network, uncomment next line and set self.TEST_HTTP_ENDPOINT_URI_V3
         # self.icon_service = IconService(HTTPProvider(self.TEST_HTTP_ENDPOINT_URI_V3))
 
-        # 1. deploy SCORE
+        # install SCORE
         self._score_address = self._deploy_score()['scoreAddress']
 
     def _deploy_score(self, to: str = SCORE_INSTALL_ADDRESS) -> dict:
@@ -165,11 +163,9 @@ class TestScoreTest(IconIntegrateTestBase):
         signed_transaction = SignedTransaction(transaction, self._test1)
 
         # process the transaction in local
-        tx_result = self._process_transaction(signed_transaction)
+        tx_result = self.process_transaction(signed_transaction, self.icon_service)
 
-        # check transaction result
-        self.assertTrue('status' in tx_result)
-        self.assertEqual(1, tx_result['status'])
+        self.assertEqual(True, tx_result['status'])
         self.assertTrue('scoreAddress' in tx_result)
 
         return tx_result
@@ -181,20 +177,17 @@ class TestScoreTest(IconIntegrateTestBase):
         self.assertEqual(self._score_address, tx_result['scoreAddress'])
 
     def test_call_hello(self):
-        # 2. Create a ICON JSON-RPC API call reques
+        # Generates a call instance using the CallBuilder
         call = CallBuilder().from_(self._test1.get_address()) \
             .to(self._score_address) \
             .method("hello") \
             .build()
 
-        # 3. If neccessary, sign a ICON JSON-RPC API request
-        # call request needs no signing
+        # Sends the call request
+        response = self.process_call(call, self.icon_service)
 
-        # 4. Invoke a ICON JSON-RPC API request and get the result
-        response = self._process_call(call, self.icon_service)
-
-        # 5. check the call result
         self.assertEqual("Hello", response)
+
 ```
 
 #### Run test code

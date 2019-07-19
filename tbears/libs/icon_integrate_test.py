@@ -297,7 +297,6 @@ class IconIntegrateTestBase(TestCase):
         cls._genesis: 'KeyWallet' = KeyWallet.create()
         cls._fee_treasury: 'KeyWallet' = KeyWallet.create()
         cls._test1: 'KeyWallet' = KeyWallet.load(bytes.fromhex(TEST1_PRIVATE_KEY))
-
         cls._wallet_array = [KeyWallet.load(v) for v in TEST_ACCOUNTS]
 
     def setUp(self,
@@ -327,6 +326,7 @@ class IconIntegrateTestBase(TestCase):
         self.icon_service_engine.open(config)
 
         self._genesis_invoke(genesis_accounts)
+        self._tx_results: dict = {}
 
     def tearDown(self):
         if not self._network_only:
@@ -409,7 +409,7 @@ class IconIntegrateTestBase(TestCase):
         block_hash = create_block_hash()
         timestamp_us = create_timestamp()
 
-        block = Block(block_height, block_hash, timestamp_us, self._prev_block_hash)
+        block = Block(block_height + 1, block_hash, timestamp_us, self._prev_block_hash)
 
         tx_results, state_root_hash, added_transactions, main_preps = self.icon_service_engine.invoke(block, tx_list)
 
@@ -444,21 +444,31 @@ class IconIntegrateTestBase(TestCase):
             response = str(response)
         return response
 
-    def _process_transaction_in_local(self, request: dict) -> dict:
+    def _process_transaction_in_local(self, request: dict):
         params = TypeConverter.convert(request, ParamType.TRANSACTION_PARAMS_DATA)
-        params['txHash'] = create_tx_hash()
+        tx_hash: bytes = create_tx_hash()
+        params['txHash'] = tx_hash
         tx = {
             'method': 'icx_sendTransaction',
             'params': params
         }
 
-        prev_block, tx_results = self._make_and_req_block([tx])
+        prev_block, response = self._make_and_req_block([tx])
         self._write_precommit_state(prev_block)
 
+        txresults: dict = response["txResults"]
         # convert TX result as sdk style
-        convert_transaction_result(tx_results[0])
 
-        return tx_results[0]
+        for txresult in txresults:
+            key: str = txresult["txHash"]
+            convert_transaction_result(txresult)
+            self._tx_results[key] = txresult
+        return tx_hash.hex()
+
+    def _get_tx_result(self, tx_hash: str) -> dict:
+        return self._tx_results[tx_hash]
+
+    # ========== API ========== #
 
     def process_transaction(self, request: SignedTransaction,
                             network: IconService = None,
@@ -469,19 +479,16 @@ class IconIntegrateTestBase(TestCase):
         if block_confirm_interval == -1:
             block_confirm_interval = self._block_confirm_interval
 
-        try:
-            if network is not None:
-                # Send the transaction to network
-                tx_hash = network.send_transaction(request)
-                sleep(block_confirm_interval)
-                # Get transaction result
-                tx_result = network.get_transaction_result(tx_hash)
-            else:
-                # process the transaction in local
-                tx_result = self._process_transaction_in_local(request.signed_transaction_dict)
-        except IconServiceBaseException as e:
-            tx_result = e.message
-
+        if network is not None:
+            # Send the transaction to network
+            tx_hash: str = network.send_transaction(request)
+            sleep(block_confirm_interval)
+            # Get transaction result
+            tx_result: dict = network.get_transaction_result(tx_hash)
+        else:
+            # process the transaction in local
+            tx_hash: str = self._process_transaction_in_local(request.signed_transaction_dict)
+            tx_result: dict = self._get_tx_result(tx_hash)
         return tx_result
 
     def process_transaction_bulk(self,
@@ -580,7 +587,7 @@ class IconIntegrateTestBase(TestCase):
                 tx_result = network.get_transaction_result(tx_hash)
             else:
                 # process the transaction in local
-                tx_result = self._process_transaction_in_local(request.signed_transaction_dict)
+                tx_results = self._process_transaction_in_local(request.signed_transaction_dict)
         except IconServiceBaseException as e:
             tx_result = e.message
 
