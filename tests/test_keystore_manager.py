@@ -17,8 +17,11 @@ import os
 import unittest
 import json
 
+from iconsdk.wallet.wallet import KeyWallet
+from iconsdk.utils.convert_type import convert_hex_str_to_bytes
+
 from tbears.util.keystore_manager import make_key_store_content
-from tbears.libs.icx_signer import key_from_key_store
+#from tbears.libs.icx_signer import key_from_key_store
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsCommandException
 from tbears.command.command import Command
@@ -42,7 +45,13 @@ class TestKeyStoreManager(unittest.TestCase):
             ks.write(json.dumps(content).encode())
 
         # get private key from keystore file
-        written_key = key_from_key_store(file_path=self.keystore_path, password=self.keystore_password)
+#        written_key = key_from_key_store(file_path=self.keystore_path, password=self.keystore_password)
+
+        written_key = convert_hex_str_to_bytes(
+                        KeyWallet
+                        .load(self.keystore_path,self.keystore_password)
+                        .get_private_key())
+
         self.assertTrue(isinstance(written_key, bytes))
 
         os.remove(self.keystore_path)

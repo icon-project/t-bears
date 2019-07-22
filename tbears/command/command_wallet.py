@@ -19,16 +19,15 @@ import os
 
 from iconcommons import IconConfig
 from iconcommons.logger.logger import Logger
-from iconservice.base.address import is_icon_address_valid
 from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder
 from iconsdk.builder.call_builder import CallBuilder
-from iconsdk.exception import AddressException, DataTypeException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
 from iconsdk.utils.convert_type import convert_hex_str_to_int
 from iconsdk.wallet.wallet import KeyWallet
 
+from iconservice.base.address import is_icon_address_valid
 
 from time import time
 
@@ -38,7 +37,7 @@ from tbears.tbears_exception import TBearsCommandException
 from tbears.util import jsonrpc_params_to_pep_style
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type
-from tbears.util.transaction_decorator import call_logger_deco, tx_logger_deco
+from tbears.util.log_decorator import call_logger_deco, tx_logger_deco
 from tbears.util.keystore_manager import validate_password, make_key_store_content
 
 
@@ -360,6 +359,7 @@ class CommandWallet:
         return response
 
     def transfer_with_wallet(self, conf: dict, password: str) -> dict:
+
         uri, version = uri_parser(conf['uri'])
         icon_service = IconService(HTTPProvider(uri, version))
 
@@ -370,7 +370,6 @@ class CommandWallet:
             .to(conf['to'])\
             .value(int(conf['value']))\
             .nid(convert_hex_str_to_int(conf['nid'])) \
-            .version(version)\
             .timestamp(int(time() * 10 ** 6))\
             .build()
 
@@ -385,7 +384,9 @@ class CommandWallet:
         signed_transaction = SignedTransaction(transaction, wallet)
 
         # Sends transaction and return response
-        send_transaction = tx_logger_deco(icon_service.send_transaction, uri, signed_transaction.signed_transaction_dict)
+        send_transaction = tx_logger_deco(icon_service.send_transaction,
+                                          conf['uri'],
+                                          signed_transaction.signed_transaction_dict)
         return send_transaction(signed_transaction, True)
 
     def transfer_without_wallet(self, conf: dict) -> dict:
@@ -512,6 +513,7 @@ class CommandWallet:
         return response
 
     def sendtx_with_keystore(self, conf: dict, password: str, params: dict, payload: dict) -> dict:
+
         uri, version = uri_parser(conf['uri'])
         icon_service = IconService(HTTPProvider(uri, version))
 
@@ -525,7 +527,7 @@ class CommandWallet:
             .params(params)\
             .build()
 
-        if conf.get('stepLimit', None) is None:
+        if 'stepLimit' not in conf:
             step_limit = icon_service.estimate_step(transaction)
         else:
             step_limit = convert_hex_str_to_int(conf['stepLimit'])
@@ -536,7 +538,7 @@ class CommandWallet:
 
         # Sends transaction
         send_transaction = tx_logger_deco(icon_service.send_transaction,
-                                          uri,
+                                          conf['uri'],
                                           signed_transaction.signed_transaction_dict)
         return send_transaction(signed_transaction, True)
 
@@ -586,7 +588,7 @@ class CommandWallet:
             .params(payload['params']['data'].get('params', None))\
             .build()
 
-        call_func = call_logger_deco(icon_service.call, uri, call)
+        call_func = call_logger_deco(icon_service.call, conf['uri'], call)
         response = call_func(call, True)
 
         if 'error' in response:

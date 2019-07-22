@@ -17,9 +17,16 @@ import os
 import unittest
 import json
 
+from iconsdk.exception import KeyStoreException
+from iconsdk.wallet.wallet import KeyWallet
+from iconsdk.utils.convert_type import convert_hex_str_to_bytes
+
 from tbears.util.keystore_manager import make_key_store_content
-from tbears.tbears_exception import KeyStoreException
-from tbears.libs.icx_signer import key_from_key_store
+
+
+def key_from_key_store(file_path, password):
+    wallet = KeyWallet.load(file_path, password)
+    return convert_hex_str_to_bytes(wallet.get_private_key())
 
 
 class TestKeyStore(unittest.TestCase):

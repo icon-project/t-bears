@@ -23,10 +23,13 @@ import unittest
 from copy import deepcopy
 from iconcommons.icon_config import IconConfig
 
+from iconsdk.wallet.wallet import KeyWallet
+from iconsdk.utils.convert_type import convert_hex_str_to_bytes
+
+
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
-from tbears.libs.icx_signer import key_from_key_store
 from tests.test_util import TEST_UTIL_DIRECTORY, get_total_supply, zip_dir
 
 
@@ -280,3 +283,8 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertFalse(exception_raised)
 
         os.remove(path)
+
+
+def key_from_key_store(file_path, password):
+    wallet = KeyWallet.load(file_path, password)
+    return convert_hex_str_to_bytes(wallet.get_private_key())

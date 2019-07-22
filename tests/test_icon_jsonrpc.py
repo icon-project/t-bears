@@ -47,25 +47,6 @@ class TestIconJsonrpcV3(unittest.TestCase):
         self.assertFalse(from_str.signer)
         self.assertEqual(addr, from_str.address)
 
-    def test_from_key_store(self):
-        key_store = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        password = 'qwer1234%'
-        from_keystore = IconJsonrpc.from_key_store(keystore=key_store, password=password)
-        self.assertTrue(from_keystore.signer)
-        self.assertEqual('hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6', from_keystore.address)
-
-    def test_from_private_key(self):
-        from_private_key = IconJsonrpc.from_private_key()
-        self.assertTrue(from_private_key.signer)
-        self.assertTrue(from_private_key.address)
-
-    def test_from_private_key_bytes(self):
-        byte_data = f'{"0"*32}'.encode()
-        private_key_object = PrivateKey(byte_data)
-        from_private_key = IconJsonrpc.from_private_key(private_key_object.private_key)
-        self.assertTrue(from_private_key.signer)
-        self.assertTrue(from_private_key.address)
-
     def test_gen_call_data(self):
         data = {
             "method": "transfer",
@@ -102,13 +83,6 @@ class TestIconJsonrpcV3(unittest.TestCase):
         self.assertEqual("application/zip", gen_data['contentType'])
         self.assertEqual({}, gen_data['params'])
 
-    def test_gen_deploy_data_content(self):
-        content = IconJsonrpc.gen_deploy_data_content(TEST_UTIL_DIRECTORY)
-        self.assertEqual(content[:2], '0x')
-
-        # invalid path
-        self.assertRaises(ValueError, IconJsonrpc.gen_deploy_data_content, "Wrong_path")
-
     def test_getLastBlock(self):
         request = IconJsonrpc.getLastBlock()
         self.check_jsonschema_validation(request=request)
@@ -123,51 +97,6 @@ class TestIconJsonrpcV3(unittest.TestCase):
         txHash = '0x43de4f25a41cb8cd09b0478300ce8da24191f1602e54b6db2ce6274311556164'
         request = IconJsonrpc.getBlockByHash(txHash)
         self.check_jsonschema_validation(request=request)
-
-    def test_call(self):
-        # IconJsonrpc object from string
-        addr = f'hx{"0"*40}'
-        from_str = IconJsonrpc.from_string(addr)
-
-        # IconJsonrpc object from keystore file
-        key_store = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        password = 'qwer1234%'
-        from_keystore = IconJsonrpc.from_key_store(keystore=key_store, password=password)
-
-        # IconJsonrpc object from private key
-        from_private_key = IconJsonrpc.from_private_key()
-
-        to_addr = f'hx{"a"*40}'
-        call_data = {
-            "method": "transfer",
-            "params": {
-                "to": "hxto",
-                "value": "0x10"
-            }
-        }
-        # with IconJsonrpc object from string
-        request = from_str.call(to=to_addr, data=call_data)
-        self.check_jsonschema_validation(request=request)
-        self.assertEqual(from_str.address, request['params']['from'])
-        self.assertEqual(to_addr, request['params']['to'])
-        self.assertEqual('call', request['params']['dataType'])
-        self.assertEqual(call_data, request['params']['data'])
-
-        # with IconJsonrpc object from keystore
-        request = from_keystore.call(to=to_addr, data=call_data)
-        self.check_jsonschema_validation(request=request)
-        self.assertEqual(from_keystore.address, request['params']['from'])
-        self.assertEqual(to_addr, request['params']['to'])
-        self.assertEqual('call', request['params']['dataType'])
-        self.assertEqual(call_data, request['params']['data'])
-
-        # with IconJsonrpc object from private_key
-        request = from_private_key.call(to=to_addr, data=call_data)
-        self.check_jsonschema_validation(request=request)
-        self.assertEqual(from_private_key.address, request['params']['from'])
-        self.assertEqual(to_addr, request['params']['to'])
-        self.assertEqual('call', request['params']['dataType'])
-        self.assertEqual(call_data, request['params']['data'])
 
     def test_getBalance(self):
         addr = f'hx{"0"*40}'
@@ -198,15 +127,7 @@ class TestIconJsonrpcV3(unittest.TestCase):
         addr = f'hx{"0"*40}'
         from_str = IconJsonrpc.from_string(addr)
 
-        # IconJsonrpc object from keystore file
-        key_store = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
-        password = 'qwer1234%'
-        from_keystore = IconJsonrpc.from_key_store(keystore=key_store, password=password)
-
-        # IconJsonrpc object from private key
-        from_private_key = IconJsonrpc.from_private_key()
-
-        icon_jsonrpc_objs = [from_str, from_keystore, from_private_key]
+        icon_jsonrpc_objs = [from_str]
 
         request_template = {
             "to": f'hx{"a"*40}',

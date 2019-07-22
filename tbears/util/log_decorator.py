@@ -3,7 +3,7 @@ from tbears.config.tbears_config import TBEARS_CLI_TAG
 
 
 def tx_logger_deco(func, uri, tx_dict):
-    return logger_deco(func, uri, tx_dict, 'icx_sendTransaction', make_tx_dict_to_rpc_dict)
+    return logger_deco(func, uri, tx_dict, 'icx_sendTransaction', make_dict_to_rpc_dict)
 
 
 def call_logger_deco(func, uri, call_obj):
@@ -22,7 +22,7 @@ def logger_deco(func, uri, param: dict, rpc_method, to_rpc_dict_func):
     return log_decorator
 
 
-def make_tx_dict_to_rpc_dict(obj: dict, method):
+def make_dict_to_rpc_dict(obj: dict, method):
     rpc_dict = {
         'jsonrpc': '2.0',
         'method': method,
@@ -50,4 +50,4 @@ def make_call_dict_to_rpc_dict(call, method):
     if isinstance(call.params, dict):
         params["data"]["params"] = call.params
 
-    return make_tx_dict_to_rpc_dict(params, method)
+    return make_dict_to_rpc_dict(params, method)

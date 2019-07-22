@@ -21,16 +21,9 @@ from typing import Optional, Union
 
 import requests
 from iconcommons.logger.logger import Logger
-from secp256k1 import PrivateKey
-
-from iconsdk.builder.call_builder import CallBuilder
-from iconsdk.icon_service import IconService
-from iconsdk.utils.convert_type import convert_hex_str_to_int
 
 from tbears.config.tbears_config import TBEARS_CLI_TAG, GOVERNANCE_ADDRESS
 from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
-from tbears.libs.icx_signer import key_from_key_store, IcxSigner
-from tbears.libs.in_memory_zip import InMemoryZip
 from tbears.tbears_exception import ZipException, DeployPayloadException, IconClientException, TBearsEstimateException
 
 
@@ -38,18 +31,14 @@ class IconJsonrpc:
     # used for generating jsonrpc id
     request_id = itertools.count(start=1)
 
-    def __init__(self, signer: Union[IcxSigner, str]):
+    def __init__(self, signer: str):
         """Constructor
 
         :param signer: IcxSigner object or address string
         """
-        if isinstance(signer, IcxSigner):
-            self.__signer = signer
-            self.__address = f'hx{self.__signer.address.hex()}'
-        else:
-            # Signature is not needed in a local environment. So just assign a string
-            self.__signer = None
-            self.__address = signer
+        # Signature is not needed in a local environment. So just assign a string
+        self.__signer = None
+        self.__address = signer
 
     @staticmethod
     def from_string(from_: str) -> 'IconJsonrpc':
@@ -59,25 +48,6 @@ class IconJsonrpc:
         :return: IconJsonrpc object
         """
         return IconJsonrpc(from_)
-
-    @staticmethod
-    def from_key_store(keystore: str, password: str) -> 'IconJsonrpc':
-        """Create IconJsonrpc object from keystore file path and password
-
-        :param keystore: keystore file path
-        :param password: password string
-        :return: IconJsonrpc object
-        """
-        return IconJsonrpc(IcxSigner(key_from_key_store(keystore, password)))
-
-    @staticmethod
-    def from_private_key(private_key: Optional[PrivateKey] = None) -> 'IconJsonrpc':
-        """Create IconJsonrpc object from PrivateKey object. If parameter is None, make PrivateKey object.
-
-        :param private_key: PrivateKey object
-        :return: IconJsonrpc object
-        """
-        return IconJsonrpc(IcxSigner(private_key=private_key or PrivateKey().private_key))
 
     @property
     def address(self) -> str:
@@ -408,22 +378,6 @@ class IconJsonrpc:
             "params": params
         }
 
-    @staticmethod
-    def gen_deploy_data_content(path: str) -> str:
-        """Generate zip data (hex string) of SCORE.
-
-        :param path: The path of the directory to be zipped.
-        """
-        if os.path.isdir(path) is False and os.path.isfile(path) is False:
-            raise ValueError(f"Invalid path {path}")
-        try:
-            memory_zip = InMemoryZip()
-            memory_zip.zip_in_memory(path)
-        except ZipException as e:
-            raise DeployPayloadException(f"Failed to generate zipped SCORE contents. {e}")
-        else:
-            return f'0x{memory_zip.data.hex()}'
-
     def put_signature(self, params: dict) -> None:
         """Make signature and put to params of icx_sendTransaction request.
 
@@ -521,21 +475,6 @@ def get_enough_step(request: dict, uri: str) -> int:
     return step_limit
 
 
-# Returns the max step limit
-def get_max_step_limit(from_address: str, icon_service: IconService) -> int:
-    _param = {
-        "contextType": "invoke"
-    }
-    _call = CallBuilder()\
-        .from_(from_address)\
-        .to(GOVERNANCE_ADDRESS)\
-        .method("getMaxStepLimit")\
-        .params(_param)\
-        .build()
-    _result = icon_service.call(_call)
-    return convert_hex_str_to_int(_result)
-
-
 def get_default_step(uri: str) -> int:
     client = IconClient(uri)
     payload = {
@@ -557,16 +496,4 @@ def get_default_step(uri: str) -> int:
         print(json.dumps(response, indent=4))
         default_step = 100000
     return default_step
-
-
-# Returns a step cost. You can use it for getting the recommended value of 'step limit'.
-def get_default_step_cost(from_address: str, icon_service: IconService) -> int:
-    _call = CallBuilder()\
-        .from_(from_address)\
-        .to(GOVERNANCE_ADDRESS)\
-        .method("getStepCosts")\
-        .build()
-    _result = icon_service.call(_call)
-    default_step_cost = convert_hex_str_to_int(_result["default"])
-    return default_step_cost
 

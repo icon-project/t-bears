@@ -22,7 +22,6 @@ import unittest
 
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
-from iconservice.base.address import is_icon_address_valid
 
 from iconsdk.builder.transaction_builder import DeployTransactionBuilder
 from iconsdk.icon_service import IconService
@@ -32,13 +31,15 @@ from iconsdk.signed_transaction import SignedTransaction
 from iconsdk.utils.convert_type import convert_hex_str_to_int
 from iconsdk.wallet.wallet import KeyWallet
 
+from iconservice.base.address import is_icon_address_valid
+
 from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, TBEARS_CLI_TAG
 from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient, get_enough_step
 from tbears.tbears_exception import TBearsDeleteTreeException, TBearsCommandException
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
-from tbears.util.transaction_decorator import tx_logger_deco
+from tbears.util.log_decorator import tx_logger_deco
 
 
 class CommandScore(object):
@@ -148,14 +149,15 @@ class CommandScore(object):
 
         # Sends transaction and return response
         send_transaction = tx_logger_deco(icon_service.send_transaction,
-                                          uri,
+                                          conf['uri'],
                                           signed_transaction.signed_transaction_dict)
         return send_transaction(signed_transaction, True)
 
     def deploy_without_keystore(self, conf: dict, score_address: str) -> dict:
 
         # make zip and convert to hexadecimal string data (start with 0x) and return
-        content = IconJsonrpc.gen_deploy_data_content(conf['project'])
+        content = gen_deploy_data_content(conf['project'])
+        content = f"0x{content.hex()}"
 
         # make IconJsonrpc instance which is used for making request (with signature)
         deploy = IconJsonrpc.from_string(from_=conf['from'])
