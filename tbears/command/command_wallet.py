@@ -16,10 +16,15 @@ import copy
 import getpass
 import json
 import os
+import pprint
 
 from iconcommons import IconConfig
 from iconcommons.logger.logger import Logger
 from iconservice.base.address import is_icon_address_valid
+
+from iconsdk.exception import KeyStoreException
+from iconsdk.wallet.wallet import KeyWallet
+from iconsdk.utils.convert_type import convert_bytes_to_hex_str
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1, TBEARS_CLI_TAG
 from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc, get_enough_step, get_default_step
@@ -34,6 +39,7 @@ class CommandWallet:
         self._add_txresult_parser(subparsers)
         self._add_transfer_parser(subparsers)
         self._add_keystore_parser(subparsers)
+        self._add_keyinfo_parser(subparsers)
         self._add_balance_parser(subparsers)
         self._add_totalsupply_parser(subparsers)
         self._add_scoreapi_parser(subparsers)
@@ -106,6 +112,19 @@ class CommandWallet:
                                                    'publickey pair using secp256k1 library.')
         parser.add_argument('path', type=IconPath('w'), help='Path of keystore file.')
         parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
+
+    @staticmethod
+    def _add_keyinfo_parser(subparsers):
+        parser = subparsers.add_parser('keyinfo',
+                                       help='Show a keystore information in the specified path',
+                                       description="Show a keystore information(address, privateKey, publicKey) "                                                
+                                                   "in the specified path. If you want to get privateKey, "
+                                                   "input --private-key option"
+                                       )
+        parser.add_argument('path', type=IconPath(), help='Path of keystore file.')
+        parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
+        parser.add_argument('--private-key', help='option that whether show privateKey', action='store_true',
+                            dest='privateKey')
 
     @staticmethod
     def _add_balance_parser(subparsers):
@@ -208,6 +227,13 @@ class CommandWallet:
         if not validate_password(password):
             raise TBearsCommandException("Password must be at least 8 characters long including alphabet, number, "
                                          "and special character.")
+        return password
+
+    @staticmethod
+    def _check_keyInfo(password: str):
+        if not password:
+            password = getpass.getpass("Input your keystore password: ")
+
         return password
 
     @staticmethod
@@ -368,6 +394,32 @@ class CommandWallet:
             ks.write(json.dumps(key_store_content).encode())
 
         print(f"Made keystore file successfully")
+
+    def keyinfo(self, conf: dict):
+        """Show a keystore information with the the specified path and password.
+
+        :param conf: keyinfo command configuration
+        """
+        password = conf.get('password', None)
+        password = self._check_keyInfo(password)
+
+        try:
+            wallet = KeyWallet.load(conf['path'], password)
+
+            key_info = {
+                "address": wallet.get_address(),
+                "publicKey": convert_bytes_to_hex_str(wallet.bytes_public_key)
+            }
+
+            if conf['privateKey']:
+                key_info['privateKey'] = wallet.get_private_key()
+
+            pprint.pprint(key_info)
+
+            return key_info
+
+        except KeyStoreException as e:
+            print(e.args[0])
 
     def balance(self, conf: dict):
         """Query icx balance of given address
