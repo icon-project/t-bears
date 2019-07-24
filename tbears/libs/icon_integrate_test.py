@@ -309,7 +309,7 @@ class IconIntegrateTestBase(TestCase):
         self._prev_block_hash = None
         self._block_confirm_interval = block_confirm_interval
         self._network_only: bool = network_only
-        self._network_delay_ms: float = network_delay_ms / 1000
+        self._network_delay: float = network_delay_ms / 1000
 
         if self._network_only:
             return
@@ -610,7 +610,7 @@ class IconIntegrateTestBase(TestCase):
         if self._block_confirm_interval > 0:
             sleep(self._block_confirm_interval)
         else:
-            sleep(self._network_delay_ms)
+            sleep(self._network_delay)
 
     def process_transaction_without_txresult(self,
                                              request: SignedTransaction,
