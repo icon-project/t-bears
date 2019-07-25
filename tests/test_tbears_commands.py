@@ -23,6 +23,7 @@ from copy import deepcopy
 
 from iconcommons.icon_config import IconConfig
 
+from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.utils.convert_type import convert_hex_str_to_bytes
 
@@ -282,6 +283,32 @@ class TestTBearsCommands(unittest.TestCase):
         self.assertFalse(exception_raised)
 
         os.remove(path)
+
+    def test_keyinfo(self):
+        # get keyinfo without private key
+        key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')
+        conf = self.cmd.cmdWallet.get_icon_conf('keyinfo', {'path': key_path, 'privateKey': False,
+                                                'password': 'qwer1234%'})
+        key_info = self.cmd.cmdWallet.keyinfo(conf)
+        self.assertFalse('privateKey' in key_info)
+
+        # get keyinfo with private key
+        conf = self.cmd.cmdWallet.get_icon_conf('keyinfo', {'path': key_path, 'privateKey': True,
+                                                            'password': 'qwer1234%'})
+        key_info = self.cmd.cmdWallet.keyinfo(conf)
+        self.assertTrue('privateKey' in key_info)
+
+        # get keyinfo with wrong password
+        conf = self.cmd.cmdWallet.get_icon_conf('keyinfo', {'path': key_path, 'privateKey': True,
+                                                            'password': 'qwer4321!'})
+        key_info = self.cmd.cmdWallet.keyinfo(conf)
+        self.assertTrue(key_info is None)
+
+        # get keyinfo with wrong path
+        conf = self.cmd.cmdWallet.get_icon_conf('keyinfo', {'path': key_path + 'wrong', 'privateKey': True,
+                                                            'password': 'qwer4321!'})
+        key_info = self.cmd.cmdWallet.keyinfo(conf)
+        self.assertTrue(key_info is None)
 
 
 def key_from_key_store(file_path, password):

@@ -2,6 +2,7 @@
 FROM golang:1.12-alpine as builder
 
 RUN apk add --no-cache git make
+ADD https://api.github.com/repos/icon-project/rewardcalculator/git/refs/heads/master version.json
 RUN git clone https://github.com/icon-project/rewardcalculator.git /rewardcalculator
 
 RUN cd /rewardcalculator && make linux
@@ -22,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /work
 COPY --from=builder /rewardcalculator/linux/icon_rc /usr/local/bin/
+COPY --from=builder /rewardcalculator/linux/rctool /usr/local/bin/
 COPY entry.sh /usr/local/bin
 COPY tbears_server_config.json .
 ADD genesis genesis
