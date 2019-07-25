@@ -2,24 +2,18 @@ from iconcommons.logger.logger import Logger
 from tbears.config.tbears_config import TBEARS_CLI_TAG
 
 
-def tx_logger_deco(func, uri, tx_dict):
-    return logger_deco(func, uri, tx_dict, 'icx_sendTransaction', make_dict_to_rpc_dict)
+def send_transaction_with_logger(icon_service, signed_transaction, uri):
+    tx_dict = make_dict_to_rpc_dict(signed_transaction.signed_transaction_dict, 'icx_transaction')
+    Logger.info(f"Send request to {uri}. Request body: {tx_dict}", TBEARS_CLI_TAG)
+
+    return icon_service.send_transaction(signed_transaction, True)
 
 
-def call_logger_deco(func, uri, call_obj):
-    return logger_deco(func, uri, call_obj, 'icx_call', make_call_dict_to_rpc_dict)
+def call_with_logger(icon_service, call_obj, uri):
+    call_dict = make_call_dict_to_rpc_dict(call_obj)
+    Logger.info(f"Send request to {uri}. Request body: {call_dict}", TBEARS_CLI_TAG)
 
-
-def logger_deco(func, uri, param: dict, rpc_method, to_rpc_dict_func):
-
-    req = to_rpc_dict_func(param, rpc_method)
-
-    def log_decorator(*args, **kwargs):
-        Logger.info(f"Send request to {uri}. Request body: {req}", TBEARS_CLI_TAG)
-        result = func(*args, **kwargs)
-        return result
-
-    return log_decorator
+    return icon_service.call(call_obj, True)
 
 
 def make_dict_to_rpc_dict(obj: dict, method):
@@ -35,7 +29,7 @@ def make_dict_to_rpc_dict(obj: dict, method):
     return rpc_dict
 
 
-def make_call_dict_to_rpc_dict(call, method):
+def make_call_dict_to_rpc_dict(call):
     params = {
         "to": call.to,
         "dataType": "call",
@@ -50,4 +44,4 @@ def make_call_dict_to_rpc_dict(call, method):
     if isinstance(call.params, dict):
         params["data"]["params"] = call.params
 
-    return make_dict_to_rpc_dict(params, method)
+    return make_dict_to_rpc_dict(params, 'icx_call')

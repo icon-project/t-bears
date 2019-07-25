@@ -15,16 +15,14 @@ import copy
 import hashlib
 import itertools
 import json
-import os
 import time
 from typing import Optional, Union
 
 import requests
 from iconcommons.logger.logger import Logger
 
-from tbears.config.tbears_config import TBEARS_CLI_TAG, GOVERNANCE_ADDRESS
-from tbears.libs.icon_serializer import generate_origin_for_icx_send_tx_hash
-from tbears.tbears_exception import ZipException, DeployPayloadException, IconClientException, TBearsEstimateException
+from tbears.config.tbears_config import TBEARS_CLI_TAG
+from tbears.tbears_exception import IconClientException, TBearsEstimateException
 
 
 class IconJsonrpc:
@@ -269,42 +267,6 @@ class IconJsonrpc:
 
         # insert signature
         self.put_signature(params)
-
-        return {
-            "jsonrpc": "2.0",
-            "method": "icx_sendTransaction",
-            "params": params,
-            "id": next(self.request_id)
-        }
-
-    def sendTransaction_v2(self, from_: str = None, to: str = None, value: str = '0x0', fee: str = hex(int(1e16)),
-                           timestamp: str=None, nonce: str='1'):
-        """Make JSON-RPC request of icx_sendTransaction
-        :param from_: From address. If not set, use __address member of object
-        :param to: To address
-        :param value: Amount of ICX coin in loop to transfer (1 icx = 1e18 loop)
-        :param fee: fee
-        :param timestamp: timestamp
-        :param nonce: nonce
-        :return: icx_sendTransaction JSON-RPC request dictionary
-        """
-        if timestamp is None:
-            timestamp = str(int(time.time() * 10 ** 6))
-        params = {
-            "from": from_ or self.__address,
-            "value": value,
-            "fee": fee,
-            "timestamp": timestamp,
-            "nonce": nonce
-        }
-        if to:
-            params['to'] = to
-
-        msg_phrase = generate_origin_for_icx_send_tx_hash(params)
-        msg_hash = hashlib.sha3_256(msg_phrase.encode()).digest().hex()
-
-        self.put_signature(params)
-        params["tx_hash"] = msg_hash
 
         return {
             "jsonrpc": "2.0",

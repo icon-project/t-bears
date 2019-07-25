@@ -22,7 +22,7 @@ from iconcommons.logger import Logger
 
 from . import message_code
 from .tx_verifier import verify_signature
-from ..libs.icon_serializer import generate_origin_for_icx_send_tx_hash
+from iconsdk.libs.serializer import serialize
 from ..util import create_hash
 
 if TYPE_CHECKING:
@@ -140,8 +140,8 @@ class ChannelTxCreatorInnerTask(object):
         block_manager = self._block_manager
 
         # generate tx hash
-        serialized_data = generate_origin_for_icx_send_tx_hash(kwargs)
-        tx_hash = create_hash(serialized_data.encode())
+        serialized_data = serialize(kwargs)
+        tx_hash = create_hash(serialized_data)
 
         # check duplication
         duplicated_tx = False
@@ -157,7 +157,7 @@ class ChannelTxCreatorInnerTask(object):
         # check signature validity
         signature = kwargs['signature']
         if signature != 'sig':
-            msg_hash = hashlib.sha3_256(serialized_data.encode()).digest()
+            msg_hash = hashlib.sha3_256(serialized_data).digest()
             sig_byte = base64.b64decode(signature)
             if not verify_signature(msg_hash, sig_byte, kwargs['from']):
                 return message_code.Response.fail_tx_invalid_signature, None

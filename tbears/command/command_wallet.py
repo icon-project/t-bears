@@ -37,9 +37,8 @@ from tbears.tbears_exception import TBearsCommandException
 from tbears.util import jsonrpc_params_to_pep_style
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type
-from tbears.util.log_decorator import call_logger_deco, tx_logger_deco
+from tbears.util.log_decorator import call_with_logger, send_transaction_with_logger
 from tbears.util.keystore_manager import validate_password, make_key_store_content
-
 
 
 class CommandWallet:
@@ -292,7 +291,6 @@ class CommandWallet:
 
         return response
 
-
     def txbyhash(self, conf):
         """Query transaction using given transaction hash.
 
@@ -330,7 +328,6 @@ class CommandWallet:
             print(f"Transaction : {json.dumps(response, indent=4)}")
 
         return response
-
 
     def transfer(self, conf: dict) -> dict:
         """Transfer ICX Coin.
@@ -384,10 +381,7 @@ class CommandWallet:
         signed_transaction = SignedTransaction(transaction, wallet)
 
         # Sends transaction and return response
-        send_transaction = tx_logger_deco(icon_service.send_transaction,
-                                          conf['uri'],
-                                          signed_transaction.signed_transaction_dict)
-        return send_transaction(signed_transaction, True)
+        return send_transaction_with_logger(icon_service, signed_transaction, uri)
 
     def transfer_without_wallet(self, conf: dict) -> dict:
 
@@ -513,7 +507,6 @@ class CommandWallet:
         return response
 
     def sendtx_with_keystore(self, conf: dict, password: str, params: dict, payload: dict) -> dict:
-
         uri, version = uri_parser(conf['uri'])
         icon_service = IconService(HTTPProvider(uri, version))
 
@@ -537,10 +530,7 @@ class CommandWallet:
         signed_transaction = SignedTransaction(transaction, wallet)
 
         # Sends transaction
-        send_transaction = tx_logger_deco(icon_service.send_transaction,
-                                          conf['uri'],
-                                          signed_transaction.signed_transaction_dict)
-        return send_transaction(signed_transaction, True)
+        return send_transaction_with_logger(icon_service, signed_transaction, uri)
 
     def sendtx_without_keystore(self, conf: dict, params: dict, payload: dict) -> dict:
         sendtx = IconJsonrpc.from_string(payload['params']['from'])
@@ -588,8 +578,7 @@ class CommandWallet:
             .params(payload['params']['data'].get('params', None))\
             .build()
 
-        call_func = call_logger_deco(icon_service.call, conf['uri'], call)
-        response = call_func(call, True)
+        response = call_with_logger(icon_service, call, uri)
 
         if 'error' in response:
             print(json.dumps(response, indent=4))
