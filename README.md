@@ -162,6 +162,7 @@ Available commands:
     txresult     Get transaction result by transaction hash
     transfer     Transfer ICX coin.
     keystore     Create a keystore file in the specified path
+    keyinfo      Show a keystore file information the specified path
     balance      Get balance of given address in loop unit
     totalsupply  Query total supply of ICX in loop unit
     scoreapi     Get score's api using given score address
@@ -309,6 +310,55 @@ optional arguments:
 Input your keystore password:
 Retype your keystore password:
 Made keystore file successfully
+```
+
+#### tbears keyinfo
+**Description**
+
+Show a keystore information(address, privateKey, publicKey) in the specified path.  
+
+**Usage**
+```bash
+usage: tbears keyinfo [-h] [-p PASSWORD] [--private-key] path
+
+Show a keystore information(address, privateKey, publicKey) in the specified
+path. If you want to get privateKey, input --private-key option
+
+positional arguments:
+  path                  Path of keystore file.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PASSWORD, --password PASSWORD
+                        Keystore file's password
+  --private-key         option that whether show privateKey
+```
+
+**Options**
+
+| shorthand, Name | default | Description                              |
+| :-------------- | :------ | :--------------------------------------- |
+| path            |         | a keystore file path that is to be shown |
+| -h, --help      |         | show this help message and exit          |
+| --private-key   |         | option that whether show privateKey      |
+
+**Examples**
+
+```bash
+(work) $ tbears keyinfo keystore
+Input your keystore password:
+{
+    "address": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "publicKey": "0x040d60ccc4fd29307304a8e84715e6e1a2e643bcff14fbf90d9099dfc84585a6f6f0b6944594efebe433a12a005ba56d215d6e51697a3360b5d741f8db89955c66"
+}
+
+(work) $ tbears keyinfo --private-key keystore
+Input your keystore password:
+{
+    "address": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+    "publicKey": "0x040d60ccc4fd29307304a8e84715e6e1a2e643bcff14fbf90d9099dfc84585a6f6f0b6944594efebe433a12a005ba56d215d6e51697a3360b5d741f8db89955c66",
+    "privateKey": "54483cf6c525f831da699d73d273e48aa88c963ed5ac485b207c7bf4a57ddce1"
+}
 ```
 
 #### tbears genconf

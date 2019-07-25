@@ -16,7 +16,6 @@ import copy
 import getpass
 import json
 import os
-import pprint
 
 from iconcommons import IconConfig
 from iconcommons.logger.logger import Logger
@@ -414,7 +413,7 @@ class CommandWallet:
             if conf['privateKey']:
                 key_info['privateKey'] = wallet.get_private_key()
 
-            pprint.pprint(key_info)
+            print(json.dumps(key_info, indent=4))
 
             return key_info
 
