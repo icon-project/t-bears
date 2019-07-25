@@ -21,6 +21,7 @@ from iconcommons import IconConfig
 from iconcommons.logger.logger import Logger
 from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder
 from iconsdk.builder.call_builder import CallBuilder
+from iconsdk.exception import KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
@@ -32,12 +33,10 @@ from iconservice.base.address import is_icon_address_valid
 from time import time
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1, TBEARS_CLI_TAG
-from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc, get_enough_step, get_default_step
 from tbears.tbears_exception import TBearsCommandException
-from tbears.util import jsonrpc_params_to_pep_style
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type
-from tbears.util.log_decorator import call_with_logger, send_transaction_with_logger
+from tbears.util.transaction_logger import call_with_logger, send_transaction_with_logger
 from tbears.util.keystore_manager import validate_password, make_key_store_content
 
 
@@ -341,33 +340,27 @@ class CommandWallet:
         password = self._check_transfer(conf, password)
 
         if password:
-            response = self.transfer_with_wallet(conf, password)
+            try:
+                wallet = KeyWallet.load(conf['keyStore'], password)
+                from_ = wallet.get_address()
+
+            except KeyStoreException as e:
+                print(e.args[0])
+                return None
         else:
-            response = self.transfer_without_wallet(conf)
-
-        if 'result' in response:
-            print('Send transfer request successfully.')
-            tx_hash = response['result']
-            print(f"transaction hash: {tx_hash}")
-        else:
-            print('Got an error response')
-            print(json.dumps(response, indent=4))
-
-        return response
-
-    def transfer_with_wallet(self, conf: dict, password: str) -> dict:
+            # make dummy wallet
+            wallet = KeyWallet.create()
+            from_ = conf['from']
 
         uri, version = uri_parser(conf['uri'])
         icon_service = IconService(HTTPProvider(uri, version))
 
-        wallet = KeyWallet.load(conf['keyStore'], password)
-
-        transaction = TransactionBuilder()\
-            .from_(wallet.get_address())\
-            .to(conf['to'])\
-            .value(int(conf['value']))\
+        transaction = TransactionBuilder() \
+            .from_(from_) \
+            .to(conf['to']) \
+            .value(int(conf['value'])) \
             .nid(convert_hex_str_to_int(conf['nid'])) \
-            .timestamp(int(time() * 10 ** 6))\
+            .timestamp(int(time() * 10 ** 6)) \
             .build()
 
         if 'stepLimit' not in conf:
@@ -380,29 +373,21 @@ class CommandWallet:
         # Returns the signed transaction object having a signature
         signed_transaction = SignedTransaction(transaction, wallet)
 
+        if not password:
+            signed_transaction.signed_transaction_dict['signature'] = 'sig'
+
         # Sends transaction and return response
-        return send_transaction_with_logger(icon_service, signed_transaction, uri)
+        response = send_transaction_with_logger(icon_service, signed_transaction, uri)
 
-    def transfer_without_wallet(self, conf: dict) -> dict:
-
-        if conf.get('stepLimit', None) is None:
-            step_limit = hex(get_default_step(conf['uri']))
+        if 'result' in response:
+            print('Send transfer request successfully.')
+            tx_hash = response['result']
+            print(f"transaction hash: {tx_hash}")
         else:
-            step_limit = conf['stepLimit']
+            print('Got an error response')
+            print(json.dumps(response, indent=4))
 
-        transfer = IconJsonrpc.from_string(conf['from'])
-
-        # make JSON-RPC 2.0 request standard format (dict type)
-        request = transfer.sendTransaction(to=conf['to'],
-                                           value=hex(int(conf['value'])),
-                                           nid=conf['nid'],
-                                           step_limit=step_limit)
-
-        # send request to the rpc server
-        icon_client = IconClient(conf['uri'])
-
-        # return response
-        return icon_client.send(request=request)
+        return response
 
     def keystore(self, conf: dict):
         """Create a keystore file with the specified path and password.
@@ -492,32 +477,25 @@ class CommandWallet:
         params = payload['params']
 
         if password:
-            response = self.sendtx_with_keystore(conf, password, params, payload)
+            try:
+                wallet = KeyWallet.load(conf['keyStore'], password)
+
+            except KeyStoreException as e:
+                print(e.args[0])
+                return None
         else:
-            response = self.sendtx_without_keystore(conf, params, payload)
+            # make dummy wallet
+            wallet = KeyWallet.create()
 
-        if 'result' in response:
-            print('Send transaction request successfully.')
-            tx_hash = response['result']
-            print(f"transaction hash: {tx_hash}")
-        else:
-            print('Got an error response')
-            print(json.dumps(response, indent=4))
-
-        return response
-
-    def sendtx_with_keystore(self, conf: dict, password: str, params: dict, payload: dict) -> dict:
         uri, version = uri_parser(conf['uri'])
         icon_service = IconService(HTTPProvider(uri, version))
 
-        wallet = KeyWallet.load(conf['keyStore'], password)
-
-        transaction = CallTransactionBuilder()\
-            .from_(wallet.get_address())\
-            .to(params['to'])\
-            .nid(convert_hex_str_to_int(conf['nid']))\
-            .method(payload['method'])\
-            .params(params)\
+        transaction = CallTransactionBuilder() \
+            .from_(params['from']) \
+            .to(params['to']) \
+            .nid(convert_hex_str_to_int(conf['nid'])) \
+            .method(payload['method']) \
+            .params(params) \
             .build()
 
         if 'stepLimit' not in conf:
@@ -529,34 +507,21 @@ class CommandWallet:
 
         signed_transaction = SignedTransaction(transaction, wallet)
 
+        if not password:
+            signed_transaction.signed_transaction_dict['signature'] = 'sig'
+
         # Sends transaction
-        return send_transaction_with_logger(icon_service, signed_transaction, uri)
+        response = send_transaction_with_logger(icon_service, signed_transaction, uri)
 
-    def sendtx_without_keystore(self, conf: dict, params: dict, payload: dict) -> dict:
-        sendtx = IconJsonrpc.from_string(payload['params']['from'])
-        params['from'] = None
+        if 'result' in response:
+            print('Send transaction request successfully.')
+            tx_hash = response['result']
+            print(f"transaction hash: {tx_hash}")
+        else:
+            print('Got an error response')
+            print(json.dumps(response, indent=4))
 
-        jsonrpc_params_to_pep_style(params)
-        payload = sendtx.sendTransaction(**params)
-
-        uri = conf['uri']
-        step_limit = payload['params']['stepLimit']
-
-        if step_limit is None:
-            step_limit = conf.get('stepLimit', None)
-
-            if step_limit is None:
-                step_limit = get_enough_step(payload, uri)
-            else:
-                step_limit = int(step_limit, 16)
-
-            payload['params']['stepLimit'] = hex(step_limit)
-            sendtx.put_signature(payload['params'])
-
-        # send request to the rpc server
-        icon_client = IconClient(uri)
-        # return response
-        return icon_client.send(request=payload)
+        return response
 
     @staticmethod
     def call(conf):

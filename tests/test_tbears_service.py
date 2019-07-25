@@ -19,9 +19,17 @@ import time
 
 from iconcommons.icon_config import IconConfig
 
+from iconsdk.builder.transaction_builder import TransactionBuilder
+from iconsdk.converter import convert_hex_str_to_int
+from iconsdk.icon_service import IconService
+from iconsdk.providers.http_provider import HTTPProvider
+from iconsdk.signed_transaction import SignedTransaction
+from iconsdk.wallet.wallet import KeyWallet
+
 from tbears.command.command import Command
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_server_config, FN_SERVER_CONF
-from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient
+from tbears.util.arg_parser import uri_parser
+from tbears.util.transaction_logger import send_transaction_with_logger
 from tbears.block_manager.message_code import Response, responseCodeMap
 
 from tests.test_util import TEST_UTIL_DIRECTORY
@@ -75,18 +83,31 @@ class TestTBearsService(unittest.TestCase):
         # prepare to send
         genesis_info = start_conf['genesis']['accounts'][0]
         from_addr = genesis_info['address']
-        icon_jsonrpc = IconJsonrpc.from_string(from_addr)
-        icon_client = IconClient(f'http://127.0.0.1:{start_conf["port"]}/api/v3')
 
-        to_addr = f'hx{"d"*40}'
-        timestamp = hex(int(time.time() * 10 ** 6))
+        uri = f'http://127.0.0.1:{start_conf["port"]}/api/v3'
+        uri, version = uri_parser(uri)
+
+        icon_service = IconService(HTTPProvider(uri, version))
+
+        to_addr = f'hx{"d" * 40}'
+        timestamp = int(time.time() * 10 ** 6)
+
+        transaction = TransactionBuilder()\
+                    .from_(from_addr)\
+                    .to(to_addr)\
+                    .timestamp(timestamp)\
+                    .step_limit(convert_hex_str_to_int('0x100000'))\
+                    .build()
+
+        wallet = KeyWallet.create()
+        signed_transaction = SignedTransaction(transaction, wallet)
+        signed_transaction.signed_transaction_dict['signature'] = 'sig'
 
         # send transaction
-        request = icon_jsonrpc.sendTransaction(to=to_addr, timestamp=timestamp, step_limit='0x100000')
-        response = icon_client.send(request)
+        response = send_transaction_with_logger(icon_service, signed_transaction, uri)
         self.assertTrue('result' in response)
 
         # send again
-        response = icon_client.send(request)
+        response = send_transaction_with_logger(icon_service, signed_transaction, uri)
         self.assertTrue('error' in response)
         self.assertEqual(responseCodeMap[Response.fail_tx_invalid_duplicated_hash][1], response['error']['message'])

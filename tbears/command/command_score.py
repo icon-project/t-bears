@@ -24,6 +24,7 @@ from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 
 from iconsdk.builder.transaction_builder import DeployTransactionBuilder
+from iconsdk.exception import KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.libs.in_memory_zip import gen_deploy_data_content
 from iconsdk.providers.http_provider import HTTPProvider
@@ -35,11 +36,10 @@ from iconservice.base.address import is_icon_address_valid
 
 from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, TBEARS_CLI_TAG
-from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient, get_enough_step
 from tbears.tbears_exception import TBearsDeleteTreeException, TBearsCommandException
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
-from tbears.util.log_decorator import send_transaction_with_logger
+from tbears.util.transaction_logger import send_transaction_with_logger
 
 
 class CommandScore(object):
@@ -104,35 +104,29 @@ class CommandScore(object):
         else:
             score_address = conf['to']
 
-        if password:
-            response = self.deploy_with_keystore(conf, password, score_address)
-        else:
-            response = self.deploy_without_keystore(conf, score_address)
-
-        if 'error' in response:
-            print('Got an error response')
-            print(json.dumps(response, indent=4))
-        else:
-            print('Send deploy request successfully.')
-            tx_hash = response['result']
-            print(f'If you want to check SCORE deployed successfully, execute txresult command')
-            print(f"transaction hash: {tx_hash}")
-
-        return response
-
-    def deploy_with_keystore(self, conf: dict, password: str, score_address: str) -> dict:
-
         uri, version = uri_parser(conf['uri'])
         icon_service = IconService(HTTPProvider(uri, version))
-        wallet = KeyWallet.load(conf['keyStore'], password)
+
+        if password:
+            try:
+                wallet = KeyWallet.load(conf['keyStore'], password)
+                from_ = wallet.get_address()
+
+            except KeyStoreException as e:
+                print(e.args[0])
+                return None
+        else:
+            # make dummy wallet
+            wallet = KeyWallet.create()
+            from_ = conf['from']
 
         # make zip and convert to hexadecimal string data (start with 0x) and return
         content = gen_deploy_data_content(conf['project'])
 
         deploy_transaction = DeployTransactionBuilder() \
-            .from_(wallet.get_address()) \
+            .from_(from_) \
             .to(score_address) \
-            .nid(convert_hex_str_to_int(conf['nid']))\
+            .nid(convert_hex_str_to_int(conf['nid'])) \
             .content_type("application/zip") \
             .content(content) \
             .build()
@@ -147,46 +141,22 @@ class CommandScore(object):
         # Returns the signed transaction object having a signature
         signed_transaction = SignedTransaction(deploy_transaction, wallet)
 
+        if not password:
+            signed_transaction.signed_transaction_dict['signature'] = 'sig'
+
         # Sends transaction and return response
-        return send_transaction_with_logger(icon_service, signed_transaction, uri)
+        response = send_transaction_with_logger(icon_service, signed_transaction, uri)
 
-    def send_transaction(self, icon_service, signed_transaction):
+        if 'error' in response:
+            print('Got an error response')
+            print(json.dumps(response, indent=4))
+        else:
+            print('Send deploy request successfully.')
+            tx_hash = response['result']
+            print(f'If you want to check SCORE deployed successfully, execute txresult command')
+            print(f"transaction hash: {tx_hash}")
 
-        result = icon_service.send_transaction(signed_transaction, True)
-
-
-
-        return result
-
-    def deploy_without_keystore(self, conf: dict, score_address: str) -> dict:
-
-        # make zip and convert to hexadecimal string data (start with 0x) and return
-        content = gen_deploy_data_content(conf['project'])
-        content = f"0x{content.hex()}"
-
-        # make IconJsonrpc instance which is used for making request (with signature)
-        deploy = IconJsonrpc.from_string(from_=conf['from'])
-
-        # make JSON-RPC 2.0 request standard format
-        request = deploy.sendTransaction(to=score_address,
-                                         nid=conf['nid'],
-                                         step_limit=conf.get('stepLimit', None),
-                                         data_type="deploy",
-                                         data=IconJsonrpc.gen_deploy_data(
-                                             params=conf.get('scoreParams', {}),
-                                             content_type="application/zip",
-                                             content=content))
-
-        if 'stepLimit' not in conf:
-            step_limit = get_enough_step(request, conf['uri'])
-            request['params']['stepLimit'] = hex(step_limit)
-            deploy.put_signature(request['params'])
-
-        # send request to the rpc server
-        icon_client = IconClient(conf['uri'])
-
-        # return response
-        return icon_client.send(request)
+        return response
 
     @staticmethod
     def clear(_conf: dict):
