@@ -26,6 +26,7 @@ from tbears.command.command_score import CommandScore
 from tbears.command.command_server import CommandServer
 from tbears.command.command_wallet import CommandWallet
 from tbears.config.tbears_config import FN_CLI_CONF, FN_SERVER_CONF, tbears_cli_config, tbears_server_config
+
 from tests.test_util import TEST_UTIL_DIRECTORY
 
 IN_ICON_CONFIG_TEST_DIRECTORY = os.path.join(TEST_UTIL_DIRECTORY, 'test_icon_config')
@@ -801,5 +802,3 @@ class TestCliTestUtil(unittest.TestCase):
                       test_start_opts_c_x_i_o,
                       test_start_opts_c_o_i_o]
         self.config_setting_test_module_wrapper(start_test)
-
-

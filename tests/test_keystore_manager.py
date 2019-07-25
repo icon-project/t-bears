@@ -21,7 +21,6 @@ from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.utils.convert_type import convert_hex_str_to_bytes
 
 from tbears.util.keystore_manager import make_key_store_content
-#from tbears.libs.icx_signer import key_from_key_store
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsCommandException
 from tbears.command.command import Command

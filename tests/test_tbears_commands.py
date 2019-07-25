@@ -19,13 +19,12 @@ import shutil
 import socket
 import time
 import unittest
-
 from copy import deepcopy
+
 from iconcommons.icon_config import IconConfig
 
 from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.utils.convert_type import convert_hex_str_to_bytes
-
 
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV

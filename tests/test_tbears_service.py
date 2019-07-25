@@ -93,11 +93,11 @@ class TestTBearsService(unittest.TestCase):
         timestamp = int(time.time() * 10 ** 6)
 
         transaction = TransactionBuilder()\
-                    .from_(from_addr)\
-                    .to(to_addr)\
-                    .timestamp(timestamp)\
-                    .step_limit(convert_hex_str_to_int('0x100000'))\
-                    .build()
+            .from_(from_addr)\
+            .to(to_addr)\
+            .timestamp(timestamp)\
+            .step_limit(convert_hex_str_to_int('0x100000'))\
+            .build()
 
         wallet = KeyWallet.create()
         signed_transaction = SignedTransaction(transaction, wallet)

@@ -22,6 +22,7 @@ TBEARS_CLI_TAG = 'tbears_cli'
 
 GOVERNANCE_ADDRESS = f'cx{"0"*39+"1"}'
 
+
 class ConfigKey:
     CHANNEL = 'channel'
     AMQP_KEY = 'amqpKey'
