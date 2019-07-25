@@ -302,6 +302,7 @@ optional arguments:
 | :-------------- | :------ | :--------------------------------------- |
 | path            |         | a keystore file path that is to be generated |
 | -h, --help      |         | show this help message and exit          |
+| -p, --password  |         | Keystore file's password                 |
 
 **Examples**
 
@@ -340,6 +341,7 @@ optional arguments:
 | :-------------- | :------ | :--------------------------------------- |
 | path            |         | a keystore file path that is to be shown |
 | -h, --help      |         | show this help message and exit          |
+| -p, --password  |         | Keystore file's password                 | 
 | --private-key   |         | option that whether show privateKey      |
 
 **Examples**
@@ -500,6 +502,7 @@ optional arguments:
 | project                                         |                              | Project directory or zip file which contains the SCORE package. If you want to deploy with a zip file, zip the project directory |
 | -h, --help                                      |                              | show this help message and exit                              |
 | -u, --node-uri                                  | http://127.0.0.1:9000/api/v3 | URI of node                                                  |
+| -t {tbears,zip}, --type {tbears,zip}            |                              | This option is deprecated since version 1.0.5. Deploy command supports zip type only |
 | -m {install,update},<br>--mode {install,update} | install                      | Deploy mode ("install" or "update").                         |
 | -f, --from                                      |                              | From address. i.e. SCORE owner address. It is ignored if keystore is set |
 | -o, --to                                        |                              | To address. i.e. SCORE address <br>This parameter is required when updating SCORE. |
