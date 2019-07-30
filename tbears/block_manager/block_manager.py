@@ -457,7 +457,7 @@ class BlockManager(object):
         if block_height == 0:
             self.block.save_txresults_legacy(tx_list=tx_list, results=invoke_response)
         else:
-            self.block.save_txresults(tx_results=invoke_response.get('txResults'))
+            self.block.save_txresults(tx_results=invoke_response.get('txResults'), new_block_hash=new_block_hash)
 
         # save transactions
         self.block.save_transactions(tx_list=tx_list, block_hash=new_block_hash)

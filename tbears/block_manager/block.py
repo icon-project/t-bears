@@ -135,9 +135,10 @@ class Block(object):
         :param tx_result: transaction result
         :return:
         """
+        Logger.debug(f'save_txresult:{tx_result}', LOG_BLOCK)
         self.db.put(DbPrefix.TXRESULT + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
 
-    def save_txresults(self, tx_results: list):
+    def save_txresults(self, tx_results: list, new_block_hash: str):
         """
         Save transaction results to DB
         :param tx_results: transaction result dictionary
@@ -152,6 +153,7 @@ class Block(object):
                 key = DbPrefix.TXRESULT + bytes.fromhex(tx_result.get('txHash'))
 
                 # get value from transaction result
+                tx_result['blockHash'] = new_block_hash
                 value = json.dumps(tx_result).encode()
 
                 self.db.write_batch(write_batch=wb, key=key, value=value)
