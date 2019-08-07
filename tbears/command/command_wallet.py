@@ -38,7 +38,7 @@ from tbears.tbears_exception import TBearsCommandException
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type
 from tbears.util.transaction_logger import call_with_logger, send_transaction_with_logger
-from tbears.util.keystore_manager import validate_password, make_key_store_content
+from tbears.util.keystore_manager import validate_password
 
 
 class CommandWallet:
@@ -420,10 +420,8 @@ class CommandWallet:
         password = conf.get('password', None)
         password = self._check_keystore(password)
 
-        key_store_content = make_key_store_content(password)
-
-        with open(conf['path'], mode='wb') as ks:
-            ks.write(json.dumps(key_store_content).encode())
+        key_store_content = KeyWallet.create()
+        key_store_content.store(conf['path'], password)
 
         print(f"Made keystore file successfully")
 

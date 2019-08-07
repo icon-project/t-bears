@@ -23,7 +23,6 @@ from copy import deepcopy
 
 from iconcommons.icon_config import IconConfig
 
-from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.utils.convert_type import convert_hex_str_to_bytes
 
@@ -306,7 +305,7 @@ class TestTBearsCommands(unittest.TestCase):
 
         # get keyinfo with wrong path
         conf = self.cmd.cmdWallet.get_icon_conf('keyinfo', {'path': key_path + 'wrong', 'privateKey': True,
-                                                            'password': 'qwer4321!'})
+                                                            'password': 'qwer1234%'})
         key_info = self.cmd.cmdWallet.keyinfo(conf)
         self.assertTrue(key_info is None)
 

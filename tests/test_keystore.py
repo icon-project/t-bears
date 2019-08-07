@@ -21,8 +21,6 @@ from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.utils.convert_type import convert_hex_str_to_bytes
 
-from tbears.util.keystore_manager import make_key_store_content
-
 
 def key_from_key_store(file_path, password):
     wallet = KeyWallet.load(file_path, password)
@@ -34,10 +32,8 @@ class TestKeyStore(unittest.TestCase):
         path = 'keystoretest'
         password = 'qwer1234%'
 
-        # make keystore file
-        content = make_key_store_content(password)
-        with open(path, mode='wb') as ks:
-            ks.write(json.dumps(content).encode())
+        content = KeyWallet.create()
+        content.store(path, password)
 
         # get private key from keystore file
         written_key = key_from_key_store(file_path=path, password=password)

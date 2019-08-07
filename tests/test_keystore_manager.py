@@ -20,7 +20,6 @@ import json
 from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.utils.convert_type import convert_hex_str_to_bytes
 
-from tbears.util.keystore_manager import make_key_store_content
 from tbears.command.command_wallet import CommandWallet
 from tbears.tbears_exception import TBearsCommandException
 from tbears.command.command import Command
@@ -39,9 +38,8 @@ class TestKeyStoreManager(unittest.TestCase):
 
     def test_make_key_store_content(self):
         # make keystore file
-        content = make_key_store_content(self.keystore_password)
-        with open(self.keystore_path, mode='wb') as ks:
-            ks.write(json.dumps(content).encode())
+        content = KeyWallet.create()
+        content.store(self.keystore_path, self.keystore_password)
 
         # get private key from keystore file
 #        written_key = key_from_key_store(file_path=self.keystore_path, password=self.keystore_password)
