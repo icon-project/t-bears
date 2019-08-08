@@ -19,7 +19,7 @@ import unittest
 from tbears.util.argparse_type import *
 
 
-class TestArgparseType(unittest.TestCase):
+class TestArgParseType(unittest.TestCase):
     @staticmethod
     def touch(path):
         with open(path, 'a'):
@@ -173,3 +173,24 @@ class TestArgparseType(unittest.TestCase):
         self.assertRaises(ArgumentTypeError, non_negative_num_type, int_str)
         int_str = "-0x1"
         self.assertRaises(ArgumentTypeError, non_negative_num_type, int_str)
+
+    def test_loop(self):
+        # valid values
+        int_str = "1"
+        self.assertEqual(loop(int_str), 1)
+        # small float value
+        significand, exponent = 1, 18
+        small_float_str = f"{significand}e{exponent}"
+        self.assertEqual(loop(small_float_str), int(float(small_float_str)))
+        # big float value
+        significand, exponent = 30, 30
+        big_float_str = f"{significand}e{exponent}"
+        self.assertEqual(loop(big_float_str), significand*10**exponent)
+
+        # invalid values
+        # alphabets
+        alphabet = "xyz"
+        self.assertRaises(ArgumentTypeError, loop, alphabet)
+        # hex string
+        hex_string = "0x12"
+        self.assertRaises(ArgumentTypeError, loop, hex_string)
