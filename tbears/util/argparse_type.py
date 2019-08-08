@@ -92,3 +92,19 @@ def non_negative_num_type(string: str) -> str:
         raise ArgumentTypeError(f"Invalid non-negative number '{value}'")
 
     return hex(value)
+
+
+def loop(input_value: str) -> int:
+    try:
+        value_in_float = float(input_value)
+    except ValueError:
+        raise ArgumentTypeError(f'You entered invalid value {input_value}')
+    if value_in_float != float(int(value_in_float)):
+        raise ArgumentTypeError(f'You entered invalid value {input_value}')
+
+    value_in_str = input_value.lower()
+    if value_in_str.find("e") == -1:
+        return int(value_in_str, 10)
+    else:
+        significand, exponent = value_in_str.split("e")
+        return int(significand) * 10 ** int(exponent)

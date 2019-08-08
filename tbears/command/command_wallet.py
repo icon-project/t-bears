@@ -29,7 +29,7 @@ from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore
 from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc, get_enough_step, get_default_step
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import jsonrpc_params_to_pep_style
-from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type
+from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type, loop
 from tbears.util.keystore_manager import validate_password, make_key_store_content
 
 
@@ -92,7 +92,7 @@ class CommandWallet:
         parser = subparsers.add_parser('transfer', help='Transfer ICX coin.', description='Transfer ICX coin.')
         parser.add_argument('-f', '--from', type=IconAddress(), help='From address.')
         parser.add_argument('to', type=IconAddress(), help='Recipient')
-        parser.add_argument("value", type=float, help='Amount of ICX coin in loop to transfer (1 icx = 1e18 loop)')
+        parser.add_argument("value", type=loop, help='Amount of ICX coin in loop to transfer (1 icx = 1e18 loop)')
         parser.add_argument('-k', '--key-store', type=IconPath(), dest='keyStore',
                             help='Keystore file path. Used to generate "from" address and transaction signature')
         parser.add_argument('-n', '--nid', help='Network ID (default: 0x3)')
@@ -203,10 +203,6 @@ class CommandWallet:
             index = uri.find('127.0.0.1')
             if index == -1 or uri[index + len('127.0.0.1')] != ':':
                 raise TBearsCommandException(f'Do not transfer to "test1" account')
-
-        # value must be a integer value
-        if conf['value'] != float(int(conf['value'])):
-            raise TBearsCommandException(f'You entered invalid value {conf["value"]}')
 
         if conf.get('keyStore', None):
             if not password:
