@@ -1,5 +1,9 @@
 # ChangeLog - T-Bears
 
+## 1.4.0 - 2019-08-19
+* Add 'keyinfo' command to query keyinfo file content
+* Fix the bug of 'transfer' command transfering invalid amount of ICX
+
 ## 1.3.0 - 2019-07-16
 * Update Docker image files for Fee 2.0
 
