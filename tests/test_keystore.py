@@ -15,7 +15,6 @@
 
 import os
 import unittest
-import json
 
 from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet

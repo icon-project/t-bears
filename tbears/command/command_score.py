@@ -132,7 +132,7 @@ class CommandScore(object):
             .build()
 
         if 'stepLimit' not in conf:
-            step_limit = icon_service.estimate_step(deploy_transaction)
+            step_limit = icon_service.estimate_step(deploy_transaction) + 10000
         else:
             step_limit = convert_hex_str_to_int(conf['stepLimit'])
 
