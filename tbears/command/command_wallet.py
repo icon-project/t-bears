@@ -16,29 +16,26 @@ import copy
 import getpass
 import json
 import os
+from time import time
 
 from iconcommons import IconConfig
 from iconcommons.logger.logger import Logger
-
-from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder
 from iconsdk.builder.call_builder import CallBuilder
+from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder
 from iconsdk.exception import KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
 from iconsdk.utils.convert_type import convert_hex_str_to_int, convert_bytes_to_hex_str
 from iconsdk.wallet.wallet import KeyWallet
-
 from iconservice.base.address import is_icon_address_valid
-
-from time import time
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1, TBEARS_CLI_TAG
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util.arg_parser import uri_parser
-from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type
-from tbears.util.transaction_logger import call_with_logger, send_transaction_with_logger
+from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type, loop
 from tbears.util.keystore_manager import validate_password
+from tbears.util.transaction_logger import call_with_logger, send_transaction_with_logger
 
 
 class CommandWallet:
@@ -100,7 +97,7 @@ class CommandWallet:
         parser = subparsers.add_parser('transfer', help='Transfer ICX coin.', description='Transfer ICX coin.')
         parser.add_argument('-f', '--from', type=IconAddress(), help='From address.')
         parser.add_argument('to', type=IconAddress(), help='Recipient')
-        parser.add_argument("value", type=float, help='Amount of ICX coin in loop to transfer (1 icx = 1e18 loop)')
+        parser.add_argument("value", type=loop, help='Amount of ICX coin in loop to transfer (1 icx = 1e18 loop)')
         parser.add_argument('-k', '--key-store', type=IconPath(), dest='keyStore',
                             help='Keystore file path. Used to generate "from" address and transaction signature')
         parser.add_argument('-n', '--nid', help='Network ID (default: 0x3)')
@@ -212,10 +209,6 @@ class CommandWallet:
             if index == -1 or uri[index + len('127.0.0.1')] != ':':
                 raise TBearsCommandException(f'Do not transfer to "test1" account')
 
-        # value must be a integer value
-        if conf['value'] != float(int(conf['value'])):
-            raise TBearsCommandException(f'You entered invalid value {conf["value"]}')
-
         if conf.get('keyStore', None):
             if not password:
                 password = getpass.getpass("Input your keystore password: ")
@@ -237,7 +230,7 @@ class CommandWallet:
         return password
 
     @staticmethod
-    def _check_keyInfo(password: str):
+    def _check_keyinfo(password: str):
         if not password:
             password = getpass.getpass("Input your keystore password: ")
 
@@ -431,7 +424,7 @@ class CommandWallet:
         :param conf: keyinfo command configuration
         """
         password = conf.get('password', None)
-        password = self._check_keyInfo(password)
+        password = self._check_keyinfo(password)
 
         try:
             wallet = KeyWallet.load(conf['path'], password)
