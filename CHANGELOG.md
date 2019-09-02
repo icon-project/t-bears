@@ -1,5 +1,8 @@
 # ChangeLog - T-Bears
 
+## 1.5.0 - 2019-09-02
+* Support IISS
+
 ## 1.4.0 - 2019-08-19
 * Add 'keyinfo' command to query keyinfo file content
 * Fix the bug of 'transfer' command transfering invalid amount of ICX
