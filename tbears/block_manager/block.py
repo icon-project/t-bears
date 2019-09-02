@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-import uuid
 from typing import Union, Optional
 
-from iconcommons import IconConfig
 from iconcommons.logger import Logger
+from iconservice.base.address import Address
 from iconservice.icon_constant import DATA_BYTE_ORDER, DEFAULT_BYTE_SIZE
 
 from tbears.block_manager.tbears_db import TbearsDB
@@ -38,7 +37,7 @@ class Block(object):
         self._db: TbearsDB = TbearsDB(TbearsDB.make_db(db_path))
         self._block_height = -1
         self._prev_block_hash = None
-        self._peer_id = str(uuid.uuid1())
+        self._peer_id: str = str(Address.from_string("hx6e1dd0d4432620778b54b2bbc21ac3df961adf89"))
 
         self.load_block_info()
         
@@ -135,9 +134,30 @@ class Block(object):
         :param tx_result: transaction result
         :return:
         """
+        Logger.debug(f'save_txresult:{tx_result}', LOG_BLOCK)
         self.db.put(DbPrefix.TXRESULT + bytes.fromhex(tx_hash), json.dumps(tx_result).encode())
 
-    def save_txresults(self, tx_list: list, results: dict):
+    def save_txresults(self, tx_results: list, new_block_hash: str):
+        """
+        Save transaction results to DB
+        :param tx_results: transaction result dictionary
+        :return:
+        """
+        Logger.debug(f'save_txresults:{tx_results}', LOG_BLOCK)
+
+        # write transaction result with batch
+        with self.db.create_write_batch() as wb:
+            for tx_result in tx_results:
+                # key from transaction hash
+                key = DbPrefix.TXRESULT + bytes.fromhex(tx_result.get('txHash'))
+
+                # get value from transaction result
+                tx_result['blockHash'] = new_block_hash
+                value = json.dumps(tx_result).encode()
+
+                self.db.write_batch(write_batch=wb, key=key, value=value)
+
+    def save_txresults_legacy(self, tx_list: list, results: dict):
         """
         Save transaction results to DB
         :param tx_list: transaction list

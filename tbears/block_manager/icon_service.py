@@ -46,6 +46,10 @@ class IconScoreInnerTask(object):
     async def remove_precommit_state(self, request: dict) -> dict:
         pass
 
+    @message_queue_task
+    async def call(self, request: dict) -> dict:
+        pass
+
 
 class IconStub(MessageQueueStub[IconScoreInnerTask]):
     TaskType = IconScoreInnerTask

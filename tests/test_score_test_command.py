@@ -41,7 +41,8 @@ class TestScoreTestCommand(unittest.TestCase):
         instant_block = Block(block_height=1,
                               block_hash=create_block_hash(),
                               timestamp=create_timestamp(),
-                              prev_hash=create_block_hash())
+                              prev_hash=create_block_hash(),
+                              cumulative_fee=0)
         icon_integrate_test_base._write_precommit_state(instant_block)
         icon_integrate_test_base.tearDown()
 
@@ -63,6 +64,7 @@ class TestScoreTestCommand(unittest.TestCase):
         instant_block = Block(block_height=1,
                               block_hash=create_block_hash(),
                               timestamp=create_timestamp(),
-                              prev_hash=create_block_hash())
+                              prev_hash=create_block_hash(),
+                              cumulative_fee=0)
         icon_integrate_test_base._write_precommit_state(instant_block)
         icon_integrate_test_base.tearDown()
