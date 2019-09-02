@@ -1,9 +1,14 @@
+dist: xenial
+addons:
+  apt:
+    packages:
+      - rabbitmq-server
+services:
+  - rabbitmq
+
 language: python
 python:
   - "3.6"
-
-services:
-  - rabbitmq
 
 branches:
   only:
