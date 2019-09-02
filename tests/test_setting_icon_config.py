@@ -132,14 +132,16 @@ class TestCliTestUtil(unittest.TestCase):
     def config_setting_test_module(self, test_opts: dict):
         self.check_test_opts(test_opts)
         # check if user config path is set or not
+        default_conf: dict = {}
+        if test_opts['config_type'] == 'cli':
+            default_conf = deepcopy(tbears_cli_config_reset)
+        elif test_opts['config_type'] == 'server':
+            default_conf = deepcopy(tbears_server_config_reset)
+
         if test_opts.get('user_path', None):
             with open(test_opts['user_path']) as user_conf_path:
-                default_conf: dict = json.load(user_conf_path)
-        else:
-            if test_opts['config_type'] == 'cli':
-                default_conf = deepcopy(tbears_cli_config_reset)
-            elif test_opts['config_type'] == 'server':
-                default_conf = deepcopy(tbears_server_config_reset)
+                user_conf: dict = json.load(user_conf_path)
+                default_conf.update(user_conf)
 
         if test_opts['command'] in default_conf:
             default_conf.update(default_conf[test_opts['command']])
@@ -801,5 +803,3 @@ class TestCliTestUtil(unittest.TestCase):
                       test_start_opts_c_x_i_o,
                       test_start_opts_c_o_i_o]
         self.config_setting_test_module_wrapper(start_test)
-
-

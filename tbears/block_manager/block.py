@@ -141,6 +141,7 @@ class Block(object):
         """
         Save transaction results to DB
         :param tx_results: transaction result dictionary
+        :param new_block_hash: updated block hash
         :return:
         """
         Logger.debug(f'save_txresults:{tx_results}', LOG_BLOCK)
