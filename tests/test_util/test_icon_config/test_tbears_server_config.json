@@ -32,6 +32,11 @@
                 "name": "fee_treasury_config_path",
                 "address": "hx1000000000000000000000000000000000000000",
                 "balance": "0x0_config_path"
+            },
+            {
+                "name": "test1",
+                "address": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
+                "balance": "0x2961fff8ca4a62327800000"
             }
         ]
     },
@@ -39,6 +44,7 @@
     "amqpKey": "7100_config_path",
     "amqpTarget": "127.0.0.1_config_path",
     "blockConfirmInterval": 10,
-    "blockConfirmEmpty": true
-
+    "blockConfirmEmpty": true,
+    "blockGeneratorRotation": true,
+    "blockGenerateCountPerLeader": 10
 }

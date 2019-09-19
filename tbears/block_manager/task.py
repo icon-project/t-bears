@@ -65,3 +65,50 @@ class Periodic:
 
             # do work
             await self.func()
+
+
+class Immediate:
+    """
+    Class for immediate work in asyncio
+    """
+    def __init__(self):
+        self.funcs: list = []
+        self.is_started = False
+        self._task = None
+
+    async def start(self):
+        """
+        Start the immediate work
+        :return:
+        """
+        if not self.is_started:
+            self.is_started = True
+            # Start task to call func periodically:
+            self._task = asyncio.ensure_future(self._run())
+
+    async def stop(self):
+        """
+        Stop the immediate work
+        :return:
+        """
+        if self.is_started:
+            self.is_started = False
+            # Stop task and await it stopped:
+            self._task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._task
+
+    def add_func(self, func: callable):
+        self.funcs.append(func)
+
+    async def _run(self):
+        """
+        Do the work
+        :return:
+        """
+        while True:
+            if self.funcs:
+                func: callable = self.funcs.pop()
+                await func()
+            else:
+                await asyncio.sleep(0)

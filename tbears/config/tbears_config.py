@@ -20,90 +20,8 @@ FN_CLI_CONF = './tbears_cli_config.json'
 
 TBEARS_CLI_TAG = 'tbears_cli'
 
+
 GOVERNANCE_ADDRESS = f'cx{"0"*39+"1"}'
-
-
-class ConfigKey:
-    CHANNEL = 'channel'
-    AMQP_KEY = 'amqpKey'
-    AMQP_TARGET = 'amqpTarget'
-    BLOCK_CONFIRM_INTERVAL = 'blockConfirmInterval'
-    BLOCK_CONFIRM_EMPTY = 'blockConfirmEmpty'
-
-
-tbears_server_config = {
-    "hostAddress": "127.0.0.1",
-    "port": 9000,
-    "scoreRootPath": "./.score",
-    "stateDbRootPath": "./.statedb",
-    "log": {
-        "logger": "tbears",
-        "level": "info",
-        "filePath": "./tbears.log",
-        "colorLog": True,
-        "outputType": "file",
-        "rotate": {
-            "type": "bytes",
-            "maxBytes": 10 * 1024 * 1024,
-            "backupCount": 10
-        }
-    },
-    "service": {
-        "fee": False,
-        "audit": False,
-        "deployerWhiteList": False
-    },
-    "genesis": {
-        "nid": "0x3",
-        "accounts": [
-            {
-                "name": "genesis",
-                "address": "hx0000000000000000000000000000000000000000",
-                "balance": "0x2961fff8ca4a62327800000"
-            },
-            {
-                "name": "fee_treasury",
-                "address": "hx1000000000000000000000000000000000000000",
-                "balance": "0x0"
-            },
-            {
-                "name": "test1",
-                "address": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
-                "balance": "0x2961fff8ca4a62327800000"
-            }
-        ]
-    },
-    ConfigKey.CHANNEL: "loopchain_default",
-    ConfigKey.AMQP_KEY: "7100",
-    ConfigKey.AMQP_TARGET: "127.0.0.1",
-    ConfigKey.BLOCK_CONFIRM_INTERVAL: 10,
-    ConfigKey.BLOCK_CONFIRM_EMPTY: True
-}
-
-
-def make_server_config(config: dict) -> dict:
-    server_config = deepcopy(config)
-    del server_config[ConfigKey.CHANNEL]
-    del server_config[ConfigKey.AMQP_KEY]
-    del server_config[ConfigKey.AMQP_TARGET]
-
-    return server_config
-
-
-tbears_cli_config = {
-    "uri": "http://127.0.0.1:9000/api/v3",
-    "nid": "0x3",
-    "keyStore": None,
-    "from": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
-    "to": "cx0000000000000000000000000000000000000000",
-    "deploy": {
-        "mode": "install",
-        "scoreParams": {}
-    },
-    "txresult": {},
-    "transfer": {}
-}
-
 
 FN_KEYSTORE_TEST1 = './keystore_test1'
 TEST1_PRIVATE_KEY = '592eb276d534e2c41a2d9356c0ab262dc233d87e4dd71ce705ec130a8d27ff0c'
@@ -130,3 +48,95 @@ keystore_test1 = {
     "version": 3,
     "coinType": "icx"
 }
+
+
+class ConfigKey:
+    CHANNEL = 'channel'
+    AMQP_KEY = 'amqpKey'
+    AMQP_TARGET = 'amqpTarget'
+    BLOCK_CONFIRM_INTERVAL = 'blockConfirmInterval'
+    BLOCK_CONFIRM_EMPTY = 'blockConfirmEmpty'
+    BLOCK_GENERATOR_ROTATION = 'blockGeneratorRotation'
+    BLOCK_GENERATE_COUNT_PER_LEADER = 'blockGenerateCountPerLeader'
+    BLOCK_MANUAL_CONFIRM = 'blockManualConfirm'
+    NETWORK_DELAY_MS = 'networkDelayMs'
+
+
+tbears_server_config = {
+    "hostAddress": "127.0.0.1",
+    "port": 9000,
+    "scoreRootPath": "./.score",
+    "stateDbRootPath": "./.statedb",
+    "log": {
+        "logger": "tbears",
+        "level": "info",
+        "filePath": "./tbears.log",
+        "colorLog": True,
+        "outputType": "file",
+        "rotate": {
+            "type": "bytes",
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 10
+        }
+    },
+    "service": {
+        "fee": False,
+        "audit": False,
+        "deployerWhiteList": False
+    },
+    "builtinScoreOwner": keystore_test1['address'],
+    "genesis": {
+        "nid": "0x3",
+        "accounts": [
+            {
+                "name": "genesis",
+                "address": "hx0000000000000000000000000000000000000000",
+                "balance": "0x2961fff8ca4a62327800000"
+            },
+            {
+                "name": "fee_treasury",
+                "address": "hx1000000000000000000000000000000000000000",
+                "balance": "0x0"
+            },
+            {
+                "name": "test1",
+                "address": keystore_test1['address'],
+                "balance": "0x2961fff8ca4a62327800000"
+            }
+        ]
+    },
+    ConfigKey.CHANNEL: "loopchain_default",
+    ConfigKey.AMQP_KEY: "7100",
+    ConfigKey.AMQP_TARGET: "127.0.0.1",
+    ConfigKey.BLOCK_CONFIRM_INTERVAL: 10,
+    ConfigKey.BLOCK_CONFIRM_EMPTY: True,
+    ConfigKey.BLOCK_GENERATOR_ROTATION: True,
+    ConfigKey.BLOCK_GENERATE_COUNT_PER_LEADER: 10,
+    ConfigKey.BLOCK_MANUAL_CONFIRM: False,
+    ConfigKey.NETWORK_DELAY_MS: 500
+}
+
+
+def make_server_config(config: dict) -> dict:
+    server_config = deepcopy(config)
+    del server_config[ConfigKey.CHANNEL]
+    del server_config[ConfigKey.AMQP_KEY]
+    del server_config[ConfigKey.AMQP_TARGET]
+
+    return server_config
+
+
+tbears_cli_config = {
+    "uri": "http://127.0.0.1:9000/api/v3",
+    "nid": "0x3",
+    "keyStore": None,
+    "from": keystore_test1['address'],
+    "to": "cx0000000000000000000000000000000000000000",
+    "deploy": {
+        "mode": "install",
+        "scoreParams": {}
+    },
+    "txresult": {},
+    "transfer": {}
+}
+

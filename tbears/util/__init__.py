@@ -72,19 +72,16 @@ class SampleScore(IconScoreBase):
 
     test_py = """import os
 
-from iconsdk.builder.transaction_builder import DeployTransactionBuilder
 from iconsdk.builder.call_builder import CallBuilder
-from iconsdk.icon_service import IconService
+from iconsdk.builder.transaction_builder import DeployTransactionBuilder
 from iconsdk.libs.in_memory_zip import gen_deploy_data_content
-from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
-
 from tbears.libs.icon_integrate_test import IconIntegrateTestBase, SCORE_INSTALL_ADDRESS
 
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
-class TestSampleScore(IconIntegrateTestBase):
+class TestTest(IconIntegrateTestBase):
     TEST_HTTP_ENDPOINT_URI_V3 = "http://127.0.0.1:9000/api/v3"
     SCORE_PROJECT= os.path.abspath(os.path.join(DIR_PATH, '..'))
 
@@ -100,14 +97,14 @@ class TestSampleScore(IconIntegrateTestBase):
 
     def _deploy_score(self, to: str = SCORE_INSTALL_ADDRESS) -> dict:
         # Generates an instance of transaction for deploying SCORE.
-        transaction = DeployTransactionBuilder() \\
-            .from_(self._test1.get_address()) \\
-            .to(to) \\
-            .step_limit(100_000_000_000) \\
-            .nid(3) \\
-            .nonce(100) \\
-            .content_type("application/zip") \\
-            .content(gen_deploy_data_content(self.SCORE_PROJECT)) \\
+        transaction = DeployTransactionBuilder() \
+            .from_(self._test1.get_address()) \
+            .to(to) \
+            .step_limit(100_000_000_000) \
+            .nid(3) \
+            .nonce(100) \
+            .content_type("application/zip") \
+            .content(gen_deploy_data_content(self.SCORE_PROJECT)) \
             .build()
 
         # Returns the signed transaction object having a signature
@@ -116,8 +113,7 @@ class TestSampleScore(IconIntegrateTestBase):
         # process the transaction in local
         tx_result = self.process_transaction(signed_transaction, self.icon_service)
 
-        self.assertTrue('status' in tx_result)
-        self.assertEqual(1, tx_result['status'])
+        self.assertEqual(True, tx_result['status'])
         self.assertTrue('scoreAddress' in tx_result)
 
         return tx_result
@@ -130,9 +126,9 @@ class TestSampleScore(IconIntegrateTestBase):
 
     def test_call_hello(self):
         # Generates a call instance using the CallBuilder
-        call = CallBuilder().from_(self._test1.get_address()) \\
-            .to(self._score_address) \\
-            .method("hello") \\
+        call = CallBuilder().from_(self._test1.get_address()) \
+            .to(self._score_address) \
+            .method("hello") \
             .build()
 
         # Sends the call request
