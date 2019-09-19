@@ -26,6 +26,7 @@ from iconsdk.exception import KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
+from iconsdk.utils import add_0x_prefix
 from iconsdk.utils.convert_type import convert_hex_str_to_int, convert_bytes_to_hex_str
 from iconsdk.wallet.wallet import KeyWallet
 from iconservice.base.address import is_icon_address_valid
@@ -431,11 +432,11 @@ class CommandWallet:
 
             key_info = {
                 "address": wallet.get_address(),
-                "publicKey": convert_bytes_to_hex_str(wallet.bytes_public_key)
+                "publicKey": convert_bytes_to_hex_str(wallet.public_key)
             }
 
             if conf['privateKey']:
-                key_info['privateKey'] = wallet.get_private_key()
+                key_info['privateKey'] = add_0x_prefix(wallet.get_private_key())
 
             print(json.dumps(key_info, indent=4))
 
