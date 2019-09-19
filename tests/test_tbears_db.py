@@ -73,4 +73,3 @@ class TestTBearsDB(unittest.TestCase):
             expected_value = ('value' + str(i)).encode()
             self.assertEqual(expected_value, actual_value)
             i += 1
-

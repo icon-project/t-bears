@@ -64,4 +64,3 @@ class TestCommandServer(TestCommand):
         # Wrong option (stop cli has no option)
         cmd = f'stop -w wrongOption'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
-

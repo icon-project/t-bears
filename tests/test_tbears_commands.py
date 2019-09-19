@@ -19,16 +19,16 @@ import shutil
 import socket
 import time
 import unittest
-
 from copy import deepcopy
+
 from iconcommons.icon_config import IconConfig
 
-from iconsdk.exception import KeyStoreException
+from iconsdk.wallet.wallet import KeyWallet
+from iconsdk.utils.convert_type import convert_hex_str_to_bytes
 
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config
-from tbears.libs.icx_signer import key_from_key_store
 from tests.test_util import TEST_UTIL_DIRECTORY, get_total_supply, zip_dir
 
 
@@ -221,7 +221,6 @@ class TestTBearsCommands(unittest.TestCase):
         txbyhash_response_result = txbyhash_response['result']
         self.assertIn('from', txbyhash_response_result)
         self.assertIn('to', txbyhash_response_result)
-        self.assertIn('value', txbyhash_response_result)
 
         # lastblock
         response = self.cmd.cmdWallet.lastblock(conf)
@@ -306,6 +305,11 @@ class TestTBearsCommands(unittest.TestCase):
 
         # get keyinfo with wrong path
         conf = self.cmd.cmdWallet.get_icon_conf('keyinfo', {'path': key_path + 'wrong', 'privateKey': True,
-                                                            'password': 'qwer4321!'})
+                                                            'password': 'qwer1234%'})
         key_info = self.cmd.cmdWallet.keyinfo(conf)
         self.assertTrue(key_info is None)
+
+
+def key_from_key_store(file_path, password):
+    wallet = KeyWallet.load(file_path, password)
+    return convert_hex_str_to_bytes(wallet.get_private_key())

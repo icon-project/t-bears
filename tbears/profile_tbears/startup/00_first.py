@@ -20,7 +20,6 @@ from IPython.core import page
 from IPython.terminal.prompts import Prompts, Token
 
 from tbears.command.command import Command
-from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
 
 ip = get_ipython()
 
