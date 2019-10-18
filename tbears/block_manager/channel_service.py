@@ -107,7 +107,7 @@ class ChannelInnerTask(object):
         if fail_response_code:
             return fail_response_code, block_hash, b'', "", []
 
-        block_hash: str = block_data_json['block_hash']
+        block_hash: str = block_data_json['hash']
         block_data_json_str: str = json.dumps(block_data_json)
 
         # tbears does not support filters

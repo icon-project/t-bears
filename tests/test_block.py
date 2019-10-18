@@ -14,11 +14,12 @@
 # limitations under the License.
 import json
 import os
-import unittest
 import shutil
 import time
+import unittest
 
 from tbears.block_manager.block import Block
+from tbears.block_manager.block_manager import BlockManager
 from tbears.config.tbears_config import tbears_server_config
 
 
@@ -27,7 +28,10 @@ class TestTBearsBlock(unittest.TestCase):
     PREV_BLOCK_HASH = '0123456789abcdef'
 
     def setUp(self):
-        self.block = Block(db_path=self.DB_PATH)
+        config = tbears_server_config
+        config['stateDbRootPath'] = self.DB_PATH
+        self.block_manager = BlockManager(config)
+        self.block = self.block_manager.block
 
     def tearDown(self):
         try:
@@ -50,7 +54,7 @@ class TestTBearsBlock(unittest.TestCase):
 
         # reload Block info
         self.block.db.close()
-        self.block = Block(db_path=self.DB_PATH)
+        self.block = Block(db_path=f"{self.DB_PATH}/tbears/")
         self.assertEqual(block_height + 1, self.block.block_height)
         self.assertEqual(self.PREV_BLOCK_HASH, self.block.prev_block_hash)
 
@@ -106,22 +110,38 @@ class TestTBearsBlock(unittest.TestCase):
     def test_block(self):
         # genesis block
         timestamp = int(time.time() * 10 ** 6)
+        invoke_response = {
+            "txResults": {},
+            "stateRootHash": "1"*64,
+            "hash": self.PREV_BLOCK_HASH
+        }
 
-        self.block.save_block(self.PREV_BLOCK_HASH, tbears_server_config.get('genesis'), timestamp)
+        block = self.block_manager._make_block_data(self.PREV_BLOCK_HASH, tbears_server_config['genesis'],
+                                                    timestamp, invoke_response)
+        self.block.save_block(block)
         self.block.commit_block(self.PREV_BLOCK_HASH)
 
         block_by_height = self.block.get_block_by_height(0)
         block_by_hash = self.block.get_block_by_hash(self.PREV_BLOCK_HASH)
         self.assertEqual(block_by_hash, block_by_height)
         self.assertEqual('tbears', block_by_hash.get('version'))
-        self.assertEqual('', block_by_hash.get('prev_block_hash'))
-        self.assertEqual(timestamp, block_by_hash.get('time_stamp'))
-        self.assertEqual(tbears_server_config.get('genesis'), block_by_hash.get('confirmed_transaction_list')[0])
-        self.assertEqual(self.PREV_BLOCK_HASH, block_by_hash.get('block_hash'))
+        self.assertEqual('', block_by_hash.get('prevHash'))
+        self.assertEqual(timestamp, block_by_hash.get('timestamp'))
+        self.assertEqual(tbears_server_config.get('genesis'), block_by_hash.get('transactions')[0])
+        self.assertEqual(self.PREV_BLOCK_HASH, block_by_hash.get('hash'))
         self.assertEqual(0, block_by_hash.get('height'))
-        self.assertEqual("", block_by_hash.get('peer_id'))
+        self.assertEqual("hxe7af5fcfd8dfc67530a01a0e403882687528dfcb", block_by_hash.get('leader'))
+        self.assertEqual("hxe7af5fcfd8dfc67530a01a0e403882687528dfcb", block_by_hash.get('nextLeader'))
         self.assertEqual("", block_by_hash.get('signature'))
-
+        self.assertIn("transactionsHash", block_by_hash)
+        self.assertIn("receiptsHash", block_by_hash)
+        self.assertIn("repsHash", block_by_hash)
+        self.assertIn("nextRepsHash", block_by_hash)
+        self.assertIn("leaderVotesHash", block_by_hash)
+        self.assertIn("prevVotesHash", block_by_hash)
+        self.assertIn("logsBloom", block_by_hash)
+        self.assertIn("leaderVotes", block_by_hash)
+        self.assertIn("prevVotes", block_by_hash)
 
         # normal block
         tx_list = [
@@ -131,18 +151,34 @@ class TestTBearsBlock(unittest.TestCase):
         ]
         timestamp = int(time.time() * 10 ** 6)
         block_hash = self.PREV_BLOCK_HASH + '01'
+        invoke_response = {
+            "txResults": [],
+            "stateRootHash": "0"*64,
+            "hash": block_hash,
+        }
 
-        self.block.save_block(block_hash, tx_list, timestamp)
+        block = self.block_manager._make_block_data(block_hash, tx_list, timestamp, invoke_response)
+        self.block.save_block(block)
         self.block.commit_block(block_hash)
 
         last_block = self.block.get_last_block()
         block_by_hash = self.block.get_block_by_hash(block_hash)
         self.assertEqual(block_by_hash, last_block)
         self.assertEqual('tbears', block_by_hash.get('version'))
-        self.assertEqual(self.PREV_BLOCK_HASH, block_by_hash.get('prev_block_hash'))
-        self.assertEqual(timestamp, block_by_hash.get('time_stamp'))
-        self.assertEqual(tx_list, block_by_hash.get('confirmed_transaction_list'))
-        self.assertEqual(block_hash, block_by_hash.get('block_hash'))
+        self.assertEqual(self.PREV_BLOCK_HASH, block_by_hash.get('prevHash'))
+        self.assertEqual(timestamp, block_by_hash.get('timestamp'))
+        self.assertEqual(tx_list, block_by_hash.get('transactions'))
+        self.assertEqual(block_hash, block_by_hash.get('hash'))
         self.assertEqual(1, block_by_hash.get('height'))
-        self.assertNotEqual("", block_by_hash.get('peer_id'))
-        self.assertNotEqual("", block_by_hash.get('isgnature'))
+        self.assertEqual("hxe7af5fcfd8dfc67530a01a0e403882687528dfcb", block_by_hash.get('leader'))
+        self.assertEqual("hxe7af5fcfd8dfc67530a01a0e403882687528dfcb", block_by_hash.get('nextLeader'))
+        self.assertEqual("tbears_block_manager_does_not_support_block_signature", block_by_hash.get('signature'))
+        self.assertIn("transactionsHash", block_by_hash)
+        self.assertIn("receiptsHash", block_by_hash)
+        self.assertIn("repsHash", block_by_hash)
+        self.assertIn("nextRepsHash", block_by_hash)
+        self.assertIn("leaderVotesHash", block_by_hash)
+        self.assertIn("prevVotesHash", block_by_hash)
+        self.assertIn("logsBloom", block_by_hash)
+        self.assertIn("leaderVotes", block_by_hash)
+        self.assertIn("prevVotes", block_by_hash)
