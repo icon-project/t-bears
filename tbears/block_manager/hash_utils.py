@@ -23,7 +23,7 @@ def generate_hash(data: list, salt: str = TRANSACTION_HASH_SALT):
     values = []
     for elem in data:
         if isinstance(elem, dict):
-            value = HashGenerator.generate_hash(elem).encode()
+            value = HashGenerator.generate_hash(elem)
         elif elem is None:
             continue
         else:

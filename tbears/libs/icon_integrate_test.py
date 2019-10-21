@@ -25,15 +25,13 @@ from typing import Any, Union, List
 from unittest import TestCase
 
 from iconcommons import IconConfig
-
 from iconsdk.builder.call_builder import Call
 from iconsdk.builder.transaction_builder import MessageTransactionBuilder, TransactionBuilder
-from iconsdk.converter import convert_transaction_result
 from iconsdk.exception import IconServiceBaseException, URLException
 from iconsdk.icon_service import IconService
 from iconsdk.signed_transaction import SignedTransaction
+from iconsdk.utils.convert_type import convert_hex_str_to_int, convert_hex_str_to_bytes
 from iconsdk.wallet.wallet import KeyWallet
-
 from iconservice.base.address import Address
 from iconservice.base.block import Block
 from iconservice.base.type_converter import TypeConverter, ParamType
@@ -47,6 +45,34 @@ from tbears.config.tbears_config import TEST1_PRIVATE_KEY, tbears_server_config,
 
 SCORE_INSTALL_ADDRESS = f"cx{'0' * 40}"
 Account = namedtuple('Account', 'name address balance')
+
+
+def convert_transaction_result(data: dict):
+    """
+    Convert transaction result data into the right format.
+    It supports data about a transaction made not only from JSON RPC V3 but also from V2.
+
+    1. Fields such as status, blockHeight, txIndex, stepUsed, stepPrice, cumulativeStepUsed have to be converted to an integer.
+    2. The field 'logsBloom' has to be converted to bytes.
+
+    :param data: data about the transaction result
+    """
+    # Only for the transaction made with JSON RPC V2 successfully does not have the property 'status'
+    if "status" not in data and "code" in data and data["code"] == 0:
+        data["status"] = 1
+        del data["code"]
+        return
+
+    # List of Fields which have to be converted to int
+    int_fields = ["status", "blockHeight", "txIndex", "stepUsed", "stepPrice", "cumulativeStepUsed"]
+
+    for int_field in int_fields:
+        if int_field in data:
+            data[int_field] = convert_hex_str_to_int(data[int_field])
+
+    if "logsBloom" in data:
+        data["logsBloom"] = convert_hex_str_to_bytes(data["logsBloom"])
+
 
 TEST_ACCOUNTS = [
     b'\x17}\x1c\xdc\x87\xab\xd8\xd5\x15\xc5c\xdfb)M\x0b\xac\xa6\x17B\xf6<\xda;\xf2\x02.,\xa2.\x07\x80',

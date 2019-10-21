@@ -225,7 +225,7 @@ class TestTBearsCommands(unittest.TestCase):
         # lastblock
         response = self.cmd.cmdWallet.lastblock(conf)
         self.assertIn('result', response)
-        conf['hash'] = f"0x{response['result']['hash']}"
+        conf['hash'] = f"0x{response['result']['block_hash']}"
         conf['height'] = hex(response['result']['height'])
 
         # blockbyheight
@@ -236,7 +236,7 @@ class TestTBearsCommands(unittest.TestCase):
         # blockbyhash
         response_hash = self.cmd.cmdWallet.blockbyhash(conf)
         self.assertIn('result', response_hash)
-        self.assertEqual(f"0x{response_hash['result']['hash']}", conf['hash'])
+        self.assertEqual(f"0x{response_hash['result']['block_hash']}", conf['hash'])
 
         # transfer
         key_path = os.path.join(TEST_UTIL_DIRECTORY, 'test_keystore')

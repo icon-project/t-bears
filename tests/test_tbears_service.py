@@ -13,25 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import unittest
 import shutil
 import time
+import unittest
 
 from iconcommons.icon_config import IconConfig
-
 from iconsdk.builder.transaction_builder import TransactionBuilder
-from iconsdk.converter import convert_hex_str_to_int
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
+from iconsdk.utils.convert_type import convert_hex_str_to_int
 from iconsdk.wallet.wallet import KeyWallet
 
+from tbears.block_manager.message_code import Response, responseCodeMap
 from tbears.command.command import Command
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_server_config, FN_SERVER_CONF
 from tbears.util.arg_parser import uri_parser
 from tbears.util.transaction_logger import send_transaction_with_logger
-from tbears.block_manager.message_code import Response, responseCodeMap
-
 from tests.test_util import TEST_UTIL_DIRECTORY
 
 

@@ -90,7 +90,7 @@ class PRepManager(object):
             if self._gen_count == self._gen_count_per_leader:
                 self._gen_count = 0
                 self._prep_list.append(self._prep_list.pop(0))
-                self._generator = self._prep_list[0]
+                self._generator = self._prep_list[0]['id']
                 Logger.debug(f"generator rotated. generator: {self._generator}", TBEARS_BLOCK_MANAGER)
 
         return prev_block_contributors_format
@@ -535,7 +535,7 @@ class BlockManager(object):
         else:
             tx_list = tx
             for tx_result in tx_results:
-                logs_bloom + int(tx_result['logsBloom'], 16)
+                logs_bloom = logs_bloom + int(tx_result['logsBloom'], 16)
 
         block_height = self.block.block_height + 1
 
@@ -561,7 +561,7 @@ class BlockManager(object):
             "nextRepsHash": next_reps_hash,
             "leaderVotesHash": '0'*64,
             "prevVotesHash": pre_votes_hash,
-            "logsBloom": logs_bloom.value,
+            "logsBloom": hex(logs_bloom.value),
             "timestamp": timestamp,
             "transactions": tx_list,
             "leaderVotes": [],

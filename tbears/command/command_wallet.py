@@ -28,6 +28,7 @@ from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
 from iconsdk.utils import add_0x_prefix
 from iconsdk.utils.convert_type import convert_hex_str_to_int, convert_bytes_to_hex_str
+from iconsdk.utils.templates import BLOCK_0_3_VERSION
 from iconsdk.wallet.wallet import KeyWallet
 from iconservice.base.address import is_icon_address_valid
 
@@ -54,6 +55,20 @@ class CommandWallet:
         self._add_blockbyheight_parser(subparsers)
         self._add_sendtx_parser(subparsers)
         self._add_call_parser(subparsers)
+        self._add_block_parser(subparsers)
+
+    @staticmethod
+    def _add_block_parser(subparsers):
+        parser = subparsers.add_parser('block',
+                                       help="Get block info using given argument."
+                                            "Only one of `number` and `hash` arguments can be passed.")
+        parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
+        parser.add_argument('-i', '--id', dest='hash', type=hash_type, help='Hash of the block to be queried.')
+        parser.add_argument('-n', '--number', dest='number', type=non_negative_num_type,
+                            help='Height of the block to be queried.')
+        parser.add_argument('-c', '--config', type=IconPath(),
+                            help=f'Configuration file path. This file defines the default value for '
+                                 f'"uri" (default: {FN_CLI_CONF}). This command returns the block as it was stored.')
 
     @staticmethod
     def _add_lastblock_parser(subparsers):
@@ -61,7 +76,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'"uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF}). This command returns the block in v0.1a format')
 
     @staticmethod
     def _add_blockbyhash_parser(subparsers):
@@ -71,7 +86,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'"uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF}). This command returns the block in v0.1a format')
 
     @staticmethod
     def _add_blockbyheight_parser(subparsers):
@@ -81,7 +96,7 @@ class CommandWallet:
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
         parser.add_argument('-c', '--config', type=IconPath(),
                             help=f'Configuration file path. This file defines the default value for '
-                                 f'"uri" (default: {FN_CLI_CONF})')
+                                 f'"uri" (default: {FN_CLI_CONF}). This command returns the block in v0.1a format')
 
     @staticmethod
     def _add_txresult_parser(subparsers):
@@ -249,6 +264,31 @@ class CommandWallet:
                 raise TBearsCommandException(f'invalid address: {conf["from"]}')
 
         return password
+
+    def block(self, conf):
+        """Query block with given parameter(height or hash)
+
+        :param conf: block command configuration
+        :return: result of query
+        """
+        uri, version = uri_parser(conf['uri'])
+        icon_service, response = IconService(HTTPProvider(uri, version)), None
+        hash, number = conf.get('hash'), conf.get('number')
+        if hash is not None and number is not None:
+            raise TBearsCommandException("Only one of id and number can be passed.")
+        if hash is not None:
+            response = icon_service.get_block(hash, True, BLOCK_0_3_VERSION)
+        if number is not None:
+            response = icon_service.get_block(convert_hex_str_to_int(number), True, BLOCK_0_3_VERSION)
+        if response is None:
+            raise TBearsCommandException("You have to specify block height or block hash")
+
+        if "error" in response:
+            print(json.dumps(response, indent=4))
+        else:
+            print(f"block info : {json.dumps(response, indent=4)}")
+
+        return response
 
     def lastblock(self, conf):
         """Query last block
