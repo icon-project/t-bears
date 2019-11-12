@@ -117,6 +117,10 @@ class TbearsCommands(Magics):
         return self.run_command(f"lastblock {line}")
 
     @line_magic
+    def block(self, line):
+        return self.run_command(f"block {line}")
+
+    @line_magic
     def blockbyhash(self, line):
         return self.run_command(f"blockbyhash {line}")
 

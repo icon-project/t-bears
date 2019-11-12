@@ -15,10 +15,9 @@
 
 import os
 
-from tbears.tbears_exception import TBearsCommandException
 from tbears.command.command_wallet import CommandWallet
 from tbears.config.tbears_config import keystore_test1
-
+from tbears.tbears_exception import TBearsCommandException
 from tests.test_parsing_command import TestCommand
 from tests.test_util import TEST_UTIL_DIRECTORY
 
@@ -114,11 +113,62 @@ class TestWalletParsing(TestCommand):
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
         # invalid argument
-        cmd = f'totalsupply -w wrongoption'
+        cmd = f'blockbyhash -w wrongoption'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-        # given invalid tx hash
+        # given invalid block hash
         cmd = f'blockbyhash {invalid_hash}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+    # block
+    def test_block_args_parsing(self):
+        block_hash = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
+        node_uri = 'http://localhost:9999/api/v3'
+        config = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config.json')
+        invalid_hash = '0x1'
+
+        cmd = f'block -u {node_uri} -c {config} -i {block_hash}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertEqual(parsed.command, 'block')
+        self.assertEqual(parsed.hash, block_hash)
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'block {block_hash}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # invalid argument
+        cmd = f'block -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid block hash
+        cmd = f'block -i {invalid_hash}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # query using height
+        height = 1
+        node_uri = 'http://localhost:9999/api/v3'
+        config = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config.json')
+        invalid_height = '-0x1'
+
+        cmd = f'block -u {node_uri} -c {config} -n {height}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertEqual(parsed.command, 'block')
+        self.assertEqual(parsed.number, hex(height))
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'block {block_hash}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # invalid argument
+        cmd = f'block -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid block hash
+        cmd = f'block -n {invalid_height}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
     def test_validate_block_hash_data(self):
