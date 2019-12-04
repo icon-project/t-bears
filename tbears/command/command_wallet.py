@@ -21,7 +21,8 @@ from time import time
 from iconcommons import IconConfig
 from iconcommons.logger.logger import Logger
 from iconsdk.builder.call_builder import CallBuilder
-from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder
+from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder, DeployTransactionBuilder, \
+    MessageTransactionBuilder, DepositTransactionBuilder
 from iconsdk.exception import KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
@@ -33,7 +34,7 @@ from iconsdk.wallet.wallet import KeyWallet
 from iconservice.base.address import is_icon_address_valid
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1, TBEARS_CLI_TAG
-from tbears.tbears_exception import TBearsCommandException
+from tbears.tbears_exception import TBearsCommandException, JsonContentsException
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type, loop
 from tbears.util.keystore_manager import validate_password
@@ -556,9 +557,10 @@ class CommandWallet:
         password = self._check_sendtx(conf, password)
         params = payload['params']
 
-        if password:
+        if password and conf.get('keyStore'):
             try:
                 wallet = KeyWallet.load(conf['keyStore'], password)
+                params['from'] = wallet.get_address()
 
             except KeyStoreException as e:
                 print(e.args[0])
@@ -570,14 +572,7 @@ class CommandWallet:
         uri, version = uri_parser(conf['uri'])
         icon_service = IconService(HTTPProvider(uri, version))
 
-        transaction = CallTransactionBuilder() \
-            .from_(params['from']) \
-            .to(params['to']) \
-            .nid(convert_hex_str_to_int(conf['nid'])) \
-            .method(payload['method']) \
-            .params(params) \
-            .build()
-
+        transaction = self.get_transaction(conf, params)
         if 'stepLimit' not in conf:
             step_limit = icon_service.estimate_step(transaction)
         else:
@@ -672,3 +667,35 @@ class CommandWallet:
             conf.update_conf(args)
 
         return conf
+
+    @staticmethod
+    def get_transaction(conf: dict, params: dict):
+
+        transaction = TransactionBuilder() \
+            .from_(params['from']) \
+            .to(params['to']) \
+            .nid(convert_hex_str_to_int(conf['nid'])) \
+            .value(convert_hex_str_to_int(params.get('value', '0x0'))) \
+            .build()
+        data_type = params.get('dataType')
+        tmp_params = transaction.to_dict()
+        tmp_params.update(**(params.pop('data', {})))
+        params = tmp_params
+
+        if data_type is None:
+            pass
+        elif data_type == "call":
+            transaction_builder = CallTransactionBuilder.from_dict(params)
+            transaction = transaction_builder.build()
+        elif data_type == "deploy":
+            transaction_builder = DeployTransactionBuilder.from_dict(params)
+            transaction = transaction_builder.build()
+        elif data_type == "message":
+            transaction_builder = MessageTransactionBuilder.from_dict(params)
+            transaction = transaction_builder.build()
+        elif data_type == "deposit":
+            transaction_builder = DepositTransactionBuilder.from_dict(params)
+            transaction = transaction_builder.build()
+        else:
+            raise JsonContentsException("Invalid dataType")
+        return transaction
