@@ -542,7 +542,7 @@ class BlockManager(object):
         preps = [] if self._prep_manager.prep_list is None else self._prep_manager.prep_list
         preps = [prep['id'] for prep in preps]
         preps = [f'00{prep[2:]}'.encode() for prep in preps]
-        prev_preps = [] if self._prep_manager.prep_list is None else self._prep_manager.prev_preps
+        prev_preps = [] if self._prep_manager.prev_preps is None else self._prep_manager.prev_preps
         prev_preps = [prep['id'] for prep in prev_preps]
         prev_preps = [f'00{prep[2:]}'.encode() for prep in prev_preps]
 
