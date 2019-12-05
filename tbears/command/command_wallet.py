@@ -23,7 +23,7 @@ from iconcommons.logger.logger import Logger
 from iconsdk.builder.call_builder import CallBuilder
 from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder, DeployTransactionBuilder, \
     MessageTransactionBuilder, DepositTransactionBuilder
-from iconsdk.exception import KeyStoreException
+from iconsdk.exception import KeyStoreException, DataTypeException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
@@ -670,32 +670,41 @@ class CommandWallet:
 
     @staticmethod
     def get_transaction(conf: dict, params: dict):
-
-        transaction = TransactionBuilder() \
-            .from_(params['from']) \
-            .to(params['to']) \
-            .nid(convert_hex_str_to_int(conf['nid'])) \
-            .value(convert_hex_str_to_int(params.get('value', '0x0'))) \
-            .build()
         data_type = params.get('dataType')
-        tmp_params = transaction.to_dict()
-        tmp_params.update(**(params.pop('data', {})))
-        params = tmp_params
+        params_data = params.get('data', {})
 
-        if data_type is None:
-            pass
-        elif data_type == "call":
-            transaction_builder = CallTransactionBuilder.from_dict(params)
+        try:
+            transaction_params = {
+                "from_": params['from'],
+                "to": params['to'],
+                "nid": convert_hex_str_to_int(conf['nid']),
+                "value": params.get('value')
+            }
+
+            if data_type is None:
+                transaction_builder = TransactionBuilder(**transaction_params)
+            elif data_type == "call":
+                transaction_params['method'] = params_data.get('method')
+                transaction_params['params'] = params_data.get('params')
+                transaction_builder = CallTransactionBuilder(**transaction_params)
+            elif data_type == "deploy":
+                transaction_params['content'] = params_data.get('content')
+                transaction_params['content_type'] = params_data.get('contentType')
+                transaction_params['params'] = params_data.get('params')
+                transaction_builder = DeployTransactionBuilder(**params)
+            elif data_type == "message":
+                transaction_params['data'] = params_data
+                transaction_builder = MessageTransactionBuilder(**transaction_params)
+            elif data_type == "deposit":
+                transaction_params['action'] = params_data.get('action')
+                transaction_params['id'] = params_data.get('id')
+                transaction_builder = DepositTransactionBuilder(**transaction_params)
+            else:
+                raise JsonContentsException("Invalid dataType")
             transaction = transaction_builder.build()
-        elif data_type == "deploy":
-            transaction_builder = DeployTransactionBuilder.from_dict(params)
-            transaction = transaction_builder.build()
-        elif data_type == "message":
-            transaction_builder = MessageTransactionBuilder.from_dict(params)
-            transaction = transaction_builder.build()
-        elif data_type == "deposit":
-            transaction_builder = DepositTransactionBuilder.from_dict(params)
-            transaction = transaction_builder.build()
+        except TypeError as e:
+            raise JsonContentsException("Invalid json content. check keys")
+        except DataTypeException as e:
+            raise JsonContentsException("Invalid json content. check values")
         else:
-            raise JsonContentsException("Invalid dataType")
-        return transaction
+            return transaction
