@@ -678,7 +678,7 @@ class CommandWallet:
                 "from_": params['from'],
                 "to": params['to'],
                 "nid": convert_hex_str_to_int(conf['nid']),
-                "value": params.get('value')
+                "value": convert_hex_str_to_int(params.get('value', "0x0"))
             }
 
             if data_type is None:
@@ -702,9 +702,11 @@ class CommandWallet:
             else:
                 raise JsonContentsException("Invalid dataType")
             transaction = transaction_builder.build()
-        except TypeError as e:
+        except KeyError:
+            raise JsonContentsException("Invalid json content. check json contents")
+        except TypeError:
             raise JsonContentsException("Invalid json content. check keys")
-        except DataTypeException as e:
+        except DataTypeException:
             raise JsonContentsException("Invalid json content. check values")
         else:
             return transaction
