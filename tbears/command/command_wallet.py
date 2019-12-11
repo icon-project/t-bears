@@ -21,8 +21,9 @@ from time import time
 from iconcommons import IconConfig
 from iconcommons.logger.logger import Logger
 from iconsdk.builder.call_builder import CallBuilder
-from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder
-from iconsdk.exception import KeyStoreException
+from iconsdk.builder.transaction_builder import TransactionBuilder, CallTransactionBuilder, DeployTransactionBuilder, \
+    MessageTransactionBuilder, DepositTransactionBuilder
+from iconsdk.exception import KeyStoreException, DataTypeException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
@@ -33,7 +34,7 @@ from iconsdk.wallet.wallet import KeyWallet
 from iconservice.base.address import is_icon_address_valid
 
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, keystore_test1, TBEARS_CLI_TAG
-from tbears.tbears_exception import TBearsCommandException
+from tbears.tbears_exception import TBearsCommandException, JsonContentsException
 from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, hash_type, non_negative_num_type, loop
 from tbears.util.keystore_manager import validate_password
@@ -556,9 +557,10 @@ class CommandWallet:
         password = self._check_sendtx(conf, password)
         params = payload['params']
 
-        if password:
+        if password and conf.get('keyStore'):
             try:
                 wallet = KeyWallet.load(conf['keyStore'], password)
+                params['from'] = wallet.get_address()
 
             except KeyStoreException as e:
                 print(e.args[0])
@@ -570,14 +572,7 @@ class CommandWallet:
         uri, version = uri_parser(conf['uri'])
         icon_service = IconService(HTTPProvider(uri, version))
 
-        transaction = CallTransactionBuilder() \
-            .from_(params['from']) \
-            .to(params['to']) \
-            .nid(convert_hex_str_to_int(conf['nid'])) \
-            .method(payload['method']) \
-            .params(params) \
-            .build()
-
+        transaction = self.get_transaction(conf, params)
         if 'stepLimit' not in conf:
             step_limit = icon_service.estimate_step(transaction)
         else:
@@ -672,3 +667,46 @@ class CommandWallet:
             conf.update_conf(args)
 
         return conf
+
+    @staticmethod
+    def get_transaction(conf: dict, params: dict):
+        data_type = params.get('dataType')
+        params_data = params.get('data', {})
+
+        try:
+            transaction_params = {
+                "from_": params['from'],
+                "to": params['to'],
+                "nid": convert_hex_str_to_int(conf['nid']),
+                "value": convert_hex_str_to_int(params.get('value', "0x0"))
+            }
+
+            if data_type is None:
+                transaction_builder = TransactionBuilder(**transaction_params)
+            elif data_type == "call":
+                transaction_params['method'] = params_data.get('method')
+                transaction_params['params'] = params_data.get('params')
+                transaction_builder = CallTransactionBuilder(**transaction_params)
+            elif data_type == "deploy":
+                transaction_params['content'] = params_data.get('content')
+                transaction_params['content_type'] = params_data.get('contentType')
+                transaction_params['params'] = params_data.get('params')
+                transaction_builder = DeployTransactionBuilder(**params)
+            elif data_type == "message":
+                transaction_params['data'] = params_data
+                transaction_builder = MessageTransactionBuilder(**transaction_params)
+            elif data_type == "deposit":
+                transaction_params['action'] = params_data.get('action')
+                transaction_params['id'] = params_data.get('id')
+                transaction_builder = DepositTransactionBuilder(**transaction_params)
+            else:
+                raise JsonContentsException("Invalid dataType")
+            transaction = transaction_builder.build()
+        except KeyError:
+            raise JsonContentsException("Invalid json content. check json contents")
+        except TypeError:
+            raise JsonContentsException("Invalid json content. check keys")
+        except DataTypeException:
+            raise JsonContentsException("Invalid json content. check values")
+        else:
+            return transaction
