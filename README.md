@@ -107,12 +107,13 @@ $ source bin/activate
 
 ```bash
 # Install levelDB
-$ sudo apt-get install libleveldb1 libleveldb-dev
+$ sudo apt-get install libleveldb-dev
 # Install libSecp256k
 $ sudo apt-get install libsecp256k1-dev
 
 # install RabbitMQ and start service
 $ sudo apt-get install rabbitmq-server
+$ sudo service rabbitmq-server start
 
 # Create a working directory
 $ mkdir work
