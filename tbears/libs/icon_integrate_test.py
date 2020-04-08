@@ -23,6 +23,7 @@ from shutil import rmtree
 from time import time, sleep
 from typing import Any, Union, List
 from unittest import TestCase
+from unittest.mock import Mock
 
 from iconcommons import IconConfig
 from iconsdk.builder.call_builder import Call
@@ -30,50 +31,25 @@ from iconsdk.builder.transaction_builder import MessageTransactionBuilder, Trans
 from iconsdk.exception import IconServiceBaseException, URLException
 from iconsdk.icon_service import IconService
 from iconsdk.signed_transaction import SignedTransaction
+from iconsdk.utils.converter import convert
 from iconsdk.utils.convert_type import convert_hex_str_to_int, convert_hex_str_to_bytes
+from iconsdk.utils.templates import TRANSACTION_RESULT
 from iconsdk.wallet.wallet import KeyWallet
 from iconservice.base.address import Address
 from iconservice.base.block import Block
 from iconservice.base.type_converter import TypeConverter, ParamType
 from iconservice.icon_config import default_icon_config
-from iconservice.icon_constant import ConfigKey, DATA_BYTE_ORDER
+from iconservice.icon_constant import ConfigKey, DATA_BYTE_ORDER, IconScoreContextType, RCCalculateResult
 from iconservice.icon_inner_service import MakeResponse
+from iconservice.iconscore.icon_score_context import IconScoreContext
 from iconservice.icon_service_engine import IconServiceEngine
+from iconservice.iiss.reward_calc.ipc.reward_calc_proxy import RewardCalcProxy, CalculateDoneNotification
 from iconservice.utils import to_camel_case
 
 from tbears.config.tbears_config import TEST1_PRIVATE_KEY, tbears_server_config, ConfigKey as TbConf
 
 SCORE_INSTALL_ADDRESS = f"cx{'0' * 40}"
 Account = namedtuple('Account', 'name address balance')
-
-
-def convert_transaction_result(data: dict):
-    """
-    Convert transaction result data into the right format.
-    It supports data about a transaction made not only from JSON RPC V3 but also from V2.
-
-    1. Fields such as status, blockHeight, txIndex, stepUsed, stepPrice, cumulativeStepUsed have to be converted to an integer.
-    2. The field 'logsBloom' has to be converted to bytes.
-
-    :param data: data about the transaction result
-    """
-    # Only for the transaction made with JSON RPC V2 successfully does not have the property 'status'
-    if "status" not in data and "code" in data and data["code"] == 0:
-        data["status"] = 1
-        del data["code"]
-        return
-
-    # List of Fields which have to be converted to int
-    int_fields = ["status", "blockHeight", "txIndex", "stepUsed", "stepPrice", "cumulativeStepUsed"]
-
-    for int_field in int_fields:
-        if int_field in data:
-            data[int_field] = convert_hex_str_to_int(data[int_field])
-
-    if "logsBloom" in data:
-        data["logsBloom"] = convert_hex_str_to_bytes(data["logsBloom"])
-
-
 TEST_ACCOUNTS = [
     b'\x17}\x1c\xdc\x87\xab\xd8\xd5\x15\xc5c\xdfb)M\x0b\xac\xa6\x17B\xf6<\xda;\xf2\x02.,\xa2.\x07\x80',
     b'\x96V\xcbL \xbe\xf3>\xc7\xd1\xe8i\xbc+\xe9t\xb0\x98H\xa7_\x001n1\xfdT~\xb2\xe4\xa0\x05',
@@ -350,7 +326,9 @@ class IconIntegrateTestBase(TestCase):
         config.update_conf({ConfigKey.SCORE_ROOT_PATH: self._score_root_path,
                             ConfigKey.STATE_DB_ROOT_PATH: self._state_db_root_path})
         config.update_conf(self._make_init_config())
+
         self.icon_service_engine = IconServiceEngine()
+        self._mock_rc_proxy()
         self.icon_service_engine.open(config)
 
         self._genesis_invoke(genesis_accounts)
@@ -485,12 +463,12 @@ class IconIntegrateTestBase(TestCase):
         self._write_precommit_state(prev_block)
 
         txresults: dict = response["txResults"]
-        # convert TX result as sdk style
 
+        # convert TX result as sdk style
         for txresult in txresults:
             key: str = txresult["txHash"]
-            convert_transaction_result(txresult)
-            self._tx_results[key] = txresult
+            self._tx_results[key] = convert(txresult, TRANSACTION_RESULT, True)
+
         return tx_hash.hex()
 
     def _get_tx_result(self, tx_hash: str) -> dict:
@@ -696,3 +674,27 @@ class IconIntegrateTestBase(TestCase):
             tx_result = network.get_transaction_result(h)
             tx_results.append(tx_result)
         return tx_results
+
+    def mock_calculate(self, _path, _block_height):
+        context: 'IconScoreContext' = IconScoreContext(IconScoreContextType.QUERY)
+        end_block_height_of_calc: int = context.storage.iiss.get_end_block_height_of_calc(context)
+        calc_period: int = context.storage.iiss.get_calc_period(context)
+        response = CalculateDoneNotification(0, True, end_block_height_of_calc - calc_period, 0, b'mocked_response')
+        self._calculate_done_callback(response)
+
+    def _calculate_done_callback(self, _response: 'CalculateDoneNotification'):
+        pass
+
+    @classmethod
+    def _mock_rc_proxy(cls, mock_calculate: callable = mock_calculate):
+        RewardCalcProxy.open = Mock()
+        RewardCalcProxy.start = Mock()
+        RewardCalcProxy.stop = Mock()
+        RewardCalcProxy.close = Mock()
+        RewardCalcProxy.get_version = Mock()
+        RewardCalcProxy.calculate = mock_calculate
+        RewardCalcProxy.claim_iscore = Mock()
+        RewardCalcProxy.query_iscore = Mock()
+        RewardCalcProxy.commit_block = Mock()
+        RewardCalcProxy.commit_claim = Mock()
+        RewardCalcProxy.query_calculate_result = Mock(return_value=(RCCalculateResult.SUCCESS, 0, 0, bytes()))

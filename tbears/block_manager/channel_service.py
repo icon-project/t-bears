@@ -79,7 +79,7 @@ class ChannelInnerTask(object):
         'icx_getBlockByHash'
         :param block_height: block height
         :param block_hash: block hash
-        :return: message code, block hash, block information and filtered transaction list
+        :return: message code, block hash, confirm information and block data json string
         """
         Logger.debug(f'Get get_block message block_height: {block_height}, block_hash: {block_hash}', "block")
         block = self._block_manager._block
