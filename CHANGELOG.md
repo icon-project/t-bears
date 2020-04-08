@@ -1,5 +1,11 @@
 # ChangeLog - T-Bears
 
+## 1.6.0 - 2020-04-08
+* Support block version 0.3 and above (#59)
+* Apply iconsdk (#54)
+* Add 'keyinfo' command (#56)
+* Fix 'sendtx' command bug (#61)
+
 ## 1.5.0 - 2019-09-02
 * Support IISS
 
