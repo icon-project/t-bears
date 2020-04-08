@@ -43,7 +43,7 @@
     "amqpKey": "7100",
     "amqpTarget": "127.0.0.1",
     "blockConfirmInterval": 1,
-    "blockConfirmEmpty": true,
+    "blockConfirmEmpty": false,
     "blockGeneratorRotation": true,
     "blockGenerateCountPerLeader": 10
 }

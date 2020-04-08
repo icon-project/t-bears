@@ -15,9 +15,9 @@
 
 import os
 
-from tbears.tbears_exception import TBearsCommandException
 from tbears.command.command_wallet import CommandWallet
 from tbears.config.tbears_config import keystore_test1
+from tbears.tbears_exception import TBearsCommandException
 from tests.test_parsing_command import TestCommand
 from tests.test_util import TEST_UTIL_DIRECTORY
 
@@ -29,7 +29,7 @@ class TestWalletParsing(TestCommand):
         self.keystore_path = 'unit_test_keystore'
         self.keystore_password = 'qwer1234%'
 
-    #keystore
+    # keystore
     def test_keystore_args_parsing(self):
         # Parsing test
         cmd = f'keystore {self.keystore_path}'
@@ -71,7 +71,7 @@ class TestWalletParsing(TestCommand):
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(Exception, self.cmd.cmdWallet.keystore, vars(parsed), self.keystore_password)
 
-    #lastblock
+    # lastblock
     def test_lastblock_args_parsing(self):
         node_uri = 'http://localhost:9999/api/v3'
         config = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config.json')
@@ -94,7 +94,7 @@ class TestWalletParsing(TestCommand):
         cmd = f'lastblock -w wrongoption'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-    #blockbyhash
+    # blockbyhash
     def test_blockbyhash_args_parsing(self):
         block_hash = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
         node_uri = 'http://localhost:9999/api/v3'
@@ -113,11 +113,62 @@ class TestWalletParsing(TestCommand):
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
         # invalid argument
-        cmd = f'totalsupply -w wrongoption'
+        cmd = f'blockbyhash -w wrongoption'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-        # given invalid tx hash
+        # given invalid block hash
         cmd = f'blockbyhash {invalid_hash}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+    # block
+    def test_block_args_parsing(self):
+        block_hash = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
+        node_uri = 'http://localhost:9999/api/v3'
+        config = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config.json')
+        invalid_hash = '0x1'
+
+        cmd = f'block -u {node_uri} -c {config} -i {block_hash}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertEqual(parsed.command, 'block')
+        self.assertEqual(parsed.hash, block_hash)
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'block {block_hash}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # invalid argument
+        cmd = f'block -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid block hash
+        cmd = f'block -i {invalid_hash}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # query using height
+        height = 1
+        node_uri = 'http://localhost:9999/api/v3'
+        config = os.path.join(TEST_UTIL_DIRECTORY, 'test_tbears_cli_config.json')
+        invalid_height = '-0x1'
+
+        cmd = f'block -u {node_uri} -c {config} -n {height}'
+        parsed = self.parser.parse_args(cmd.split())
+        self.assertEqual(parsed.command, 'block')
+        self.assertEqual(parsed.number, hex(height))
+        self.assertEqual(parsed.uri, node_uri)
+        self.assertEqual(parsed.config, config)
+
+        # given more arguments.
+        cmd = f'block {block_hash}'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # invalid argument
+        cmd = f'block -w wrongoption'
+        self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
+
+        # given invalid block hash
+        cmd = f'block -n {invalid_height}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
     def test_validate_block_hash_data(self):
@@ -129,7 +180,7 @@ class TestWalletParsing(TestCommand):
         cmd = f"blockbyhash {invalid_length}"
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-    #blockbyheight
+    # blockbyheight
     def test_blockbyheight_args_parsing(self):
         block_height = '0x12'
         node_uri = 'http://localhost:9999/api/v3'
@@ -150,7 +201,7 @@ class TestWalletParsing(TestCommand):
         cmd = f'blockbyheight -w wrongoption'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-    #txresult
+    # txresult
     def test_txresult_args_parsing(self):
         tx_hash = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
         node_uri = 'http://localhost:9999/api/v3'
@@ -176,7 +227,7 @@ class TestWalletParsing(TestCommand):
         cmd = f'txresult Ox1234'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-    #transfer
+    # transfer
     def test_transfer_args_parsing(self):
         addr_hx = f"hx{'0'*40}"
         addr_cx = f"cx{'0'*40}"
@@ -247,9 +298,9 @@ class TestWalletParsing(TestCommand):
         parsed = self.parser.parse_args(cmd.split())
         self.assertRaises(TBearsCommandException, CommandWallet._check_transfer, vars(parsed))
 
-        #check transfer return password or None (if str)
+        # check transfer return password or None (if str)
 
-    #balance
+    # balance
     def test_balance_args_parsing(self):
         addr_hx = f"hx{'0'*40}"
         addr_cx = f"cx{'0'*40}"
@@ -288,7 +339,7 @@ class TestWalletParsing(TestCommand):
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
 
-    #totalsupply
+    # totalsupply
     def test_totalsupply_args_parsing(self):
         node_uri = 'http://localhost:9999/api/v3'
 
@@ -305,7 +356,7 @@ class TestWalletParsing(TestCommand):
         cmd = f'totalsupply -w wrongoption'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-    #soreapi
+    # scoreapi
     def test_scoreapi_args_parsing(self):
         addr_cx = f"cx{'0'*40}"
         addr_hx = f'hx{"0"*40}'
@@ -331,7 +382,7 @@ class TestWalletParsing(TestCommand):
         cmd = f'scoreapi {addr_cx} -w wrongoption'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-    #txbyhash
+    # txbyhash
     def test_txbyhash_args_parsing(self):
         tx_hash = '0x685cf62751cef607271ed7190b6a707405c5b07ec0830156e748c0c2ea4a2cfe'
         node_uri = 'http://localhost:9999/api/v3'
@@ -353,7 +404,7 @@ class TestWalletParsing(TestCommand):
         cmd = f'txbyhash {invalid_hash}'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-    #sendtx
+    # sendtx
     def test_sendtx_args_parsing(self):
         node_uri = 'http://localhost:9999/api/v3'
         json_path = os.path.join(TEST_UTIL_DIRECTORY, 'send.json')
@@ -375,7 +426,7 @@ class TestWalletParsing(TestCommand):
         cmd = f'sendtx json_path'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
 
-    #call
+    # call
     def test_call_args_parsing(self):
         node_uri = 'http://localhost:9999/api/v3'
         json_path = os.path.join(TEST_UTIL_DIRECTORY, 'call.json')

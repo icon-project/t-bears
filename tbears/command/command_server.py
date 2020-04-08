@@ -248,7 +248,7 @@ class CommandServer(object):
             print(f"{e}")
 
     @staticmethod
-    def get_server_conf(file_path: str= TBEARS_CLI_ENV) -> Optional[dict]:
+    def get_server_conf(file_path: str = TBEARS_CLI_ENV) -> Optional[dict]:
         try:
             with open(f'{file_path}') as f:
                 conf = json.load(f)

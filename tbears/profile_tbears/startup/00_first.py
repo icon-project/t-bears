@@ -20,7 +20,6 @@ from IPython.core import page
 from IPython.terminal.prompts import Prompts, Token
 
 from tbears.command.command import Command
-from tbears.libs.icon_jsonrpc import IconClient, IconJsonrpc
 
 ip = get_ipython()
 
@@ -116,6 +115,10 @@ class TbearsCommands(Magics):
     @line_magic
     def lastblock(self, line):
         return self.run_command(f"lastblock {line}")
+
+    @line_magic
+    def block(self, line):
+        return self.run_command(f"block {line}")
 
     @line_magic
     def blockbyhash(self, line):

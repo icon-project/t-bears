@@ -19,6 +19,7 @@ import shutil
 from tbears.command.command_util import CommandUtil
 from tbears.config.tbears_config import FN_CLI_CONF, FN_SERVER_CONF
 from tbears.tbears_exception import TBearsCommandException
+
 from tests.test_parsing_command import TestCommand
 
 

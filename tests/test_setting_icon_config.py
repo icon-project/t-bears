@@ -257,6 +257,8 @@ class TestCliTestUtil(unittest.TestCase):
         n = ['-n 0x3', '']
         s = ['-s 0xf4240', '']
         c = [f'-c {os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json")}']
+        i = [f'-i 0x{"0"*64}']
+        number = ['-n 1']
 
         # lastblock
         test_lastblock_opts_c_x_i_x = {
@@ -303,6 +305,51 @@ class TestCliTestUtil(unittest.TestCase):
                           test_lastblock_opts_c_x_i_o,
                           test_lastblock_opts_c_o_i_o]
         self.config_setting_test_module_wrapper(lastblock_test)
+
+        # block
+        test_block_opts_c_x_i_x = {
+            'config_type': 'cli',
+            'command': 'block',
+            'positional_files': [],
+            'positional_args': [""],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: X'
+        }
+        test_block_opts_c_o_i_x = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'block',
+            'positional_files': [],
+            'positional_args': [""],
+            'optional_args': [c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: X'
+        }
+        test_block_opts_c_x_i_o = {
+            'config_type': 'cli',
+            'command': 'block',
+            'positional_files': [],
+            'positional_args': [""],
+            'optional_args': [u, i],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: X , user input: O'
+        }
+        test_block_opts_c_o_i_o = {
+            'config_type': 'cli',
+            'user_path': os.path.join(IN_ICON_CONFIG_TEST_DIRECTORY, "test_tbears_cli_config.json"),
+            'command': 'block',
+            'positional_files': [],
+            'positional_args': [""],
+            'optional_args': [u, c],
+            'get_config_func': CommandWallet.get_icon_conf,
+            'description': 'config: O , user input: O'
+        }
+
+        block_test = [test_block_opts_c_x_i_x,
+                            test_block_opts_c_o_i_x,
+                            test_block_opts_c_x_i_o,
+                            test_block_opts_c_o_i_o]
+        self.config_setting_test_module_wrapper(block_test)
 
         # blockbyhash
         test_blockbyhash_opts_c_x_i_x = {
@@ -802,4 +849,5 @@ class TestCliTestUtil(unittest.TestCase):
                       test_start_opts_c_o_i_x,
                       test_start_opts_c_x_i_o,
                       test_start_opts_c_o_i_o]
+
         self.config_setting_test_module_wrapper(start_test)

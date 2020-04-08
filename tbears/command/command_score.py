@@ -22,13 +22,24 @@ import unittest
 
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
+
+from iconsdk.builder.transaction_builder import DeployTransactionBuilder
+from iconsdk.exception import KeyStoreException
+from iconsdk.icon_service import IconService
+from iconsdk.libs.in_memory_zip import gen_deploy_data_content
+from iconsdk.providers.http_provider import HTTPProvider
+from iconsdk.signed_transaction import SignedTransaction
+from iconsdk.utils.convert_type import convert_hex_str_to_int
+from iconsdk.wallet.wallet import KeyWallet
+
 from iconservice.base.address import is_icon_address_valid
 
 from tbears.command.command_server import CommandServer
 from tbears.config.tbears_config import FN_CLI_CONF, tbears_cli_config, TBEARS_CLI_TAG
-from tbears.libs.icon_jsonrpc import IconJsonrpc, IconClient, get_enough_step
 from tbears.tbears_exception import TBearsDeleteTreeException, TBearsCommandException
+from tbears.util.arg_parser import uri_parser
 from tbears.util.argparse_type import IconAddress, IconPath, non_negative_num_type
+from tbears.util.transaction_logger import send_transaction_with_logger
 
 
 class CommandScore(object):
@@ -82,7 +93,6 @@ class CommandScore(object):
 
     def deploy(self, conf: dict) -> dict:
         """Deploy SCORE on the server.
-
         :param conf: deploy command configuration
         """
         # check keystore, and get password from user's terminal input
@@ -94,37 +104,48 @@ class CommandScore(object):
         else:
             score_address = conf['to']
 
-        content_type = "application/zip"
-        # make zip and convert to hexadecimal string data (start with 0x) and return
-        content = IconJsonrpc.gen_deploy_data_content(conf['project'])
+        uri, version = uri_parser(conf['uri'])
+        icon_service = IconService(HTTPProvider(uri, version))
 
-        # make IconJsonrpc instance which is used for making request (with signature)
-        if conf['keyStore']:
-            deploy = IconJsonrpc.from_key_store(keystore=conf['keyStore'], password=password)
+        if password:
+            try:
+                wallet = KeyWallet.load(conf['keyStore'], password)
+                from_ = wallet.get_address()
+
+            except KeyStoreException as e:
+                print(e.args[0])
+                return None
         else:
-            deploy = IconJsonrpc.from_string(from_=conf['from'])
+            # make dummy wallet
+            wallet = KeyWallet.create()
+            from_ = conf['from']
 
-        uri = conf['uri']
-        step_limit = conf.get('stepLimit', None)
+        # make zip and convert to hexadecimal string data (start with 0x) and return
+        content = gen_deploy_data_content(conf['project'])
 
-        # make JSON-RPC 2.0 request standard format
-        request = deploy.sendTransaction(to=score_address,
-                                         nid=conf['nid'],
-                                         step_limit=step_limit,
-                                         data_type="deploy",
-                                         data=IconJsonrpc.gen_deploy_data(
-                                             params=conf.get('scoreParams', {}),
-                                             content_type=content_type,
-                                             content=content))
+        deploy_transaction = DeployTransactionBuilder() \
+            .from_(from_) \
+            .to(score_address) \
+            .nid(convert_hex_str_to_int(conf['nid'])) \
+            .content_type("application/zip") \
+            .content(content) \
+            .build()
 
-        if step_limit is None:
-            step_limit = get_enough_step(request, uri)
-            request['params']['stepLimit'] = hex(step_limit)
-            deploy.put_signature(request['params'])
+        if 'stepLimit' not in conf:
+            step_limit = icon_service.estimate_step(deploy_transaction) + 10000
+        else:
+            step_limit = convert_hex_str_to_int(conf['stepLimit'])
 
-        # send request to the rpc server
-        icon_client = IconClient(uri)
-        response = icon_client.send(request)
+        deploy_transaction.step_limit = step_limit
+
+        # Returns the signed transaction object having a signature
+        signed_transaction = SignedTransaction(deploy_transaction, wallet)
+
+        if not password:
+            signed_transaction.signed_transaction_dict['signature'] = 'sig'
+
+        # Sends transaction and return response
+        response = send_transaction_with_logger(icon_service, signed_transaction, uri)
 
         if 'error' in response:
             print('Got an error response')
@@ -282,3 +303,4 @@ def check_project(project_path: str) -> int:
                 raise TBearsCommandException(f"There is no '{project_path}/{main_file}'")
 
     return 0
+

@@ -43,8 +43,3 @@ class TestCommand(unittest.TestCase):
                 shutil.rmtree(path)
             else:
                 continue
-
-
-
-
-

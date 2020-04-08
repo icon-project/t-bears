@@ -56,9 +56,9 @@ class IconAddress(str):
 
 
 def hash_type(string: str) -> str:
-    # check hash's length, prefix, lowcase.
+    # check hash's length, prefix, lowercase.
     if not is_valid_hash(string):
-        raise ArgumentTypeError(f"Invalid transaction hash '{string}'")
+        raise ArgumentTypeError(f"Invalid hash '{string}'")
 
     return string
 

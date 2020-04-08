@@ -5,7 +5,7 @@ RUN apk add --no-cache git make
 ADD https://api.github.com/repos/icon-project/rewardcalculator/git/refs/heads/master version.json
 RUN git clone https://github.com/icon-project/rewardcalculator.git /rewardcalculator
 
-RUN cd /rewardcalculator && make linux
+RUN cd /rewardcalculator && make
 
 # Build T-Bears
 FROM python:3.7.3-slim-stretch
@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /work
-COPY --from=builder /rewardcalculator/linux/icon_rc /usr/local/bin/
-COPY --from=builder /rewardcalculator/linux/rctool /usr/local/bin/
+COPY --from=builder /rewardcalculator/bin/icon_rc /usr/local/bin/
+COPY --from=builder /rewardcalculator/bin/rctool /usr/local/bin/
 COPY entry.sh /usr/local/bin
 COPY tbears_server_config.json .
 ADD genesis genesis

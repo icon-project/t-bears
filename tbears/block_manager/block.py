@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import Union, Optional
+from typing import Optional
 
 from iconcommons.logger import Logger
 from iconservice.base.address import Address
@@ -183,35 +183,12 @@ class Block(object):
 
                 self.db.write_batch(write_batch=wb, key=key, value=value)
 
-    def save_block(self, block_hash: str, tx: Union[list, dict], timestamp: int):
+    def save_block(self, block: dict):
         """
         Save block to DB
-        :param block_hash: block hash
-        :param tx: transactions
-        :param timestamp: block confirm timestamp
-        :return:
         """
-        is_genesis = isinstance(tx, dict)
-        tx_list = []
-        if is_genesis:
-            tx_list.append(tx)
-        else:
-            tx_list = tx
-
-        block_height = self.block_height + 1
-
-        block = {
-            "version": "tbears",
-            "prev_block_hash": self.prev_block_hash if not is_genesis else "",
-            "merkle_tree_root_hash": "tbears_block_manager_does_not_support_block_merkle_tree",
-            "time_stamp": timestamp,
-            "confirmed_transaction_list": tx_list,
-            "block_hash": block_hash,
-            "height": block_height,
-            "peer_id": self.peer_id if not is_genesis else "",
-            "signature": "tbears_block_manager_does_not_support_block_signature" if not is_genesis else ""
-        }
-
+        block_hash = block['hash']
+        block_height = block['height']
         # save block
         self.db.put(DbPrefix.BLOCK + bytes.fromhex(block_hash), json.dumps(block).encode())
 

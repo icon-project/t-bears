@@ -18,6 +18,7 @@ import shutil
 
 from tbears.command.command_score import CommandScore, check_project
 from tbears.tbears_exception import TBearsCommandException
+
 from tests.test_parsing_command import TestCommand
 from tests.test_util import TEST_UTIL_DIRECTORY
 
@@ -185,5 +186,3 @@ class TestCommandScore(TestCommand):
         # Too many arguments
         cmd = f'clear arg1 arg2'
         self.assertRaises(SystemExit, self.parser.parse_args, cmd.split())
-
-

@@ -13,19 +13,22 @@
 # limitations under the License.
 
 import argparse
-import setproctitle
 import sys
 import time
 from asyncio import get_event_loop
 from copy import deepcopy
+from typing import Union
 
+import setproctitle
 from earlgrey import MessageQueueService
 from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 from iconservice.icon_constant import DATA_BYTE_ORDER, DEFAULT_BYTE_SIZE
+from iconservice.utils.bloom import BloomFilter
 
 from tbears.block_manager.block import Block
 from tbears.block_manager.channel_service import ChannelService, ChannelTxCreatorService
+from tbears.block_manager.hash_utils import generate_hash
 from tbears.block_manager.icon_service import IconStub
 from tbears.block_manager.task import Periodic, Immediate
 from tbears.config.tbears_config import ConfigKey, tbears_server_config, keystore_test1
@@ -44,6 +47,10 @@ class PRepManager(object):
         self._is_generator_rotation: bool = is_generator_rotation
         self._gen_count_per_leader: int = gen_count_per_leader
         self._gen_count: int = 0
+        self._generator: str = keystore_test1['address']
+        self._prev_generator: str = keystore_test1['address']
+        self._prev_votes: list = []
+        self.prev_preps: list = deepcopy(prep_list)
 
     def register_preps(self, data: dict):
         if data is None:
@@ -69,7 +76,7 @@ class PRepManager(object):
         return prev_block_contributors_format
 
     def get_prev_block_contributors_info(self) -> dict:
-        if self._prep_list is None or len(self._prep_list) == 0:
+        if self.prep_list is None or len(self.prep_list) == 0:
             # set generator with test1 and validators with empty list
             prev_block_contributors_format = self._create_prev_block_contributors_format(keystore_test1['address'])
             return prev_block_contributors_format
@@ -77,14 +84,48 @@ class PRepManager(object):
         prev_block_contributors_format = self._create_prev_block_contributors_format(self._prep_list[0].get('id'),
                                                                                      self._prep_list[1:])
         # rotate leader after generate block 10 times
+        self._prev_generator = self._generator
         if self._is_generator_rotation:
             self._gen_count += 1
             if self._gen_count == self._gen_count_per_leader:
                 self._gen_count = 0
                 self._prep_list.append(self._prep_list.pop(0))
-                Logger.debug(f"generator rotated. generator: {self._prep_list[0]}", TBEARS_BLOCK_MANAGER)
+                self._generator = self._prep_list[0]['id']
+                Logger.debug(f"generator rotated. generator: {self._generator}", TBEARS_BLOCK_MANAGER)
 
         return prev_block_contributors_format
+
+    @property
+    def prev_generator(self):
+        return self._prev_generator
+
+    @property
+    def generator(self):
+        return self._generator
+
+    @property
+    def prep_list(self):
+        return self._prep_list
+
+    def set_prev_votes(self, block_height: int, block_hash: str, timestamp: int):
+        if self.prep_list:
+            for index, prep in enumerate(self.prep_list):
+                if index == 0:
+                    self._prev_votes.append(None)
+                else:
+                    self._prev_votes.append({
+                        "rep": prep.get("id"),
+                        "timestamp": timestamp,
+                        "blockHeight": block_height,
+                        "blockHash": block_hash,
+                        "signature": "tbears_block_manager_does_not_support_prev_vote_signature"
+                    })
+        else:
+            self._prev_votes = []
+
+    @property
+    def prev_votes(self):
+        return self._prev_votes
 
 
 class BlockManager(object):
@@ -256,7 +297,8 @@ class BlockManager(object):
         self.block.save_txresult(tx_hash, tx_result)
 
         # save block
-        self.block.save_block(block_hash=block_hash, tx=self._conf['genesis'], timestamp=block_timestamp_us)
+        block = self._make_block_data(block_hash, self._conf['genesis'], block_timestamp_us, response)
+        self.block.save_block(block)
 
         # update block information
         self.block.commit_block(prev_block_hash=block_hash)
@@ -360,6 +402,9 @@ class BlockManager(object):
         block_hash = create_hash(block_timestamp_us.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
 
         # send invoke message to ICON
+        prev_block_timestamp = block_timestamp_us - self._conf.get(ConfigKey.BLOCK_CONFIRM_INTERVAL, 0)
+        self._prep_manager.set_prev_votes(self.block.block_height, self.block.prev_block_hash,
+                                          prev_block_timestamp)
         response = await self._invoke_block(tx_list=tx_list, block_hash=block_hash, block_timestamp=block_timestamp_us)
         if response is None:
             Logger.debug(f'iconservice response None for invoke request.', TBEARS_BLOCK_MANAGER)
@@ -463,7 +508,9 @@ class BlockManager(object):
         self.block.save_transactions(tx_list=tx_list, block_hash=new_block_hash)
 
         # save block
-        self.block.save_block(block_hash=new_block_hash, tx=tx_list, timestamp=timestamp)
+        block_data = self._make_block_data(new_block_hash, tx_list, timestamp, invoke_response)
+        self.block.save_block(block_data)
+        self._prep_manager.prev_preps = self._prep_manager.prep_list
 
         # update block information
         self.block.commit_block(prev_block_hash=new_block_hash)
@@ -477,6 +524,56 @@ class BlockManager(object):
 
         Logger.debug(f'confirm block done.', TBEARS_BLOCK_MANAGER)
 
+    def _make_block_data(self, block_hash: str, tx: Union[list, dict], timestamp: int, invoke_response: dict):
+        is_genesis = isinstance(tx, dict)
+        tx_list = []
+        tx_results = invoke_response['txResults']
+        logs_bloom = BloomFilter()
+        if is_genesis:
+            tx_list.append(tx)
+            tx_results = list(tx_results.values())
+        else:
+            tx_list = tx
+            for tx_result in tx_results:
+                logs_bloom = logs_bloom + int(tx_result['logsBloom'], 16)
+
+        block_height = self.block.block_height + 1
+
+        preps = [] if self._prep_manager.prep_list is None else self._prep_manager.prep_list
+        preps = [prep['id'] for prep in preps]
+        preps = [f'00{prep[2:]}'.encode() for prep in preps]
+        prev_preps = [] if self._prep_manager.prev_preps is None else self._prep_manager.prev_preps
+        prev_preps = [prep['id'] for prep in prev_preps]
+        prev_preps = [f'00{prep[2:]}'.encode() for prep in prev_preps]
+
+        transactions_hash = generate_hash(tx_list)
+        receipts_hash = generate_hash(tx_results)
+        pre_votes_hash = generate_hash(self._prep_manager.prev_votes, "icx_vote")
+        reps_hash = generate_hash(prev_preps)
+        next_reps_hash = generate_hash(preps)
+        block = {
+            "version": "tbears",
+            "prevHash": self.block.prev_block_hash if not is_genesis else "",
+            "transactionsHash": transactions_hash,
+            "stateHash": invoke_response['stateRootHash'],
+            "receiptsHash": receipts_hash,
+            "repsHash": reps_hash,
+            "nextRepsHash": next_reps_hash,
+            "leaderVotesHash": '0'*64,
+            "prevVotesHash": pre_votes_hash,
+            "logsBloom": hex(logs_bloom.value),
+            "timestamp": timestamp,
+            "transactions": tx_list,
+            "leaderVotes": [],
+            "prevVotes": self._prep_manager.prev_votes,
+            "hash": block_hash,
+            "height": block_height,
+            "leader": self._prep_manager.prev_generator,
+            "signature": "tbears_block_manager_does_not_support_block_signature" if not is_genesis else "",
+            "nextLeader": self._prep_manager.generator
+        }
+        return block
+
 
 def create_parser():
     """
@@ -488,7 +585,8 @@ def create_parser():
     parser.add_argument('-ch', dest=ConfigKey.CHANNEL, help='Message Queue channel')
     parser.add_argument('-at', dest=ConfigKey.AMQP_TARGET, help='AMQP target info')
     parser.add_argument('-ak', dest=ConfigKey.AMQP_KEY,
-                        help="Key sharing peer group using queue name. Use it if more than one peer connect to a single MQ")
+                        help="Key sharing peer group using queue name. \
+                        Use it if more than one peer connect to a single MQ")
     parser.add_argument('-bi', '--block-confirm-interval', dest=ConfigKey.BLOCK_CONFIRM_INTERVAL, type=int,
                         help='Block confirm interval in second')
     parser.add_argument('-be', '--block-confirm-empty', dest=ConfigKey.BLOCK_CONFIRM_EMPTY, type=bool,
