@@ -197,6 +197,7 @@ class CommandWallet:
                                                    'request as it is in the json file.')
         parser.add_argument('json_file', type=IconPath(), help='File path containing icx_sendTransaction content')
         parser.add_argument('-u', '--node-uri', dest='uri', help='URI of node (default: http://127.0.0.1:9000/api/v3)')
+        parser.add_argument('-n', '--nid', help='Network ID (default: 0x3)')
         parser.add_argument('-k', '--key-store', dest='keyStore', type=IconPath(),
                             help='Keystore file path. Used to generate "from" address and transaction signature')
         parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
