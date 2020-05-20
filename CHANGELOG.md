@@ -1,5 +1,8 @@
 # ChangeLog - T-Bears
 
+## 1.6.1 - 2020-05-30
+* Add --nid option to 'sendtx' command (#66)
+
 ## 1.6.0 - 2020-04-08
 * Support block version 0.3 and above (#59)
 * Apply iconsdk (#54)
