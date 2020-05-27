@@ -22,6 +22,7 @@ from iconservice.base.message import Message
 from iconservice.base.transaction import Transaction
 from iconservice.icon_constant import IconScoreContextType, IconScoreFuncType
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
+from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
 from iconservice.iconscore.internal_call import InternalCall
 
 from ..mock.block import Block
@@ -60,6 +61,7 @@ def internal_transfer(self: 'InternalCall', _from: 'Address', _to: 'Address', am
 
 InternalCall.get_icx_balance = internal_get_balance
 InternalCall.icx_transfer_call = internal_transfer
+IconScoreContextUtil.get_owner = lambda context, score_address: context.msg.sender
 
 
 def get_default_context():
