@@ -280,7 +280,8 @@ class BlockManager(object):
         tx_results = response['txResults']
 
         precommit_request = {'blockHeight': hex(block_height),
-                             'blockHash': block_hash}
+                             'oldBlockHash': block_hash,
+                             'newBlockHash': block_hash}
         await self._icon_stub.async_task().write_precommit_state(precommit_request)
 
         tx_result = tx_results[tx_hash]
