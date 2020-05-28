@@ -536,7 +536,8 @@ class BlockManager(object):
         else:
             tx_list = tx
             for tx_result in tx_results:
-                logs_bloom = logs_bloom + int(tx_result['logsBloom'], 16)
+                if "logsBloom" in tx_result.keys():
+                    logs_bloom = logs_bloom + int(tx_result['logsBloom'], 16)
 
         block_height = self.block.block_height + 1
 
