@@ -1,6 +1,15 @@
 # ChangeLog - T-Bears
 
-## 1.6.1 - 2020-05-30
+## 1.6.2 - 2020-05-29
+* Fix SCORE unittest framework (#68)
+    * owner property bug
+    * patch deprecated SCORE methods to warning
+* Fix minor bugs
+    * error code for get_tx_info message with invalid TX hash
+    * prevVotes list management
+    * write_precommit_state message parameter
+
+## 1.6.1 - 2020-05-20
 * Add --nid option to 'sendtx' command (#66)
 
 ## 1.6.0 - 2020-04-08
