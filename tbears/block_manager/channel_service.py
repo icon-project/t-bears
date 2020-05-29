@@ -67,7 +67,7 @@ class ChannelInnerTask(object):
 
         tx_data_json = block.get_transaction(tx_hash=tx_hash)
         if tx_data_json is None:
-            return message_code.Response.fail_tx_invalid_hash_not_match, {}
+            return message_code.Response.fail_invalid_key_error, None
 
         return message_code.Response.success, tx_data_json
 

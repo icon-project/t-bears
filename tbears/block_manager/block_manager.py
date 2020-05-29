@@ -108,6 +108,7 @@ class PRepManager(object):
         return self._prep_list
 
     def set_prev_votes(self, block_height: int, block_hash: str, timestamp: int):
+        self._prev_votes.clear()
         if self.prep_list:
             for index, prep in enumerate(self.prep_list):
                 if index == 0:
@@ -120,8 +121,6 @@ class PRepManager(object):
                         "blockHash": block_hash,
                         "signature": "tbears_block_manager_does_not_support_prev_vote_signature"
                     })
-        else:
-            self._prev_votes = []
 
     @property
     def prev_votes(self):

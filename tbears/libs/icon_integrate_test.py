@@ -488,7 +488,7 @@ class IconIntegrateTestBase(TestCase):
         if network is not None:
             # Send the transaction to network
             tx_hash: str = network.send_transaction(request)
-            sleep(block_confirm_interval)
+            sleep(block_confirm_interval + 0.1)
             # Get transaction result
             tx_result: dict = network.get_transaction_result(tx_hash)
         else:
