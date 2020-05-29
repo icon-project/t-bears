@@ -15,6 +15,7 @@
 # limitations under the License.
 from typing import TypeVar, Type, Optional
 from unittest import TestCase
+from unittest.mock import Mock
 
 from iconservice import IconScoreBase
 from iconservice.base.address import Address
@@ -51,7 +52,7 @@ class ScoreTestCase(TestCase):
         ScorePatcher.stop_patches()
 
     @staticmethod
-    def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict={}) -> T:
+    def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict = {}) -> T:
         """Get an instance of the SCORE class passed as an score_class arguments
 
         :param score_class: SCORE class to instantiate
@@ -62,12 +63,13 @@ class ScoreTestCase(TestCase):
         validate_score(score_class)
         score_db = ScorePatcher.get_score_db()
         score = ScorePatcher.initialize_score(score_class, score_db, owner)
+        setattr(score, "call", Mock())
         score.on_install(**on_install_params)
         ScoreTestCase.set_msg(None, None)
         return score
 
     @staticmethod
-    def update_score(prev_score_address: 'Address', score_class: Type[T], on_update_params: dict={})->T:
+    def update_score(prev_score_address: 'Address', score_class: Type[T], on_update_params: dict = {}) -> T:
         """Update SCORE at 'prev_score_address' with 'score_class' instance and get updated SCORE
 
         :param prev_score_address: address of SCORE to update
@@ -84,7 +86,7 @@ class ScoreTestCase(TestCase):
         return score
 
     @staticmethod
-    def set_msg(sender: Optional['Address']=None, value: int=0):
+    def set_msg(sender: Optional['Address'] = None, value: int = 0):
         """Set msg property used inside SCORE
 
         :param sender: sender attribute of msg
@@ -93,8 +95,8 @@ class ScoreTestCase(TestCase):
         Context.set_msg(sender, value)
 
     @staticmethod
-    def set_tx(origin: Optional['Address']=None, timestamp: Optional[int]=None, _hash: bytes=None,
-               index: int=0, nonce: int=0):
+    def set_tx(origin: Optional['Address'] = None, timestamp: Optional[int] = None, _hash: bytes = None,
+               index: int = 0, nonce: int = 0):
         """Set tx property used inside SCORE
 
         :param origin: origin attribute of tx
@@ -106,7 +108,7 @@ class ScoreTestCase(TestCase):
         Context.set_tx(origin, timestamp, _hash, index, nonce)
 
     @staticmethod
-    def set_block(height: int=0, timestamp: Optional[int]=None):
+    def set_block(height: int = 0, timestamp: Optional[int] = None):
         """Sets block property used inside SCORE
 
         :param height: height attribute of block
@@ -135,6 +137,15 @@ class ScoreTestCase(TestCase):
         """
         ScorePatcher.register_interface_score(internal_score_address)
         ScorePatcher.patch_internal_method(internal_score_address, method, new_method)
+
+    @staticmethod
+    def patch_call(score_instance, new_method=lambda: None):
+        """Patch IconScoreBase.call method. This method must be called if score.call querying other SCORE's method
+
+        :param score_instance: score instance to patch
+        :param new_method: method to patch
+        """
+        setattr(score_instance, "call", Mock(side_effect=new_method))
 
     @staticmethod
     def assert_internal_call(internal_score_address, method, *params):

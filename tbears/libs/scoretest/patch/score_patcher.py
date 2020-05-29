@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import warnings
 from functools import wraps
 from inspect import getmembers, isfunction
 from typing import Optional
@@ -24,7 +25,6 @@ from iconservice.base.address import Address, AddressPrefix
 from iconservice.base.exception import InvalidPayableException, InvalidInterfaceException, InvalidRequestException
 from iconservice.database.db import IconScoreDatabase
 from iconservice.icon_constant import IconScoreFuncType, IconScoreContextType
-from iconservice.iconscore.icon_score_base import IconScoreBase
 from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFlag, FORMAT_IS_NOT_DERIVED_OF_OBJECT
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
 
@@ -36,8 +36,12 @@ context_db = None
 CONTEXT_PATCHER = patch('iconservice.iconscore.icon_score_context.ContextGetter._context')
 
 
-def create_address(prefix: AddressPrefix=AddressPrefix.EOA) -> 'Address':
+def create_address(prefix: AddressPrefix = AddressPrefix.EOA) -> 'Address':
     return Address.from_bytes(prefix.to_bytes(1, 'big') + os.urandom(20))
+
+
+def deprecated_method(param):
+    warnings.warn("forbidden method", DeprecationWarning, stacklevel=2)
 
 
 def patch_score_method(method):
@@ -96,7 +100,7 @@ def new_create_interface_score(score_address, interface_score):
 class ScorePatcher:
 
     @staticmethod
-    def get_score_db(score_address: Optional['Address']=None):
+    def get_score_db(score_address: Optional['Address'] = None):
         """Get db of SCORE that having score_address.
         create cx prefixed address and set it as SCORE's address if score_address is None
 
@@ -118,16 +122,14 @@ class ScorePatcher:
         :param owner: owner of SCORE
         :return: Instantiated SCORE
         """
-        original_get_owner = IconScoreBase.get_owner
-        IconScoreBase.get_owner = Mock(return_value=owner)
-        score = score_class(score_db)
-        IconScoreBase.get_owner = original_get_owner
         context = Context.get_context()
         ScorePatcher._set_mock_context(context)
         Context.set_msg(owner, 0)
+        score = score_class(score_db)
         ScorePatcher.patch_score_methods(score)
         ScorePatcher.patch_score_event_logs(score)
         ScorePatcher.patch_interface_scores(score)
+        ScorePatcher.patch_deprecated_methods(score)
         score_mapper[score.address] = score
         return score
 
@@ -219,6 +221,14 @@ class ScorePatcher:
         for method in custom_methods:
             if getattr(method, CONST_BIT_FLAG, 0) == ConstBitFlag.EventLog:
                 setattr(score, method.__name__, Mock())
+
+    @staticmethod
+    def patch_deprecated_methods(score):
+        setattr(score, "get_owner", Mock(side_effect=deprecated_method))
+        setattr(score, "is_score_active", Mock(side_effect=deprecated_method))
+        setattr(score, "get_score_address_by_tx_hash", Mock(side_effect=deprecated_method))
+        setattr(score, "get_tx_hashes_by_score_address", Mock(side_effect=deprecated_method))
+        setattr(score, "deploy", Mock(side_effect=deprecated_method))
 
     @staticmethod
     def start_patches():

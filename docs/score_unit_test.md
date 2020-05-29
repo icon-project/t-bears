@@ -118,6 +118,11 @@ So, if you want to override setUp or tearDown, you should call `super()` top of 
       - **method** : method to check
       - **params** : params to check
     - Refer `test_internal` method in [example](#simple_score2/tests/test_unit_simple_score2.py)
+  - patch_call(score_instance, new_method)
+    - You can use this method to patch IconScoreBase.call method. you will need this method when you assert return value of `score.call` method(calling internal query method).
+    - **parameters**
+        - **score_instance** : score instance to patch
+        - **new_method** : method to patch.
 
 - Utils 
     - transfer(_from, to, amount)<br>
@@ -196,7 +201,7 @@ class SimpleScoreInterface(InterfaceScore):
     def setValue(self, value): pass
 
     @interface
-    def getValue(self)->str: pass
+    def getValue(self) -> str: pass
 
 
 class SimpleScore2(IconScoreBase):
@@ -219,7 +224,7 @@ class SimpleScore2(IconScoreBase):
     def on_update(self, value: str) -> None:
         super().on_update()
         self.value.set(value)
-    
+
     @external(readonly=True)
     def getValue(self) -> str:
         return self.value.get()
@@ -238,31 +243,38 @@ class SimpleScore2(IconScoreBase):
         self.SetSCOREValue(value)
 
     @external(readonly=True)
-    def getSCOREValue(self) ->str:
+    def getSCOREValue(self) -> str:
         score = self.create_interface_score(self.score_address.get(), SimpleScoreInterface)
 
         return score.getValue()
 
     @external(readonly=True)
-    def write_on_readonly(self) ->str:
+    def getSCOREValue2(self) -> str:
+        ret = self.call(self.score_address.get(), "getValue", {})
+
+        return ret
+
+    @external(readonly=True)
+    def write_on_readonly(self) -> str:
         self.value.set('3')
         return 'd'
-        
+
     # This method is for understanding the ScoreTestCase.set_msg method.
     def t_msg(self):
-        assert self.msg.sender == Address.from_string(f"hx{'1234'*10}")
+        assert self.msg.sender == Address.from_string(f"hx{'1234' * 10}")
         assert self.msg.value == 3
-    
+
     # This method is for understanding the ScoreTestCase.set_tx method.
     def t_tx(self):
-        assert self.tx.origin == Address.from_string(f"hx{'1234'*10}")
-    
+        assert self.tx.origin == Address.from_string(f"hx{'1234' * 10}")
+
     # This method is for understanding the ScoreTestCase.set_block method.
     def t_block(self):
         assert self.block.height == 3
         assert self.block.timestamp == 30
-        assert self.block_height ==3
+        assert self.block_height == 3
         assert self.now() == 30
+
 
 ```
 
@@ -270,23 +282,23 @@ class SimpleScore2(IconScoreBase):
 ```python
 from iconservice import Address
 from iconservice.base.exception import DatabaseException
-from tbears.libs.scoretest.score_unit_test_base import ScoreTestCase
 
-from ..simple_score2 import SimpleScore2
+from tbears.libs.scoretest.score_test_case import ScoreTestCase
+from ..simpleScore2 import SimpleScore2
 
 
 class TestSimple(ScoreTestCase):
     def setUp(self):
         super().setUp()
-        self.mock_score_address = Address.from_string(f"cx{'1234'*10}")
+        self.mock_score_address = Address.from_string(f"cx{'1234' * 10}")
         self.score2 = self.get_score_instance(SimpleScore2, self.test_account1,
                                               on_install_params={'score_address': self.mock_score_address})
-                                              
-        self.test_account3 = Address.from_string(f"hx{'12345'*8}")
-        self.test_account4 = Address.from_string(f"hx{'1234'*10}")
+
+        self.test_account3 = Address.from_string(f"hx{'12345' * 8}")
+        self.test_account4 = Address.from_string(f"hx{'1234' * 10}")
         account_info = {
-                        self.test_account3: 10 ** 21,
-                        self.test_account4: 10 ** 21}
+            self.test_account3: 10 ** 21,
+            self.test_account4: 10 ** 21}
         self.initialize_accounts(account_info)
 
     def test_set_value(self):
@@ -294,7 +306,7 @@ class TestSimple(ScoreTestCase):
         self.score2.setValue(str_value)
         # assert event log called with specified arguments
         self.score2.SetValue.assert_called_with(str_value)
-        
+
         self.assertEqual(self.score2.getValue(), str_value)
 
     def test_get_value_and_set_value(self):
@@ -312,13 +324,16 @@ class TestSimple(ScoreTestCase):
 
     # internal call
     def test_internal_call(self):
-        self.patch_internal_method(self.mock_score_address, 'getValue', lambda: 150) # Patch the getValue function of SCORE at self.mock_score_address address with a function that takes no argument and returns 150
+        self.patch_internal_method(self.mock_score_address, 'getValue',
+                                   lambda: 150)  # Patch the getValue function of SCORE at self.mock_score_address address with a function that takes no argument and returns 150
         value = self.score2.getSCOREValue()
         self.assertEqual(value, 150)
-        self.assert_internal_call(self.mock_score_address, 'getValue') # assert getValue in self.mock_score_address is called.
-        
+        self.assert_internal_call(self.mock_score_address,
+                                  'getValue')  # assert getValue in self.mock_score_address is called.
+
         self.score2.setSCOREValue('asdf')
-        self.assert_internal_call(self.mock_score_address, 'setValue', 'asdf') # assert setValue in self.mock_score_address is called with 'asdf'
+        self.assert_internal_call(self.mock_score_address, 'setValue',
+                                  'asdf')  # assert setValue in self.mock_score_address is called with 'asdf'
 
     # internal call
     def test_internal_call2(self):
@@ -326,39 +341,51 @@ class TestSimple(ScoreTestCase):
         self.register_interface_score(self.mock_score_address)
         self.score2.setSCOREValue('asdf')
         self.assert_internal_call(self.mock_score_address, 'setValue', 'asdf')
-        
-    def test_msg(self):
-        self.set_msg(Address.from_string(f"hx{'1234'*10}"), 3)
-        self.score2.t_msg() # On the upper line, set the msg property to pass the assert statement so that no exception is raised.
 
-        self.set_msg(Address.from_string(f"hx{'12'*20}"), 3)
-        self.assertRaises(AssertionError, self.score2.t_msg) # On the upper line, set the msg property not to pass the assert statement, and raise an exception.
+    # internal call
+    def test_internal_call3(self):
+        self.patch_call(self.score2, lambda score, method, args={}, amount=0: 150)
+        # Patch the score2.call() to return 150
+        value = self.score2.getSCOREValue2()
+        self.assertEqual(value, 150)
+        self.score2.call.assert_called_with(self.mock_score_address, "getValue", {}) # assert getValue in self.mock_score_address is called
+
+    def test_msg(self):
+        self.set_msg(Address.from_string(f"hx{'1234' * 10}"), 3)
+        self.score2.t_msg()  # On the upper line, set the msg property to pass the assert statement so that no exception is raised.
+
+        self.set_msg(Address.from_string(f"hx{'12' * 20}"), 3)
+        self.assertRaises(AssertionError,
+                          self.score2.t_msg)  # On the upper line, set the msg property not to pass the assert statement, and raise an exception.
 
     def test_tx(self):
-        self.set_tx(Address.from_string(f"hx{'1234'*10}"))
-        self.score2.t_tx() # On the upper line, set the tx property to pass the assert statement so that no exception is raised.
+        self.set_tx(Address.from_string(f"hx{'1234' * 10}"))
+        self.score2.t_tx()  # On the upper line, set the tx property to pass the assert statement so that no exception is raised.
 
-        self.set_tx(Address.from_string(f"hx{'12'*20}"))
-        self.assertRaises(AssertionError, self.score2.t_tx) # On the upper line, set the tx property not to pass the assert statement, and raise an exception.
+        self.set_tx(Address.from_string(f"hx{'12' * 20}"))
+        self.assertRaises(AssertionError,
+                          self.score2.t_tx)  # On the upper line, set the tx property not to pass the assert statement, and raise an exception.
 
     def test_block(self):
         self.set_block(3, 30)
-        self.score2.t_block() # On the upper line, set the block property to pass the assert statement so that no exception is raised.
+        self.score2.t_block()  # On the upper line, set the block property to pass the assert statement so that no exception is raised.
 
         self.set_block(3)
-        self.assertRaises(AssertionError, self.score2.t_block) # On the upper line, set the block property not to pass the assert statement, and raise an exception.
-        
+        self.assertRaises(AssertionError,
+                          self.score2.t_block)  # On the upper line, set the block property not to pass the assert statement, and raise an exception.
+
     def test_update(self):
         self.score2 = self.update_score(self.score2.address, SimpleScore2, on_update_params={"value": "updated_value"})
-        self.assertEqual(self.score2.value.get(), "updated_value") # In the on_update method of SimpleScore2, set the value of the value to "updated_value".
+        self.assertEqual(self.score2.value.get(),
+                         "updated_value")  # In the on_update method of SimpleScore2, set the value of the value to "updated_value".
 
     def test_get_balance(self):
         balance = self.get_balance(self.test_account3)
-        self.assertEqual(balance, 10**21)
+        self.assertEqual(balance, 10 ** 21)
 
     def test_transfer(self):
         # before calling transfer method, check balance of test_account3 and test_account4
-        amount = 10**21
+        amount = 10 ** 21
         balance_3 = self.get_balance(self.test_account3)
         self.assertEqual(balance_3, amount)
         balance_4 = self.get_balance(self.test_account4)
@@ -369,16 +396,23 @@ class TestSimple(ScoreTestCase):
         balance_3 = self.get_balance(self.test_account3)
         self.assertEqual(balance_3, 0)
         balance_4 = self.get_balance(self.test_account4)
-        self.assertEqual(balance_4, amount*2)
+        self.assertEqual(balance_4, amount * 2)
+
+    def test_call(self):
+        self.score2.call(self.mock_score_address, "asdf", {})
+
+    def test_owner(self):
+        self.assertEqual(self.score2.owner, self.test_account1)
 ```
 
 #### Run test code
 
 ```bash
-$ tbears test simple_score2
-........
+tbears test simple_score2 
+..............
 ----------------------------------------------------------------------
-Ran 11 tests in 0.027s
+Ran 14 tests in 0.079s
 
 OK
+
 ```
