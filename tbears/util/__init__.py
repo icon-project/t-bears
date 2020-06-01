@@ -53,6 +53,7 @@ def get_score_template(score_project: str, score_class: str) -> tuple:
 
 TAG = 'SampleScore'
 
+
 class SampleScore(IconScoreBase):
 
     def __init__(self, db: IconScoreDatabase) -> None:
@@ -83,7 +84,7 @@ DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 
 class TestTest(IconIntegrateTestBase):
     TEST_HTTP_ENDPOINT_URI_V3 = "http://127.0.0.1:9000/api/v3"
-    SCORE_PROJECT= os.path.abspath(os.path.join(DIR_PATH, '..'))
+    SCORE_PROJECT = os.path.abspath(os.path.join(DIR_PATH, '..'))
 
     def setUp(self):
         super().setUp()
