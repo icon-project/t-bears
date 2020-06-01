@@ -27,6 +27,8 @@ from iconservice.database.db import IconScoreDatabase
 from iconservice.icon_constant import IconScoreFuncType, IconScoreContextType
 from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFlag, FORMAT_IS_NOT_DERIVED_OF_OBJECT
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
+from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
+from iconservice.iconscore.icx import Icx
 
 from .context import Context, score_mapper, interface_score_mapper
 from ..mock.db import MockKeyValueDatabase
@@ -34,6 +36,23 @@ from ..mock.icx_engine import IcxEngine
 
 context_db = None
 CONTEXT_PATCHER = patch('iconservice.iconscore.icon_score_context.ContextGetter._context')
+
+
+def icx_get_balance(self: Icx, address: 'Address'):
+    """Hooking method for icx.get_balance"""
+    return IcxEngine.get_balance(None, address)
+
+
+def icx_transfer(self: Icx, _to: 'Address', amount: int):
+    """Hooking method for icx.transfer"""
+    ctx = ContextGetter._context
+    sender = ctx.msg.sender
+    IcxEngine.transfer(ContextGetter._context, sender, _to, amount)
+
+
+ICX_GET_BALANCE = Icx.get_balance
+ICX_TRANSFER_CALL = Icx.transfer
+GET_OWNER = IconScoreContextUtil.get_owner
 
 
 def create_address(prefix: AddressPrefix = AddressPrefix.EOA) -> 'Address':
@@ -237,6 +256,9 @@ class ScorePatcher:
         global context_db
         context_db = MockKeyValueDatabase.create_db()
         IcxEngine.db = context_db
+        Icx.get_balance = icx_get_balance
+        Icx.transfer = icx_transfer
+        IconScoreContextUtil.get_owner = lambda context, score_address: context.msg.sender
         CONTEXT_PATCHER.start()
 
     @staticmethod
@@ -244,6 +266,9 @@ class ScorePatcher:
         """Stop patching and clear db"""
 
         CONTEXT_PATCHER.stop()
+        Icx.get_balance = ICX_GET_BALANCE
+        Icx.transfer = ICX_TRANSFER_CALL
+        IconScoreContextUtil.get_owner = GET_OWNER
         IcxEngine.db.close()
         score_mapper.clear()
         interface_score_mapper.clear()

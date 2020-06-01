@@ -22,12 +22,9 @@ from iconservice.base.message import Message
 from iconservice.base.transaction import Transaction
 from iconservice.icon_constant import IconScoreContextType, IconScoreFuncType
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
-from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
-from iconservice.iconscore.internal_call import InternalCall
 
 from ..mock.block import Block
 from ....libs.icon_integrate_test import create_tx_hash
-from ....libs.scoretest.mock.icx_engine import IcxEngine
 
 if TYPE_CHECKING:
     from iconservice.base.address import Address
@@ -47,21 +44,6 @@ def get_icon_score(address: 'Address'):
     elif isinstance(score_mapper.get(address, None), IconScoreBase) is False:
         raise InvalidParamsException(f"{address} is not active SCORE")
     return score_mapper[address]
-
-
-def internal_get_balance(self: InternalCall, address: 'Address'):
-    """Hooking method for InternalCall.get_icx_balance"""
-    return IcxEngine.get_balance(None, address)
-
-
-def internal_transfer(self: 'InternalCall', _from: 'Address', _to: 'Address', amount: int):
-    """Hooking method for InternalCal.icx_transfer_call"""
-    IcxEngine.transfer(ContextGetter._context, _from, _to, amount)
-
-
-InternalCall.get_icx_balance = internal_get_balance
-InternalCall.icx_transfer_call = internal_transfer
-IconScoreContextUtil.get_owner = lambda context, score_address: context.msg.sender
 
 
 def get_default_context():
