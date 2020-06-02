@@ -49,7 +49,7 @@ class TestTest(IconIntegrateTestBase):
 
         return tx_result
 
-    def test_call_hello(self):
+    def test_integrate_after_unit_tests(self):
         call = CallBuilder().from_(self._test1.get_address()).to(self._score_address).method("getSCOREValue").build()
         response = self.process_call(call, self.icon_service)
         self.assertEqual(response, "")
