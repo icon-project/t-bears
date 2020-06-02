@@ -27,9 +27,10 @@ from iconservice.base.address import Address, AddressPrefix
 from iconservice.base.exception import InvalidPayableException, InvalidInterfaceException, InvalidRequestException
 from iconservice.database.db import IconScoreDatabase
 from iconservice.icon_constant import IconScoreFuncType, IconScoreContextType
+from iconservice.iconscore.context.context import ContextGetter
 from iconservice.iconscore.icon_score_base2 import _create_address_with_key, _recover_key
 from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFlag, FORMAT_IS_NOT_DERIVED_OF_OBJECT
-from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
+from iconservice.iconscore.icon_score_context import IconScoreContext
 from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
 from iconservice.iconscore.icx import Icx
 
@@ -270,7 +271,7 @@ class ScorePatcher:
         global context_db
         context_db = MockKeyValueDatabase.create_db()
         IcxEngine.db = context_db
-        patch('iconservice.iconscore.icon_score_context.ContextGetter._context').start()
+        patch('iconservice.iconscore.context.context.ContextGetter._context').start()
         patch.object(Icx, "get_balance", side_effect=hooking_get_balance).start()
         patch.object(Icx, "transfer", side_effect=hooking_transfer).start()
         patch.object(IconScoreContextUtil, "get_owner",

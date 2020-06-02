@@ -21,7 +21,8 @@ from iconservice.base.exception import InvalidParamsException
 from iconservice.base.message import Message
 from iconservice.base.transaction import Transaction
 from iconservice.icon_constant import IconScoreContextType, IconScoreFuncType
-from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
+from iconservice.iconscore.icon_score_context import IconScoreContext
+from iconservice.iconscore.context.context import ContextGetter
 
 from ..mock.block import Block
 from ....libs.icon_integrate_test import create_tx_hash
@@ -65,9 +66,10 @@ class Context:
     context = get_default_context()
 
     @classmethod
-    def initialize_variables(cls, sender: Optional['Address']=None, value: int=0, tx_timestamp: Optional[int]=None,
-                             block_height: int=0, func_type: 'IconScoreFuncType'=IconScoreFuncType.READONLY,
-                             context_type: 'IconScoreContextType'=IconScoreContextType.QUERY):
+    def initialize_variables(cls, sender: Optional['Address'] = None, value: int = 0,
+                             tx_timestamp: Optional[int] = None, block_height: int = 0,
+                             func_type: 'IconScoreFuncType' = IconScoreFuncType.READONLY,
+                             context_type: 'IconScoreContextType' = IconScoreContextType.QUERY):
         cls._set_block(cls.context, block_height)
         cls._set_msg(cls.context, sender, value)
         cls._set_tx(cls.context, sender, tx_timestamp, None, 0, 0)
@@ -94,13 +96,13 @@ class Context:
         context.func_type = IconScoreFuncType.READONLY
 
     @classmethod
-    def set_msg(cls, sender: Optional['Address']=None, value: int=0):
+    def set_msg(cls, sender: Optional['Address'] = None, value: int = 0):
         context = cls.context = ContextGetter._context
         cls._set_msg(context, sender, value)
 
     @classmethod
-    def set_tx(cls, origin: Optional['Address']=None, timestamp: Optional[int]=None, _hash: Optional[bytes]=None,
-               index: int=0, nonce: int=0):
+    def set_tx(cls, origin: Optional['Address'] = None, timestamp: Optional[int] = None, _hash: Optional[bytes] = None,
+               index: int = 0, nonce: int = 0):
         context = cls.context = ContextGetter._context
         cls._set_tx(context, origin, timestamp, _hash, index, nonce)
 
@@ -133,10 +135,10 @@ class Context:
             block.timestamp = timestamp
 
     @staticmethod
-    def _set_func_type(context: 'IconScoreContext', func_type: 'IconScoreFuncType'=IconScoreFuncType.WRITABLE):
+    def _set_func_type(context: 'IconScoreContext', func_type: 'IconScoreFuncType' = IconScoreFuncType.WRITABLE):
         context.func_type = func_type
 
     @staticmethod
     def _set_context_type(context: 'IconScoreContext',
-                          context_type: 'IconScoreContextType'=IconScoreContextType.INVOKE):
+                          context_type: 'IconScoreContextType' = IconScoreContextType.INVOKE):
         context.type = context_type

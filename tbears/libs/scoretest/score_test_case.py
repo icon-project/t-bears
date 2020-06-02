@@ -20,7 +20,7 @@ from unittest.mock import Mock
 from iconservice import IconScoreBase
 from iconservice.base.address import Address
 from iconservice.base.exception import InvalidRequestException
-from iconservice.iconscore.icon_score_context import ContextGetter
+from iconservice.iconscore.context.context import ContextGetter
 
 from .mock.icx_engine import IcxEngine
 from .patch.context import Context, get_icon_score
@@ -52,16 +52,18 @@ class ScoreTestCase(TestCase):
         ScorePatcher.stop_patches()
 
     @staticmethod
-    def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict = {}) -> T:
+    def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict = {},
+                           score_address: Optional[Address] = None) -> T:
         """Get an instance of the SCORE class passed as an score_class arguments
 
         :param score_class: SCORE class to instantiate
         :param owner: Address to set as owner of SCORE
         :param on_install_params: To be passed to the SCORE on_install method
+        :param score_address: score address
         :return: Initialized SCORE
         """
         validate_score(score_class)
-        score_db = ScorePatcher.get_score_db()
+        score_db = ScorePatcher.get_score_db(score_address)
         score = ScorePatcher.initialize_score(score_class, score_db, owner)
         setattr(score, "call", Mock())
         score.on_install(**on_install_params)
