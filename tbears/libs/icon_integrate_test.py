@@ -32,7 +32,6 @@ from iconsdk.exception import IconServiceBaseException, URLException
 from iconsdk.icon_service import IconService
 from iconsdk.signed_transaction import SignedTransaction
 from iconsdk.utils.converter import convert
-from iconsdk.utils.convert_type import convert_hex_str_to_int, convert_hex_str_to_bytes
 from iconsdk.utils.templates import TRANSACTION_RESULT
 from iconsdk.wallet.wallet import KeyWallet
 from iconservice.base.address import Address
@@ -41,8 +40,8 @@ from iconservice.base.type_converter import TypeConverter, ParamType
 from iconservice.icon_config import default_icon_config
 from iconservice.icon_constant import ConfigKey, DATA_BYTE_ORDER, IconScoreContextType, RCCalculateResult
 from iconservice.icon_inner_service import MakeResponse
-from iconservice.iconscore.icon_score_context import IconScoreContext
 from iconservice.icon_service_engine import IconServiceEngine
+from iconservice.iconscore.icon_score_context import IconScoreContext
 from iconservice.iiss.reward_calc.ipc.reward_calc_proxy import RewardCalcProxy, CalculateDoneNotification
 from iconservice.utils import to_camel_case
 

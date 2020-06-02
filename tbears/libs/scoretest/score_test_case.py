@@ -24,7 +24,7 @@ from iconservice.iconscore.icon_score_context import ContextGetter
 
 from .mock.icx_engine import IcxEngine
 from .patch.context import Context, get_icon_score
-from .patch.score_patcher import ScorePatcher, create_address, get_interface_score
+from .patch.score_patcher import ScorePatcher, create_address, get_interface_score, start_SCORE_APIs_patch
 
 T = TypeVar('T')
 
@@ -66,6 +66,7 @@ class ScoreTestCase(TestCase):
         setattr(score, "call", Mock())
         score.on_install(**on_install_params)
         ScoreTestCase.set_msg(None, None)
+        start_SCORE_APIs_patch(score_class.__module__)
         return score
 
     @staticmethod
