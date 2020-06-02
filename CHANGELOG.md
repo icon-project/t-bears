@@ -1,5 +1,8 @@
 # ChangeLog - T-Bears
 
+## 1.6.3 - 2020-06-02
+* Fix SCORE unittest framework (#69)
+
 ## 1.6.2 - 2020-05-29
 * Fix SCORE unittest framework (#68)
     * owner property bug
