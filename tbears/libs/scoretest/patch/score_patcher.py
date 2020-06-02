@@ -38,7 +38,6 @@ from ..mock.db import MockKeyValueDatabase
 from ..mock.icx_engine import IcxEngine
 
 context_db = None
-CONTEXT_PATCHER = patch('iconservice.iconscore.icon_score_context.ContextGetter._context')
 
 
 def hooking_get_balance(address: 'Address'):
