@@ -13,6 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import hashlib
+import json
 import os
 import warnings
 from functools import wraps
@@ -25,6 +27,7 @@ from iconservice.base.address import Address, AddressPrefix
 from iconservice.base.exception import InvalidPayableException, InvalidInterfaceException, InvalidRequestException
 from iconservice.database.db import IconScoreDatabase
 from iconservice.icon_constant import IconScoreFuncType, IconScoreContextType
+from iconservice.iconscore.icon_score_base2 import _create_address_with_key, _recover_key
 from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFlag, FORMAT_IS_NOT_DERIVED_OF_OBJECT
 from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
 from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
@@ -38,21 +41,33 @@ context_db = None
 CONTEXT_PATCHER = patch('iconservice.iconscore.icon_score_context.ContextGetter._context')
 
 
-def icx_get_balance(self: Icx, address: 'Address'):
+def hooking_get_balance(address: 'Address'):
     """Hooking method for icx.get_balance"""
     return IcxEngine.get_balance(None, address)
 
 
-def icx_transfer(self: Icx, _to: 'Address', amount: int):
+def hooking_transfer(_to: 'Address', amount: int):
     """Hooking method for icx.transfer"""
     ctx = ContextGetter._context
     sender = ctx.msg.sender
     IcxEngine.transfer(ContextGetter._context, sender, _to, amount)
 
 
-ICX_GET_BALANCE = Icx.get_balance
-ICX_TRANSFER_CALL = Icx.transfer
-GET_OWNER = IconScoreContextUtil.get_owner
+def hooking_sha_256(data):
+    return hashlib.sha256(data).digest()
+
+
+def hooking_sha3_256(data):
+    return hashlib.sha3_256(data).digest(0)
+
+
+def start_SCORE_APIs_patch(score_module_path: str):
+    patch(f"{score_module_path}.json_dumps", side_effect=json.dumps).start()
+    patch(f"{score_module_path}.json_loads", side_effect=json.loads).start()
+    patch(f"{score_module_path}.sha_256", side_effect=hooking_sha_256).start()
+    patch(f"{score_module_path}.sha3_256", side_effect=hooking_sha3_256).start()
+    patch(f"{score_module_path}.create_address_with_key", side_effect=_create_address_with_key).start()
+    patch(f"{score_module_path}.recover_key", side_effect=_recover_key).start()
 
 
 def create_address(prefix: AddressPrefix = AddressPrefix.EOA) -> 'Address':
@@ -256,19 +271,16 @@ class ScorePatcher:
         global context_db
         context_db = MockKeyValueDatabase.create_db()
         IcxEngine.db = context_db
-        Icx.get_balance = icx_get_balance
-        Icx.transfer = icx_transfer
-        IconScoreContextUtil.get_owner = lambda context, score_address: context.msg.sender
-        CONTEXT_PATCHER.start()
+        patch('iconservice.iconscore.icon_score_context.ContextGetter._context').start()
+        patch.object(Icx, "get_balance", side_effect=hooking_get_balance).start()
+        patch.object(Icx, "transfer", side_effect=hooking_transfer).start()
+        patch.object(IconScoreContextUtil, "get_owner",
+                     side_effect=lambda context, score_address: context.msg.sender).start()
 
     @staticmethod
     def stop_patches():
         """Stop patching and clear db"""
-
-        CONTEXT_PATCHER.stop()
-        Icx.get_balance = ICX_GET_BALANCE
-        Icx.transfer = ICX_TRANSFER_CALL
-        IconScoreContextUtil.get_owner = GET_OWNER
+        patch.stopall()
         IcxEngine.db.close()
         score_mapper.clear()
         interface_score_mapper.clear()
