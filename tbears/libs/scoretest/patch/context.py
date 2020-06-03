@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 score_mapper = {}
 interface_score_mapper = {}
+icon_network_value = {}
 
 
 def get_icon_score(address: 'Address'):

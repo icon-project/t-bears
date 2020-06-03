@@ -13,14 +13,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TypeVar, Type, Optional
+from typing import TypeVar, Type, Optional, List
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from iconservice import IconScoreBase
 from iconservice.base.address import Address
 from iconservice.base.exception import InvalidRequestException
 from iconservice.iconscore.context.context import ContextGetter
+from iconservice.iconscore.icon_score_base2 import PRepInfo
 
 from .mock.icx_engine import IcxEngine
 from .patch.context import Context, get_icon_score
@@ -200,3 +201,11 @@ class ScoreTestCase(TestCase):
         """
         for account, amount in accounts_info.items():
             IcxEngine.db.put(None, account.to_bytes(), amount)
+
+    @staticmethod
+    def patch_main_preps(module: str, prep_info_list: List[PRepInfo]):
+        patch(f"{module}.get_main_prep_info", return_value=(prep_info_list, int)).start()
+
+    @staticmethod
+    def patch_sub_preps(module: str, prep_info_list: List[PRepInfo]):
+        patch(f"{module}.get_main_prep_info", return_value=(prep_info_list, int)).start()
