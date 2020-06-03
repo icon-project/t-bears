@@ -35,6 +35,11 @@ def validate_score(score):
         raise InvalidRequestException(f"{score.__name__} is invalid SCORE class")
 
 
+def validate_score_instance(score):
+    if isinstance(score, IconScoreBase) is False:
+        raise InvalidRequestException(f"{score.__name__} is invalid SCORE")
+
+
 class ScoreTestCase(TestCase):
 
     def setUp(self):
@@ -203,9 +208,19 @@ class ScoreTestCase(TestCase):
             IcxEngine.db.put(None, account.to_bytes(), amount)
 
     @staticmethod
-    def patch_main_preps(module: str, prep_info_list: List[PRepInfo]):
-        patch(f"{module}.get_main_prep_info", return_value=(prep_info_list, int)).start()
+    def patch_main_preps(score, prep_info_list: List[PRepInfo], term_end_block: int):
+        validate_score_instance(score)
+        patch(f"{score.__module__}.get_main_prep_info", return_value=(prep_info_list, term_end_block)).start()
 
     @staticmethod
-    def patch_sub_preps(module: str, prep_info_list: List[PRepInfo]):
-        patch(f"{module}.get_main_prep_info", return_value=(prep_info_list, int)).start()
+    def patch_sub_preps(score, prep_info_list: List[PRepInfo], term_end_block: int):
+        validate_score_instance(score)
+        patch(f"{score.__module__}.get_sub_prep_info", return_value=(prep_info_list, term_end_block)).start()
+
+    @staticmethod
+    def create_preps_info(prep_count: int):
+        preps = []
+        for index in range(prep_count):
+            PRepInfo(create_address(), 0, f"PREP{index}")
+            preps.append(PRepInfo)
+        return preps
