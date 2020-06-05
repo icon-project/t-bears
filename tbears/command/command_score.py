@@ -129,6 +129,7 @@ class CommandScore(object):
             .nid(convert_hex_str_to_int(conf['nid'])) \
             .content_type("application/zip") \
             .content(content) \
+            .params(conf.get('scoreParams', {})) \
             .build()
 
         if 'stepLimit' not in conf:

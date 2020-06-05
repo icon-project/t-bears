@@ -21,12 +21,13 @@ import time
 import unittest
 
 from iconcommons.icon_config import IconConfig
+from iconservice.base.address import Address, AddressPrefix
 
 from tbears.command.command import Command
 from tbears.command.command_server import TBEARS_CLI_ENV
 from tbears.config.tbears_config import FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config
 
-from tests.test_util import TEST_UTIL_DIRECTORY, zip_dir
+from tests.test_util import TEST_DIRECTORY, TEST_UTIL_DIRECTORY, zip_dir
 
 
 class TestCommandScore(unittest.TestCase):
@@ -35,6 +36,12 @@ class TestCommandScore(unittest.TestCase):
         self.project_name = 'sample_prj'
         self.project_class = 'SampleClass'
         self.start_conf = None
+
+        tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, f'test_tbears_server_config.json')
+        start_conf = IconConfig(tbears_config_path, tbears_server_config)
+        start_conf.load()
+        start_conf['config'] = tbears_config_path
+        self.start_conf = start_conf
 
     def tearDown(self):
         try:
@@ -71,6 +78,7 @@ class TestCommandScore(unittest.TestCase):
         return response
 
     def test_deploy_command(self):
+        # make sample project
         conf = self.cmd.cmdUtil.get_init_args(project=self.project_name, score_class=self.project_class)
         self.cmd.cmdUtil.init(conf)
 
@@ -78,12 +86,7 @@ class TestCommandScore(unittest.TestCase):
         zip_dir(self.project_name)
 
         # start
-        tbears_config_path = os.path.join(TEST_UTIL_DIRECTORY, f'test_tbears_server_config.json')
-        start_conf = IconConfig(tbears_config_path, tbears_server_config)
-        start_conf.load()
-        start_conf['config'] = tbears_config_path
-        self.start_conf = start_conf
-        self.cmd.cmdServer.start(start_conf)
+        self.cmd.cmdServer.start(self.start_conf)
         self.assertTrue(self.cmd.cmdServer.is_service_running())
 
         # deploy - install success #1 (without stepLimit)
@@ -154,7 +157,47 @@ class TestCommandScore(unittest.TestCase):
         self.assertTrue(os.path.exists(TBEARS_CLI_ENV))
 
         # clear
-        self.cmd.cmdScore.clear(start_conf)
-        self.assertFalse(os.path.exists(start_conf['scoreRootPath']))
-        self.assertFalse(os.path.exists(start_conf['stateDbRootPath']))
+        self.cmd.cmdScore.clear(self.start_conf)
+        self.assertFalse(os.path.exists(self.start_conf['scoreRootPath']))
+        self.assertFalse(os.path.exists(self.start_conf['stateDbRootPath']))
         self.assertFalse(os.path.exists(TBEARS_CLI_ENV))
+
+    def test_deploy_command_with_score_params(self):
+        # start
+        self.cmd.cmdServer.start(self.start_conf)
+        self.assertTrue(self.cmd.cmdServer.is_service_running())
+
+        project_name = os.path.join(TEST_DIRECTORY, "simpleScore2")
+
+        # deploy - install with scoreParams
+        deploy_args = {
+            "mode": "install",
+            "from": "hxef73db5d0ad02eb1fadb37d0041be96bfa56d4e6",
+            "scoreParams": {
+                "score_address": str(Address.from_prefix_and_int(AddressPrefix.CONTRACT, 123))
+            }
+        }
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=project_name, args=deploy_args)
+        deploy_response = self.deploy_cmd(conf=conf)
+        self.assertEqual(deploy_response.get('error', False), False)
+        # check result
+        tx_hash = deploy_response['result']
+        conf = self.cmd.cmdWallet.get_icon_conf('txbyhash', {'hash': tx_hash})
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
+        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        score_address = transaction_result_response['result']['scoreAddress']
+        self.assertFalse(transaction_result_response.get('error', False))
+
+        # deploy - update with scoreParams
+        deploy_args["mode"] = "update"
+        deploy_args["to"] = score_address
+        deploy_args["scoreParams"] = { "value": "test_value"}
+        conf = self.cmd.cmdScore.get_icon_conf(command='deploy', project=project_name, args=deploy_args)
+        deploy_response = self.deploy_cmd(conf=conf)
+        self.assertEqual(deploy_response.get('error', False), False)
+        # check result
+        tx_hash = deploy_response['result']
+        conf = self.cmd.cmdWallet.get_icon_conf('txresult', {'hash': tx_hash})
+        transaction_result_response = self.cmd.cmdWallet.txresult(conf)
+        score_address = transaction_result_response['result']['scoreAddress']
+        self.assertFalse(transaction_result_response.get('error', False))
