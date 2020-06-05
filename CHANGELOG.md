@@ -1,5 +1,8 @@
 # ChangeLog - T-Bears
 
+## 1.6.4 - 2020-06-05
+* Fix deploy command (#70)
+
 ## 1.6.3 - 2020-06-02
 * Fix SCORE unittest framework (#69)
 
