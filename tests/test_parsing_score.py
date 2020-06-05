@@ -176,7 +176,6 @@ class TestCommandScore(TestCommand):
             json.dump(package, file)
         self.assertEqual(check_project(project), 0)
 
-
     def test_clear_args_parsing(self):
         # Parsing test
         cmd = f'clear'
