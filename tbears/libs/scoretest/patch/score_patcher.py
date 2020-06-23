@@ -29,15 +29,11 @@ from iconservice.database.db import IconScoreDatabase
 from iconservice.icon_constant import IconScoreFuncType, IconScoreContextType
 from iconservice.iconscore.icon_score_base2 import _create_address_with_key, _recover_key
 from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFlag, FORMAT_IS_NOT_DERIVED_OF_OBJECT
-from iconservice.iconscore.icon_score_context import IconScoreContext, ContextGetter
 from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
 from iconservice.iconscore.icx import Icx
 
-from .context import Context, score_mapper, interface_score_mapper
-from ..mock.db import MockKeyValueDatabase
+from .context import Context, score_mapper, interface_score_mapper, context_db
 from ..mock.icx_engine import IcxEngine
-
-context_db = None
 
 
 def hooking_get_balance(address: 'Address'):
@@ -47,9 +43,9 @@ def hooking_get_balance(address: 'Address'):
 
 def hooking_transfer(_to: 'Address', amount: int):
     """Hooking method for icx.transfer"""
-    ctx = ContextGetter._context
+    ctx = Context.get_context()
     sender = ctx.msg.sender
-    IcxEngine.transfer(ContextGetter._context, sender, _to, amount)
+    IcxEngine.transfer(ctx, sender, _to, amount)
 
 
 def hooking_sha_256(data):
@@ -87,7 +83,7 @@ def patch_score_method(method):
 
     @wraps(method)
     def patched(*args, **kwargs):
-        context: 'Mock' = ContextGetter._context
+        context: 'Mock' = Context.get_context()
         method_flag = getattr(method, CONST_BIT_FLAG, 0)
         score_class, method_name = method.__qualname__.split('.')
         context.current_address = method.__self__.address
@@ -140,7 +136,6 @@ class ScorePatcher:
         :param score_address: address of score.
         :return: db SCORE use
         """
-        global context_db
         if not score_address:
             score_address = create_address(AddressPrefix.CONTRACT)
         score_db = IconScoreDatabase(score_address, context_db)
@@ -155,8 +150,6 @@ class ScorePatcher:
         :param owner: owner of SCORE
         :return: Instantiated SCORE
         """
-        context = Context.get_context()
-        ScorePatcher._set_mock_context(context)
         Context.set_msg(owner, 0)
         score = score_class(score_db)
         ScorePatcher.patch_score_methods(score)
@@ -165,24 +158,6 @@ class ScorePatcher:
         ScorePatcher.patch_deprecated_methods(score)
         score_mapper[score.address] = score
         return score
-
-    @staticmethod
-    def _set_mock_context(context: 'IconScoreContext'):
-        mock_context = Mock(spec=IconScoreContext)
-        mock_context.configure_mock(msg=context.msg)
-        mock_context.configure_mock(tx=context.tx)
-        mock_context.configure_mock(block=context.block)
-        mock_context.configure_mock(step_counter=None)
-        mock_context.configure_mock(type=context.type)
-        mock_context.configure_mock(func_type=context.func_type)
-        mock_context.configure_mock(current_address=context.current_address)
-        mock_context.configure_mock(block_batch=context.block_batch)
-        mock_context.configure_mock(tx_batch=context.tx_batch)
-        mock_context.configure_mock(event_logs=context.event_logs)
-        mock_context.configure_mock(event_log_stack=context.event_log_stack)
-        mock_context.configure_mock(traces=context.traces)
-        mock_context.configure_mock(icon_score_mapper=context.icon_score_mapper)
-        ContextGetter._context = mock_context
 
     @staticmethod
     def patch_score_methods(score):
@@ -265,12 +240,8 @@ class ScorePatcher:
 
     @staticmethod
     def start_patches():
-        """Patch SCORE to use dictionary DB instance of LEVEL DB"""
-
-        global context_db
-        context_db = MockKeyValueDatabase.create_db()
-        IcxEngine.db = context_db
-        patch('iconservice.iconscore.icon_score_context.ContextGetter._context').start()
+        patch('iconservice.iconscore.icon_score_context.ContextContainer._get_context',
+              side_effect=lambda: Context.get_context()).start()
         patch.object(Icx, "get_balance", side_effect=hooking_get_balance).start()
         patch.object(Icx, "transfer", side_effect=hooking_transfer).start()
         patch.object(IconScoreContextUtil, "get_owner",
@@ -278,8 +249,4 @@ class ScorePatcher:
 
     @staticmethod
     def stop_patches():
-        """Stop patching and clear db"""
         patch.stopall()
-        IcxEngine.db.close()
-        score_mapper.clear()
-        interface_score_mapper.clear()

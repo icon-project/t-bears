@@ -36,6 +36,24 @@ class TestSimple(ScoreTestCase):
 
         self.assertEqual(self.score2.getValue(), str_value)
 
+    def test_array(self):
+        self.assertEqual(0, self.score2.arrayLength())
+        for v in range(10):
+            self.score2.appendValue(v)
+        self.assertEqual(10, self.score2.arrayLength())
+        self.assertEqual(sum(range(10)), self.score2.arraySum())
+
+        self.score2.arraySetItem(3, 45)
+        self.assertEqual(45, self.score2.arrayGetItem(3))
+
+    def test_dict(self):
+        for v in range(10):
+            self.score2.dictSetItem(v, v+10)
+
+        for v in range(10):
+            self.assertTrue(self.score2.dictContains(v))
+            self.assertEqual(v+10, self.score2.dictGetItem(v))
+
     # try writing value inside readonly method
     def test_write_on_readonly(self):
         self.assertRaises(DatabaseException, self.score2.write_on_readonly)

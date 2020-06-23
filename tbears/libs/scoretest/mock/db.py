@@ -57,7 +57,7 @@ class PlyvelDB(object):
             del self._db[bytes_key]
 
     def close(self) -> None:
-        self._db = None
+        self._db.clear()
 
     def get_sub_db(self, key: bytes):
         return PlyvelDB(self.make_db())
