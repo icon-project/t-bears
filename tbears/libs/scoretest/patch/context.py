@@ -36,6 +36,7 @@ interface_score_mapper = {}
 MAIN_NET_REVISION = 8
 context_db = MockKeyValueDatabase.create_db()  # Patch SCORE to use dictionary DB instance of LEVEL DB
 IcxEngine.db = context_db
+icon_network_value = {}
 
 
 def get_icon_score(address: 'Address'):

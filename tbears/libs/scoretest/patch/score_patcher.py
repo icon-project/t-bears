@@ -16,10 +16,11 @@
 import hashlib
 import json
 import os
+import types
 import warnings
 from functools import wraps
 from inspect import getmembers, isfunction
-from typing import Optional
+from typing import Optional, Any, Dict
 from unittest.mock import Mock, patch
 
 from iconservice import InterfaceScore
@@ -31,8 +32,10 @@ from iconservice.iconscore.icon_score_base2 import _create_address_with_key, _re
 from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFlag, FORMAT_IS_NOT_DERIVED_OF_OBJECT
 from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
 from iconservice.iconscore.icx import Icx
+from iconservice.iconscore.system import IconNetworkValueType
+from iconservice.utils import is_builtin_score
 
-from .context import Context, score_mapper, interface_score_mapper, context_db
+from .context import Context, score_mapper, interface_score_mapper, context_db, icon_network_value
 from ..mock.icx_engine import IcxEngine
 
 
@@ -63,6 +66,21 @@ def start_SCORE_APIs_patch(score_module_path: str):
     patch(f"{score_module_path}.sha3_256", side_effect=hooking_sha3_256).start()
     patch(f"{score_module_path}.create_address_with_key", side_effect=_create_address_with_key).start()
     patch(f"{score_module_path}.recover_key", side_effect=_recover_key).start()
+
+
+def hooking_migrate_icon_network_value(self, data: Dict['IconNetworkValueType', Any]):
+    for key, value in data.items():
+        icon_network_value[key] = value
+
+
+def hooking_get_icon_network_value(self, type_: 'IconNetworkValueType'):
+    self._check_inv_type(type_)
+    return icon_network_value.get(type_)
+
+
+def hooking_set_icon_network_value(self, type_: 'IconNetworkValueType', value: Any):
+    self._check_inv_type(type_)
+    icon_network_value[type_] = value
 
 
 def create_address(prefix: AddressPrefix = AddressPrefix.EOA) -> 'Address':
@@ -157,6 +175,8 @@ class ScorePatcher:
         ScorePatcher.patch_interface_scores(score)
         ScorePatcher.patch_deprecated_methods(score)
         score_mapper[score.address] = score
+        if is_builtin_score(str(score.address)):
+            ScorePatcher.patch_system_score(score)
         return score
 
     @staticmethod
@@ -240,7 +260,7 @@ class ScorePatcher:
 
     @staticmethod
     def start_patches():
-        patch('iconservice.iconscore.icon_score_context.ContextContainer._get_context',
+        patch('iconservice.iconscore.context.context.ContextContainer._get_context',
               side_effect=lambda: Context.get_context()).start()
         patch.object(Icx, "get_balance", side_effect=hooking_get_balance).start()
         patch.object(Icx, "transfer", side_effect=hooking_transfer).start()
@@ -250,3 +270,10 @@ class ScorePatcher:
     @staticmethod
     def stop_patches():
         patch.stopall()
+
+    @staticmethod
+    def patch_system_score(score):
+        score.get_icon_network_value = types.MethodType(hooking_get_icon_network_value, score)
+        score.set_icon_network_value = types.MethodType(hooking_set_icon_network_value, score)
+        score.migrate_icon_network_value = types.MethodType(hooking_migrate_icon_network_value, score)
+        score.disqualify_prep = types.MethodType(lambda self, address: (True, ""), score)
