@@ -23,7 +23,7 @@ from inspect import getmembers, isfunction
 from typing import Optional, Any, Dict
 from unittest.mock import Mock, patch
 
-from iconservice import InterfaceScore, IconNetworkValueType
+from iconservice import InterfaceScore
 from iconservice.base.address import Address, AddressPrefix
 from iconservice.base.exception import InvalidPayableException, InvalidInterfaceException, InvalidRequestException
 from iconservice.database.db import IconScoreDatabase
@@ -34,6 +34,7 @@ from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFl
 from iconservice.iconscore.icon_score_context import IconScoreContext
 from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
 from iconservice.iconscore.icx import Icx
+from iconservice.iconscore.system import IconNetworkValueType
 from iconservice.utils import is_builtin_score
 
 from .context import Context, score_mapper, interface_score_mapper, icon_network_value
