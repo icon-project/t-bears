@@ -22,9 +22,10 @@ from iconservice.base.message import Message
 from iconservice.base.transaction import Transaction
 from iconservice.icon_constant import IconScoreContextType, IconScoreFuncType
 from iconservice.iconscore.icon_score_context import IconScoreContext
-from iconservice.iconscore.context.context import ContextGetter
 
 from ..mock.block import Block
+from ..mock.db import MockKeyValueDatabase
+from ..mock.icx_engine import IcxEngine
 from ....libs.icon_integrate_test import create_tx_hash
 
 if TYPE_CHECKING:
@@ -32,6 +33,9 @@ if TYPE_CHECKING:
 
 score_mapper = {}
 interface_score_mapper = {}
+MAIN_NET_REVISION = 8
+context_db = MockKeyValueDatabase.create_db()  # Patch SCORE to use dictionary DB instance of LEVEL DB
+IcxEngine.db = context_db
 icon_network_value = {}
 
 
@@ -49,33 +53,35 @@ def get_icon_score(address: 'Address'):
 
 
 def get_default_context():
-    context = IconScoreContext()
-    block = Block()
-    context.block = block
-    context.icon_score_mapper = score_mapper
-    context.traces = []
-    context.validate_score_blacklist = Mock(return_value=True)
-    context.tx = Transaction()
-    context.msg = Message()
-    context.get_icon_score = get_icon_score
-    context.block_batch = None
-    context.tx_batch = None
-    return context
+    mock_context = Mock(spec=IconScoreContext)
+    mock_context.configure_mock(msg=Message())
+    mock_context.configure_mock(tx=Transaction())
+    mock_context.configure_mock(block=Block())
+    mock_context.configure_mock(step_counter=None)
+    mock_context.configure_mock(type=IconScoreContextType.QUERY)
+    mock_context.configure_mock(func_type=IconScoreFuncType.WRITABLE)
+    mock_context.configure_mock(current_address=None)
+    mock_context.configure_mock(block_batch=None)
+    mock_context.configure_mock(tx_batch=None)
+    mock_context.configure_mock(event_logs=None)
+    mock_context.configure_mock(event_log_stack=[])
+    mock_context.configure_mock(traces=[])
+    mock_context.configure_mock(icon_score_mapper=score_mapper)
+    mock_context.configure_mock(revision=MAIN_NET_REVISION)
+    mock_context.icon_score_mapper = score_mapper
+    mock_context.validate_score_blacklist = Mock(return_value=True)
+    mock_context.get_icon_score = get_icon_score
+    return mock_context
+
+
+def clear_data():
+    IcxEngine.db.close()
+    score_mapper.clear()
+    interface_score_mapper.clear()
 
 
 class Context:
     context = get_default_context()
-
-    @classmethod
-    def initialize_variables(cls, sender: Optional['Address'] = None, value: int = 0,
-                             tx_timestamp: Optional[int] = None, block_height: int = 0,
-                             func_type: 'IconScoreFuncType' = IconScoreFuncType.READONLY,
-                             context_type: 'IconScoreContextType' = IconScoreContextType.QUERY):
-        cls._set_block(cls.context, block_height)
-        cls._set_msg(cls.context, sender, value)
-        cls._set_tx(cls.context, sender, tx_timestamp, None, 0, 0)
-        cls._set_func_type(cls.context, func_type)
-        cls._set_context_type(cls.context, context_type)
 
     @classmethod
     def get_context(cls):
@@ -98,18 +104,18 @@ class Context:
 
     @classmethod
     def set_msg(cls, sender: Optional['Address'] = None, value: int = 0):
-        context = cls.context = ContextGetter._context
+        context = cls.context
         cls._set_msg(context, sender, value)
 
     @classmethod
     def set_tx(cls, origin: Optional['Address'] = None, timestamp: Optional[int] = None, _hash: Optional[bytes] = None,
                index: int = 0, nonce: int = 0):
-        context = cls.context = ContextGetter._context
+        context = cls.context
         cls._set_tx(context, origin, timestamp, _hash, index, nonce)
 
     @classmethod
-    def set_block(cls, height: int=0, timestamp: Optional[int]=None):
-        context = cls.context = ContextGetter._context
+    def set_block(cls, height: int = 0, timestamp: Optional[int] = None):
+        context = cls.context
         cls._set_block(context, height, timestamp)
 
     @staticmethod
@@ -134,12 +140,3 @@ class Context:
         block._height = height
         if timestamp:
             block.timestamp = timestamp
-
-    @staticmethod
-    def _set_func_type(context: 'IconScoreContext', func_type: 'IconScoreFuncType' = IconScoreFuncType.WRITABLE):
-        context.func_type = func_type
-
-    @staticmethod
-    def _set_context_type(context: 'IconScoreContext',
-                          context_type: 'IconScoreContextType' = IconScoreContextType.INVOKE):
-        context.type = context_type

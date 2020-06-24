@@ -20,11 +20,10 @@ from unittest.mock import Mock, patch
 from iconservice import IconScoreBase
 from iconservice.base.address import Address
 from iconservice.base.exception import InvalidRequestException
-from iconservice.iconscore.context.context import ContextGetter
 from iconservice.iconscore.icon_score_base2 import PRepInfo
 
 from .mock.icx_engine import IcxEngine
-from .patch.context import Context, get_icon_score
+from .patch.context import Context, get_icon_score, clear_data
 from .patch.score_patcher import ScorePatcher, create_address, get_interface_score, start_SCORE_APIs_patch
 
 T = TypeVar('T')
@@ -42,8 +41,15 @@ def validate_score_instance(score):
 
 class ScoreTestCase(TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         ScorePatcher.start_patches()
+
+    @classmethod
+    def tearDownClass(cls):
+        ScorePatcher.stop_patches()
+
+    def setUp(self):
         self.genesis_address = create_address()
         self.test_account1 = create_address()
         self.test_account2 = create_address()
@@ -51,11 +57,10 @@ class ScoreTestCase(TestCase):
                         self.test_account1: 10**21,
                         self.test_account2: 10**21}
         ScoreTestCase.initialize_accounts(account_info)
-        Context.initialize_variables()
 
     def tearDown(self):
         Context.reset_context()
-        ScorePatcher.stop_patches()
+        clear_data()
 
     @staticmethod
     def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict = {},
@@ -180,8 +185,9 @@ class ScoreTestCase(TestCase):
         :param amount: amount to transfer
         """
         if to.is_contract:
-            sender = ContextGetter._context.msg.sender
-            value = ContextGetter._context.msg.value
+            context = Context.get_context()
+            sender = context.msg.sender
+            value = context.msg.value
             Context.set_msg(_from, amount)
             score = get_icon_score(to)
             score.fallback()

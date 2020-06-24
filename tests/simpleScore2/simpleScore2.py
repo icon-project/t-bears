@@ -14,6 +14,8 @@ class SimpleScore2(IconScoreBase):
     def __init__(self, db: IconScoreDatabase) -> None:
         super().__init__(db)
         self.value = VarDB("value1", db, value_type=str)
+        self.array = ArrayDB("arrayDB", db, value_type=int)
+        self.dict = DictDB("dictDB", db, value_type=int)
         self.score_address = VarDB("score_address", db, value_type=Address)
 
     @eventlog(indexed=0)
@@ -56,8 +58,40 @@ class SimpleScore2(IconScoreBase):
     @external(readonly=True)
     def getSCOREValue2(self) -> str:
         ret = self.call(self.score_address.get(), "getValue", {})
-
         return ret
+
+    @external
+    def appendValue(self, value: int):
+        self.array.put(value)
+
+    @external(readonly=True)
+    def arrayLength(self) -> int:
+        return len(self.array)
+
+    @external
+    def arraySetItem(self, index: int, value: int):
+        self.array[index] = value
+
+    @external(readonly=True)
+    def arrayGetItem(self, index: int) -> int:
+        return self.array[index]
+
+    @external(readonly=True)
+    def arraySum(self) -> int:
+        # written for testing __iter__
+        return sum(self.array)
+
+    @external
+    def dictSetItem(self, key: int, value: int):
+        self.dict[key] = value
+
+    @external(readonly=True)
+    def dictGetItem(self, key: int) -> int:
+        return self.dict[key]
+
+    @external(readonly=True)
+    def dictContains(self, key: int) -> int:
+        return key in self.dict
 
     @external(readonly=True)
     def write_on_readonly(self) -> str:
@@ -90,7 +124,7 @@ class SimpleScore2(IconScoreBase):
 
     @external
     def send(self, to: Address):
-        print(self.icx.send(to, self.msg.value))
+        self.icx.send(to, self.msg.value)
 
     @external
     def get_owner(self) -> Address:
