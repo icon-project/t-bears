@@ -31,7 +31,7 @@ from tbears.block_manager.channel_service import ChannelService, ChannelTxCreato
 from tbears.block_manager.hash_utils import generate_hash
 from tbears.block_manager.icon_service import IconStub
 from tbears.block_manager.task import Periodic, Immediate
-from tbears.config.tbears_config import ConfigKey, tbears_server_config, keystore_test1
+from tbears.config.tbears_config import TConfigKey, tbears_server_config, keystore_test1
 from tbears.util import create_hash, get_tbears_version
 
 TBEARS_BLOCK_MANAGER = 'tbears_block_manager'
@@ -140,8 +140,8 @@ class BlockManager(object):
         self._block: 'Block' = Block(f'{conf["stateDbRootPath"]}/tbears')
         self._tx_queue = []
         self._prep_manager = PRepManager(
-            is_generator_rotation=self._conf[ConfigKey.BLOCK_GENERATOR_ROTATION],
-            gen_count_per_leader=self._conf[ConfigKey.BLOCK_GENERATE_COUNT_PER_LEADER])
+            is_generator_rotation=self._conf[TConfigKey.BLOCK_GENERATOR_ROTATION],
+            gen_count_per_leader=self._conf[TConfigKey.BLOCK_GENERATE_COUNT_PER_LEADER])
         self._genesis_addr: str = self._conf["genesis"]["accounts"][0]["address"]
         self._test1_addr: str = self._conf["genesis"]["accounts"][2]["address"]
 
@@ -163,9 +163,9 @@ class BlockManager(object):
 
             Logger.info(f'tbears block_manager service started!', TBEARS_BLOCK_MANAGER)
 
-        channel = self._conf[ConfigKey.CHANNEL]
-        amqp_key = self._conf[ConfigKey.AMQP_KEY]
-        amqp_target = self._conf[ConfigKey.AMQP_TARGET]
+        channel = self._conf[TConfigKey.CHANNEL]
+        amqp_key = self._conf[TConfigKey.AMQP_KEY]
+        amqp_target = self._conf[TConfigKey.AMQP_TARGET]
 
         self._channel_mq_name = CHANNEL_QUEUE_NAME_FORMAT.format(channel_name=channel, amqp_key=amqp_key)
         self._tx_creator_mq_name = CHANNEL_TX_CREATOR_QUEUE_NAME_FORMAT.format(channel_name=channel, amqp_key=amqp_key)
@@ -195,7 +195,7 @@ class BlockManager(object):
         await self._init_channel()
         await self._init_tx_creator()
         await self._init_icon()
-        if self._conf[ConfigKey.BLOCK_MANUAL_CONFIRM]:
+        if self._conf[TConfigKey.BLOCK_MANUAL_CONFIRM]:
             await self._init_immediate()
         else:
             await self._init_periodic()
@@ -314,7 +314,7 @@ class BlockManager(object):
         """
         Logger.debug(f'Initialize periodic task started!!', TBEARS_BLOCK_MANAGER)
 
-        self.periodic = Periodic(func=self.process_block_data, interval=self._conf[ConfigKey.BLOCK_CONFIRM_INTERVAL])
+        self.periodic = Periodic(func=self.process_block_data, interval=self._conf[TConfigKey.BLOCK_CONFIRM_INTERVAL])
         await self.periodic.start()
 
         Logger.debug(f'Initialize periodic task done!!', TBEARS_BLOCK_MANAGER)
@@ -342,7 +342,7 @@ class BlockManager(object):
         :param tx: transaction
         :return:
         """
-        if self._conf[ConfigKey.BLOCK_MANUAL_CONFIRM] and self._check_debug_tx(tx):
+        if self._conf[TConfigKey.BLOCK_MANUAL_CONFIRM] and self._check_debug_tx(tx):
             self.immediate.add_func(func=self.process_block_data)
         else:
             tx_copy = deepcopy(tx)
@@ -391,7 +391,7 @@ class BlockManager(object):
         tx_list = self.clear_tx()
 
         if len(tx_list) == 0:
-            if self._conf[ConfigKey.BLOCK_CONFIRM_EMPTY]:
+            if self._conf[TConfigKey.BLOCK_CONFIRM_EMPTY]:
                 Logger.debug(f'Confirm empty block', TBEARS_BLOCK_MANAGER)
             else:
                 Logger.debug(f'There are no transactions for block confirm. Bye~', TBEARS_BLOCK_MANAGER)
@@ -402,7 +402,7 @@ class BlockManager(object):
         block_hash = create_hash(block_timestamp_us.to_bytes(DEFAULT_BYTE_SIZE, DATA_BYTE_ORDER))
 
         # send invoke message to ICON
-        prev_block_timestamp = block_timestamp_us - self._conf.get(ConfigKey.BLOCK_CONFIRM_INTERVAL, 0)
+        prev_block_timestamp = block_timestamp_us - self._conf.get(TConfigKey.BLOCK_CONFIRM_INTERVAL, 0)
         self._prep_manager.set_prev_votes(self.block.block_height, self.block.prev_block_hash,
                                           prev_block_timestamp)
         response = await self._invoke_block(tx_list=tx_list, block_hash=block_hash, block_timestamp=block_timestamp_us)
@@ -583,14 +583,14 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(prog=TBEARS_BLOCK_MANAGER,
                                      description=f'{TBEARS_BLOCK_MANAGER} v{get_tbears_version()} arguments')
-    parser.add_argument('-ch', dest=ConfigKey.CHANNEL, help='Message Queue channel')
-    parser.add_argument('-at', dest=ConfigKey.AMQP_TARGET, help='AMQP target info')
-    parser.add_argument('-ak', dest=ConfigKey.AMQP_KEY,
+    parser.add_argument('-ch', dest=TConfigKey.CHANNEL, help='Message Queue channel')
+    parser.add_argument('-at', dest=TConfigKey.AMQP_TARGET, help='AMQP target info')
+    parser.add_argument('-ak', dest=TConfigKey.AMQP_KEY,
                         help="Key sharing peer group using queue name. \
                         Use it if more than one peer connect to a single MQ")
-    parser.add_argument('-bi', '--block-confirm-interval', dest=ConfigKey.BLOCK_CONFIRM_INTERVAL, type=int,
+    parser.add_argument('-bi', '--block-confirm-interval', dest=TConfigKey.BLOCK_CONFIRM_INTERVAL, type=int,
                         help='Block confirm interval in second')
-    parser.add_argument('-be', '--block-confirm-empty', dest=ConfigKey.BLOCK_CONFIRM_EMPTY, type=bool,
+    parser.add_argument('-be', '--block-confirm-empty', dest=TConfigKey.BLOCK_CONFIRM_EMPTY, type=bool,
                         help='Confirm empty block')
     parser.add_argument('-c', '--config', help='Configuration file path')
 
@@ -621,7 +621,7 @@ def main():
     Logger.load_config(conf)
     Logger.print_config(conf, TBEARS_BLOCK_MANAGER)
 
-    setproctitle.setproctitle(f'{TBEARS_BLOCK_MANAGER}.{conf[ConfigKey.CHANNEL]}.{conf[ConfigKey.AMQP_KEY]}')
+    setproctitle.setproctitle(f'{TBEARS_BLOCK_MANAGER}.{conf[TConfigKey.CHANNEL]}.{conf[TConfigKey.AMQP_KEY]}')
 
     # run block_manager service
     block_manager = BlockManager(conf=conf)

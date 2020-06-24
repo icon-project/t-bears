@@ -1,0 +1,9 @@
+1. run
+    $ python sync.py
+
+2. output
+    - generate tarball file for tbears `sync_mainnet` command
+    $ ls tbears/data/mainnet.tar.gz
+
+3. update revision and governance SCORE configuration
+    - append an entry to sync_list@sync.py

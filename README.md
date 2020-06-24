@@ -58,8 +58,9 @@ This chapter will explain how to install T-Bears on your system.
 ICON SCORE development and execution requires following environments :
 
 * OS: MacOS or Linux
-  * Windows is not supported.
-
+  
+* Windows is not supported.
+  
 * Python
   * Make a virtualenv for Python 3.6.5+ (3.7 is also supported)
   * Check your Python version
@@ -109,7 +110,8 @@ $ source bin/activate
 # Install levelDB
 $ sudo apt-get install libleveldb-dev
 # Install libSecp256k
-$ sudo apt-get install libsecp256k1-dev
+sudo apt-get install libsecp256k1-dev
+
 
 # install RabbitMQ and start service
 $ sudo apt-get install rabbitmq-server
@@ -152,6 +154,8 @@ Available commands:
   command
     start        Start tbears service
     stop         Stop tbears service
+    sync_mainnet
+                 Synchronize revision and governance SCORE with the mainnet
     deploy       Deploy the SCORE
     clear        Clear all SCOREs deployed on tbears service
     test         Run the unittest in the SCORE
@@ -189,7 +193,7 @@ Available commands:
 
 ### T-Bears server commands
 
-Commands that manage the T-Bears server. There are three commands `tbears start`, `tbears stop` and `tbears clear`.
+Commands that manage the T-Bears server. There are three commands `tbears start`, `tbears stop`, `tbears clear` and `tbears sync_mainnet`.
 
 #### tbears start
 
@@ -268,7 +272,28 @@ optional arguments:
 | :-------------- | :------ | :------------------------------ |
 | -h, --help      |         | show this help message and exit |
 
+#### tbears sync_mainnet
 
+**Description**
+
+Synchronize revision and governance SCORE with the mainnet
+
+**Usage**
+
+```bash
+usage: tbears sync_mainnet [-h]
+
+Synchronize revision and governance SCORE with the mainnet
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+**Options**
+
+| shorthand, Name | default | Description                     |
+| :-------------- | :------ | :------------------------------ |
+| -h, --help      |         | show this help message and exit |
 
 ### T-Bears utility commands
 
@@ -342,7 +367,7 @@ optional arguments:
 | :-------------- | :------ | :--------------------------------------- |
 | path            |         | a keystore file path that is to be shown |
 | -h, --help      |         | show this help message and exit          |
-| -p, --password  |         | Keystore file's password                 | 
+| -p, --password  |         | Keystore file's password                 |
 | --private-key   |         | option that whether show privateKey      |
 
 **Examples**
@@ -1458,8 +1483,11 @@ When starting T-Bears (`tbears start`), `tbears_server_config.json` is used t
             }
         ]
     },
-    "blockConfirmInterval": 10,
-    "blockConfirmEmpty": true
+    "blockConfirmInterval": 2,
+    "blockConfirmEmpty": true,
+    "mainPRepCount": 4,
+    "iissCalculatePeriod": 30,
+    "termPeriod": 30
 }
 ```
 
@@ -1493,6 +1521,8 @@ When starting T-Bears (`tbears start`), `tbears_server_config.json` is used t
 | amqpTarget                | string    | amqp target name interact with iconrpcserver and iconservice |
 | blockConfirmInterval      | integer   | Confirm block every N seconds |
 | blockConfirmEmpty         | boolean   | true &#124; false. Confirm empty block when enabled              |
+| mainPRepCount             | integer   | IISS main P-Rep count |
+| termPeriod                | integer   | Term of main P-Rep |
 
 #### tbears_cli_config.json
 
