@@ -13,14 +13,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TypeVar, Type, Optional
+from typing import TypeVar, Type, Optional, List
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from iconservice import IconScoreBase
 from iconservice.base.address import Address
 from iconservice.base.exception import InvalidRequestException
-from iconservice.iconscore.icon_score_context import ContextGetter
+from iconservice.iconscore.context.context import ContextGetter
+from iconservice.iconscore.icon_score_base2 import PRepInfo
 
 from .mock.icx_engine import IcxEngine
 from .patch.context import Context, get_icon_score
@@ -32,6 +33,11 @@ T = TypeVar('T')
 def validate_score(score):
     if issubclass(score, IconScoreBase) is False:
         raise InvalidRequestException(f"{score.__name__} is invalid SCORE class")
+
+
+def validate_score_instance(score):
+    if isinstance(score, IconScoreBase) is False:
+        raise InvalidRequestException(f"{score.__name__} is invalid SCORE")
 
 
 class ScoreTestCase(TestCase):
@@ -52,16 +58,18 @@ class ScoreTestCase(TestCase):
         ScorePatcher.stop_patches()
 
     @staticmethod
-    def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict = {}) -> T:
+    def get_score_instance(score_class: Type[T], owner: 'Address', on_install_params: dict = {},
+                           score_address: Optional[Address] = None) -> T:
         """Get an instance of the SCORE class passed as an score_class arguments
 
         :param score_class: SCORE class to instantiate
         :param owner: Address to set as owner of SCORE
         :param on_install_params: To be passed to the SCORE on_install method
+        :param score_address: score address
         :return: Initialized SCORE
         """
         validate_score(score_class)
-        score_db = ScorePatcher.get_score_db()
+        score_db = ScorePatcher.get_score_db(score_address)
         score = ScorePatcher.initialize_score(score_class, score_db, owner)
         setattr(score, "call", Mock())
         score.on_install(**on_install_params)
@@ -198,3 +206,21 @@ class ScoreTestCase(TestCase):
         """
         for account, amount in accounts_info.items():
             IcxEngine.db.put(None, account.to_bytes(), amount)
+
+    @staticmethod
+    def patch_main_preps(score, prep_info_list: List[PRepInfo], term_end_block: int):
+        validate_score_instance(score)
+        patch(f"{score.__module__}.get_main_prep_info", return_value=(prep_info_list, term_end_block)).start()
+
+    @staticmethod
+    def patch_sub_preps(score, prep_info_list: List[PRepInfo], term_end_block: int):
+        validate_score_instance(score)
+        patch(f"{score.__module__}.get_sub_prep_info", return_value=(prep_info_list, term_end_block)).start()
+
+    @staticmethod
+    def create_preps_info(prep_count: int):
+        preps = []
+        for index in range(prep_count):
+            PRepInfo(create_address(), 0, f"PREP{index}")
+            preps.append(PRepInfo)
+        return preps
