@@ -3,7 +3,6 @@
     "port": 9000,
     "scoreRootPath": "./.score",
     "stateDbRootPath": "./.statedb",
-    "builtinScoreOwner": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
     "log": {
         "logger": "tbears",
         "level": "info",
@@ -17,10 +16,11 @@
         }
     },
     "service": {
-        "fee": true,
+        "fee": false,
         "audit": false,
         "deployerWhiteList": false
     },
+    "builtinScoreOwner": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
     "genesis": {
         "nid": "0x3",
         "accounts": [
@@ -41,9 +41,13 @@
             }
         ]
     },
-    "blockConfirmInterval": 2,
+    "blockConfirmInterval": 1,
     "blockConfirmEmpty": true,
-    "mainPRepCount": 4,
-    "iissCalculatePeriod": 30,
-    "termPeriod": 30 
+    "blockGeneratorRotation": true,
+    "blockGenerateCountPerLeader": 10,
+    "blockManualConfirm": false,
+    "networkDelayMs": 500,
+    "iissCalculatePeriod": 5,
+    "termPeriod": 5,
+    "mainPRepCount": 4
 }

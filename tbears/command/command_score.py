@@ -221,7 +221,7 @@ class CommandScore(object):
             if conf.get('to', None) is None:
                 raise TBearsCommandException(f'If you want to update SCORE, set --to option')
             elif not is_icon_address_valid(conf['to']):
-                raise TBearsCommandException(f"You entered invalid 'to' address '{conf['to']}")
+                raise TBearsCommandException(f"You entered invalid 'to' address '{conf['to']}'")
 
         # check project directory
         check_project(conf.get('project', ""))

@@ -10,6 +10,8 @@ if version is None:
     with open(os.path.join('.', 'VERSION')) as version_file:
         version = version_file.read().strip()
 
+package_data = {'tbears': ['data/mainnet.tar.gz']}
+
 setup_options = {
     'name': 'tbears',
     'version': version,
@@ -20,6 +22,7 @@ setup_options = {
     'author': 'ICON Foundation',
     'author_email': 'foo@icon.foundation',
     'packages': find_packages(exclude=['tests*', 'docs']),
+    'package_data': package_data,
     'include_package_data': True,
     'py_modules': ['tbears'],
     'license': "Apache License 2.0",
