@@ -78,7 +78,6 @@ ICON SCORE development and execution requires following environments :
 | name        | description                                                  | github                                                       |
 | ----------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | LevelDB     | ICON SCORE uses levelDB to store its states.                 | [LevelDB GitHub](https://github.com/google/leveldb)          |
-| libsecp256k1 | ICON SCORE uses secp256k1 to sign and validate a digital signature. | [secp256k1 GitHub](https://github.com/bitcoin-core/secp256k1) |
 
 ### Setup on MacOS
 
@@ -109,8 +108,6 @@ $ source bin/activate
 ```bash
 # Install levelDB
 $ sudo apt-get install libleveldb-dev
-# Install libSecp256k
-$ sudo apt-get install libsecp256k1-dev
 
 # install RabbitMQ and start service
 $ sudo apt-get install rabbitmq-server
@@ -302,7 +299,7 @@ Commands that generate configuration file and keystore file.
 
 **Description**
 
-Create a keystore file in the given path. Generate a private and public key pair using secp256k1 library.
+Create a keystore file in the given path. Generate a private and public key pair
 
 **Usage**
 
@@ -310,7 +307,7 @@ Create a keystore file in the given path. Generate a private and public key pair
 usage: tbears keystore [-h] [-p PASSWORD] path
 
 Create keystore file in the specified path. Generate privatekey, publickey
-pair using secp256k1 library.
+pair
 
 positional arguments:
   path                  Path of keystore file.

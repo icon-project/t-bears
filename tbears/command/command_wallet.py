@@ -130,7 +130,7 @@ class CommandWallet:
         parser = subparsers.add_parser('keystore',
                                        help='Create a keystore file in the specified path',
                                        description='Create keystore file in the specified path. Generate privatekey, '
-                                                   'publickey pair using secp256k1 library.')
+                                                   'publickey pair.')
         parser.add_argument('path', type=IconPath('w'), help='Path of keystore file.')
         parser.add_argument('-p', '--password', help='Keystore file\'s password', dest='password')
 

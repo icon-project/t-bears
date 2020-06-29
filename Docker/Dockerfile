@@ -17,7 +17,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     libc-dev \
     pkg-config \
-    libsecp256k1-dev \
     rabbitmq-server \
     vim-tiny \
     lsof \

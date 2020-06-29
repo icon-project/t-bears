@@ -15,9 +15,7 @@
 import hashlib
 
 from iconcommons import Logger
-from secp256k1 import PublicKey, ALL_FLAGS
-
-_public_key = PublicKey(flags=ALL_FLAGS)
+from coincurve import PublicKey
 
 
 def address_from_pubkey(pubkey: bytes):
@@ -31,19 +29,17 @@ def verify_signature(msg_hash: bytes, signature: bytes, sender: str) -> bool:
             and isinstance(signature, bytes) \
             and len(signature) == 65:
 
-        origin_sig, rec_id = signature[:-1], signature[-1]
-        recoverable_sig = _public_key.ecdsa_recoverable_deserialize(origin_sig, rec_id)
-        internal_pubkey = _public_key.ecdsa_recover(msg_hash,
-                                                    recoverable_sig,
-                                                    raw=True, digest=None)
-        public_key = PublicKey(internal_pubkey,
-                               raw=False,
-                               ctx=_public_key.ctx).serialize(compressed=False)
+        public_key = PublicKey.from_signature_and_message(
+            serialized_sig=signature,
+            message=msg_hash,
+            hasher=None
+        )
 
-        address: str = address_from_pubkey(public_key)
-        Logger.info(f'Expected address={sender}', "verify_signature")
-        Logger.info(f'Signed address={address}', "verify_signature")
+        address: str = address_from_pubkey(public_key.format(compressed=False))
         if address == sender:
             return True
+
+        Logger.info(f'Expected address={sender}', "verify_signature")
+        Logger.info(f'Signed address={address}', "verify_signature")
 
     return False
