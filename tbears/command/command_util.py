@@ -17,10 +17,11 @@ import os
 
 import IPython
 from iconcommons.logger.logger import Logger
+from iconsdk.wallet.wallet import KeyWallet
 
 from tbears.config.tbears_config import (
-    FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config, make_server_config, FN_KEYSTORE_TEST1,
-    keystore_test1, TBEARS_CLI_TAG
+    TConfigKey, FN_SERVER_CONF, FN_CLI_CONF, tbears_server_config, tbears_cli_config, make_server_config,
+    FN_KEYSTORE_TEST1, keystore_test1, TBEARS_CLI_TAG, TEST_ACCOUNTS
 )
 from tbears.tbears_exception import TBearsCommandException
 from tbears.util import (
@@ -54,9 +55,9 @@ class CommandUtil(object):
     @staticmethod
     def _add_genconf_parser(subparser):
         subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_SERVER_CONF[2:]}, {FN_CLI_CONF[2:]} '
-                                             f'and {FN_KEYSTORE_TEST1[2:]})',
+                                             f'and {FN_KEYSTORE_TEST1})',
                              description=f'Generate tbears config files. ({FN_SERVER_CONF[2:]}, {FN_CLI_CONF[2:]} '
-                                         f'and {FN_KEYSTORE_TEST1[2:]})')
+                                         f'and {FN_KEYSTORE_TEST1})')
 
     @staticmethod
     def _add_console_parser(subparsers):
@@ -97,7 +98,8 @@ class CommandUtil(object):
         print("You can check out and download the sample SCORE at https://github.com/icon-project/samples")
 
     def genconf(self, _conf: dict):
-        """Generate tbears config files. (tbears_server_config.json, tbears_cli_config.json, keystore_test1)"""
+        """ Generate tbears config files. (tbears_server_config.json, tbears_cli_config.json and keystore files)
+        """
         result = self.__gen_conf_file()
 
         if result:
@@ -150,9 +152,22 @@ class CommandUtil(object):
             server_config_json = make_server_config(tbears_server_config)
             write_file('./', FN_SERVER_CONF, json.dumps(server_config_json, indent=4))
 
-        if os.path.exists(FN_KEYSTORE_TEST1) is False:
-            result.append(FN_KEYSTORE_TEST1[2:])
-            write_file('./', FN_KEYSTORE_TEST1, json.dumps(keystore_test1, indent=4))
+        # mkdir keystore
+        keystore_dir = "./keystore"
+        if os.path.exists(keystore_dir) is False:
+            os.mkdir(keystore_dir)
+
+        # gen keystore files
+        write_file(keystore_dir, FN_KEYSTORE_TEST1, json.dumps(keystore_test1, indent=4))
+
+        # keystore file for main P-Rep
+        main_prep_count = tbears_server_config.get(TConfigKey.PREP_MAIN_PREPS, 0)
+        for i, prep in enumerate(TEST_ACCOUNTS[:main_prep_count]):
+            wallet = KeyWallet.load(prep)
+            wallet.store(file_path=os.path.join(keystore_dir, f"prep{i}_keystore"),
+                         password=f"prep{i}_Account")
+
+        result.append(keystore_dir + "/*")
 
         return result
 

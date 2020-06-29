@@ -27,8 +27,9 @@ from iconcommons.icon_config import IconConfig
 from iconcommons.logger import Logger
 
 from tbears.block_manager.block_manager import TBEARS_BLOCK_MANAGER
-from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, ConfigKey, TBEARS_CLI_TAG
+from tbears.config.tbears_config import FN_SERVER_CONF, tbears_server_config, TConfigKey, TBEARS_CLI_TAG
 from tbears.tbears_exception import TBearsCommandException, TBearsWriteFileException
+from tbears.tools.mainnet.sync import Sync
 from tbears.util import write_file
 from tbears.util.argparse_type import port_type, IconPath
 
@@ -40,6 +41,7 @@ class CommandServer(object):
     def __init__(self, subparsers):
         self._add_start_parser(subparsers)
         self._add_stop_parser(subparsers)
+        self._add_sync_mainnet_parser(subparsers)
 
     @staticmethod
     def _add_start_parser(subparsers) -> None:
@@ -54,6 +56,11 @@ class CommandServer(object):
     def _add_stop_parser(subparsers) -> None:
         subparsers.add_parser('stop', help='Stop tbears service',
                               description='Stop all running SCOREs and tbears service')
+
+    @staticmethod
+    def _add_sync_mainnet_parser(subparsers) -> None:
+        parser = subparsers.add_parser('sync_mainnet', help='Synchronize revision and governance SCORE with the mainnet',
+                                       description='Synchronize revision and governance SCORE with the mainnet')
 
     def run(self, args):
         if not hasattr(self, args.command):
@@ -134,6 +141,9 @@ class CommandServer(object):
 
         print(f'Started tbears service successfully')
 
+        if self._check_revision() < 0:
+            print(f"WARNING: Too low revision. To sync with the mainnet, run sync_mainnet command.")
+
     def stop(self, _conf: dict):
         """ Stop tbears service
         Start iconservice, tbears_block_manager, iconrpcserver
@@ -157,6 +167,22 @@ class CommandServer(object):
 
         print(f'Stopped tbears service successfully')
 
+    def sync_mainnet(self, _conf: dict):
+        """ Sync revision and governance SCORE with the mainnet
+
+        :param conf:
+        :return: None
+        """
+        if self.get_server_conf() is not None or self.is_service_running():
+            raise TBearsCommandException(f'You must stop T-Bears service and clear SCORE to run sync_mainnet command')
+
+        # copy mainnet DB
+        dir_path = os.path.abspath(os.path.dirname(__file__))
+        path = os.path.join(dir_path, f"../data/mainnet.tar.gz")
+        subprocess.run(['tar', 'xzvf', path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        print(f'Synchronized successfully revision and governance SCORE with the mainnet')
+
     def check_command(self, command):
         return hasattr(self, command)
 
@@ -171,9 +197,9 @@ class CommandServer(object):
     @staticmethod
     def _start_blockmanager(conf: dict):
         # make params
-        params = {'-ch': conf.get(ConfigKey.CHANNEL, None),
-                  '-at': conf.get(ConfigKey.AMQP_TARGET, None),
-                  '-ak': conf.get(ConfigKey.AMQP_KEY, None),
+        params = {'-ch': conf.get(TConfigKey.CHANNEL, None),
+                  '-at': conf.get(TConfigKey.AMQP_TARGET, None),
+                  '-ak': conf.get(TConfigKey.AMQP_KEY, None),
                   '-c': conf.get('config', None)}
 
         custom_argv = []
@@ -231,9 +257,9 @@ class CommandServer(object):
             "port": conf['port'],
             "scoreRootPath": conf['scoreRootPath'],
             "stateDbRootPath": conf['stateDbRootPath'],
-            ConfigKey.CHANNEL: conf.get(ConfigKey.CHANNEL, None),           # to stop iconservice
-            ConfigKey.AMQP_TARGET: conf.get(ConfigKey.AMQP_TARGET, None),   # to stop iconservice
-            ConfigKey.AMQP_KEY: conf.get(ConfigKey.AMQP_KEY, None)          # to stop iconservice
+            TConfigKey.CHANNEL: conf.get(TConfigKey.CHANNEL, None),           # to stop iconservice
+            TConfigKey.AMQP_TARGET: conf.get(TConfigKey.AMQP_TARGET, None),   # to stop iconservice
+            TConfigKey.AMQP_KEY: conf.get(TConfigKey.AMQP_KEY, None)          # to stop iconservice
         }
         Logger.debug(f"Write server Info.({conf}) to {TBEARS_CLI_ENV}", TBEARS_CLI_TAG)
         file_path = TBEARS_CLI_ENV
@@ -263,3 +289,8 @@ class CommandServer(object):
     def _delete_server_conf() -> None:
         if os.path.exists(TBEARS_CLI_ENV):
             os.remove(TBEARS_CLI_ENV)
+
+    @staticmethod
+    def _check_revision() -> int:
+        sync = Sync()
+        return sync.check_revision()
