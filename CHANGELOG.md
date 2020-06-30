@@ -1,5 +1,12 @@
 # ChangeLog - T-Bears
 
+## 1.7.0 - 2020-06-29
+* Add 'sync_mainnet' command
+    * sync revision and governance SCORE with the mainnet
+    * makes 4 main P-Reps to make decentralized network
+* Substitute 'coincurve' for 'secp256k1'
+* `genconf` command makes keystore files for 4 main P-Reps
+
 ## 1.6.4 - 2020-06-05
 * Fix deploy command (#70)
 

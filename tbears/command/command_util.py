@@ -54,10 +54,8 @@ class CommandUtil(object):
 
     @staticmethod
     def _add_genconf_parser(subparser):
-        subparser.add_parser('genconf', help=f'Generate tbears config files. ({FN_SERVER_CONF[2:]}, {FN_CLI_CONF[2:]} '
-                                             f'and {FN_KEYSTORE_TEST1})',
-                             description=f'Generate tbears config files. ({FN_SERVER_CONF[2:]}, {FN_CLI_CONF[2:]} '
-                                         f'and {FN_KEYSTORE_TEST1})')
+        subparser.add_parser('genconf', help=f'Generate tbears config files and keystore files.',
+                             description=f'Generate tbears config files and keystore files.')
 
     @staticmethod
     def _add_console_parser(subparsers):
@@ -98,7 +96,7 @@ class CommandUtil(object):
         print("You can check out and download the sample SCORE at https://github.com/icon-project/samples")
 
     def genconf(self, _conf: dict):
-        """ Generate tbears config files. (tbears_server_config.json, tbears_cli_config.json and keystore files)
+        """ Generate tbears config files and keystore files.
         """
         result = self.__gen_conf_file()
 

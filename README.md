@@ -58,8 +58,7 @@ This chapter will explain how to install T-Bears on your system.
 ICON SCORE development and execution requires following environments :
 
 * OS: MacOS or Linux
-  
-* Windows is not supported.
+  * Windows is not supported.
   
 * Python
   * Make a virtualenv for Python 3.6.5+ (3.7 is also supported)
@@ -389,12 +388,12 @@ Input your keystore password:
 
 **Description**
 
-Generate T-Bears config files. ("tbears_cli_config.json", "tbears_server_config.json", "keystore_test1")
+Generate T-Bears config files and keystore files.
 
 ```bash
 usage: tbears genconf [-h]
 
-Generate T-Bears config files. (tbears_server_config.json, tbears_cli_config.json, keystore_test1)
+Generate T-Bears config files and keystore files.
 
 optional arguments:
   -h, --help  show this help message and exit
@@ -410,7 +409,7 @@ optional arguments:
 
 ```bash
 (work) $ tbears genconf
-Made tbears_cli_config.json, tbears_server_config.json, keystore_test1 successfully
+Made tbears_cli_config.json, tbears_server_config.json, ./keystore/* successfully
 ```
 
 
@@ -464,7 +463,7 @@ __init__.py  hello.py  package.json  tests
 | :------------------------- | :----------------------------------------------------------- |
 | tbears_server_config.json  | T-Bears default configuration file will be created on the working directory. |
 | tbears_cli_config.json     | Configuration file for CLI commands will be created on the working directory. |
-| keystore_test1             | Keystore file for test account will be created on the working directory. |
+| keystore/*                 | Keystore file for test account and P-Reps. |
 | \<project>                 | SCORE project name. Project directory is created with the same name. |
 | \<project>/\_\_init\_\_.py | \_\_init\_\_.py file to make the project directory recognized as a python package. |
 | \<project>/package.json    | Contains the information needed when SCORE is loaded. <br> "main_module" and "main_class" should be specified. |
@@ -1568,37 +1567,17 @@ Following CLI commands and options can be defined in the configuration file.
 | txresult<br>balance<br>totalsupply<br>scoreapi<br>txbyhash<br>lastblock<br>blockbyhash<br>blockbyheight<br>call<br>| uri |
 
 
-#### keystore_test1
+#### keystore files
 
-Keystore file for the test account. Password of this keystore file is `test1_Account`.
-You can find the test account 'test1' in `tbears_server_config.json` and this test account has enough balance to test on local environment.
+* keystore_test1
+  Keystore file for the test account. Password of this keystore file is `test1_Account`.
+  You can find the test account 'test1' in `tbears_server_config.json` and this test account has enough balance to test on local environment.
 
-**Do not transfer any ICX or tokens to 'test1' account.**
+  **Do not transfer any ICX or tokens to 'test1' account.**
 
-```json
-{
-    "address": "hxe7af5fcfd8dfc67530a01a0e403882687528dfcb",
-    "crypto": {
-        "cipher": "aes-128-ctr",
-        "cipherparams": {
-            "iv": "dc0762c56ca56cd06038df5051c9e23e"
-        },
-        "ciphertext": "7cc40efac0b14eaf56f951c9c9620f9f34bac548175e85052aa9f753423dc984",
-        "kdf": "scrypt",
-        "kdfparams": {
-            "dklen": 32,
-            "n": 16384,
-            "r": 1,
-            "p": 8,
-            "salt": "380c00457be5fd1c244f5745c322b21f"
-        },
-        "mac": "157dda6fb7092df62ff93411bed54e5a64dbf06c1aae3b375d356061a9c3dfd1"
-    },
-    "id": "e2ca66c6-b8de-4413-82cb-52c2a2200b8d",
-    "version": 3,
-    "coinType": "icx"
-}
-```
+* prepN_keystore
+  Keystore files for the main P-Rep. Password of these keystore files are `prepN_Account`.
+  `sync_mainnet` command makes 4 main P-Reps and you can manage these 4 main P-Rep accounts with prepN_keystore files.
 
 ## References
 - [ICON JSON-RPC API v3](https://github.com/icon-project/icon-rpc-server/blob/master/docs/icon-json-rpc-v3.md)
