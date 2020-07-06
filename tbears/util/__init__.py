@@ -89,8 +89,12 @@ class TestTest(IconIntegrateTestBase):
     def setUp(self):
         super().setUp()
 
+        # WARNING: ICON service emulation is not working with IISS.
+        # You can stake and delegate but can't get any I-Score for reward.
+        # If you want to test IISS stuff correctly, set self.icon_service and send requests to the network
         self.icon_service = None
-        # if you want to send request to network, uncomment next line and set self.TEST_HTTP_ENDPOINT_URI_V3
+        
+        # If you want to send requests to the network, uncomment next line and set self.TEST_HTTP_ENDPOINT_URI_V3
         # self.icon_service = IconService(HTTPProvider(self.TEST_HTTP_ENDPOINT_URI_V3))
 
         # install SCORE

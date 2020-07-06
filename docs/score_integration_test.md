@@ -64,6 +64,8 @@ signed_transaction = SignedTransaction(transaction, self._test)
 
 
 #### IconIntegrateTestBase in T-Bears
+> :warning: **WARNING**: ICON Service emulation is not working with IISS. You can stake and delegate but can't get any I-Score for reward.
+> If you want to test IISS stuff correctly, set IconIntegrateTestBase.icon_service and send requests to the network.
 
 Every SCORE integration test class must inherit `IconIntegrateTestBase`.
 
@@ -75,7 +77,6 @@ IconIntegrateTestBase class provides three functions
    2. You can initalize and finalize the test by override setUp and tearDown method
 
 2. Emulate ICON service for test
-
    1. Initialize ICON service and confirm genesis block
    2. Create accounts for test
       1. self._test1 : Account with 1,000,000 ICX
@@ -119,7 +120,7 @@ class ScoreTest(IconScoreBase):
         return "Hello"
 ```
 
-#### score_tests/test_score_test.py
+#### score_tests/test_integrate_score_test.py
 
 ```python
 import os
@@ -133,15 +134,19 @@ from tbears.libs.icon_integrate_test import IconIntegrateTestBase, SCORE_INSTALL
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
-class TestTest(IconIntegrateTestBase):
+class TestScoreTest(IconIntegrateTestBase):
     TEST_HTTP_ENDPOINT_URI_V3 = "http://127.0.0.1:9000/api/v3"
     SCORE_PROJECT= os.path.abspath(os.path.join(DIR_PATH, '..'))
 
     def setUp(self):
         super().setUp()
-
+        
+        # WARNING: ICON service emulation is not working with IISS.
+        # You can stake and delegate but can't get any I-Score for reward.
+        # If you want to test IISS stuff correctly, set self.icon_service and send requests to the network.
         self.icon_service = None
-        # if you want to send request to network, uncomment next line and set self.TEST_HTTP_ENDPOINT_URI_V3
+
+        # If you want to send requests to the network, uncomment next line and set self.TEST_HTTP_ENDPOINT_URI_V3
         # self.icon_service = IconService(HTTPProvider(self.TEST_HTTP_ENDPOINT_URI_V3))
 
         # install SCORE
