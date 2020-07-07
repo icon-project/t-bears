@@ -29,11 +29,12 @@ from iconservice.base.exception import InvalidPayableException, InvalidInterface
 from iconservice.database.db import IconScoreDatabase
 from iconservice.icon_constant import IconScoreFuncType, IconScoreContextType
 from iconservice.iconscore.icon_score_base2 import _create_address_with_key, _recover_key
-from iconservice.iconscore.icon_score_constant import CONST_BIT_FLAG, ConstBitFlag, FORMAT_IS_NOT_DERIVED_OF_OBJECT
+from iconservice.iconscore.icon_score_constant import FORMAT_IS_NOT_DERIVED_OF_OBJECT, ScoreFlag
 from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
 from iconservice.iconscore.icx import Icx
 from iconservice.iconscore.system import IconNetworkValueType
-from iconservice.utils import is_builtin_score
+from iconservice.iconscore.typing.element import get_score_flag
+from iconservice.utils import is_builtin_score, is_any_flag_on
 
 from .context import Context, score_mapper, interface_score_mapper, context_db, icon_network_value
 from ..mock.icx_engine import IcxEngine
@@ -102,19 +103,19 @@ def patch_score_method(method):
     @wraps(method)
     def patched(*args, **kwargs):
         context: 'Mock' = Context.get_context()
-        method_flag = getattr(method, CONST_BIT_FLAG, 0)
-        score_class, method_name = method.__qualname__.split('.')
+        method_flag = get_score_flag(method)
+        _, method_name = method.__qualname__.split('.')
         context.current_address = method.__self__.address
 
         if method_name == 'fallback':
-            if not (method_flag & ConstBitFlag.Payable) and context.msg.value > 0:
+            if not (method_flag & ScoreFlag.PAYABLE) and context.msg.value > 0:
                 raise InvalidPayableException(f"This method is not payable")
 
-        if method_flag & ConstBitFlag.ReadOnly == ConstBitFlag.ReadOnly:
+        if method_flag & ScoreFlag.READONLY == ScoreFlag.READONLY:
             Context._set_query_context(context)
         else:
             Context._set_invoke_context(context)
-        if method_flag & ConstBitFlag.Payable:
+        if method_flag & ScoreFlag.PAYABLE:
             IcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
 
         context.readonly = context.type == IconScoreContextType.QUERY or context.func_type == IconScoreFuncType.READONLY
@@ -201,7 +202,9 @@ class ScorePatcher:
         custom_methods = ScorePatcher._get_custom_methods(score)
         methods = set()
         for method in custom_methods:
-            if getattr(method, CONST_BIT_FLAG, 0) in (0, 1, 2, 3, 4) or method.__name__ in ('on_install', 'on_update'):
+            flag = get_score_flag(method)
+            if is_any_flag_on(flag, ScoreFlag.FUNC | ScoreFlag.EVENTLOG) or \
+                    method.__name__ in ("on_install", "on_update"):
                 methods.add(method)
 
         methods.add(getattr(score, 'fallback'))
@@ -247,7 +250,8 @@ class ScorePatcher:
         """
         custom_methods = ScorePatcher._get_custom_methods(score.__class__)
         for method in custom_methods:
-            if getattr(method, CONST_BIT_FLAG, 0) == ConstBitFlag.EventLog:
+            flag = get_score_flag(method)
+            if flag == ScoreFlag.EVENTLOG:
                 setattr(score, method.__name__, Mock())
 
     @staticmethod
