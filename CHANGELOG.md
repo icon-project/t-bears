@@ -1,5 +1,9 @@
 # ChangeLog - T-Bears
 
+## 1.7.1 - 2020-08-10
+* Fix `sync_mainnet` command
+    * Fix invalid governance SCORE 1.1.1
+
 ## 1.7.0 - 2020-07-07
 * Add `sync_mainnet` command
     * sync revision and governance SCORE with the mainnet
