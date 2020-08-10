@@ -111,14 +111,14 @@ sync_list = [
     {
         "type": SyncType.GOVERNANCE_SCORE,
         "params": {
-            "version": "1.1.0"
+            "version": "1.1.1"
         }
     },
     {
         "type": SyncType.REVISION,
         "params": {
             "code": "0x9",
-            "name": "1.7.0"
+            "name": "1.7.3"
         }
     },
 ]
