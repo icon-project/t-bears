@@ -28,6 +28,7 @@ setup_options = {
     'license': "Apache License 2.0",
     'install_requires': requires,
     'test_suite': 'tests',
+    'python_requires': '>=3.7, <3.8',
     'entry_points': {
         'console_scripts': [
             'tbears=tbears:main'
@@ -39,7 +40,6 @@ setup_options = {
         'Intended Audience :: System Administrators',
         'Natural Language :: English',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'
     ]
 }
