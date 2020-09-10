@@ -119,8 +119,8 @@ class ChannelInnerTask(object):
 class ChannelService(MessageQueueService[ChannelInnerTask]):
     TaskType = ChannelInnerTask
 
-    def _callback_connection_lost_callback(self, connection: 'RobustConnection'):
-        Logger.error(f'ChannelService lost message queue connection', 'tbears_block_manager')
+    def _callback_connection_close(self, exc: Exception):
+        Logger.error(f'[ChannelService] close message queue connection. {exc}', 'tbears_block_manager')
         self._task._block_manager.close()
 
 
@@ -172,6 +172,6 @@ class ChannelTxCreatorInnerTask(object):
 class ChannelTxCreatorService(MessageQueueService[ChannelTxCreatorInnerTask]):
     TaskType = ChannelTxCreatorInnerTask
 
-    def _callback_connection_lost_callback(self, connection: 'RobustConnection'):
-        Logger.error(f'ChannelTxCreatorService lost message queue connection', 'tbears_block_manager')
+    def _callback_connection_close(self, exc: Exception):
+        Logger.error(f'[ChannelTxCreatorService] close message queue connection. {exc}', 'tbears_block_manager')
         self._task._block_manager.close()
