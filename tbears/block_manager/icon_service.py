@@ -54,6 +54,6 @@ class IconScoreInnerTask(object):
 class IconStub(MessageQueueStub[IconScoreInnerTask]):
     TaskType = IconScoreInnerTask
 
-    def _callback_connection_lost_callback(self, connection: 'RobustConnection'):
-        Logger.error(f'IconStub lost message queue connection', 'tbears_block_manager')
+    def _callback_connection_close(self, connection: 'RobustConnection'):
+        Logger.error(f'[IconStub] close message queue connection', 'tbears_block_manager')
         self._task._block_manager.close()
