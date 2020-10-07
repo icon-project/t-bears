@@ -136,3 +136,8 @@ class SimpleScore2(IconScoreBase):
 
     def _setValue(self, value: str):
         self.value.set(value)
+
+    def general_method(self) -> str:
+        value = self.getValue()
+        self.setValue(value * 2)
+        return value

@@ -169,3 +169,9 @@ class TestSimple(ScoreTestCase):
         self.assertEqual(self.score2.getValue(), 'value')
         self.score2._setValue('value2')
         self.assertEqual(self.score2.getValue(), 'value2')
+
+    def test_general_method(self):
+        # test for context properly set after readonly method called
+        self.score2.setValue("value")
+        self.score2.general_method()
+        self.assertEqual("value"*2, self.score2.getValue())

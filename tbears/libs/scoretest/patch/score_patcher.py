@@ -110,7 +110,7 @@ def patch_score_method(method):
             if not (method_flag & ScoreFlag.PAYABLE) and context.msg.value > 0:
                 raise InvalidPayableException(f"This method is not payable")
 
-        if method_flag & ScoreFlag.READONLY == ScoreFlag.READONLY:
+        if method_flag & ScoreFlag.READONLY:
             Context._set_query_context(context)
         elif method_flag is not ScoreFlag.NONE or method_name in ("on_install", "on_update"):
             Context._set_invoke_context(context)
@@ -118,8 +118,10 @@ def patch_score_method(method):
             IcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
 
         result = method(*args, **kwargs)
-        # set context to `invoke context` after method called(for general method. general method can write value)
-        Context._set_invoke_context(context)
+        if method_flag & ScoreFlag.READONLY:
+            # set context to `invoke context` after readonly method called
+            # for general method. general method can write value
+            Context._set_invoke_context(context)
         return result
 
     return patched
