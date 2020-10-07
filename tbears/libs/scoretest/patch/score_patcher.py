@@ -27,7 +27,6 @@ from iconservice import InterfaceScore
 from iconservice.base.address import Address, AddressPrefix
 from iconservice.base.exception import InvalidPayableException, InvalidInterfaceException, InvalidRequestException
 from iconservice.database.db import IconScoreDatabase
-from iconservice.icon_constant import IconScoreFuncType, IconScoreContextType
 from iconservice.iconscore.icon_score_base2 import _create_address_with_key, _recover_key
 from iconservice.iconscore.icon_score_constant import FORMAT_IS_NOT_DERIVED_OF_OBJECT, ScoreFlag
 from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
@@ -113,14 +112,14 @@ def patch_score_method(method):
 
         if method_flag & ScoreFlag.READONLY == ScoreFlag.READONLY:
             Context._set_query_context(context)
-        else:
+        elif method_flag is not ScoreFlag.NONE or method_name in ("on_install", "on_update"):
             Context._set_invoke_context(context)
         if method_flag & ScoreFlag.PAYABLE:
             IcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
 
-        context.readonly = context.type == IconScoreContextType.QUERY or context.func_type == IconScoreFuncType.READONLY
-
         result = method(*args, **kwargs)
+        # set context to `invoke context` after method called(for general method. general method can write value)
+        Context._set_invoke_context(context)
         return result
 
     return patched
@@ -203,8 +202,7 @@ class ScorePatcher:
         methods = set()
         for method in custom_methods:
             flag = get_score_flag(method)
-            if is_any_flag_on(flag, ScoreFlag.FUNC | ScoreFlag.EVENTLOG) or \
-                    method.__name__ in ("on_install", "on_update"):
+            if flag is ScoreFlag.NONE or is_any_flag_on(flag, ScoreFlag.FUNC):
                 methods.add(method)
 
         methods.add(getattr(score, 'fallback'))

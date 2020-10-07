@@ -164,3 +164,8 @@ class TestSimple(ScoreTestCase):
         self.set_msg(self.test_account1, 123123)
         self.score2.send(self.test_account3)
 
+    def test_put_on_general_method(self):
+        self.score2._setValue('value')
+        self.assertEqual(self.score2.getValue(), 'value')
+        self.score2._setValue('value2')
+        self.assertEqual(self.score2.getValue(), 'value2')

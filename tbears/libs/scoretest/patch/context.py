@@ -96,11 +96,13 @@ class Context:
         context.type = IconScoreContextType.INVOKE
         context.event_logs = []
         context.func_type = IconScoreFuncType.WRITABLE
+        context.readonly = False
 
     @staticmethod
     def _set_query_context(context):
         context.type = IconScoreContextType.QUERY
         context.func_type = IconScoreFuncType.READONLY
+        context.readonly = True
 
     @classmethod
     def set_msg(cls, sender: Optional['Address'] = None, value: int = 0):

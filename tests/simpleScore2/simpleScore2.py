@@ -38,7 +38,7 @@ class SimpleScore2(IconScoreBase):
 
     @external
     def setValue(self, value: str):
-        self.value.set(value)
+        self._setValue(value)
 
         self.SetValue(value)
 
@@ -95,7 +95,7 @@ class SimpleScore2(IconScoreBase):
 
     @external(readonly=True)
     def write_on_readonly(self) -> str:
-        self.value.set('3')
+        self._setValue('3')
         return 'd'
 
     # This method is for understanding the ScoreTestCase.set_msg method.
@@ -133,3 +133,6 @@ class SimpleScore2(IconScoreBase):
     @external
     def simple_json_dumps(self) -> str:
         return json_dumps({"simple": "value"})
+
+    def _setValue(self, value: str):
+        self.value.set(value)
