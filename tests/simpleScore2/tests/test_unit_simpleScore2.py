@@ -203,6 +203,11 @@ class TestSimple(ScoreTestCase):
         score2_balance = self.get_balance(self.score2.address)
         self.assertEqual(score2_balance, 0)
 
+    def test_call_payable_in_payable(self):
+        # transfer icx only once
+        donation_value = 10**20
+        self.set_msg(self.test_account3, donation_value)
+
         self.score2.call_donate_payable()
         score2_balance = self.get_balance(self.score2.address)
         self.assertEqual(score2_balance, donation_value)
