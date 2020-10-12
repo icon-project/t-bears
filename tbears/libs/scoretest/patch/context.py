@@ -71,6 +71,7 @@ def get_default_context():
     mock_context.icon_score_mapper = score_mapper
     mock_context.validate_score_blacklist = Mock(return_value=True)
     mock_context.get_icon_score = get_icon_score
+    mock_context.method_flag_trace = []
     return mock_context
 
 

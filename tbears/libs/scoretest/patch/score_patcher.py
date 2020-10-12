@@ -102,7 +102,7 @@ def patch_score_method(method):
     @wraps(method)
     def patched(*args, **kwargs):
         context: 'Mock' = Context.get_context()
-        method_flag = get_score_flag(method)
+        bottom_method_flag = method_flag = get_score_flag(method)
         _, method_name = method.__qualname__.split('.')
         context.current_address = method.__self__.address
 
@@ -110,18 +110,18 @@ def patch_score_method(method):
             if not (method_flag & ScoreFlag.PAYABLE) and context.msg.value > 0:
                 raise InvalidPayableException(f"This method is not payable")
 
-        if method_flag & ScoreFlag.READONLY:
+        if len(context.method_flag_trace) > 0:
+            bottom_method_flag = context.method_flag_trace[0]
+        if bottom_method_flag & ScoreFlag.READONLY:
             Context._set_query_context(context)
-        elif method_flag is not ScoreFlag.NONE or method_name in ("on_install", "on_update"):
+        else:
             Context._set_invoke_context(context)
-        if method_flag & ScoreFlag.PAYABLE:
+        if bottom_method_flag & ScoreFlag.PAYABLE:
             IcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
 
+        context.method_flag_trace.append(method_flag)
         result = method(*args, **kwargs)
-        if method_flag & ScoreFlag.READONLY:
-            # set context to `invoke context` after readonly method called
-            # for general method. general method can write value
-            Context._set_invoke_context(context)
+        context.method_flag_trace.pop()
         return result
 
     return patched
