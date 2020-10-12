@@ -141,3 +141,22 @@ class SimpleScore2(IconScoreBase):
         value = self.getValue()
         self.setValue(value * 2)
         return value
+
+    @payable
+    def donate(self):
+        pass
+
+    @payable
+    def call_donate_payable(self):
+        self.donate()
+
+    def call_donate(self):
+        self.donate()
+
+    @external
+    def call_donate_external(self):
+        self.donate()
+
+    @external(readonly=True)
+    def call_donate_readonly(self):
+        self.donate()

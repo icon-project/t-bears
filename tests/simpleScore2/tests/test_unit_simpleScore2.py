@@ -175,3 +175,34 @@ class TestSimple(ScoreTestCase):
         self.score2.setValue("value")
         self.score2.general_method()
         self.assertEqual("value"*2, self.score2.getValue())
+
+    def test_payable(self):
+        score2_balance = self.get_balance(self.score2.address)
+        self.assertEqual(score2_balance, 0)
+        donation_value = 10**20
+        self.set_msg(self.test_account3, donation_value)
+        self.score2.donate()
+        score2_balance = self.get_balance(self.score2.address)
+        self.assertEqual(score2_balance, donation_value)
+
+    def test_call_payable_in_none_payable(self):
+        score2_balance = self.get_balance(self.score2.address)
+        self.assertEqual(score2_balance, 0)
+        donation_value = 10**20
+
+        self.set_msg(self.test_account3, donation_value)
+        self.score2.call_donate()
+        score2_balance = self.get_balance(self.score2.address)
+        self.assertEqual(score2_balance, 0)
+
+        self.score2.call_donate_external()
+        score2_balance = self.get_balance(self.score2.address)
+        self.assertEqual(score2_balance, 0)
+
+        self.score2.call_donate_readonly()
+        score2_balance = self.get_balance(self.score2.address)
+        self.assertEqual(score2_balance, 0)
+
+        self.score2.call_donate_payable()
+        score2_balance = self.get_balance(self.score2.address)
+        self.assertEqual(score2_balance, donation_value)

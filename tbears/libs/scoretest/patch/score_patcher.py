@@ -116,7 +116,7 @@ def patch_score_method(method):
             Context._set_query_context(context)
         else:
             Context._set_invoke_context(context)
-        if bottom_method_flag & ScoreFlag.PAYABLE:
+        if bottom_method_flag & ScoreFlag.PAYABLE and len(context.method_flag_trace) is 0:
             IcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
 
         context.method_flag_trace.append(method_flag)
