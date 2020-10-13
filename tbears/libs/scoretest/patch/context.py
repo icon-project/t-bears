@@ -71,6 +71,7 @@ def get_default_context():
     mock_context.icon_score_mapper = score_mapper
     mock_context.validate_score_blacklist = Mock(return_value=True)
     mock_context.get_icon_score = get_icon_score
+    mock_context.method_flag_trace = []
     return mock_context
 
 
@@ -96,11 +97,13 @@ class Context:
         context.type = IconScoreContextType.INVOKE
         context.event_logs = []
         context.func_type = IconScoreFuncType.WRITABLE
+        context.readonly = False
 
     @staticmethod
     def _set_query_context(context):
         context.type = IconScoreContextType.QUERY
         context.func_type = IconScoreFuncType.READONLY
+        context.readonly = True
 
     @classmethod
     def set_msg(cls, sender: Optional['Address'] = None, value: int = 0):

@@ -27,7 +27,6 @@ from iconservice import InterfaceScore
 from iconservice.base.address import Address, AddressPrefix
 from iconservice.base.exception import InvalidPayableException, InvalidInterfaceException, InvalidRequestException
 from iconservice.database.db import IconScoreDatabase
-from iconservice.icon_constant import IconScoreFuncType, IconScoreContextType
 from iconservice.iconscore.icon_score_base2 import _create_address_with_key, _recover_key
 from iconservice.iconscore.icon_score_constant import FORMAT_IS_NOT_DERIVED_OF_OBJECT, ScoreFlag
 from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
@@ -103,7 +102,7 @@ def patch_score_method(method):
     @wraps(method)
     def patched(*args, **kwargs):
         context: 'Mock' = Context.get_context()
-        method_flag = get_score_flag(method)
+        bottom_method_flag = method_flag = get_score_flag(method)
         _, method_name = method.__qualname__.split('.')
         context.current_address = method.__self__.address
 
@@ -111,16 +110,18 @@ def patch_score_method(method):
             if not (method_flag & ScoreFlag.PAYABLE) and context.msg.value > 0:
                 raise InvalidPayableException(f"This method is not payable")
 
-        if method_flag & ScoreFlag.READONLY == ScoreFlag.READONLY:
+        if len(context.method_flag_trace) > 0:
+            bottom_method_flag = context.method_flag_trace[0]
+        if bottom_method_flag & ScoreFlag.READONLY:
             Context._set_query_context(context)
         else:
             Context._set_invoke_context(context)
-        if method_flag & ScoreFlag.PAYABLE:
+        if bottom_method_flag & ScoreFlag.PAYABLE and len(context.method_flag_trace) is 0:
             IcxEngine.transfer(context, context.msg.sender, context.current_address, context.msg.value)
 
-        context.readonly = context.type == IconScoreContextType.QUERY or context.func_type == IconScoreFuncType.READONLY
-
+        context.method_flag_trace.append(method_flag)
         result = method(*args, **kwargs)
+        context.method_flag_trace.pop()
         return result
 
     return patched
@@ -203,8 +204,7 @@ class ScorePatcher:
         methods = set()
         for method in custom_methods:
             flag = get_score_flag(method)
-            if is_any_flag_on(flag, ScoreFlag.FUNC | ScoreFlag.EVENTLOG) or \
-                    method.__name__ in ("on_install", "on_update"):
+            if flag is ScoreFlag.NONE or is_any_flag_on(flag, ScoreFlag.FUNC):
                 methods.add(method)
 
         methods.add(getattr(score, 'fallback'))
