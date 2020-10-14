@@ -4,11 +4,30 @@ LISTEN_PORT=9000
 RC_REPO=icon-project/rewardcalculator
 RC_TAG=$(shell curl --silent "https://api.github.com/repos/$(RC_REPO)/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
-build:
-	docker build -t $(IMAGE_TAG) --build-arg RC_TAG=$(RC_TAG) .
+make_env:
+	@echo "RC_REPO=$(RC_REPO)" > .env
+	@echo "VERSION=$(VERSION)" >> .env
+	@echo "IMAGE_TAG=iconloop/tbears:$(VERSION)" >> .env
+	@echo "LISTEN_PORT=9000" >> .env
+	@echo "RC_TAG=$(RC_TAG)" >> .env
 
-run:
-	docker run -it -p $(LISTEN_PORT):9000 --rm $(IMAGE_TAG)
+build:
+	@docker-compose build
 
 shell:
-	docker run -it -p $(LISTEN_PORT):9000 --rm --entrypoint /bin/bash $(IMAGE_TAG)
+	@docker run -it --rm --network=host --entrypoint /bin/bash $(IMAGE_TAG)
+
+start_mq:
+	@docker-compose up -d rabbitmq
+
+start_tbears:
+	@docker-compose up -d tbears
+
+start:
+	@docker-compose up -d
+
+start_cli:
+	@docker-compose exec tbears bash
+
+destroy:
+	@docker-compose down

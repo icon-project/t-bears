@@ -45,5 +45,6 @@
     "blockConfirmEmpty": true,
     "mainPRepCount": 4,
     "iissCalculatePeriod": 30,
-    "termPeriod": 30 
+    "termPeriod": 30,
+    "amqpTarget": "rabbitmq"
 }

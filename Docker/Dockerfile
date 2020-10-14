@@ -17,7 +17,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     libc-dev \
     pkg-config \
-    rabbitmq-server \
     vim-tiny \
     lsof \
     && rm -rf /var/lib/apt/lists/*
@@ -25,9 +24,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /work
 COPY --from=builder /rewardcalculator/bin/icon_rc /usr/local/bin/
 COPY --from=builder /rewardcalculator/bin/rctool /usr/local/bin/
-COPY entry.sh /usr/local/bin
+
 COPY tbears_server_config.json .
 ADD genesis genesis
+ADD wait-for-amq.py .
 
 RUN ./genesis/install.sh \
     && rm -rf /root/.cache/pip
@@ -35,4 +35,8 @@ RUN ./genesis/init.sh \
     && rm -rf genesis
 
 EXPOSE 9000
+
+COPY entry.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/entry.sh
+
 ENTRYPOINT ["entry.sh"]

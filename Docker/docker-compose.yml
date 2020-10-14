@@ -1,0 +1,24 @@
+version: "3.5"
+
+services:
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - 5672
+
+  tbears:
+    image: ${IMAGE_TAG:-127.0.0.1:5000/icon/tbears:latest}
+    tty: true
+    build:
+      context: .
+      args:
+        - RC_TAG=${RC_TAG}
+    entrypoint: sh -c "python wait-for-amq.py; [ $$? -eq 0 ] && entry.sh"
+    environment:
+      - AMQ_HOST=rabbitmq
+      - AMQ_HOST_MAX_RETRIES=10
+      - AMQ_HOST_RETRY_DELAY=1
+    ports:
+      - 9000:9000
+    links:
+      - rabbitmq:rabbitmq
