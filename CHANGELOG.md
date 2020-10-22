@@ -1,5 +1,10 @@
 # ChangeLog - T-Bears
 
+## 1.7.2 - 2020-10-22
+* Update `sync_mainnet` command
+    * add revision 10, 11
+* Fix SCORE unittest Framework (#81)
+
 ## 1.7.1 - 2020-08-10
 * Fix `sync_mainnet` command
     * Fix invalid governance SCORE 1.1.1
