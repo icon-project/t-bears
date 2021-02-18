@@ -27,7 +27,7 @@ from iconsdk.exception import KeyStoreException, DataTypeException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
-from iconsdk.utils import add_0x_prefix
+from iconsdk.utils.hexadecimal import add_0x_prefix
 from iconsdk.utils.convert_type import convert_hex_str_to_int, convert_bytes_to_hex_str
 from iconsdk.utils.templates import BLOCK_0_3_VERSION
 from iconsdk.wallet.wallet import KeyWallet
