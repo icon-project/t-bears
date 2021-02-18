@@ -1,14 +1,14 @@
-dist: xenial
+language: python
+dist: bionic
+python:
+  - "3.7"
+
 addons:
   apt:
     packages:
       - rabbitmq-server
 services:
   - rabbitmq
-
-language: python
-python:
-  - "3.7"
 
 branches:
   only:
@@ -27,7 +27,7 @@ script:
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
-  user: iconfoundation
+  username: $PYPI_USER
   password: $PYPI_PW
   on:
-    branch: master
+    tags: true
