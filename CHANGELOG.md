@@ -1,5 +1,9 @@
 # ChangeLog - T-Bears
 
+## 1.8.0 - 2021-02-25
+* Update `sync_mainnet` command
+    * add revision 12
+
 ## 1.7.2 - 2020-10-22
 * Update `sync_mainnet` command
     * add revision 10, 11
