@@ -44,6 +44,7 @@ from iconservice.icon_service_engine import IconServiceEngine
 from iconservice.iconscore.icon_score_context import IconScoreContext
 from iconservice.iiss.reward_calc.ipc.reward_calc_proxy import RewardCalcProxy, CalculateDoneNotification
 from iconservice.utils import to_camel_case
+from iconservice.utils.test_env import start_testing
 
 from tbears.config.tbears_config import TEST_ACCOUNTS, TEST1_PRIVATE_KEY, tbears_server_config, TConfigKey as TbConf
 
@@ -95,7 +96,6 @@ class IconIntegrateTestBase(TestCase):
               block_confirm_interval: int = tbears_server_config[TbConf.BLOCK_CONFIRM_INTERVAL],
               network_only: bool = False,
               network_delay_ms: int = tbears_server_config[TbConf.NETWORK_DELAY_MS]):
-
         self._block_height = -1
         self._prev_block_hash = None
         self._block_confirm_interval = block_confirm_interval
@@ -105,6 +105,7 @@ class IconIntegrateTestBase(TestCase):
         if self._network_only:
             return
 
+        start_testing()
         root_clear(self._score_root_path, self._state_db_root_path)
 
         config = IconConfig("", default_icon_config)
