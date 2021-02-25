@@ -139,10 +139,10 @@ class CommandServer(object):
         # write server configuration
         self.write_server_conf(conf)
 
-        print(f'Started tbears service successfully')
-
         if self._check_revision() < 0:
             print(f"WARNING: Too low revision. To sync with the mainnet, run sync_mainnet command.")
+
+        print(f'Started tbears service successfully')
 
     def stop(self, _conf: dict):
         """ Stop tbears service

@@ -346,10 +346,16 @@ class Sync:
         return self.icon_service.send_transaction(signed_transaction)
 
     def _get_revision(self) -> dict:
-        try:
-            return self._call(to=GOVERNANCE_ADDRESS, method="getRevision")
-        except JSONRPCException:
-            return {"code": "0x0", "name": "0.0.0"}
+        repeat = 0
+        while True:
+            try:
+                return self._call(to=GOVERNANCE_ADDRESS, method="getRevision")
+            except JSONRPCException:
+                if repeat != 10:
+                    repeat += 1
+                    sleep(1)
+                else:
+                    return {"code": "0x0", "name": "0.0.0"}
 
     def _register_proposal_tx(self,
                               key_wallet: 'KeyWallet',
