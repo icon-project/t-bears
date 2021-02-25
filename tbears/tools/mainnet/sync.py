@@ -135,6 +135,13 @@ sync_list = [
             "name": "1.7.7"
         }
     },
+    {
+        "type": SyncType.REVISION,
+        "params": {
+            "code": "0xc",
+            "name": "1.8.4"
+        }
+    },
 ]
 
 
