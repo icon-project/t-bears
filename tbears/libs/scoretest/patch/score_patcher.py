@@ -26,7 +26,7 @@ from unittest.mock import Mock, patch
 from iconservice import InterfaceScore
 from iconservice.base.address import Address, AddressPrefix
 from iconservice.base.exception import InvalidPayableException, InvalidInterfaceException, InvalidRequestException
-from iconservice.database.db import IconScoreDatabase
+from iconservice.iconscore.db import IconScoreDatabase
 from iconservice.iconscore.icon_score_base2 import _create_address_with_key, _recover_key
 from iconservice.iconscore.icon_score_constant import FORMAT_IS_NOT_DERIVED_OF_OBJECT, ScoreFlag
 from iconservice.iconscore.icon_score_context_util import IconScoreContextUtil
