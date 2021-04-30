@@ -61,7 +61,7 @@ ICON SCORE development and execution requires following environments :
   * Windows is not supported.
   
 * Python
-  * Make a virtualenv for Python 3.6.5+ (3.7 is also supported)
+  * Make a virtualenv for Python 3.7
   * Check your Python version
     ```bash
     $ python3 -V
