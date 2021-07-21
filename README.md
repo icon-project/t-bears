@@ -71,6 +71,7 @@ ICON SCORE development and execution requires following environments :
 **Softwares**
 
 * RabbitMQ: 3.7 and above. [homepage](https://www.rabbitmq.com/)
+* Reward calculator. [homepage](https://github.com/icon-project/rewardcalculator)
 
 **Libraries**
 
@@ -92,6 +93,12 @@ $ brew services start rabbitmq
 # Create a working directory
 $ mkdir work
 $ cd work
+
+# install Reward calculator
+$ git clone https://github.com/icon-project/rewardcalculator.git
+$ cd rewardcalculator
+$ make
+$ make install
 
 # setup the python virtualenv development environment
 $ pip3 install virtualenv
@@ -115,6 +122,12 @@ $ sudo service rabbitmq-server start
 # Create a working directory
 $ mkdir work
 $ cd work
+
+# install Reward calculator
+$ git clone https://github.com/icon-project/rewardcalculator.git
+$ cd rewardcalculator
+$ make
+$ make install
 
 # Setup the python virtualenv development environment
 $ virtualenv -p python3 .
