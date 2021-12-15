@@ -1,3 +1,7 @@
+# This repository archived. Refer to ICON 2.0 aka [goloop](https://github.com/icon-project/goloop).
+
+----
+
 # ICON SCORE Development Suite (T-Bears) Tutorial
 
 This tutorial is intended to give an introduction to using T-Bears. This guide will walk you through the basics of setting up your development environment and the usage of T-Bears CLI commands.
